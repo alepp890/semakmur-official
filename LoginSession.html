@@ -46,12 +46,12 @@
             line-height: 1.6;
         }
 
-        /* Modern Wix-Style Card */
+        /* Modern Glassmorphic Card */
         .card-custom {
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.03);
-            border-radius: 1.25rem;
+            box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.3);
+            border-radius: 1.5rem;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
@@ -62,12 +62,12 @@
         }
         .btn-gradient-dark:hover {
             background: linear-gradient(135deg, #334155 0%, #1E293B 100%);
-            box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.3);
+            box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.4);
         }
 
         .loader-spinner {
             border: 4px solid #CBD5E1; 
-            border-top: 4px solid #F59E0B;
+            border-top: 4px solid #2563EB;
             border-radius: 50%; 
             width: 44px; 
             height: 44px; 
@@ -89,8 +89,29 @@
 
     <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
+    <!-- TETINGKAP MODAL PILIHAN DASHBOARD (KHAS UNTUK SISTEM_AKSES = ADMIN) -->
+    <div id="admin-choice-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9990] flex items-center justify-center p-4 hidden">
+        <div class="card-custom w-full max-w-md p-6 bg-white text-center space-y-5 animate-scale-up">
+            <div class="w-14 h-14 bg-blue-50 text-brandAccent rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-blue-100">
+                ⚙️
+            </div>
+            <div>
+                <h3 class="text-lg font-black text-brandDark">Akses Pentadbir Dikesan</h3>
+                <p class="text-xs text-slate-500 font-medium mt-1">Sila pilih dashboard yang ingin anda akses untuk sesi ini:</p>
+            </div>
+            <div class="space-y-3 pt-2">
+                <button onclick="selectAdminDashboard('admin')" class="w-full py-3.5 px-4 bg-gradient-to-r from-brandNavy to-brandDark text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg hover:opacity-95 transition flex items-center justify-center gap-2">
+                    <span>⚙️</span> <span>Dashboard Pentadbir (Admin)</span>
+                </button>
+                <button onclick="selectAdminDashboard('guru')" class="w-full py-3.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs sm:text-sm rounded-2xl transition flex items-center justify-center gap-2 border border-slate-200">
+                    <span>👨‍🏫</span> <span>Dashboard Guru</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- KAD LOG MASUK UTAMA -->
-    <div class="card-custom w-full max-w-md p-8 relative z-10 mx-auto bg-white rounded-3xl shadow-2xl my-8">
+    <div class="card-custom w-full max-w-md p-8 relative z-10 mx-auto bg-white rounded-3xl my-8">
         
         <!-- Butang Kembali Ke Portal Awam -->
         <a href="index.html?mode=portal" class="absolute top-5 right-5 text-slate-400 hover:text-brandDark transition flex items-center gap-1 text-xs font-bold" title="Kembali ke Portal Awam">
@@ -102,14 +123,15 @@
             <div class="h-14 w-14 bg-gradient-to-tr from-brandDark via-brandNavy to-brandAccent text-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg border border-white/20">
                 <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             </div>
-            <h1 class="text-xl font-black text-brandDark">Log Masuk Pentadbir / Guru / Waris</h1>
-            <p class="text-xs text-slate-500 font-medium mt-1">Akses Sistem Pengurusan Dalaman Sekolah</p>
+            <h1 class="text-xl font-black text-brandDark">Log Masuk Portal Sekolah</h1>
+            <p class="text-xs text-slate-500 font-medium mt-1">Pusat Akses Warga Sekolah & Waris</p>
         </div>
 
-        <!-- OPSI 1: BUTANG LOG MASUK AKAUN MOE (GOOGLE AUTH) -->
+        <!-- 1. BUTANG UTAMA: LOG MASUK AKAUN MOE (GOOGLE AUTH) -->
         <div class="mb-6">
-            <button onclick="loginWithMOE()" type="button" class="w-full py-3 px-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 text-slate-700 font-extrabold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-3 group">
-                <svg class="w-5 h-5" viewBox="0 0 24 24">
+            <button onclick="loginWithMOE()" type="button" class="w-full py-3.5 px-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 text-slate-700 font-extrabold text-xs sm:text-sm shadow-xs transition flex items-center justify-center gap-3 group">
+                <!-- Google SVG Icon Rasmi -->
+                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
@@ -119,44 +141,16 @@
             </button>
             <div class="relative flex py-4 items-center">
                 <div class="flex-grow border-t border-slate-200"></div>
-                <span class="flex-shrink mx-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Atau Manual ID</span>
+                <span class="flex-shrink mx-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Atau Guna E-mel</span>
                 <div class="flex-grow border-t border-slate-200"></div>
             </div>
         </div>
 
-        <!-- OPSI 2: BORANG LOG MASUK MANUAL (USERNAME & PASSWORD) -->
-        <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
-            <!-- PILIHAN PERANAN (CHECKBOX / RADIO SELECTION TILES) -->
+        <!-- 2. BORANG LOG MASUK MANUAL (EMEL & KATA LALUAN) -->
+        <form id="login-form" onsubmit="handleManualLogin(event)" class="space-y-4">
             <div>
-                <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-2">Pilih Peranan / Akses *</label>
-                <div class="grid grid-cols-3 gap-2">
-                    <label class="cursor-pointer">
-                        <input type="radio" name="login-role-option" value="admin" checked class="peer hidden">
-                        <div class="p-2.5 text-center rounded-xl border border-slate-200 bg-slate-50 peer-checked:bg-brandNavy peer-checked:text-white peer-checked:border-brandNavy transition shadow-xs">
-                            <span class="block text-base mb-0.5">⚙️</span>
-                            <span class="block text-[11px] font-black">Admin</span>
-                        </div>
-                    </label>
-                    <label class="cursor-pointer">
-                        <input type="radio" name="login-role-option" value="guru" class="peer hidden">
-                        <div class="p-2.5 text-center rounded-xl border border-slate-200 bg-slate-50 peer-checked:bg-brandNavy peer-checked:text-white peer-checked:border-brandNavy transition shadow-xs">
-                            <span class="block text-base mb-0.5">👨‍🏫</span>
-                            <span class="block text-[11px] font-black">Guru</span>
-                        </div>
-                    </label>
-                    <label class="cursor-pointer">
-                        <input type="radio" name="login-role-option" value="parent" class="peer hidden">
-                        <div class="p-2.5 text-center rounded-xl border border-slate-200 bg-slate-50 peer-checked:bg-brandNavy peer-checked:text-white peer-checked:border-brandNavy transition shadow-xs">
-                            <span class="block text-base mb-0.5">👨‍gsub</span>
-                            <span class="block text-[11px] font-black">Ibu Bapa</span>
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-1.5">ID Pengguna</label>
-                <input type="text" id="login-user" required placeholder="Contoh: admin / guru / parent" class="w-full px-4 py-3 rounded-2xl border border-brandBorder focus:border-brandAccent focus:ring-2 focus:ring-brandAccent/20 outline-none bg-slate-50 text-sm font-medium">
+                <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-1.5">Alamat E-mel / ID Pengguna</label>
+                <input type="email" id="login-email" required placeholder="Contoh: nama@sekolah.edu.my / waris@gmail.com" class="w-full px-4 py-3 rounded-2xl border border-brandBorder focus:border-brandAccent focus:ring-2 focus:ring-brandAccent/20 outline-none bg-slate-50 text-sm font-medium">
             </div>
             <div>
                 <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-1.5">Kata Laluan</label>
@@ -179,7 +173,9 @@
 
     <!-- LOGIK JAVASCRIPT LOG MASUK -->
     <script>
-        function showLoader(txt = "Memuatkan data...") {
+        let PENDING_ADMIN_USER = null;
+
+        function showLoader(txt = "Memuatkan sistem...") {
             const loader = document.getElementById('global-loader');
             const lTxt = document.getElementById('loader-text');
             if (lTxt) lTxt.innerText = txt;
@@ -200,81 +196,142 @@
             toast.innerHTML = `<span>${type==='success'?'✅':'⚠️'}</span><span>${msg}</span>`;
             container.appendChild(toast);
 
-            setTimeout(() => { toast.remove(); }, 4000);
+            setTimeout(() => { toast.remove(); }, 4500);
         }
 
-        /* 1. FUNGSI LOG MASUK GOOGLE MOE */
+        /* 1. SEMAKAN SESI PANTAS (FAST LOGIN / CACHED SESSION) */
+        function checkFastLogin() {
+            const savedUser = localStorage.getItem('SAVED_MOE_USER') || sessionStorage.getItem('CURRENT_USER');
+            if (savedUser) {
+                try {
+                    const user = JSON.parse(savedUser);
+                    if (user && user.email) {
+                        if (user.is_admin) {
+                            PENDING_ADMIN_USER = user;
+                            document.getElementById('admin-choice-modal').classList.remove('hidden');
+                            return;
+                        } else if (user.role === 'guru') {
+                            window.location.href = 'DashboardGuru.html';
+                            return;
+                        } else if (user.role === 'parent') {
+                            window.location.href = 'DashboardParent.html';
+                            return;
+                        } else if (user.role === 'admin') {
+                            window.location.href = 'DashboardAdmin.html';
+                            return;
+                        }
+                    }
+                } catch(e) {}
+            }
+            checkUrlParameters();
+        }
+
+        /* 2. LOG MASUK MOE GOOGLE AUTH */
         function loginWithMOE() {
             showLoader("Melencongkan ke pengesahan Google MOE...");
-            // Melencong terus ke Google Apps Script Web App untuk membaca Session.getActiveUser().getEmail()
             window.location.href = `${WEB_APP_URL}?action=googleLogin`;
         }
 
-        /* 2. FUNGSI MENYEMAK RALAT ATAS-TALIAN (URL PARAMETERS) */
-        function checkUrlError() {
+        /* 3. SEMAKAN PARAMETER RALAT & DATA TERUS DARI URL */
+        function checkUrlParameters() {
             const urlParams = new URLSearchParams(window.location.search);
             const err = urlParams.get('error');
-            
-            if (err === 'email_not_registered') {
-                showToast("Akaun MOE anda tidak dijumpai dalam senarai Profil Guru atau Profil Murid sekolah!", "error");
+            const authData = urlParams.get('authData');
+
+            if (err === 'not_moe_email') {
+                showToast("Anda tidak menggunakan e-mel MOE. Sila log masuk menggunakan ruang borang e-mel di bawah.", "error");
+            } else if (err === 'email_not_found') {
+                showToast("Akaun e-mel MOE anda tidak dijumpai dalam pangkalan data sistem. Sila log masuk menggunakan e-mel lain atau gunakan ruang borang di bawah.", "error");
             } else if (err === 'no_email') {
-                showToast("Pengesahan Google gagal atau emel tidak dapat dikesan.", "error");
+                showToast("Pengesahan Google gagal atau e-mel tidak dapat dikesan.", "error");
+            }
+
+            if (authData) {
+                try {
+                    const user = JSON.parse(decodeURIComponent(authData));
+                    if (user) {
+                        localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
+                        sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+
+                        if (user.is_admin) {
+                            PENDING_ADMIN_USER = user;
+                            document.getElementById('admin-choice-modal').classList.remove('hidden');
+                        } else if (user.role === 'guru') {
+                            window.location.href = 'DashboardGuru.html';
+                        } else if (user.role === 'parent') {
+                            window.location.href = 'DashboardParent.html';
+                        }
+                    }
+                } catch(e) {}
             }
         }
 
-        /* 3. LOG MASUK MANUAL (USERNAME & PASSWORD) */
-        async function sendPostRequest(actionName, payloadData) {
-            showLoader("Pengesahan akaun...");
+        /* 4. PILIHAN DASHBOARD KHAS ADMIN */
+        function selectAdminDashboard(choice) {
+            if (!PENDING_ADMIN_USER) return;
+            
+            const userToSave = { ...PENDING_ADMIN_USER };
+            if (choice === 'admin') {
+                userToSave.role = 'admin';
+                sessionStorage.setItem('CURRENT_USER', JSON.stringify(userToSave));
+                window.location.href = 'DashboardAdmin.html';
+            } else {
+                userToSave.role = 'guru';
+                sessionStorage.setItem('CURRENT_USER', JSON.stringify(userToSave));
+                window.location.href = 'DashboardGuru.html';
+            }
+        }
+
+        /* 5. LOG MASUK MANUAL (EMEL & KATA LALUAN) */
+        async function handleManualLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-pass').value.trim();
+
+            showLoader("Menyemak padanan e-mel & kata laluan...");
             try {
                 const response = await fetch(WEB_APP_URL, {
                     method: 'POST',
                     body: JSON.stringify({
-                        action: actionName,
-                        data: payloadData
+                        action: 'manualLogin',
+                        data: { email, password }
                     })
                 });
 
-                const result = await response.json();
+                const res = await response.json();
                 hideLoader();
-                return result;
+
+                if (res.success) {
+                    const user = res.user;
+                    localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
+                    sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+
+                    showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
+
+                    setTimeout(() => {
+                        if (user.is_admin) {
+                            PENDING_ADMIN_USER = user;
+                            document.getElementById('admin-choice-modal').classList.remove('hidden');
+                        } else if (user.role === 'guru') {
+                            window.location.href = 'DashboardGuru.html';
+                        } else if (user.role === 'parent') {
+                            window.location.href = 'DashboardParent.html';
+                        } else if (user.role === 'admin') {
+                            window.location.href = 'DashboardAdmin.html';
+                        }
+                    }, 500);
+                } else {
+                    showToast(res.error || "Log masuk gagal. Sila semak e-mel dan kata laluan anda.", "error");
+                }
             } catch (err) {
                 hideLoader();
-                console.error("Fetch POST Error:", err);
-                showToast("Ralat sambungan ke backend Google Apps Script!", "error");
-                return { success: false, error: err.toString() };
+                console.error("Manual Login Error:", err);
+                showToast("Ralat sambungan ke pangkalan data!", "error");
             }
         }
 
-        async function handleLogin(e) {
-            e.preventDefault();
-            const username = document.getElementById('login-user').value.trim();
-            const password = document.getElementById('login-pass').value.trim();
-            const roleOption = document.querySelector('input[name="login-role-option"]:checked')?.value || 'admin';
-
-            const res = await sendPostRequest('login', { username, password, role: roleOption });
-            if (res.success) {
-                sessionStorage.setItem('CURRENT_USER', JSON.stringify(res.user));
-                showToast(`Selamat datang, ${res.user.name || 'Pengguna'}!`);
-
-                const userRole = (res.user.role || '').toLowerCase();
-                setTimeout(() => {
-                    if (userRole === 'admin') {
-                        window.location.href = 'DashboardAdmin.html';
-                    } else if (userRole === 'guru') {
-                        window.location.href = 'DashboardGuru.html';
-                    } else if (userRole === 'parent' || userRole === 'ibubapa') {
-                        window.location.href = 'DashboardParent.html';
-                    } else {
-                        window.location.href = 'index.html?mode=portal';
-                    }
-                }, 800);
-
-            } else {
-                showToast(res.error || "ID Pengguna, Kata Laluan atau Peranan Salah!", "error");
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', checkUrlError);
+        /* AMBIL BACAAN SESI PADA MULANNYA */
+        window.addEventListener('DOMContentLoaded', checkFastLogin);
     </script>
 </body>
 </html>
