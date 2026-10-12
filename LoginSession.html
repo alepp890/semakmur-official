@@ -173,165 +173,187 @@
 
     <!-- LOGIK JAVASCRIPT LOG MASUK -->
     <script>
-        let PENDING_ADMIN_USER = null;
+    let PENDING_ADMIN_USER = null;
 
-        function showLoader(txt = "Memuatkan sistem...") {
-            const loader = document.getElementById('global-loader');
-            const lTxt = document.getElementById('loader-text');
-            if (lTxt) lTxt.innerText = txt;
-            if (loader) loader.classList.remove('hidden');
-        }
+    function showLoader(txt = "Memuatkan sistem...") {
+        const loader = document.getElementById('global-loader');
+        const lTxt = document.getElementById('loader-text');
+        if (lTxt) lTxt.innerText = txt;
+        if (loader) loader.classList.remove('hidden');
+    }
 
-        function hideLoader() {
-            const loader = document.getElementById('global-loader');
-            if (loader) loader.classList.add('hidden');
-        }
+    function hideLoader() {
+        const loader = document.getElementById('global-loader');
+        if (loader) loader.classList.add('hidden');
+    }
 
-        function showToast(msg, type = 'success') {
-            const container = document.getElementById('toast-container');
-            if(!container) return;
+    function showToast(msg, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if(!container) return;
 
-            const toast = document.createElement('div');
-            toast.className = `toast-enter pointer-events-auto px-4 py-3 rounded-2xl text-xs font-extrabold text-white shadow-xl flex items-center gap-2 ${type==='success'?'bg-emerald-600':'bg-red-600'}`;
-            toast.innerHTML = `<span>${type==='success'?'✅':'⚠️'}</span><span>${msg}</span>`;
-            container.appendChild(toast);
+        const toast = document.createElement('div');
+        toast.className = `toast-enter pointer-events-auto px-4 py-3 rounded-2xl text-xs font-extrabold text-white shadow-xl flex items-center gap-2 ${type==='success'?'bg-emerald-600':'bg-red-600'}`;
+        toast.innerHTML = `<span>${type==='success'?'✅':'⚠️'}</span><span>${msg}</span>`;
+        container.appendChild(toast);
 
-            setTimeout(() => { toast.remove(); }, 4500);
-        }
+        setTimeout(() => { toast.remove(); }, 4500);
+    }
 
-        /* 1. SEMAKAN SESI PANTAS (FAST LOGIN / CACHED SESSION) */
-        function checkFastLogin() {
-            const savedUser = localStorage.getItem('SAVED_MOE_USER') || sessionStorage.getItem('CURRENT_USER');
-            if (savedUser) {
-                try {
-                    const user = JSON.parse(savedUser);
-                    if (user && user.email) {
-                        if (user.is_admin) {
-                            PENDING_ADMIN_USER = user;
-                            document.getElementById('admin-choice-modal').classList.remove('hidden');
-                            return;
-                        } else if (user.role === 'guru') {
-                            window.location.href = 'DashboardGuru.html';
-                            return;
-                        } else if (user.role === 'parent') {
-                            window.location.href = 'DashboardParent.html';
-                            return;
-                        } else if (user.role === 'admin') {
-                            window.location.href = 'DashboardAdmin.html';
-                            return;
-                        }
+    /* 1. LOG MASUK MOE GOOGLE AUTH VIA POP-UP WINDOW */
+    function loginWithMOE() {
+        showLoader("Membuka tetingkap pengesahan Google MOE...");
+        
+        // Tetapan saiz & posisi tetingkap pop-up di tengah skrin
+        const width = 500;
+        const height = 650;
+        const left = (window.screen.width / 2) - (width / 2);
+        const top = (window.screen.height / 2) - (height / 2);
+
+        const popup = window.open(
+            `${WEB_APP_URL}?action=googleLogin`,
+            'GoogleMOEAuthPopup',
+            `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
+        );
+
+        // Semakan jika pengguna menutup tetingkap pop-up secara manual
+        const checkClosedTimer = setInterval(() => {
+            if (popup && popup.closed) {
+                clearInterval(checkClosedTimer);
+                hideLoader();
+            }
+        }, 1000);
+    }
+
+    /* 2. MENERIMA MESEJ DARIPADA TETINGKAP POP-UP (POSTMESSAGE) */
+    window.addEventListener('message', function(event) {
+        if (!event.data || typeof event.data !== 'object') return;
+        const data = event.data;
+
+        // Sahkan mesej datang daripada proses Google Login
+        if (data.type === 'MOE_AUTH_RESULT') {
+            hideLoader();
+
+            if (data.success) {
+                const user = data.user;
+                localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
+                sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+
+                showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
+
+                setTimeout(() => {
+                    if (user.is_admin) {
+                        PENDING_ADMIN_USER = user;
+                        document.getElementById('admin-choice-modal').classList.remove('hidden');
+                    } else if (user.role === 'guru') {
+                        window.location.href = 'DashboardGuru.html';
+                    } else if (user.role === 'parent') {
+                        window.location.href = 'DashboardParent.html';
                     }
-                } catch(e) {}
-            }
-            checkUrlParameters();
-        }
+                }, 500);
 
-        /* 2. LOG MASUK MOE GOOGLE AUTH */
-        function loginWithMOE() {
-            showLoader("Melencongkan ke pengesahan Google MOE...");
-            window.location.href = `${WEB_APP_URL}?action=googleLogin`;
-        }
-
-        /* 3. SEMAKAN PARAMETER RALAT & DATA TERUS DARI URL */
-        function checkUrlParameters() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const err = urlParams.get('error');
-            const authData = urlParams.get('authData');
-
-            if (err === 'not_moe_email') {
-                showToast("Anda tidak menggunakan e-mel MOE. Sila log masuk menggunakan ruang borang e-mel di bawah.", "error");
-            } else if (err === 'email_not_found') {
-                showToast("Akaun e-mel MOE anda tidak dijumpai dalam pangkalan data sistem. Sila log masuk menggunakan e-mel lain atau gunakan ruang borang di bawah.", "error");
-            } else if (err === 'no_email') {
-                showToast("Pengesahan Google gagal atau e-mel tidak dapat dikesan.", "error");
-            }
-
-            if (authData) {
-                try {
-                    const user = JSON.parse(decodeURIComponent(authData));
-                    if (user) {
-                        localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
-                        sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
-
-                        if (user.is_admin) {
-                            PENDING_ADMIN_USER = user;
-                            document.getElementById('admin-choice-modal').classList.remove('hidden');
-                        } else if (user.role === 'guru') {
-                            window.location.href = 'DashboardGuru.html';
-                        } else if (user.role === 'parent') {
-                            window.location.href = 'DashboardParent.html';
-                        }
-                    }
-                } catch(e) {}
-            }
-        }
-
-        /* 4. PILIHAN DASHBOARD KHAS ADMIN */
-        function selectAdminDashboard(choice) {
-            if (!PENDING_ADMIN_USER) return;
-            
-            const userToSave = { ...PENDING_ADMIN_USER };
-            if (choice === 'admin') {
-                userToSave.role = 'admin';
-                sessionStorage.setItem('CURRENT_USER', JSON.stringify(userToSave));
-                window.location.href = 'DashboardAdmin.html';
             } else {
-                userToSave.role = 'guru';
-                sessionStorage.setItem('CURRENT_USER', JSON.stringify(userToSave));
-                window.location.href = 'DashboardGuru.html';
-            }
-        }
-
-        /* 5. LOG MASUK MANUAL (EMEL & KATA LALUAN) */
-        async function handleManualLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-pass').value.trim();
-
-            showLoader("Menyemak padanan e-mel & kata laluan...");
-            try {
-                const response = await fetch(WEB_APP_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: 'manualLogin',
-                        data: { email, password }
-                    })
-                });
-
-                const res = await response.json();
-                hideLoader();
-
-                if (res.success) {
-                    const user = res.user;
-                    localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
-                    sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
-
-                    showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
-
-                    setTimeout(() => {
-                        if (user.is_admin) {
-                            PENDING_ADMIN_USER = user;
-                            document.getElementById('admin-choice-modal').classList.remove('hidden');
-                        } else if (user.role === 'guru') {
-                            window.location.href = 'DashboardGuru.html';
-                        } else if (user.role === 'parent') {
-                            window.location.href = 'DashboardParent.html';
-                        } else if (user.role === 'admin') {
-                            window.location.href = 'DashboardAdmin.html';
-                        }
-                    }, 500);
+                if (data.error === 'not_moe_email') {
+                    showToast("Anda tidak menggunakan e-mel MOE. Sila log masuk menggunakan ruang borang e-mel di bawah.", "error");
+                } else if (data.error === 'email_not_found') {
+                    showToast("Akaun e-mel MOE anda tidak dijumpai dalam pangkalan data sistem. Sila log masuk menggunakan e-mel lain atau gunakan ruang borang di bawah.", "error");
                 } else {
-                    showToast(res.error || "Log masuk gagal. Sila semak e-mel dan kata laluan anda.", "error");
+                    showToast("Pengesahan Google gagal atau e-mel tidak dapat dikesan.", "error");
                 }
-            } catch (err) {
-                hideLoader();
-                console.error("Manual Login Error:", err);
-                showToast("Ralat sambungan ke pangkalan data!", "error");
             }
         }
+    });
 
-        /* AMBIL BACAAN SESI PADA MULANNYA */
-        window.addEventListener('DOMContentLoaded', checkFastLogin);
-    </script>
+    /* 3. SEMAKAN SESI PANTAS (FAST LOGIN / CACHED SESSION) */
+    function checkFastLogin() {
+        const savedUser = localStorage.getItem('SAVED_MOE_USER') || sessionStorage.getItem('CURRENT_USER');
+        if (savedUser) {
+            try {
+                const user = JSON.parse(savedUser);
+                if (user && user.email) {
+                    if (user.is_admin) {
+                        PENDING_ADMIN_USER = user;
+                        document.getElementById('admin-choice-modal').classList.remove('hidden');
+                        return;
+                    } else if (user.role === 'guru') {
+                        window.location.href = 'DashboardGuru.html';
+                        return;
+                    } else if (user.role === 'parent') {
+                        window.location.href = 'DashboardParent.html';
+                        return;
+                    } else if (user.role === 'admin') {
+                        window.location.href = 'DashboardAdmin.html';
+                        return;
+                    }
+                }
+            } catch(e) {}
+        }
+    }
+
+    /* 4. PILIHAN DASHBOARD KHAS ADMIN */
+    function selectAdminDashboard(choice) {
+        if (!PENDING_ADMIN_USER) return;
+        
+        const userToSave = { ...PENDING_ADMIN_USER };
+        if (choice === 'admin') {
+            userToSave.role = 'admin';
+            sessionStorage.setItem('CURRENT_USER', JSON.stringify(userToSave));
+            window.location.href = 'DashboardAdmin.html';
+        } else {
+            userToSave.role = 'guru';
+            sessionStorage.setItem('CURRENT_USER', JSON.stringify(userToSave));
+            window.location.href = 'DashboardGuru.html';
+        }
+    }
+
+    /* 5. LOG MASUK MANUAL (EMEL & KATA LALUAN) */
+    async function handleManualLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-pass').value.trim();
+
+        showLoader("Menyemak padanan e-mel & kata laluan...");
+        try {
+            const response = await fetch(WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'manualLogin',
+                    data: { email, password }
+                })
+            });
+
+            const res = await response.json();
+            hideLoader();
+
+            if (res.success) {
+                const user = res.user;
+                localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
+                sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+
+                showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
+
+                setTimeout(() => {
+                    if (user.is_admin) {
+                        PENDING_ADMIN_USER = user;
+                        document.getElementById('admin-choice-modal').classList.remove('hidden');
+                    } else if (user.role === 'guru') {
+                        window.location.href = 'DashboardGuru.html';
+                    } else if (user.role === 'parent') {
+                        window.location.href = 'DashboardParent.html';
+                    } else if (user.role === 'admin') {
+                        window.location.href = 'DashboardAdmin.html';
+                    }
+                }, 500);
+            } else {
+                showToast(res.error || "Log masuk gagal. Sila semak e-mel dan kata laluan anda.", "error");
+            }
+        } catch (err) {
+            hideLoader();
+            console.error("Manual Login Error:", err);
+            showToast("Ralat sambungan ke pangkalan data!", "error");
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', checkFastLogin);
+</script>
 </body>
 </html>
