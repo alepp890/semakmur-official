@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log Masuk - Portal Rasmi Sekolah</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -127,18 +128,11 @@
             <p class="text-xs text-slate-500 font-medium mt-1">Pusat Akses Warga Sekolah & Waris</p>
         </div>
 
-        <!-- 1. BUTANG UTAMA: LOG MASUK AKAUN MOE (GOOGLE AUTH) -->
+        <!-- 1. LOG MASUK AKAUN MOE MELALUI GOOGLE IDENTITY SERVICES -->
         <div class="mb-6">
-            <button onclick="loginWithMOE()" type="button" class="w-full py-3.5 px-4 rounded-2xl bg-white border-2 border-slate-200 hover:border-blue-500 hover:bg-blue-50/50 text-slate-700 font-extrabold text-xs sm:text-sm shadow-xs transition flex items-center justify-center gap-3 group">
-                <!-- Google SVG Icon Rasmi -->
-                <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-                <span>Log Masuk Dengan Akaun MOE</span>
-            </button>
+            <p class="text-xs text-slate-500 font-semibold text-center mb-3">Log masuk guru dan murid menggunakan akaun rasmi MOE-DL</p>
+            <div id="google-signin-button" class="flex justify-center min-h-[44px]"></div>
+            <p class="text-[11px] text-slate-400 text-center mt-2">Pengesahan akaun dibuat oleh Google.</p>
             <div class="relative flex py-4 items-center">
                 <div class="flex-grow border-t border-slate-200"></div>
                 <span class="flex-shrink mx-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Atau Guna E-mel</span>
@@ -171,9 +165,13 @@
     <!-- SAMBUNGAN FAIL CONFIG BACKEND -->
     <script src="config.js"></script>
 
+    <!-- SAMBUNGAN FAIL CONFIG BACKEND -->
+
     <!-- LOGIK JAVASCRIPT LOG MASUK -->
     <script>
     let PENDING_ADMIN_USER = null;
+    // Isi Client ID OAuth jenis Web application dari Google Cloud Console.
+    const GOOGLE_CLIENT_ID = 'GANTIKAN_DENGAN_CLIENT_ID.apps.googleusercontent.com';
 
     function showLoader(txt = "Memuatkan sistem...") {
         const loader = document.getElementById('global-loader');
@@ -181,118 +179,111 @@
         if (lTxt) lTxt.innerText = txt;
         if (loader) loader.classList.remove('hidden');
     }
-
     function hideLoader() {
         const loader = document.getElementById('global-loader');
         if (loader) loader.classList.add('hidden');
     }
-
     function showToast(msg, type = 'success') {
         const container = document.getElementById('toast-container');
-        if(!container) return;
-
+        if (!container) return;
         const toast = document.createElement('div');
         toast.className = `toast-enter pointer-events-auto px-4 py-3 rounded-2xl text-xs font-extrabold text-white shadow-xl flex items-center gap-2 ${type==='success'?'bg-emerald-600':'bg-red-600'}`;
-        toast.innerHTML = `<span>${type==='success'?'✅':'⚠️'}</span><span>${msg}</span>`;
-        container.appendChild(toast);
-
-        setTimeout(() => { toast.remove(); }, 4500);
+        const icon = document.createElement('span'); icon.textContent = type === 'success' ? '✅' : '⚠️';
+        const text = document.createElement('span'); text.textContent = String(msg || 'Ralat tidak diketahui.');
+        toast.append(icon, text); container.appendChild(toast);
+        setTimeout(() => toast.remove(), 4500);
     }
 
-    /* 1. LOG MASUK MOE GOOGLE AUTH VIA POP-UP WINDOW */
-    function loginWithMOE() {
-        showLoader("Membuka tetingkap pengesahan Google MOE...");
-        
-        // Tetapan saiz & posisi tetingkap pop-up di tengah skrin
-        const width = 500;
-        const height = 650;
-        const left = (window.screen.width / 2) - (width / 2);
-        const top = (window.screen.height / 2) - (height / 2);
-
-        const popup = window.open(
-            `${WEB_APP_URL}?action=googleLogin`,
-            'GoogleMOEAuthPopup',
-            `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
-        );
-
-        // Semakan jika pengguna menutup tetingkap pop-up secara manual
-        const checkClosedTimer = setInterval(() => {
-            if (popup && popup.closed) {
-                clearInterval(checkClosedTimer);
-                hideLoader();
-            }
-        }, 1000);
+    function initGoogleIdentity() {
+        if (!window.google || !google.accounts || !google.accounts.id) {
+            showToast('Google Identity belum dimuatkan. Semak sambungan internet atau sekatan pelayar.', 'error');
+            return;
+        }
+        if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.startsWith('GANTIKAN_')) {
+            showToast('Client ID Google belum dimasukkan dalam LoginSession.html.', 'error');
+            return;
+        }
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleCredential,
+            auto_select: false,
+            cancel_on_tap_outside: true
+        });
+        google.accounts.id.renderButton(document.getElementById('google-signin-button'), {
+            type: 'standard', theme: 'outline', size: 'large', text: 'signin_with',
+            shape: 'pill', logo_alignment: 'left', width: 320
+        });
     }
 
-    /* 2. MENERIMA MESEJ DARIPADA TETINGKAP POP-UP (POSTMESSAGE) */
-    window.addEventListener('message', function(event) {
-        if (!event.data || typeof event.data !== 'object') return;
-        const data = event.data;
-
-        // Sahkan mesej datang daripada proses Google Login
-        if (data.type === 'MOE_AUTH_RESULT') {
+    async function handleGoogleCredential(response) {
+        if (!response || !response.credential) {
+            showToast('Google tidak memulangkan token identiti.', 'error');
+            return;
+        }
+        showLoader('Mengesahkan akaun Google MOE...');
+        try {
+            const res = await postToBackend({
+                action: 'googleIdentityLogin',
+                data: { credential: response.credential }
+            });
             hideLoader();
-
-            if (data.success) {
-                const user = data.user;
-                localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
-                sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
-
-                showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
-
-                setTimeout(() => {
-                    if (user.is_admin) {
-                        PENDING_ADMIN_USER = user;
-                        document.getElementById('admin-choice-modal').classList.remove('hidden');
-                    } else if (user.role === 'guru') {
-                        window.location.href = 'DashboardGuru.html';
-                    } else if (user.role === 'parent') {
-                        window.location.href = 'DashboardParent.html';
-                    }
-                }, 500);
-
-            } else {
-                if (data.error === 'not_moe_email') {
-                    showToast("Anda tidak menggunakan e-mel MOE. Sila log masuk menggunakan ruang borang e-mel di bawah.", "error");
-                } else if (data.error === 'email_not_found') {
-                    showToast("Akaun e-mel MOE anda tidak dijumpai dalam pangkalan data sistem. Sila log masuk menggunakan e-mel lain atau gunakan ruang borang di bawah.", "error");
-                } else {
-                    showToast("Pengesahan Google gagal atau e-mel tidak dapat dikesan.", "error");
-                }
+            if (!res || !res.success || !res.user) {
+                showToast((res && res.error) || 'Akaun tidak berjaya disahkan.', 'error');
+                return;
             }
-        }
-    });
-
-    /* 3. SEMAKAN SESI PANTAS (FAST LOGIN / CACHED SESSION) */
-    function checkFastLogin() {
-        const savedUser = localStorage.getItem('SAVED_MOE_USER') || sessionStorage.getItem('CURRENT_USER');
-        if (savedUser) {
-            try {
-                const user = JSON.parse(savedUser);
-                if (user && user.email) {
-                    if (user.is_admin) {
-                        PENDING_ADMIN_USER = user;
-                        document.getElementById('admin-choice-modal').classList.remove('hidden');
-                        return;
-                    } else if (user.role === 'guru') {
-                        window.location.href = 'DashboardGuru.html';
-                        return;
-                    } else if (user.role === 'parent') {
-                        window.location.href = 'DashboardParent.html';
-                        return;
-                    } else if (user.role === 'admin') {
-                        window.location.href = 'DashboardAdmin.html';
-                        return;
-                    }
-                }
-            } catch(e) {}
+            const user = res.user;
+            // Cache ini hanya untuk UI navigasi; bukan token autoriti backend.
+            localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
+            sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+            showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
+            setTimeout(() => routeUser(user), 450);
+        } catch (err) {
+            hideLoader();
+            console.error('Google Identity login error:', err);
+            showToast('Tidak dapat menghubungi backend. Semak URL Web App, deployment dan CORS.', 'error');
         }
     }
 
-    /* 4. PILIHAN DASHBOARD KHAS ADMIN */
+    async function postToBackend(payload) {
+        if (typeof WEB_APP_URL === 'undefined' || !WEB_APP_URL) throw new Error('WEB_APP_URL tiada dalam config.js');
+        const response = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            // text/plain mengelakkan preflight OPTIONS bagi permintaan ringkas.
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload),
+            redirect: 'follow'
+        });
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return await response.json();
+    }
+
+    function routeUser(user) {
+        if (!user) return;
+        if (user.is_admin || user.role === 'admin_choice') {
+            PENDING_ADMIN_USER = user;
+            document.getElementById('admin-choice-modal').classList.remove('hidden');
+        } else if (user.role === 'guru') {
+            window.location.href = 'DashboardGuru.html';
+        } else if (user.role === 'murid' || user.role === 'student') {
+            window.location.href = 'DashboardMurid.html';
+        } else if (user.role === 'parent') {
+            window.location.href = 'DashboardParent.html';
+        } else if (user.role === 'admin') {
+            window.location.href = 'DashboardAdmin.html';
+        } else {
+            showToast('Akaun berjaya dikenal pasti tetapi tiada laluan dashboard untuk peranan ini.', 'error');
+        }
+    }
+
+    function checkFastLogin() {
+        // Jangan auto-login berdasarkan cache lama kerana localStorage boleh diubah pengguna.
+        // Kosongkan cache login legacy supaya pengguna perlu disahkan semula oleh backend.
+        localStorage.removeItem('SAVED_MOE_USER');
+        sessionStorage.removeItem('CURRENT_USER');
+    }
+
     function selectAdminDashboard(choice) {
         if (!PENDING_ADMIN_USER) return;
-        
         const userToSave = { ...PENDING_ADMIN_USER };
         if (choice === 'admin') {
             userToSave.role = 'admin';
@@ -305,55 +296,44 @@
         }
     }
 
-    /* 5. LOG MASUK MANUAL (EMEL & KATA LALUAN) */
     async function handleManualLogin(e) {
         e.preventDefault();
         const email = document.getElementById('login-email').value.trim();
-        const password = document.getElementById('login-pass').value.trim();
-
-        showLoader("Menyemak padanan e-mel & kata laluan...");
+        const password = document.getElementById('login-pass').value;
+        showLoader('Menyemak padanan e-mel dan kata laluan...');
         try {
-            const response = await fetch(WEB_APP_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: 'manualLogin',
-                    data: { email, password }
-                })
-            });
-
-            const res = await response.json();
+            const res = await postToBackend({ action: 'manualLogin', data: { email, password } });
             hideLoader();
-
-            if (res.success) {
+            if (res && res.success && res.user) {
                 const user = res.user;
                 localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
                 sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
-
                 showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
-
-                setTimeout(() => {
-                    if (user.is_admin) {
-                        PENDING_ADMIN_USER = user;
-                        document.getElementById('admin-choice-modal').classList.remove('hidden');
-                    } else if (user.role === 'guru') {
-                        window.location.href = 'DashboardGuru.html';
-                    } else if (user.role === 'parent') {
-                        window.location.href = 'DashboardParent.html';
-                    } else if (user.role === 'admin') {
-                        window.location.href = 'DashboardAdmin.html';
-                    }
-                }, 500);
+                setTimeout(() => routeUser(user), 450);
             } else {
-                showToast(res.error || "Log masuk gagal. Sila semak e-mel dan kata laluan anda.", "error");
+                showToast((res && res.error) || 'Log masuk gagal. Semak e-mel dan kata laluan.', 'error');
             }
         } catch (err) {
             hideLoader();
-            console.error("Manual Login Error:", err);
-            showToast("Ralat sambungan ke pangkalan data!", "error");
+            console.error('Manual Login Error:', err);
+            showToast('Ralat sambungan ke backend. Semak URL, deployment dan CORS.', 'error');
         }
     }
 
-    window.addEventListener('DOMContentLoaded', checkFastLogin);
-</script>
+    window.addEventListener('DOMContentLoaded', () => {
+        checkFastLogin();
+        // GIS script mempunyai async/defer; cuba inisialisasi dan tunggu jika belum sedia.
+        let attempts = 0;
+        const timer = setInterval(() => {
+            attempts++;
+            if (window.google && google.accounts && google.accounts.id) {
+                clearInterval(timer); initGoogleIdentity();
+            } else if (attempts >= 30) {
+                clearInterval(timer);
+                showToast('Google Identity tidak dapat dimuatkan. Cuba refresh atau semak sekatan rangkaian.', 'error');
+            }
+        }, 250);
+    });
+    </script>
 </body>
 </html>
