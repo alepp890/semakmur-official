@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Guru - Portal Rasmi Sekolah</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Sambungan Awal ke Servis Google -->
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://drive.google.com">
+    <link rel="dns-prefetch" href="https://script.google.com">
+    <link rel="dns-prefetch" href="https://drive.google.com">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        brandDark: '#0F172A',       /* Slate Navy Deep */
+                        brandNavy: '#1E3A8A',       /* Medium Navy */
+                        brandAccent: '#2563EB',     /* Blue Accent */
+                        brandGold: '#D97706',       /* Amber Gold */
+                        brandBg: '#F8FAFC',         /* Clean Slate Light */
+                        brandBorder: '#E2E8F0'      /* Modern Border */
+                    },
+                    fontFamily: { 
+                        sans: ['Plus Jakarta Sans', 'sans-serif'] 
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #F8FAFC; 
+            color: #0F172A; 
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* Modern Wix-Style Card */
+        .card-custom {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.03);
+            border-radius: 1.25rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Scrollbar Custom */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #F8FAFC; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+        .loader-spinner {
+            border: 4px solid #CBD5E1; 
+            border-top: 4px solid #F59E0B;
+            border-radius: 50%; 
+            width: 44px; 
+            height: 44px; 
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .toast-enter { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col xl:flex-row w-full font-sans selection:bg-brandNavy selection:text-white">
+
+    <!-- GLOBAL LOADER & TOAST -->
+    <div id="global-loader" class="fixed inset-0 bg-brandDark/85 backdrop-blur-md z-[9999] flex flex-col items-center justify-center hidden">
+        <div class="loader-spinner mb-4"></div>
+        <p class="text-white text-center font-bold text-base drop-shadow-md" id="loader-text">Memuatkan data...</p>
+    </div>
+
+    <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- WRAPPER DASHBOARD GURU -->
+    <div id="teacher-dashboard-wrapper" class="min-h-screen bg-slate-50 flex flex-col xl:flex-row w-full font-sans antialiased text-slate-800">
+
+        <!-- 1. SIDEBAR NAVIGASI KIRI GURU -->
+        <aside id="teacher-sidebar" class="fixed xl:sticky top-0 left-0 z-50 h-screen w-72 bg-gradient-to-b from-slate-900 via-brandDark to-brandNavy text-white flex flex-col justify-between transition-transform duration-300 -translate-x-full xl:translate-x-0 shrink-0 shadow-2xl border-r border-slate-800">
+            <div class="p-5 flex-1 overflow-y-auto">
+                <!-- Tajuk Sidebar & Butang Tutup Mobile -->
+                <div class="flex items-center justify-between pb-5 border-b border-slate-800/80">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 border border-amber-400/30 text-white flex items-center justify-center font-black text-lg shadow-md">
+                            👨‍🏫
+                        </div>
+                        <div>
+                            <h2 class="font-extrabold text-sm tracking-tight text-white leading-tight">Portal Guru</h2>
+                            <p class="text-[10px] text-amber-300/90 font-bold uppercase tracking-widest mt-0.5">Sistem Pengajaran</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleTeacherSidebar()" class="xl:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition">
+                        ✕
+                    </button>
+                </div>
+
+                <!-- Senarai Menu Navigasi Sidebar -->
+                <div class="mt-6">
+                    <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-2.5 px-3">Pengurusan PdP</p>
+                    <nav class="space-y-1.5 text-xs font-bold">
+                        <a href="#section-utama" onclick="switchTeacherTab('utama')" id="tnav-utama" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg transition-all border border-amber-400/30">
+                            <span>📌</span> <span>Ringkasan & Tugasan</span>
+                        </a>
+                        <a href="#section-kehadiran" onclick="switchTeacherTab('kehadiran')" id="tnav-kehadiran" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent hover:border-slate-700/50 transition-all duration-200">
+                            <span>📅</span> <span>Semakan Kehadiran Kelas</span>
+                        </a>
+                        <a href="#section-pbd" onclick="switchTeacherTab('pbd')" id="tnav-pbd" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent hover:border-slate-700/50 transition-all duration-200">
+                            <span>📊</span> <span>Kemaskini Rekod PBD</span>
+                        </a>
+                        <a href="#section-tugasan" onclick="switchTeacherTab('tugasan')" id="tnav-tugasan" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent hover:border-slate-700/50 transition-all duration-200">
+                            <span>📝</span> <span>Cipta Tugasan Baru</span>
+                        </a>
+                        <a href="#section-hebahan" onclick="switchTeacherTab('hebahan')" id="tnav-hebahan" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent hover:border-slate-700/50 transition-all duration-200">
+                            <span>📢</span> <span>Hebahan Kelas / Waris</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Bahagian Bawah Sidebar -->
+            <div class="p-4 border-t border-slate-800/80 space-y-2 bg-slate-950/60">
+                <a href="index.html?mode=portal" class="w-full py-2.5 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all flex items-center justify-center gap-2 border border-slate-700/60 shadow-xs">
+                    👁️ Lihat Portal Awam
+                </a>
+                <button onclick="logout()" class="w-full py-2.5 px-3 rounded-xl bg-red-500/10 hover:bg-red-600/20 text-red-300 border border-red-500/20 text-xs font-bold transition-all flex items-center justify-center gap-2">
+                    🚪 Log Keluar
+                </button>
+            </div>
+        </aside>
+
+        <!-- BACKDROP MOBILE APABILA SIDEBAR DIBUKA -->
+        <div id="teacher-sidebar-overlay" onclick="toggleTeacherSidebar()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-40 hidden xl:hidden"></div>
+
+        <!-- KANDUNGAN UTAMA DASHBOARD -->
+        <div class="flex-1 min-w-0 flex flex-col bg-slate-50">
+
+            <!-- 2. HEADER DASHBOARD GURU GLASSMORPHIC -->
+            <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 sm:px-8 py-3.5 shadow-sm">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 max-w-7xl mx-auto w-full">
+                    
+                    <!-- KIRI HEADER: BUTTON MENU MOBILE & MAKLUMAT GURU -->
+                    <div class="flex items-center gap-4">
+                        <button onclick="toggleTeacherSidebar()" class="xl:hidden p-2.5 rounded-xl bg-slate-100 text-slate-800 hover:bg-slate-200 transition">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        </button>
+                        <div>
+                            <h1 class="text-base sm:text-lg font-bold text-slate-900">
+                                Selamat Datang, <span id="teacher-user-name" class="text-slate-900 font-extrabold">Cikgu Ahmad Subari</span>
+                            </h1>
+                            <div class="flex items-center gap-3 text-xs text-slate-500 font-semibold mt-0.5">
+                                <span>Akaun ID: <strong id="teacher-account-id" class="text-slate-800 font-bold">GRU-10442</strong></span>
+                                <span class="text-slate-300">•</span>
+                                <span>Gred: <strong class="text-brandNavy font-bold">DG44</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KANAN HEADER: DROPDOWN PILIHAN KELAS -->
+                    <div class="flex items-center gap-3.5 self-end lg:self-auto bg-slate-100/80 p-1.5 rounded-xl border border-slate-200 hover:border-amber-400/50 transition-colors shadow-xs">
+                        <span class="text-xs font-bold text-slate-600 pl-2 shrink-0">🏫 Kelas Utama:</span>
+                        <select id="teacher-class-selector" onchange="switchClassContext(this.value)" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold bg-white text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer shadow-xs">
+                            <option value="class_6b">6 Bestari (Guru Kelas)</option>
+                            <option value="class_5c">5 Cemerlang (Mata Pelajaran)</option>
+                            <option value="class_4m">4 Maju (Mata Pelajaran)</option>
+                        </select>
+                    </div>
+
+                </div>
+            </header>
+
+            <!-- RUANG KANDUNGAN UTAMA -->
+            <main class="p-4 sm:p-8 space-y-6 flex-1 max-w-7xl mx-auto w-full">
+
+                <!-- 3. KAD STATUS RINGKASAN GURU -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    
+                    <!-- Kad 1: Jumlah Murid Kelas -->
+                    <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Jumlah Murid</span>
+                            <span class="text-lg group-hover:scale-110 transition-transform">🎓</span>
+                        </div>
+                        <div class="flex items-baseline gap-2 pt-1">
+                            <h3 id="stat-class-students" class="text-2xl font-black text-slate-900">32 Orang</h3>
+                            <span class="text-[10px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">6 Bestari</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 font-medium">18 Lelaki | 14 Perempuan</p>
+                    </div>
+
+                    <!-- Kad 2: Kehadiran Hari Ini -->
+                    <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Kehadiran Hari Ini</span>
+                            <span class="text-lg group-hover:scale-110 transition-transform">📅</span>
+                        </div>
+                        <div class="flex items-baseline gap-2 pt-1">
+                            <h3 id="stat-today-attendance" class="text-2xl font-black text-slate-900">31/32</h3>
+                            <span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md">96.8%</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 font-medium">1 Murid Tidak Hadir (MC)</p>
+                    </div>
+
+                    <!-- Kad 3: Semakan Tugasan Pending -->
+                    <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Belum Disemak</span>
+                            <span class="text-lg group-hover:scale-110 transition-transform">📥</span>
+                        </div>
+                        <div class="flex items-baseline gap-2 pt-1">
+                            <h3 id="stat-pending-grading" class="text-2xl font-black text-slate-900">14 Hantaran</h3>
+                            <span class="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">Perlu Semak</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 font-medium">Modul Bahasa Melayu Bab 5</p>
+                    </div>
+
+                    <!-- Kad 4: Rekod PBD Dikemaskini -->
+                    <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">PBD Sesi Ini</span>
+                            <span class="text-lg group-hover:scale-110 transition-transform">📊</span>
+                        </div>
+                        <div class="flex items-baseline gap-2 pt-1">
+                            <h3 id="stat-pbd-completion" class="text-2xl font-black text-slate-900">100% Selesai</h3>
+                            <span class="text-[10px] font-bold text-blue-800 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md">Fasa 1</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 font-medium">Sedia Untuk Pelaporan Waris</p>
+                    </div>
+
+                </div>
+
+                <!-- 4. PENGURUSAN PANTAS GURU -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- KIRI: SENARAI TUGASAN AKTIF & KEMAJUAN -->
+                    <div class="lg:col-span-2 card-custom p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                                <span>📝</span> Tugasan & Latihan Dalam Semakan
+                            </h3>
+                            <button onclick="switchTeacherTab('tugasan')" class="text-xs font-bold text-amber-600 hover:underline">
+                                + Cipta Tugasan Baru
+                            </button>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold text-slate-900">Latihan Penulisan Karangan Syarahan</span>
+                                    <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded">Tarikh Akhir: Jumaat</span>
+                                </div>
+                                <p class="text-xs text-slate-600 font-medium">Kelas: 6 Bestari • Subjek: Bahasa Melayu</p>
+                                <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-amber-500 h-full w-3/4"></div>
+                                </div>
+                                <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 pt-1">
+                                    <span>24 daripada 32 murid telah menghantar</span>
+                                    <span class="text-amber-600">75% Selesai</span>
+                                </div>
+                            </div>
+
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-extrabold text-slate-900">Kuaris Tata-Bahasa & Kata Ganda</span>
+                                    <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 rounded">Selesai</span>
+                                </div>
+                                <p class="text-xs text-slate-600 font-medium">Kelas: 5 Cemerlang • Subjek: Bahasa Melayu</p>
+                                <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-emerald-500 h-full w-full"></div>
+                                </div>
+                                <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 pt-1">
+                                    <span>30 daripada 30 murid telah menghantar</span>
+                                    <span class="text-emerald-600">100% Selesai</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KANAN: NOTIS & PERINGATAN TUGASAN PENTADBIRAN -->
+                    <div class="card-custom p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-4">
+                        <div class="border-b border-slate-200/80 pb-3">
+                            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                                <span>📌</span> Peringatan Tugas Pentadbiran
+                            </h3>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            <div class="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/80 space-y-1">
+                                <span class="text-[10px] font-bold text-blue-700 uppercase">Mesyuarat Panitia</span>
+                                <h4 class="font-bold text-slate-900">Mesyuarat Panitia BM Bil 3/2026</h4>
+                                <p class="text-slate-600">Rabu ini • 2:30 Petang • Bilik Mesyuarat Utama</p>
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/80 space-y-1">
+                                <span class="text-[10px] font-bold text-amber-700 uppercase">Tarikh Akhir PBD</span>
+                                <h4 class="font-bold text-slate-900">Kunci Masuk TP PBD Fasa 2</h4>
+                                <p class="text-slate-600">Sila pastikan rekod lengkap sebelum 25 Oktober 2026.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- SAMBUNGAN FAIL CONFIG BACKEND -->
+    <script src="config.js"></script>
+
+    <!-- LOGIK JAVASCRIPT DASHBOARD GURU -->
+    <script>
+        let CURRENT_USER = null;
+
+        function checkSession() {
+            const userJson = sessionStorage.getItem('CURRENT_USER');
+            if (!userJson) {
+                window.location.href = 'LoginSession.html';
+                return;
+            }
+            try {
+                CURRENT_USER = JSON.parse(userJson);
+                const role = (CURRENT_USER.role || '').toLowerCase();
+                if (role !== 'guru') {
+                    window.location.href = 'LoginSession.html';
+                }
+            } catch (e) {
+                window.location.href = 'LoginSession.html';
+            }
+        }
+
+        function showLoader(txt = "Memuatkan data...") {
+            const loader = document.getElementById('global-loader');
+            const lTxt = document.getElementById('loader-text');
+            if (lTxt) lTxt.innerText = txt;
+            if (loader) loader.classList.remove('hidden');
+        }
+
+        function hideLoader() {
+            const loader = document.getElementById('global-loader');
+            if (loader) loader.classList.add('hidden');
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if(!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast-enter pointer-events-auto px-4 py-3 rounded-2xl text-xs font-extrabold text-white shadow-xl flex items-center gap-2 ${type==='success'?'bg-emerald-600':'bg-red-600'}`;
+            toast.innerHTML = `<span>${type==='success'?'✅':'⚠️'}</span><span>${msg}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => { toast.remove(); }, 3500);
+        }
+
+        function toggleTeacherSidebar() {
+            const sidebar = document.getElementById('teacher-sidebar');
+            const overlay = document.getElementById('teacher-sidebar-overlay');
+            if (sidebar) sidebar.classList.toggle('-translate-x-full');
+            if (overlay) overlay.classList.toggle('hidden');
+        }
+
+        function switchTeacherTab(tabKey) {
+            const tabs = ['utama', 'kehadiran', 'pbd', 'tugasan', 'hebahan'];
+            tabs.forEach(k => {
+                const btn = document.getElementById(`tnav-${k}`);
+                if (btn) {
+                    if (k === tabKey) {
+                        btn.className = "flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg transition-all border border-amber-400/30";
+                    } else {
+                        btn.className = "flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent hover:border-slate-700/50 transition-all duration-200";
+                    }
+                }
+            });
+
+            if (window.innerWidth < 1280) {
+                toggleTeacherSidebar();
+            }
+
+            showToast(`Memuatkan modul: ${tabKey.toUpperCase()}`);
+        }
+
+        function switchClassContext(classId) {
+            showLoader("Menukar konteks kelas...");
+            
+            setTimeout(() => {
+                hideLoader();
+                if (classId === 'class_6b') {
+                    document.getElementById('stat-class-students').innerText = '32 Orang';
+                    document.getElementById('stat-today-attendance').innerText = '31/32';
+                    showToast("Memaparkan maklumat Kelas 6 Bestari");
+                } else if (classId === 'class_5c') {
+                    document.getElementById('stat-class-students').innerText = '30 Orang';
+                    document.getElementById('stat-today-attendance').innerText = '30/30';
+                    showToast("Memaparkan maklumat Kelas 5 Cemerlang");
+                } else {
+                    document.getElementById('stat-class-students').innerText = '28 Orang';
+                    document.getElementById('stat-today-attendance').innerText = '27/28';
+                    showToast("Memaparkan maklumat Kelas 4 Maju");
+                }
+            }, 400);
+        }
+
+        function logout() {
+            sessionStorage.removeItem('CURRENT_USER');
+            window.location.href = 'index.html?mode=portal';
+        }
+
+        /* INITIALIZE ON LOAD */
+        window.addEventListener('DOMContentLoaded', () => {
+            checkSession();
+            if (CURRENT_USER) {
+                const nameEl = document.getElementById('teacher-user-name');
+                if (nameEl) nameEl.innerText = CURRENT_USER.name || 'Cikgu Ahmad Subari';
+            }
+        });
+    </script>
+</body>
+</html>

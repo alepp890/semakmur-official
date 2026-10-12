@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pentadbir - Portal Rasmi Sekolah</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Sambungan Awal ke Servis Google -->
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://drive.google.com">
+    <link rel="dns-prefetch" href="https://script.google.com">
+    <link rel="dns-prefetch" href="https://drive.google.com">
+    <link rel="dns-prefetch" href="https://ui-avatars.com">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        brandDark: '#0F172A',       /* Slate Navy Deep */
+                        brandNavy: '#1E3A8A',       /* Medium Navy */
+                        brandAccent: '#2563EB',     /* Blue Accent */
+                        brandGold: '#D97706',       /* Amber Gold */
+                        brandBg: '#F8FAFC',         /* Clean Slate Light */
+                        brandBorder: '#E2E8F0'      /* Modern Border */
+                    },
+                    fontFamily: { 
+                        sans: ['Plus Jakarta Sans', 'sans-serif'] 
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #F8FAFC; 
+            color: #0F172A; 
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* Modern Wix-Style Card */
+        .card-custom {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.03);
+            border-radius: 1.25rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Scrollbar Custom */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #F8FAFC; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+        .loader-spinner {
+            border: 4px solid #CBD5E1; 
+            border-top: 4px solid #F59E0B;
+            border-radius: 50%; 
+            width: 44px; 
+            height: 44px; 
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .toast-enter { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Gaya Imej Dalam Teks Editor */
+        #editor-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.75rem;
+            margin: 1rem auto;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid #E2E8F0;
+        }
+    </style>
+</head>
+<body class="bg-brandBg text-brandDark antialiased min-h-screen flex flex-col selection:bg-brandNavy selection:text-white">
+
+    <!-- GLOBAL LOADER & TOAST -->
+    <div id="global-loader" class="fixed inset-0 bg-brandDark/85 backdrop-blur-md z-[9999] flex flex-col items-center justify-center hidden">
+        <div class="loader-spinner mb-4"></div>
+        <p class="text-white text-center font-bold text-base drop-shadow-md" id="loader-text">Memuatkan portal...</p>
+    </div>
+
+    <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- WRAPPER DASHBOARD ADMIN PINTAR -->
+    <div id="admin-dashboard-wrapper" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div class="space-y-6">
+            
+            <div class="card-custom p-6 bg-white flex flex-col sm:flex-row items-center justify-between gap-4 border-l-4 border-l-brandAccent">
+                <div>
+                    <h1 class="text-xl font-black text-brandDark flex items-center gap-2">
+                        <svg class="w-6 h-6 text-brandAccent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        Dashboard Pentadbir Sistem
+                    </h1>
+                    <p class="text-xs text-slate-500 font-medium mt-1">Sistem pengurusan kandungan, menu & tab, cipta post, muat naik galeri foto, tetapan sidebar, dan pautan pantas.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="index.html?mode=portal" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-100 transition flex items-center gap-2">
+                        👁️ Lihat Portal Awam
+                    </a>
+                    <button onclick="logout()" class="px-4 py-2 rounded-xl bg-red-50 text-red-600 border border-red-200 text-xs font-bold hover:bg-red-100 transition">
+                        Log Keluar
+                    </button>
+                </div>
+            </div>
+
+            <!-- TAB NAVIGASI DASHBOARD ADMIN -->
+            <div class="flex items-center gap-2 border-b border-brandBorder pb-3 overflow-x-auto">
+                <button id="admin-tab-btn-posts" onclick="switchAdminTab('posts')" class="px-5 py-2.5 rounded-xl text-xs font-black transition bg-brandDark text-white shadow-md whitespace-nowrap">
+                    📝 Pengurusan Post & Kandungan
+                </button>
+                <button id="admin-tab-btn-menu" onclick="switchAdminTab('menu')" class="px-5 py-2.5 rounded-xl text-xs font-black transition text-slate-600 bg-white border border-brandBorder hover:bg-slate-100 whitespace-nowrap">
+                    📋 Pengurusan Menu & Tab
+                </button>
+                <button id="admin-tab-btn-gallery" onclick="switchAdminTab('gallery')" class="px-5 py-2.5 rounded-xl text-xs font-black transition text-slate-600 bg-white border border-brandBorder hover:bg-slate-100 whitespace-nowrap">
+                    📸 Pengurusan Galeri Foto
+                </button>
+                <button id="admin-tab-btn-sidebar" onclick="switchAdminTab('sidebar')" class="px-5 py-2.5 rounded-xl text-xs font-black transition text-slate-600 bg-white border border-brandBorder hover:bg-slate-100 whitespace-nowrap">
+                    📌 Pengurusan Sidebar
+                </button>
+                <button id="admin-tab-btn-quicklinks" onclick="switchAdminTab('quicklinks')" class="px-5 py-2.5 rounded-xl text-xs font-black transition text-slate-600 bg-white border border-brandBorder hover:bg-slate-100 whitespace-nowrap">
+                    ⚡ Tetapan Pautan Pantas
+                </button>
+            </div>
+
+            <!-- TAB 1: BORANG CIPTA POST -->
+            <div id="admin-panel-posts">
+                <form id="form-create-post" onsubmit="handleSavePost(event)" class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-black uppercase text-brandDark mb-2">Tajuk Post / Pengumuman *</label>
+                            <input type="text" id="post-title" required placeholder="Contoh: Majlis Anugerah Kecemerlangan Sekolah 2026" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brandAccent/20 focus:border-brandAccent outline-none text-sm font-medium">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black uppercase text-brandDark mb-2">Pilih Modul Utama *</label>
+                            <select id="post-module" onchange="updateSubCategories()" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brandAccent/20 focus:border-brandAccent outline-none text-sm font-medium bg-white">
+                                <option value="info_galeri">Info & Galeri</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black uppercase text-brandDark mb-2">Sub-Kategori Sasaran *</label>
+                            <select id="post-sub-module" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brandAccent/20 focus:border-brandAccent outline-none text-sm font-medium bg-white">
+                                <option value="berita_pengumuman">Berita & Pengumuman</option>
+                                <option value="buletin_majalah">Buletin / Majalah Sekolah</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="p-5 rounded-2xl border border-blue-100 bg-blue-50/50 space-y-4">
+                        <div class="flex items-center justify-between border-b border-blue-200/60 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-lg">🖼️</span>
+                                <div>
+                                    <h3 class="text-xs font-black uppercase text-brandDark">Muat Naik Imej Banner Post</h3>
+                                    <p class="text-[11px] text-slate-500 font-medium">Imej akan dipaparkan di bahagian atas kandungan teks post.</p>
+                                </div>
+                            </div>
+                            <span class="text-[10px] font-black uppercase px-2.5 py-1 bg-brandNavy text-white rounded-lg">Pilihan</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1.5">Pilih Gambar Banner</label>
+                                <input type="file" id="post-file-images" accept="image/*" multiple onchange="previewImages(this)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1.5">Template Susunan Banner</label>
+                                <select id="post-image-template" onchange="updateImagePreviewLayout()" class="w-full px-3.5 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brandAccent/20 outline-none text-xs font-bold bg-white">
+                                    <option value="grid_equal">1. Sekata Grid</option>
+                                    <option value="hero_featured">2. Gambar Utama Besar</option>
+                                    <option value="banner_carousel">3. Banner Penuh</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="image-preview-container" class="mt-3 p-3 bg-white rounded-xl border border-slate-200 hidden min-h-[100px]">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Pratonton Gambar Banner:</p>
+                            <div id="preview-layout-grid" class="w-full gap-2 transition-all"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-black uppercase text-brandDark">Kandungan Teks Post / Teks Rasmi *</label>
+                            <span class="text-[11px] text-amber-600 font-bold">✨ Gunakan butang di bawah untuk selit gambar di tengah-tengah teks</span>
+                        </div>
+                        <div class="border border-slate-200 rounded-xl overflow-hidden">
+                            <div class="bg-slate-50 border-b border-slate-200 p-2 flex flex-wrap gap-1 items-center">
+                                <button type="button" onclick="formatDoc('bold')" class="p-2 hover:bg-slate-200 rounded text-xs font-black" title="Bold"><b>B</b></button>
+                                <button type="button" onclick="formatDoc('italic')" class="p-2 hover:bg-slate-200 rounded text-xs italic font-serif" title="Italic"><i>I</i></button>
+                                <button type="button" onclick="formatDoc('insertUnorderedList')" class="p-2 hover:bg-slate-200 rounded text-xs font-bold" title="Bullet List">• Senarai</button>
+                                <button type="button" onclick="formatDoc('createLink')" class="p-2 hover:bg-slate-200 rounded text-xs font-bold text-blue-600" title="Tambah Pautan">🔗 Pautan</button>
+                                
+                                <span class="h-4 w-[1px] bg-slate-300 mx-1"></span>
+
+                                <button type="button" onclick="insertImageInText()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition" title="Masukkan Gambar Dalam Teks">
+                                    🖼️ + Gambar Dalam Teks
+                                </button>
+                                <input type="file" id="inline-image-uploader" accept="image/*" class="hidden" onchange="handleInlineImageUpload(this)">
+                            </div>
+                            <div id="editor-content" contenteditable="true" class="p-4 min-h-[220px] max-h-[400px] overflow-y-auto outline-none text-sm leading-relaxed bg-white" placeholder="Tulis maklumat kandungan post di sini..."></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black uppercase text-brandDark mb-1.5">Pautan Dokumen Tambahan (Pilihan)</label>
+                        <input type="url" id="post-doc-url" placeholder="https://drive.google.com/file/d/..." class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brandAccent/20 outline-none text-xs font-medium">
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                        <button type="reset" onclick="resetImagePreview()" class="px-5 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-brandNavy to-brandDark text-white text-xs font-extrabold shadow-lg hover:opacity-90 transition">
+                            Terbitkan Post Ke Portal
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TAB 2: MENU & SUB-TAB -->
+            <div id="admin-panel-menu" class="hidden space-y-6">
+                <div class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                    <div>
+                        <h2 class="text-base font-black text-brandDark border-b border-brandBorder pb-3 mb-2 flex items-center gap-2">
+                            <span>📋</span> Pengurusan Struktur Menu, Sub-Tab & Kandungan Bahan
+                        </h2>
+                        <p class="text-xs text-slate-500 font-medium mb-4">Urus navigasi sub-tab dan tetapkan kandungan bahan khusus.</p>
+                    </div>
+
+                    <form onsubmit="handleSaveMenuTab(event)" class="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
+                        <h3 class="text-xs font-black uppercase text-brandNavy">1. Tambah Sub-Tab Baharu</h3>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Modul Utama Target *</label>
+                                <select id="menu-mgr-target-mod" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                                    <option value="profil">Profil</option>
+                                    <option value="kurikulum">Kurikulum</option>
+                                    <option value="hem">Hal Ehwal Murid (HEM)</option>
+                                    <option value="kokurikulum">Ko Kurikulum</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Nama Tab Baharu *</label>
+                                <input type="text" id="menu-mgr-tab-title" required placeholder="Contoh: Takwim Aktiviti" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Pernyataan / Sub-Teks (Pilihan)</label>
+                                <input type="text" id="menu-mgr-tab-desc" placeholder="Contoh: Maklumat takwim tahunan rasmi" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-2">
+                            <button type="submit" class="px-5 py-2.5 rounded-xl bg-brandNavy hover:bg-brandDark text-white text-xs font-extrabold transition shadow-md">
+                                + Simpan Sub-Tab & Pernyataan
+                            </button>
+                        </div>
+                    </form>
+
+                    <form onsubmit="handleSaveTabContent(event)" class="bg-blue-50/60 p-5 rounded-2xl border border-blue-200 space-y-4">
+                        <div class="flex items-center justify-between border-b border-blue-200 pb-2">
+                            <h3 class="text-xs font-black uppercase text-brandNavy flex items-center gap-2">
+                                <span>📄</span> 2. Pengurusan Bahan / Kandungan Di Bawah Tab
+                            </h3>
+                            <span class="text-[10px] font-black uppercase bg-blue-600 text-white px-2.5 py-1 rounded-lg">Pilih Jenis Kandungan</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Modul Utama *</label>
+                                <select id="content-mgr-mod" onchange="populateSubTabDropdown()" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                                    <option value="profil">Profil</option>
+                                    <option value="kurikulum">Kurikulum</option>
+                                    <option value="hem">Hal Ehwal Murid (HEM)</option>
+                                    <option value="kokurikulum">Ko Kurikulum</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Pilih Sub-Tab *</label>
+                                <select id="content-mgr-subtab" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Pilih Jenis Kandungan *</label>
+                                <select id="content-mgr-type" onchange="switchContentTypeFields()" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                                    <option value="text_post">1. Teks Biasa / Post Ringkas</option>
+                                    <option value="chart_org">2. Carta Organisasi (Urutan Carta)</option>
+                                    <option value="icon_cards">3. Senarai Kad Kelab / Ikon (Buka Full Page)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="field-type-text_post" class="space-y-3 bg-white p-4 rounded-xl border border-slate-200">
+                            <label class="block text-xs font-black uppercase text-slate-800">Kandungan Teks / Maklumat Rasmi</label>
+                            <textarea id="tab-text-body" rows="4" placeholder="Tuliskan penerangan atau bahan lengkap untuk tab ini..." class="w-full p-3 rounded-xl border border-slate-200 text-xs font-medium outline-none"></textarea>
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Pautan Dokumen / PDF (Pilihan)</label>
+                                <input type="url" id="tab-doc-url" placeholder="https://..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs outline-none">
+                            </div>
+                        </div>
+
+                        <div id="field-type-chart_org" class="hidden space-y-3 bg-white p-4 rounded-xl border border-slate-200">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                <label class="block text-xs font-black uppercase text-slate-800">Senarai Ahli Carta Organisasi</label>
+                                <button type="button" onclick="addChartMemberRow()" class="px-3 py-1 bg-brandNavy text-white rounded-lg text-[10px] font-bold">+ Tambah Jawatan</button>
+                            </div>
+                            <div id="chart-members-container" class="space-y-2"></div>
+                        </div>
+
+                        <div id="field-type-icon_cards" class="hidden space-y-3 bg-white p-4 rounded-xl border border-slate-200">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                <div>
+                                    <label class="block text-xs font-black uppercase text-slate-800">Senarai Kad Kelab / Persatuan</label>
+                                </div>
+                                <button type="button" onclick="addClubCardRow()" class="px-3 py-1 bg-brandNavy text-white rounded-lg text-[10px] font-bold">+ Tambah Kad Kelab</button>
+                            </div>
+                            <div id="club-cards-container" class="space-y-2"></div>
+                        </div>
+
+                        <div class="flex justify-end pt-2">
+                            <button type="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brandNavy to-brandDark text-white text-xs font-extrabold shadow-md hover:opacity-90 transition">
+                                💾 Simpan & Kemaskini Bahan Sub-Tab
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-black uppercase text-slate-600">Senarai Struktur Sub-Tab Semasa & Jenis Kandungan</h3>
+                        <div id="admin-menu-list-container" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: GALERI FOTO -->
+            <div id="admin-panel-gallery" class="hidden space-y-6">
+                <form id="form-create-gallery" onsubmit="handleSaveGallery(event)" class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                    <div>
+                        <h2 class="text-base font-black text-brandDark border-b border-brandBorder pb-3 mb-2 flex items-center gap-2">
+                            <span>📸</span> Borang Muat Naik Galeri Foto Aktiviti & Program
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-black uppercase text-brandDark mb-2">Tajuk Program / Aktiviti *</label>
+                            <input type="text" id="gallery-title" required placeholder="Contoh: Kejohanan Sukan Tahunan Kali Ke-15" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brandAccent/20 outline-none text-sm font-medium">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black uppercase text-brandDark mb-2">Tarikh Aktiviti Dijalankan *</label>
+                            <input type="date" id="gallery-date" required class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brandAccent/20 outline-none text-sm font-medium bg-white">
+                        </div>
+                    </div>
+
+                    <div class="p-5 rounded-2xl border border-amber-200 bg-amber-50/40 space-y-4">
+                        <div class="flex items-center justify-between border-b border-amber-200/80 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">📷</span>
+                                <div>
+                                    <h3 class="text-xs font-black uppercase text-brandDark">Pilih Kepingan Gambar</h3>
+                                </div>
+                            </div>
+                            <span id="gallery-photo-count-badge" class="text-[10px] font-black uppercase px-2.5 py-1 bg-amber-600 text-white rounded-lg">0 Gambar Dipilih</span>
+                        </div>
+
+                        <div>
+                            <input type="file" id="gallery-file-images" accept="image/*" multiple onchange="previewGalleryImages(this)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-amber-500 file:text-white hover:file:bg-amber-600 cursor-pointer">
+                        </div>
+
+                        <div id="gallery-preview-container" class="mt-4 p-3 bg-white rounded-xl border border-slate-200 hidden">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Pratonton Gambar:</p>
+                            <div id="gallery-preview-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-black uppercase text-brandDark mb-2">Penerangan Ringkas Program (Pilihan)</label>
+                        <textarea id="gallery-desc" rows="3" placeholder="Nota ringkas..." class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brandAccent/20 outline-none text-sm font-medium"></textarea>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                        <button type="button" onclick="resetGalleryPreview()" class="px-5 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">
+                            Set Semula
+                        </button>
+                        <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-600 to-brandDark text-white text-xs font-extrabold shadow-lg hover:opacity-90 transition">
+                            Simpan & Terbitkan Galeri Foto
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TAB 4: SIDEBAR -->
+            <div id="admin-panel-sidebar" class="hidden space-y-6">
+                <div class="card-custom p-6 bg-white space-y-4">
+                    <div class="border-b border-slate-200 pb-3">
+                        <h2 class="text-base font-black text-brandDark flex items-center gap-2">
+                            <span>🔄</span> Susun Kedudukan Widget Sidebar
+                        </h2>
+                    </div>
+                    <div id="sidebar-order-list" class="space-y-2"></div>
+                </div>
+
+                <form id="form-config-sidebar" onsubmit="handleSaveSidebarConfig(event)" class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                    <div>
+                        <h2 class="text-base font-black text-brandDark border-b border-brandBorder pb-3 mb-2 flex items-center gap-2">
+                            <span>📌</span> Pengurusan Maklumat Widget Sidebar
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-4">
+                            <h3 class="text-xs font-black uppercase text-brandNavy border-b border-slate-200 pb-2">1. Khidmat Pelanggan & Pejabat</h3>
+                            
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Nombor Telefon *</label>
+                                <input type="text" id="cfg-sidebar-phone" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Emel Rasmi *</label>
+                                <input type="email" id="cfg-sidebar-email" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                            </div>
+                        </div>
+
+                        <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-4">
+                            <h3 class="text-xs font-black uppercase text-brandNavy border-b border-slate-200 pb-2">2. Waktu Urusan Pejabat</h3>
+                            
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Isnin - Khamis *</label>
+                                <input type="text" id="cfg-sidebar-hours-monthu" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Jumaat *</label>
+                                <input type="text" id="cfg-sidebar-hours-fri" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                            </div>
+
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Sabtu & Ahad *</label>
+                                <input type="text" id="cfg-sidebar-hours-satsun" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                            <h3 class="text-xs font-black uppercase text-brandNavy">3. Pautan Portal Luar</h3>
+                            <button type="button" onclick="addPortalLinkField()" class="px-3 py-1.5 rounded-lg bg-brandNavy text-white text-[11px] font-bold hover:bg-brandDark transition">
+                                + Tambah Pautan
+                            </button>
+                        </div>
+
+                        <div id="sidebar-portal-links-container" class="space-y-3"></div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                        <button type="button" onclick="loadSidebarConfigToForm()" class="px-5 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">
+                            Set Semula
+                        </button>
+                        <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-brandNavy to-brandDark text-white text-xs font-extrabold shadow-lg hover:opacity-90 transition">
+                            Simpan Tetapan Sidebar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TAB 5: TETAPAN PAUTAN PANTAS -->
+            <div id="admin-panel-quicklinks" class="hidden space-y-6">
+                <form id="form-config-quicklinks" onsubmit="handleSaveQuickLinks(event)" class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                    <div>
+                        <h2 class="text-base font-black text-brandDark border-b border-brandBorder pb-3 mb-2 flex items-center gap-2">
+                            <span>⚡</span> Tetapan 5 Kad Pautan Pantas & Warna Tema
+                        </h2>
+                        <p class="text-xs text-slate-500 font-medium mb-6">Kemaskini tajuk, penerangan, ikon, warna kad, dan pilih ID Page sasaran.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="quicklinks-config-container"></div>
+
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                        <button type="button" onclick="loadQuickLinksConfigToForm()" class="px-5 py-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">
+                            Set Semula
+                        </button>
+                        <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-brandNavy to-brandDark text-white text-xs font-extrabold shadow-lg hover:opacity-90 transition">
+                            Simpan Tetapan Pautan Pantas
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SAMBUNGAN FAIL CONFIG BACKEND -->
+    <script src="config.js"></script>
+
+    <!-- LOGIK JAVASCRIPT DASHBOARD ADMIN -->
+    <script>
+        let CURRENT_USER = null;
+        let APP_DATA = {};
+
+        let SIDEBAR_CONFIG_DATA = {
+            phone: '03-XXXX 8899',
+            email: 'rasmi@sekolah.edu.my',
+            hours_mon_thu: '8:00 AM - 5:00 PM',
+            hours_fri: '8:00 AM - 12:15 PM',
+            hours_sat_sun: 'Cuti',
+            portal_links: [
+                { name: 'DELIMa KPM', url: 'https://moe-dl.edu.my' },
+                { name: 'Sistem MOEIS', url: 'https://moeis.moe.gov.my' },
+                { name: 'Aplikasi APDM', url: 'https://apdm.moe.gov.my' }
+            ]
+        };
+
+        let SIDEBAR_WIDGET_ORDER = ['hebahan', 'contact', 'hours', 'portals'];
+
+        const SIDEBAR_WIDGET_NAMES = {
+            hebahan: '📢 Hebahan Ringkas (Automatik)',
+            contact: '📞 Khidmat Pelanggan & Pejabat',
+            hours: '🕒 Waktu Urusan Pejabat',
+            portals: '🌐 Pautan Portal Luar'
+        };
+
+        const QUICK_ICONS = {
+            school: 'SCHOOL',
+            book: 'BOOK',
+            users: 'USERS',
+            media: 'MEDIA',
+            calendar: 'CALENDAR',
+            trophy: 'TROPHY',
+            link: 'LINK'
+        };
+
+        let QUICK_LINKS_DATA = [
+            { id: 1, title: 'e-TMK', desc: 'Pusat ICT Digital', icon: 'school', target: 'e-tmk', color: 'blue' },
+            { id: 2, title: 'e-PBD', desc: 'Pentaksiran Bilik Darjah', icon: 'book', target: 'e-pbd', color: 'emerald' },
+            { id: 3, title: 'e-Mampan', desc: 'Pengurusan Mampan', icon: 'trophy', target: 'e-mampan', color: 'amber' },
+            { id: 4, title: 'e-Bank Soalan', desc: 'Koleksi Soalan', icon: 'media', target: 'e-banksoalan', color: 'purple' },
+            { id: 5, title: 'e-PIBG', desc: 'Portal Ibu Bapa & Guru', icon: 'users', target: 'e-pibg', color: 'rose' }
+        ];
+
+        let MENU_STRUCTURE = {
+            utama: { label: "Utama", desc: "SK Segambut Makmur", items: [] },
+            profil: { label: "Profil", desc: "Info Latar Belakang & Pentadbiran Sekolah", items: [] },
+            kurikulum: { label: "Kurikulum", desc: "Pengurusan Akademik & Pentaksiran Sekolah", items: [] },
+            hem: { label: "Hal Ehwal Murid", desc: "Pembangunan Sahsiah, Kebajikan & Disiplin Murid", items: [] },
+            kokurikulum: { label: "Ko Kurikulum", desc: "Penglibatan Sukan, Badan Beruniform & Kelab", items: [] },
+            info_galeri: {
+                label: "Info & Galeri",
+                desc: "Koleksi Berita, Majalah Digital & Album Foto Aktiviti",
+                items: [
+                    { id: 'berita_pengumuman', title: 'Berita & Pengumuman Terkini', desc: 'Info & Pekeliling Rasmi Sekolah' },
+                    { id: 'buletin_majalah', title: 'Buletin / Majalah Sekolah', desc: 'Laporan Aktiviti & Pencapaian' },
+                    { id: 'galeri_foto_video', title: 'Galeri Foto & Video Aktiviti', desc: 'Koleksi Foto Program Sekolah' }
+                ]
+            }
+        };
+
+        function checkSession() {
+            const userJson = sessionStorage.getItem('CURRENT_USER');
+            if (!userJson) {
+                window.location.href = 'LoginSession.html';
+                return;
+            }
+            try {
+                CURRENT_USER = JSON.parse(userJson);
+                if ((CURRENT_USER.role || '').toLowerCase() !== 'admin') {
+                    window.location.href = 'LoginSession.html';
+                }
+            } catch (e) {
+                window.location.href = 'LoginSession.html';
+            }
+        }
+
+        function showLoader(txt = "Memuatkan data...") {
+            const loader = document.getElementById('global-loader');
+            const lTxt = document.getElementById('loader-text');
+            if (lTxt) lTxt.innerText = txt;
+            if (loader) loader.classList.remove('hidden');
+        }
+
+        function hideLoader() {
+            const loader = document.getElementById('global-loader');
+            if (loader) loader.classList.add('hidden');
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if(!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast-enter pointer-events-auto px-4 py-3 rounded-2xl text-xs font-extrabold text-white shadow-xl flex items-center gap-2 ${type==='success'?'bg-emerald-600':'bg-red-600'}`;
+            toast.innerHTML = `<span>${type==='success'?'✅':'⚠️'}</span><span>${msg}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => { toast.remove(); }, 3500);
+        }
+
+        async function sendPostRequest(actionName, payloadData) {
+            showLoader("Menghantar data ke backend...");
+            try {
+                const response = await fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: actionName,
+                        data: payloadData
+                    })
+                });
+
+                const result = await response.json();
+                hideLoader();
+                return result;
+            } catch (err) {
+                hideLoader();
+                console.error("Fetch POST Error:", err);
+                showToast("Ralat penghantaran data ke backend Google Apps Script!", "error");
+                return { success: false, error: err.toString() };
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function fetchAdminData() {
+            showLoader("Memuatkan tetapan pentadbiran...");
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=getPortalData`);
+                const result = await response.json();
+                hideLoader();
+
+                if (result.success) {
+                    APP_DATA = result;
+
+                    if (result.menuStructure) {
+                        for (let modKey in result.menuStructure) {
+                            if (modKey !== 'info_galeri' && MENU_STRUCTURE[modKey]) {
+                                let rawItems = result.menuStructure[modKey];
+                                if (typeof rawItems === 'string') {
+                                    try { rawItems = JSON.parse(rawItems); } catch(e) { rawItems = []; }
+                                }
+                                MENU_STRUCTURE[modKey].items = Array.isArray(rawItems) ? rawItems : [];
+                            }
+                        }
+                    }
+
+                    if (result.quickLinks && result.quickLinks.length > 0) {
+                        QUICK_LINKS_DATA = result.quickLinks;
+                    }
+
+                    if (result.sidebarConfig && Object.keys(result.sidebarConfig).length > 0) {
+                        SIDEBAR_CONFIG_DATA = { ...SIDEBAR_CONFIG_DATA, ...result.sidebarConfig };
+                    }
+
+                    if (result.sidebarOrder) {
+                        SIDEBAR_WIDGET_ORDER = typeof result.sidebarOrder === 'string' ? JSON.parse(result.sidebarOrder) : result.sidebarOrder;
+                    }
+
+                    loadQuickLinksConfigToForm();
+                    loadSidebarConfigToForm();
+                    renderAdminMenuList();
+                    populateSubTabDropdown();
+                } else {
+                    showToast("Gagal memuatkan data backend: " + result.error, "error");
+                }
+            } catch (err) {
+                hideLoader();
+                console.error("Fetch GET Error:", err);
+                loadQuickLinksConfigToForm();
+                loadSidebarConfigToForm();
+                renderAdminMenuList();
+                populateSubTabDropdown();
+            }
+        }
+
+        function switchAdminTab(tabName) {
+            const btnPosts = document.getElementById('admin-tab-btn-posts');
+            const btnMenu = document.getElementById('admin-tab-btn-menu');
+            const btnGallery = document.getElementById('admin-tab-btn-gallery');
+            const btnSidebar = document.getElementById('admin-tab-btn-sidebar');
+            const btnQuick = document.getElementById('admin-tab-btn-quicklinks');
+            
+            const panelPosts = document.getElementById('admin-panel-posts');
+            const panelMenu = document.getElementById('admin-panel-menu');
+            const panelGallery = document.getElementById('admin-panel-gallery');
+            const panelSidebar = document.getElementById('admin-panel-sidebar');
+            const panelQuick = document.getElementById('admin-panel-quicklinks');
+
+            const defaultClass = 'px-5 py-2.5 rounded-xl text-xs font-black transition text-slate-600 bg-white border border-brandBorder hover:bg-slate-100 whitespace-nowrap';
+            const activeClass = 'px-5 py-2.5 rounded-xl text-xs font-black transition bg-brandDark text-white shadow-md whitespace-nowrap';
+
+            btnPosts.className = defaultClass;
+            btnMenu.className = defaultClass;
+            btnGallery.className = defaultClass;
+            btnSidebar.className = defaultClass;
+            btnQuick.className = defaultClass;
+
+            panelPosts.classList.add('hidden');
+            panelMenu.classList.add('hidden');
+            panelGallery.classList.add('hidden');
+            panelSidebar.classList.add('hidden');
+            panelQuick.classList.add('hidden');
+
+            if (tabName === 'posts') {
+                btnPosts.className = activeClass;
+                panelPosts.classList.remove('hidden');
+            } else if (tabName === 'menu') {
+                btnMenu.className = activeClass;
+                panelMenu.classList.remove('hidden');
+                renderAdminMenuList();
+                populateSubTabDropdown();
+            } else if (tabName === 'gallery') {
+                btnGallery.className = activeClass;
+                panelGallery.classList.remove('hidden');
+            } else if (tabName === 'sidebar') {
+                btnSidebar.className = activeClass;
+                panelSidebar.classList.remove('hidden');
+                loadSidebarConfigToForm();
+            } else if (tabName === 'quicklinks') {
+                btnQuick.className = activeClass;
+                panelQuick.classList.remove('hidden');
+                loadQuickLinksConfigToForm();
+            }
+        }
+
+        async function handleSavePost(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('post-title').value.trim();
+            const moduleName = document.getElementById('post-module').value;
+            const subCategory = document.getElementById('post-sub-module').value;
+            const contentHtml = document.getElementById('editor-content').innerHTML;
+            const docUrl = document.getElementById('post-doc-url').value.trim();
+
+            let bannerBase64 = '';
+            const imgFileInput = document.getElementById('post-file-images');
+            if (imgFileInput.files && imgFileInput.files[0]) {
+                bannerBase64 = await fileToBase64(imgFileInput.files[0]);
+            }
+
+            const postPayload = {
+                tajuk: title,
+                tarikh: new Date().toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' }),
+                modul: moduleName,
+                sub_kategori: subCategory,
+                kandungan_html: contentHtml,
+                banner_base64: bannerBase64,
+                doc_base64: '',
+                dokumen_url: docUrl
+            };
+
+            const res = await sendPostRequest('savePost', postPayload);
+            if (res.success) {
+                showToast("Post berjaya disimpan & diterbitkan!");
+                document.getElementById('form-create-post').reset();
+                document.getElementById('editor-content').innerHTML = '';
+                resetImagePreview();
+            } else {
+                showToast("Gagal menyimpan post: " + res.error, "error");
+            }
+        }
+
+        function previewImages(input) {
+            const container = document.getElementById('image-preview-container');
+            const grid = document.getElementById('preview-layout-grid');
+            grid.innerHTML = '';
+            if (input.files && input.files.length > 0) {
+                container.classList.remove('hidden');
+                Array.from(input.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'w-24 h-24 object-cover rounded-xl border border-slate-200';
+                        grid.appendChild(img);
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+        function resetImagePreview() {
+            document.getElementById('image-preview-container').classList.add('hidden');
+            document.getElementById('preview-layout-grid').innerHTML = '';
+        }
+
+        function formatDoc(cmd, value = null) {
+            document.execCommand(cmd, false, value);
+        }
+
+        function insertImageInText() {
+            const choice = confirm("Klik OK untuk MUAT NAIK GAMBAR DARI KOMPUTER/TELEFON, atau CANCEL untuk Masukkan PAUTAN URL GAMBAR.");
+            if (choice) {
+                document.getElementById('inline-image-uploader').click();
+            } else {
+                const imgUrl = prompt("Sila masukkan pautan URL Gambar (Contoh: https://...):");
+                if (imgUrl && imgUrl.trim() !== "") {
+                    formatDoc('insertImage', imgUrl.trim());
+                }
+            }
+        }
+
+        function handleInlineImageUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    formatDoc('insertImage', e.target.result);
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        async function handleSaveMenuTab(e) {
+            e.preventDefault();
+            try {
+                const modSelect = document.getElementById('menu-mgr-target-mod');
+                const titleInput = document.getElementById('menu-mgr-tab-title');
+                const descInput = document.getElementById('menu-mgr-tab-desc');
+
+                if (!modSelect || !titleInput) {
+                    showToast("Elemen borang tidak dijumpai!", "error");
+                    return;
+                }
+
+                const modKey = modSelect.value;
+                const title = titleInput.value.trim();
+                const desc = descInput ? descInput.value.trim() : '';
+
+                if (!title) {
+                    showToast("Sila masukkan nama tab!", "error");
+                    return;
+                }
+
+                if (!MENU_STRUCTURE[modKey]) {
+                    MENU_STRUCTURE[modKey] = { label: modKey.toUpperCase(), desc: '', items: [] };
+                }
+                
+                if (!Array.isArray(MENU_STRUCTURE[modKey].items)) {
+                    if (typeof MENU_STRUCTURE[modKey].items === 'string') {
+                        try {
+                            MENU_STRUCTURE[modKey].items = JSON.parse(MENU_STRUCTURE[modKey].items);
+                        } catch(e) {
+                            MENU_STRUCTURE[modKey].items = [];
+                        }
+                    } else {
+                        MENU_STRUCTURE[modKey].items = [];
+                    }
+                }
+
+                const id = title.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
+                MENU_STRUCTURE[modKey].items.push({ 
+                    id: id, 
+                    title: title, 
+                    desc: desc, 
+                    type: 'text_post', 
+                    body: '' 
+                });
+
+                let menuMapToSave = {};
+                for (let key in MENU_STRUCTURE) {
+                    menuMapToSave[key] = Array.isArray(MENU_STRUCTURE[key].items) ? MENU_STRUCTURE[key].items : [];
+                }
+
+                const res = await sendPostRequest('saveMenuStructure', menuMapToSave);
+
+                if (res && res.success) {
+                    titleInput.value = '';
+                    if (descInput) descInput.value = '';
+
+                    renderAdminMenuList();
+                    populateSubTabDropdown();
+
+                    showToast("Sub-Tab Baharu Berjaya Ditambah & Disimpan!");
+                } else {
+                    showToast("Gagal menyimpan struktur menu: " + (res ? res.error : "Ralat Backend"), "error");
+                }
+            } catch (err) {
+                console.error("Ralat handleSaveMenuTab:", err);
+                showToast("Ralat sistem: " + err.message, "error");
+            }
+        }
+
+        async function handleSaveTabContent(e) {
+            e.preventDefault();
+            const modKey = document.getElementById('content-mgr-mod').value;
+            const subId = document.getElementById('content-mgr-subtab').value;
+            const type = document.getElementById('content-mgr-type').value;
+
+            const itemsList = Array.isArray(MENU_STRUCTURE[modKey]?.items) ? MENU_STRUCTURE[modKey].items : [];
+            const subObj = itemsList.find(s => s.id === subId);
+            if (!subObj) return;
+
+            subObj.type = type;
+
+            if (type === 'text_post') {
+                subObj.body = document.getElementById('tab-text-body').value.trim();
+                subObj.doc_url = document.getElementById('tab-doc-url').value.trim();
+            } else if (type === 'chart_org') {
+                const rows = document.getElementById('chart-members-container').children;
+                subObj.members = [];
+                Array.from(rows).forEach(r => {
+                    const role = r.querySelector('.chart-role').value.trim();
+                    const name = r.querySelector('.chart-name').value.trim();
+                    const grade = r.querySelector('.chart-grade').value.trim();
+                    if (role && name) {
+                        subObj.members.push({ role, name, grade, img: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) });
+                    }
+                });
+            } else if (type === 'icon_cards') {
+                const rows = document.getElementById('club-cards-container').children;
+                subObj.cards = [];
+                Array.from(rows).forEach((r, idx) => {
+                    const icon = r.querySelector('.club-icon').value.trim() || '📌';
+                    const title = r.querySelector('.club-title').value.trim();
+                    const desc = r.querySelector('.club-desc').value.trim();
+                    if (title) {
+                        subObj.cards.push({
+                            id: subId + '_card_' + idx,
+                            icon,
+                            title,
+                            desc,
+                            full_content: `<p><b>${title}</b> - Laporan Penuh & Penerangan Aktiviti Tahunan.</p><br><p>${desc}</p>`
+                        });
+                    }
+                });
+            }
+
+            let menuMapToSave = {};
+            for (let key in MENU_STRUCTURE) {
+                menuMapToSave[key] = Array.isArray(MENU_STRUCTURE[key].items) ? MENU_STRUCTURE[key].items : [];
+            }
+
+            const res = await sendPostRequest('saveMenuStructure', menuMapToSave);
+            if (res.success) {
+                renderAdminMenuList();
+                showToast("Bahan Sub-Tab Berjaya Disimpan ke Backend!");
+            } else {
+                showToast("Gagal menyimpan bahan: " + res.error, "error");
+            }
+        }
+
+        function renderAdminMenuList() {
+            const container = document.getElementById('admin-menu-list-container');
+            if(!container) return;
+
+            let html = '';
+            Object.keys(MENU_STRUCTURE).forEach(modKey => {
+                if (modKey === 'utama' || modKey === 'info_galeri') return;
+
+                const mod = MENU_STRUCTURE[modKey];
+                let itemList = [];
+                if (Array.isArray(mod.items)) {
+                    itemList = mod.items;
+                } else if (typeof mod.items === 'string') {
+                    try { itemList = JSON.parse(mod.items); } catch(e) { itemList = []; }
+                }
+
+                html += `
+                    <div class="p-4 bg-white rounded-xl border border-slate-200 space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <div>
+                                <span class="text-xs font-black text-brandNavy uppercase">${mod.label}</span>
+                                <p class="text-[11px] text-slate-500 font-medium">${mod.desc || 'Tiada pernyataan'}</p>
+                            </div>
+                            <button onclick="editModuleDesc('${modKey}')" class="text-[11px] font-bold text-amber-600 hover:underline">
+                                ✏️ Sunting Pernyataan Modul
+                            </button>
+                        </div>
+                        <div class="space-y-1.5 pl-3 border-l-2 border-slate-200">
+                `;
+
+                if (itemList.length === 0) {
+                    html += `<p class="text-[11px] text-slate-400 italic">Tiada sub-tab ditambah lagi.</p>`;
+                } else {
+                    itemList.forEach((item, idx) => {
+                        let typeBadge = '<span class="text-[9px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-bold">1. Teks Biasa</span>';
+                        if (item.type === 'chart_org') typeBadge = '<span class="text-[9px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-bold">2. Carta Org</span>';
+                        if (item.type === 'icon_cards') typeBadge = '<span class="text-[9px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">3. Kad Kelab/Ikon</span>';
+
+                        html += `
+                            <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-lg border border-slate-200/60 text-xs">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-extrabold text-brandDark">${item.title}</span>
+                                        ${typeBadge}
+                                    </div>
+                                    ${item.desc ? `<p class="text-[10px] text-slate-500 font-medium">${item.desc}</p>` : ''}
+                                </div>
+                                <button onclick="deleteSubTab('${modKey}', ${idx})" class="text-[10px] font-bold text-red-600 hover:text-red-700">
+                                    🗑️ Padam
+                                </button>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += `</div></div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function populateSubTabDropdown() {
+            const modKey = document.getElementById('content-mgr-mod').value;
+            const dropdown = document.getElementById('content-mgr-subtab');
+            if (!dropdown) return;
+
+            let items = MENU_STRUCTURE[modKey]?.items;
+            if (typeof items === 'string') {
+                try { items = JSON.parse(items); } catch(e) { items = []; }
+            }
+            if (!Array.isArray(items)) items = [];
+
+            dropdown.innerHTML = items.map(item => `<option value="${item.id}">${item.title}</option>`).join('');
+
+            switchContentTypeFields();
+        }
+
+        function switchContentTypeFields() {
+            const type = document.getElementById('content-mgr-type').value;
+            document.getElementById('field-type-text_post').classList.add('hidden');
+            document.getElementById('field-type-chart_org').classList.add('hidden');
+            document.getElementById('field-type-icon_cards').classList.add('hidden');
+
+            document.getElementById(`field-type-${type}`).classList.remove('hidden');
+
+            if (type === 'chart_org' && document.getElementById('chart-members-container').children.length === 0) {
+                addChartMemberRow('Pengetua', 'En. Ahmad Ali', 'DG54');
+                addChartMemberRow('PK Pentadbiran', 'Pn. Siti Aminah', 'DG52');
+            }
+
+            if (type === 'icon_cards' && document.getElementById('club-cards-container').children.length === 0) {
+                addClubCardRow('Kelab Bahasa Melayu', 'Peneraju Wacana Bahasa', '📚');
+                addClubCardRow('English Society', 'Empowering ESL & Debate', '💬');
+            }
+        }
+
+        function addChartMemberRow(role = '', name = '', grade = '') {
+            const container = document.getElementById('chart-members-container');
+            const div = document.createElement('div');
+            div.className = "flex flex-col sm:flex-row items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200";
+            div.innerHTML = `
+                <input type="text" placeholder="Jawatan" value="${role}" class="chart-role w-full sm:w-1/3 p-2 rounded-lg border text-xs font-bold outline-none">
+                <input type="text" placeholder="Nama Penuh" value="${name}" class="chart-name w-full sm:w-1/3 p-2 rounded-lg border text-xs font-bold outline-none">
+                <input type="text" placeholder="Gred / Catatan" value="${grade}" class="chart-grade w-full sm:w-1/4 p-2 rounded-lg border text-xs font-bold outline-none">
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 font-black p-1 text-xs">🗑️</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function addClubCardRow(title = '', desc = '', icon = '📌') {
+            const container = document.getElementById('club-cards-container');
+            const div = document.createElement('div');
+            div.className = "flex flex-col sm:flex-row items-center gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200";
+            div.innerHTML = `
+                <input type="text" placeholder="Ikon" value="${icon}" class="club-icon w-16 p-2 rounded-lg border text-xs font-bold text-center outline-none">
+                <input type="text" placeholder="Nama Kelab / Kad" value="${title}" class="club-title w-full sm:w-1/3 p-2 rounded-lg border text-xs font-bold outline-none">
+                <input type="text" placeholder="Penerangan Ringkas" value="${desc}" class="club-desc w-full sm:flex-1 p-2 rounded-lg border text-xs font-medium outline-none">
+                <button type="button" onclick="this.parentElement.remove()" class="text-red-500 font-black p-1 text-xs">🗑️</button>
+            `;
+            container.appendChild(div);
+        }
+
+        async function deleteSubTab(modKey, index) {
+            if (confirm("Adakah anda pasti mahu memadam tab ini?")) {
+                if (!Array.isArray(MENU_STRUCTURE[modKey].items)) {
+                    MENU_STRUCTURE[modKey].items = [];
+                } else {
+                    MENU_STRUCTURE[modKey].items.splice(index, 1);
+                }
+
+                let menuMapToSave = {};
+                for (let key in MENU_STRUCTURE) {
+                    menuMapToSave[key] = Array.isArray(MENU_STRUCTURE[key].items) ? MENU_STRUCTURE[key].items : [];
+                }
+
+                const res = await sendPostRequest('saveMenuStructure', menuMapToSave);
+                if (res.success) {
+                    renderAdminMenuList();
+                    populateSubTabDropdown();
+                    showToast("Sub-Tab berjaya dipadam!");
+                } else {
+                    showToast("Gagal memadam sub-tab: " + res.error, "error");
+                }
+            }
+        }
+
+        function editModuleDesc(modKey) {
+            const currentDesc = MENU_STRUCTURE[modKey].desc || '';
+            const newDesc = prompt(`Masukkan Pernyataan Utama untuk modul ${MENU_STRUCTURE[modKey].label}:`, currentDesc);
+            if (newDesc !== null) {
+                MENU_STRUCTURE[modKey].desc = newDesc.trim();
+                renderAdminMenuList();
+                showToast("Pernyataan modul berjaya dikemaskini!");
+            }
+        }
+
+        async function handleSaveGallery(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('gallery-title').value.trim();
+            const dateVal = document.getElementById('gallery-date').value;
+            const desc = document.getElementById('gallery-desc').value.trim();
+            const fileInput = document.getElementById('gallery-file-images');
+
+            let base64Array = [];
+            if (fileInput.files && fileInput.files.length > 0) {
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    const b64 = await fileToBase64(fileInput.files[i]);
+                    base64Array.push(b64);
+                }
+            }
+
+            const galleryPayload = {
+                tajuk: title,
+                tarikh: dateVal,
+                penerangan: desc,
+                gambar_base64_array: base64Array
+            };
+
+            const res = await sendPostRequest('saveGallery', galleryPayload);
+            if (res.success) {
+                showToast("Galeri foto berjaya disimpan!");
+                document.getElementById('form-create-gallery').reset();
+                resetGalleryPreview();
+            } else {
+                showToast("Gagal menyimpan galeri: " + res.error, "error");
+            }
+        }
+
+        function previewGalleryImages(input) {
+            const container = document.getElementById('gallery-preview-container');
+            const grid = document.getElementById('gallery-preview-grid');
+            const badge = document.getElementById('gallery-photo-count-badge');
+            grid.innerHTML = '';
+
+            if (input.files && input.files.length > 0) {
+                container.classList.remove('hidden');
+                badge.innerText = `${input.files.length} Gambar Dipilih`;
+                Array.from(input.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'w-full h-24 object-cover rounded-xl border border-slate-200';
+                        grid.appendChild(img);
+                    }
+                    reader.readAsDataURL(file);
+                });
+            }
+        }
+
+        function resetGalleryPreview() {
+            document.getElementById('gallery-preview-container').classList.add('hidden');
+            document.getElementById('gallery-preview-grid').innerHTML = '';
+            document.getElementById('gallery-photo-count-badge').innerText = '0 Gambar Dipilih';
+        }
+
+        function loadSidebarConfigToForm() {
+            document.getElementById('cfg-sidebar-phone').value = SIDEBAR_CONFIG_DATA.phone;
+            document.getElementById('cfg-sidebar-email').value = SIDEBAR_CONFIG_DATA.email;
+            document.getElementById('cfg-sidebar-hours-monthu').value = SIDEBAR_CONFIG_DATA.hours_mon_thu;
+            document.getElementById('cfg-sidebar-hours-fri').value = SIDEBAR_CONFIG_DATA.hours_fri;
+            document.getElementById('cfg-sidebar-hours-satsun').value = SIDEBAR_CONFIG_DATA.hours_sat_sun;
+
+            renderAdminPortalLinksForm();
+            renderSidebarOrderList();
+        }
+
+        function renderAdminPortalLinksForm() {
+            const container = document.getElementById('sidebar-portal-links-container');
+            if(!container) return;
+
+            let html = '';
+            SIDEBAR_CONFIG_DATA.portal_links.forEach((item, index) => {
+                html += `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+                        <input type="text" id="cfg-portal-name-${index}" value="${item.name}" required placeholder="Nama Portal" class="w-full sm:w-1/3 px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold outline-none">
+                        <input type="url" id="cfg-portal-url-${index}" value="${item.url}" required placeholder="https://..." class="w-full sm:flex-1 px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold outline-none">
+                        <button type="button" onclick="removePortalLinkField(${index})" class="text-red-500 hover:text-red-700 p-2 text-xs font-black shrink-0">
+                            🗑️
+                        </button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function addPortalLinkField() {
+            SIDEBAR_CONFIG_DATA.portal_links.push({ name: '', url: '' });
+            renderAdminPortalLinksForm();
+        }
+
+        function removePortalLinkField(index) {
+            SIDEBAR_CONFIG_DATA.portal_links.splice(index, 1);
+            renderAdminPortalLinksForm();
+        }
+
+        function renderSidebarOrderList() {
+            const container = document.getElementById('sidebar-order-list');
+            if (!container) return;
+
+            let html = '';
+            SIDEBAR_WIDGET_ORDER.forEach((key, idx) => {
+                html += `
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-black">
+                        <span class="text-brandDark">${idx + 1}. ${SIDEBAR_WIDGET_NAMES[key]}</span>
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="moveWidgetOrder(${idx}, -1)" ${idx === 0 ? 'disabled class="opacity-30 cursor-not-allowed p-1 bg-slate-200 rounded-lg"' : 'class="p-1.5 bg-brandNavy text-white hover:bg-brandDark rounded-lg transition"'}>
+                                ▲
+                            </button>
+                            <button type="button" onclick="moveWidgetOrder(${idx}, 1)" ${idx === SIDEBAR_WIDGET_ORDER.length - 1 ? 'disabled class="opacity-30 cursor-not-allowed p-1 bg-slate-200 rounded-lg"' : 'class="p-1.5 bg-brandNavy text-white hover:bg-brandDark rounded-lg transition"'}>
+                                ▼
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function moveWidgetOrder(index, direction) {
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= SIDEBAR_WIDGET_ORDER.length) return;
+
+            const temp = SIDEBAR_WIDGET_ORDER[index];
+            SIDEBAR_WIDGET_ORDER[index] = SIDEBAR_WIDGET_ORDER[newIndex];
+            SIDEBAR_WIDGET_ORDER[newIndex] = temp;
+
+            renderSidebarOrderList();
+            showToast("Kedudukan sidebar berjaya dikemaskini!");
+        }
+
+        async function handleSaveSidebarConfig(e) {
+            e.preventDefault();
+            
+            SIDEBAR_CONFIG_DATA.phone = document.getElementById('cfg-sidebar-phone').value.trim();
+            SIDEBAR_CONFIG_DATA.email = document.getElementById('cfg-sidebar-email').value.trim();
+            SIDEBAR_CONFIG_DATA.hours_mon_thu = document.getElementById('cfg-sidebar-hours-monthu').value.trim();
+            SIDEBAR_CONFIG_DATA.hours_fri = document.getElementById('cfg-sidebar-hours-fri').value.trim();
+            SIDEBAR_CONFIG_DATA.hours_sat_sun = document.getElementById('cfg-sidebar-hours-satsun').value.trim();
+
+            const updatedPortalLinks = [];
+            SIDEBAR_CONFIG_DATA.portal_links.forEach((_, idx) => {
+                const nameInput = document.getElementById(`cfg-portal-name-${idx}`);
+                const urlInput = document.getElementById(`cfg-portal-url-${idx}`);
+                if (nameInput && urlInput && nameInput.value.trim() !== '') {
+                    updatedPortalLinks.push({
+                        name: nameInput.value.trim(),
+                        url: urlInput.value.trim()
+                    });
+                }
+            });
+            SIDEBAR_CONFIG_DATA.portal_links = updatedPortalLinks;
+
+            const res1 = await sendPostRequest('saveSidebarConfig', SIDEBAR_CONFIG_DATA);
+            const res2 = await sendPostRequest('saveSidebarOrder', SIDEBAR_WIDGET_ORDER);
+
+            if (res1.success && res2.success) {
+                showToast("Tetapan Sidebar berjaya disimpan ke backend!");
+            } else {
+                showToast("Gagal menyimpan tetapan sidebar!", "error");
+            }
+        }
+
+        function loadQuickLinksConfigToForm() {
+            const container = document.getElementById('quicklinks-config-container');
+            if (!container) return;
+
+            let html = '';
+            QUICK_LINKS_DATA.forEach((item, index) => {
+                html += `
+                    <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                            <span class="text-xs font-black uppercase text-brandNavy">Kad Pautan Pantas ${index + 1}</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-700">ID: ${item.id}</span>
+                        </div>
+                        <div class="grid grid-cols-1 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Tajuk Utama *</label>
+                                <input type="text" id="ql-title-${index}" value="${item.title}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Penerangan Ringkas *</label>
+                                <input type="text" id="ql-desc-${index}" value="${item.desc}" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Pilihan Ikon *</label>
+                                    <select id="ql-icon-${index}" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                                        ${Object.keys(QUICK_ICONS).map(iconKey => `
+                                            <option value="${iconKey}" ${item.icon === iconKey ? 'selected' : ''}>${iconKey.toUpperCase()}</option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Warna Kad & Banner *</label>
+                                    <select id="ql-color-${index}" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                                        <option value="blue" ${item.color === 'blue' ? 'selected' : ''}>🔵 Blue</option>
+                                        <option value="emerald" ${item.color === 'emerald' ? 'selected' : ''}>🟢 Emerald</option>
+                                        <option value="amber" ${item.color === 'amber' ? 'selected' : ''}>🟠 Amber</option>
+                                        <option value="purple" ${item.color === 'purple' ? 'selected' : ''}>🟣 Purple</option>
+                                        <option value="rose" ${item.color === 'rose' ? 'selected' : ''}>🔴 Rose</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-black uppercase text-slate-700 mb-1">Pilih ID Page Wujud / Taip Target *</label>
+                                <select onchange="document.getElementById('ql-target-${index}').value = this.value" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none mb-1 text-brandNavy">
+                                    <option value="">-- Pilih ID Page Wujud --</option>
+                                    <option value="e-tmk" ${item.target === 'e-tmk' ? 'selected' : ''}>e-TMK (Pusat ICT Digital)</option>
+                                    <option value="e-pbd" ${item.target === 'e-pbd' ? 'selected' : ''}>e-PBD (Pentaksiran Bilik Darjah)</option>
+                                    <option value="e-mampan" ${item.target === 'e-mampan' ? 'selected' : ''}>e-Mampan (Pengurusan Mampan)</option>
+                                    <option value="e-banksoalan" ${item.target === 'e-banksoalan' ? 'selected' : ''}>e-Bank Soalan (Pusat Soalan)</option>
+                                    <option value="e-pibg" ${item.target === 'e-pibg' ? 'selected' : ''}>e-PIBG (Portal Ibu Bapa & Guru)</option>
+                                    <option value="profil" ${item.target === 'profil' ? 'selected' : ''}>Profil Sekolah</option>
+                                    <option value="kurikulum" ${item.target === 'kurikulum' ? 'selected' : ''}>Kurikulum</option>
+                                    <option value="hem" ${item.target === 'hem' ? 'selected' : ''}>Hal Ehwal Murid (HEM)</option>
+                                    <option value="kokurikulum" ${item.target === 'kokurikulum' ? 'selected' : ''}>Ko Kurikulum</option>
+                                    <option value="info_galeri" ${item.target === 'info_galeri' ? 'selected' : ''}>Info & Galeri</option>
+                                </select>
+                                <input type="text" id="ql-target-${index}" value="${item.target}" required placeholder="ID Page atau URL penuh (https://...)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function handleSaveQuickLinks(e) {
+            e.preventDefault();
+            QUICK_LINKS_DATA.forEach((item, index) => {
+                const titleVal = document.getElementById(`ql-title-${index}`).value.trim();
+                const descVal = document.getElementById(`ql-desc-${index}`).value.trim();
+                const iconVal = document.getElementById(`ql-icon-${index}`).value;
+                const colorVal = document.getElementById(`ql-color-${index}`).value;
+                const targetVal = document.getElementById(`ql-target-${index}`).value.trim();
+
+                if (titleVal) item.title = titleVal;
+                if (descVal) item.desc = descVal;
+                if (iconVal) item.icon = iconVal;
+                if (colorVal) item.color = colorVal;
+                if (targetVal) item.target = targetVal;
+            });
+
+            const res = await sendPostRequest('saveQuickLinks', QUICK_LINKS_DATA);
+            if (res.success) {
+                showToast("Tetapan Pautan Pantas & Warna berjaya disimpan!");
+            } else {
+                showToast("Gagal menyimpan pautan pantas!", "error");
+            }
+        }
+
+        function logout() {
+            sessionStorage.removeItem('CURRENT_USER');
+            window.location.href = 'index.html?mode=portal';
+        }
+
+        /* INITIALIZE ON LOAD */
+        window.addEventListener('DOMContentLoaded', () => {
+            checkSession();
+            fetchAdminData();
+        });
+    </script>
+</body>
+</html>
