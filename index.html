@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Rasmi Sekolah</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Sambungan Awal ke Servis Google -->
+    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://drive.google.com">
+    <link rel="dns-prefetch" href="https://script.google.com">
+    <link rel="dns-prefetch" href="https://drive.google.com">
+    <link rel="dns-prefetch" href="https://ui-avatars.com">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        brandDark: '#0F172A',       /* Slate Navy Deep */
+                        brandNavy: '#1E3A8A',       /* Medium Navy */
+                        brandAccent: '#2563EB',     /* Blue Accent */
+                        brandGold: '#D97706',       /* Amber Gold */
+                        brandBg: '#F8FAFC',         /* Clean Slate Light */
+                        brandBorder: '#E2E8F0'      /* Modern Border */
+                    },
+                    fontFamily: { 
+                        sans: ['Plus Jakarta Sans', 'sans-serif'] 
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #F8FAFC; 
+            color: #0F172A; 
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* Modern Glassmorphic Header */
+        .floating-header { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.08);
+        }
+
+        /* Modern Wix-Style Card */
+        .card-custom {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.03);
+            border-radius: 1.25rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .card-custom:hover { 
+            transform: translateY(-4px); 
+            box-shadow: 0 20px 35px -10px rgba(30, 58, 138, 0.12); 
+            border-color: #93C5FD; 
+        }
+
+        /* KAD PAUTAN PANTAS SEGI EMPAT SAMA (SQUARE CARD) */
+        .quick-icon-card-square {
+            border-radius: 1.25rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .quick-icon-card-square:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 16px 30px -8px rgba(15, 23, 42, 0.25);
+        }
+
+        /* Gradient Glow Buttons */
+        .btn-gradient-gold {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            transition: all 0.25s ease;
+        }
+        .btn-gradient-gold:hover {
+            background: linear-gradient(135deg, #FBBF24 0%, #B45309 100%);
+            box-shadow: 0 8px 20px -4px rgba(217, 119, 6, 0.4);
+        }
+
+        .btn-gradient-dark {
+            background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+            transition: all 0.25s ease;
+        }
+        .btn-gradient-dark:hover {
+            background: linear-gradient(135deg, #334155 0%, #1E293B 100%);
+            box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.3);
+        }
+
+        /* Scrollbar Custom */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #F8FAFC; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+        .loader-spinner {
+            border: 4px solid #CBD5E1; 
+            border-top: 4px solid #F59E0B;
+            border-radius: 50%; 
+            width: 44px; 
+            height: 44px; 
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .toast-enter { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+
+        /* Animasi Transisi Hebahan Interaktif */
+        .fade-in-slide {
+            animation: fadeInSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeInSlide {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Gaya Imej Dalam Teks Editor */
+        #editor-content img, .post-content-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.75rem;
+            margin: 1rem auto;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 1px solid #E2E8F0;
+        }
+
+        @media print {
+            #sticky-header, #mobile-bottom-nav, footer, button { display: none !important; }
+            #main-content { padding: 0 !important; width: 100% !important; }
+        }
+    </style>
+
+    <!-- SCRIPT MOBILE DETECTION (PENGESAN PERANTI PENENTU WORKFLOW MOBILE VS DESKTOP) -->
+    <script>
+        (function checkMobileWorkflow() {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+            const urlParams = new URLSearchParams(window.location.search);
+            const viewMode = urlParams.get('mode');
+
+            // Jika buka di peranti mobile DAN tiada arahan paksa lihat portal awam (?mode=portal)
+            if (isMobile && viewMode !== 'portal') {
+                window.location.href = 'LoginSession.html';
+            }
+        })();
+    </script>
+</head>
+<body class="bg-brandBg text-brandDark antialiased min-h-screen flex flex-col selection:bg-brandNavy selection:text-white">
+
+    <!-- GLOBAL LOADER & TOAST -->
+    <div id="global-loader" class="fixed inset-0 bg-brandDark/85 backdrop-blur-md z-[9999] flex flex-col items-center justify-center hidden">
+        <div class="loader-spinner mb-4"></div>
+        <p class="text-white text-center font-bold text-base drop-shadow-md" id="loader-text">Memuatkan portal...</p>
+    </div>
+
+    <div id="toast-container" class="fixed top-24 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- 1. HEADER MODEN FLOATING WITH NAVIGATION -->
+    <div id="header-wrapper" class="sticky top-0 z-50 pt-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        <header id="sticky-header" class="floating-header rounded-2xl px-5 py-3 flex items-center justify-between transition-all">
+            
+            <!-- Logo & Identiti Portal -->
+            <div class="flex items-center gap-3.5 cursor-pointer shrink-0" onclick="loadModule('utama')">
+                <div class="h-11 w-11 rounded-2xl bg-gradient-to-tr from-brandDark via-brandNavy to-brandAccent text-white flex items-center justify-center font-black text-xl shadow-lg border border-white/20">
+                    <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
+                </div>
+                <div>
+                    <h1 id="header-title-school" class="font-black text-lg tracking-tight text-brandDark leading-tight">Portal Rasmi Sekolah</h1>
+                    <p id="header-subtitle" class="text-xs font-bold text-brandGold uppercase tracking-wider">Pusat Maklumat Digital</p>
+                </div>
+            </div>
+
+            <!-- MENU BAR UTAMA (DINAMIK RE-RENDER) -->
+            <nav id="header-main-nav" class="hidden xl:flex items-center gap-1 lg:gap-1.5 overflow-x-auto">
+                <!-- Dirender Melalui JS renderHeaderNav() -->
+            </nav>
+
+            <!-- Auth Area -->
+            <div class="flex items-center gap-3 shrink-0">
+                <button onclick="openLogin()" class="px-3.5 py-2 text-xs lg:text-sm font-black rounded-xl transition text-amber-900 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 shadow-md flex items-center gap-1.5 whitespace-nowrap border border-amber-300">
+                    <svg class="w-4 h-4 text-amber-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    <span>Log Masuk</span>
+                </button>
+            </div>
+        </header>
+    </div>
+
+    <!-- WRAPPER PORTAL AWAM PELAWAT -->
+    <div id="public-portal-wrapper">
+        <!-- 2. BANNER KORPORAT MODEN -->
+        <section id="corporate-banner" class="pt-6 pb-2 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full transition-all">
+            <!-- Kandungan Banner Dirender Melalui JS renderBanner() -->
+        </section>
+
+        <!-- PAUTAN PANTAS SEBARIS DI BAWAH BANNER (SEGI EMPAT SAMA) -->
+        <div id="quick-links-wrapper" class="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full pt-2 pb-4">
+            <div id="quick-links-section" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                <!-- Kandungan Dirender Melalui JS renderQuickLinks() -->
+            </div>
+        </div>
+
+        <!-- CONTAINER UTAMA LAYOUT -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex-1 w-full flex flex-col lg:flex-row gap-8">
+            
+            <!-- MAIN CONTENT AREA -->
+            <main id="main-content-area" class="flex-1 min-w-0 space-y-6">
+                
+                <!-- SUB-MENU / TAB DYNAMIC CONTAINER -->
+                <div id="sub-menu-tabs-container" class="hidden bg-white p-2.5 rounded-2xl border border-brandBorder flex flex-wrap gap-2 shadow-sm scroll-mt-24">
+                </div>
+
+                <!-- KANDUNGAN DINAMIK MODUL -->
+                <div id="main-content">
+                    <div id="skeleton-loader" class="animate-pulse space-y-4">
+                        <div class="h-44 bg-slate-200/80 rounded-3xl w-full"></div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="h-32 bg-slate-200/80 rounded-3xl"></div>
+                            <div class="h-32 bg-slate-200/80 rounded-3xl"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- 3. SIDEBAR INFORMATION MODEN -->
+            <aside id="sidebar-info" class="w-full lg:w-80 shrink-0 space-y-6">
+                
+                <div id="default-sidebar-widgets" class="space-y-6">
+                    <!-- Dirender Dinamik Mengikut Susunan Melalui renderPublicSidebarWidgets() -->
+                </div>
+
+                <div id="gallery-directory-sidebar" class="hidden card-custom p-5 bg-white border-l-4 border-l-brandAccent sticky top-24 space-y-4">
+                    <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
+                        <div>
+                            <h3 id="directory-sidebar-title" class="text-sm font-black text-brandDark flex items-center gap-2">
+                                📁 Direktori Program
+                            </h3>
+                            <p id="directory-sidebar-subtitle" class="text-[11px] text-slate-500 font-medium">Pilih senarai untuk paparan terperinci</p>
+                        </div>
+                    </div>
+
+                    <div id="gallery-directory-list" class="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+                        <!-- Dirender Melalui JS -->
+                    </div>
+
+                    <button onclick="closeFullGalleryView()" class="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center justify-center gap-2 border border-slate-200">
+                        ⬅️ Kembali ke Senarai Ringkas
+                    </button>
+                </div>
+
+            </aside>
+        </div>
+    </div>
+
+    <!-- 4. FOOTER KORPORAT -->
+    <footer class="bg-white border-t border-brandBorder mt-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-600">
+            <div class="flex items-center gap-2.5">
+                <div class="h-7 w-7 rounded-xl bg-gradient-to-tr from-brandDark to-brandNavy text-amber-400 flex items-center justify-center font-black text-xs shadow-md">P</div>
+                <span class="font-bold text-brandDark text-sm">Portal Rasmi Sekolah &copy; 2026. Hak Cipta Terpelihara.</span>
+            </div>
+            <div class="flex gap-6 text-xs font-semibold">
+                <button onclick="loadModule('kurikulum')" class="hover:text-brandAccent transition">Kurikulum</button>
+                <button onclick="openLogin()" class="hover:text-brandAccent transition font-bold text-brandDark">Akses Pentadbir / Log Masuk</button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MOBILE NAVIGATION BOTTOM BAR -->
+    <nav id="mobile-bottom-nav" class="xl:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-lg border-t border-brandBorder z-[999] flex items-center justify-around px-1 py-2 shadow-2xl overflow-x-auto"> 
+        <button onclick="loadModule('utama')" class="flex flex-col items-center justify-center min-w-[50px] text-slate-600 hover:text-brandDark"> 
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1v4a1 1 0 001 1m-6 0h6"></path></svg> 
+            <span class="text-[10px] font-bold mt-1">Utama</span> 
+        </button> 
+        <button onclick="loadModule('profil')" class="flex flex-col items-center justify-center min-w-[50px] text-slate-600 hover:text-brandDark"> 
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h5m0 0h5m-5 0V11m0 0H9m6 0a2 2 0 012 2v6m-8-6a2 2 0 00-2 2v6"></path></svg> 
+            <span class="text-[10px] font-bold mt-1">Profil</span> 
+        </button> 
+        <button onclick="loadModule('kurikulum')" class="flex flex-col items-center justify-center min-w-[50px] text-slate-600 hover:text-brandDark"> 
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 16.5 5c1.747 0 3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg> 
+            <span class="text-[10px] font-bold mt-1">Kurikulum</span> 
+        </button> 
+        <button onclick="loadModule('hem')" class="flex flex-col items-center justify-center min-w-[50px] text-slate-600 hover:text-brandDark"> 
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> 
+            <span class="text-[10px] font-bold mt-1">HEM</span> 
+        </button> 
+        <button onclick="loadModule('kokurikulum')" class="flex flex-col items-center justify-center min-w-[50px] text-slate-600 hover:text-brandDark"> 
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg> 
+            <span class="text-[10px] font-bold mt-1">Koko</span> 
+        </button> 
+        <button onclick="openLogin()" class="flex flex-col items-center justify-center min-w-[50px] text-amber-600 hover:text-amber-700"> 
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> 
+            <span class="text-[10px] font-extrabold mt-1">Log Masuk</span> 
+        </button> 
+    </nav>
+
+    <!-- SAMBUNGAN FAIL CONFIG BACKEND -->
+    <script src="config.js"></script>
+
+    <!-- LOGIK JAVASCRIPT INDEX PORTAL AWAM -->
+    <script>
+        let APP_DATA = {};
+        let CURRENT_MODULE = 'utama';
+        let CURRENT_SUB_MODULE = null;
+        let ACTIVE_FULL_GALLERY_ID = null;
+        let ACTIVE_FULL_POST_ID = null;
+
+        function fixGoogleDriveImageUrl(url) {
+            if (!url || typeof url !== 'string') return 'https://picsum.photos/600/400?random=1';
+            if (url.startsWith('data:image') || url.startsWith('blob:')) return url;
+
+            let fileId = null;
+            const match1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+            if (match1 && match1[1]) fileId = match1[1];
+
+            if (!fileId) {
+                const match2 = url.match(/id=([a-zA-Z0-9_-]+)/);
+                if (match2 && match2[1]) fileId = match2[1];
+            }
+
+            if (fileId) {
+                return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+            }
+            return url;
+        }
+
+        function formatDateDisplay(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                let d = new Date(dateStr);
+                if (isNaN(d.getTime())) {
+                    if (typeof dateStr === 'string' && dateStr.includes('-')) {
+                        const parts = dateStr.split('T')[0].split('-');
+                        if (parts.length === 3) {
+                            d = new Date(parts[0], parts[1] - 1, parts[2]);
+                        }
+                    }
+                }
+                if (!isNaN(d.getTime())) {
+                    return d.toLocaleDateString('ms-MY', { day: '2-digit', month: 'short', year: 'numeric' });
+                }
+            } catch (e) {}
+            return dateStr;
+        }
+
+        let SIDEBAR_CONFIG_DATA = {
+            phone: '03-XXXX 8899',
+            email: 'rasmi@sekolah.edu.my',
+            hours_mon_thu: '8:00 AM - 5:00 PM',
+            hours_fri: '8:00 AM - 12:15 PM',
+            hours_sat_sun: 'Cuti',
+            portal_links: [
+                { name: 'DELIMa KPM', url: 'https://moe-dl.edu.my' },
+                { name: 'Sistem MOEIS', url: 'https://moeis.moe.gov.my' },
+                { name: 'Aplikasi APDM', url: 'https://apdm.moe.gov.my' }
+            ]
+        };
+
+        let SIDEBAR_WIDGET_ORDER = ['hebahan', 'contact', 'hours', 'portals'];
+
+        const QUICK_ICONS = {
+            school: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h5m0 0h5m-5 0V11m0 0H9m6 0a2 2 0 012 2v6m-8-6a2 2 0 00-2 2v6"></path></svg>',
+            book: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 16.5 5c1.747 0 3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>',
+            users: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>',
+            media: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
+            calendar: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>',
+            trophy: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4a5 5 0 005 5h4a5 5 0 005-5V3M12 17v4m-4 0h8"></path></svg>',
+            link: '<svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>'
+        };
+
+        const QUICK_LINK_THEMES = {
+            blue: {
+                card: 'bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white border-blue-400/30 hover:shadow-blue-500/25',
+                iconBg: 'bg-white/20 text-white',
+                banner: 'from-slate-900 via-blue-900 to-indigo-950 border-blue-500/40',
+                badge: 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+            },
+            emerald: {
+                card: 'bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 text-white border-emerald-400/30 hover:shadow-emerald-500/25',
+                iconBg: 'bg-white/20 text-white',
+                banner: 'from-slate-900 via-emerald-900 to-teal-950 border-emerald-500/40',
+                badge: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+            },
+            amber: {
+                card: 'bg-gradient-to-br from-amber-500 via-amber-600 to-orange-700 text-white border-amber-400/30 hover:shadow-amber-500/25',
+                iconBg: 'bg-white/20 text-white',
+                banner: 'from-slate-900 via-amber-900 to-orange-950 border-amber-500/40',
+                badge: 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+            },
+            purple: {
+                card: 'bg-gradient-to-br from-purple-600 via-violet-700 to-purple-900 text-white border-purple-400/30 hover:shadow-purple-500/25',
+                iconBg: 'bg-white/20 text-white',
+                banner: 'from-slate-900 via-purple-900 to-violet-950 border-purple-500/40',
+                badge: 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+            },
+            rose: {
+                card: 'bg-gradient-to-br from-rose-600 via-pink-700 to-rose-800 text-white border-rose-400/30 hover:shadow-rose-500/25',
+                iconBg: 'bg-white/20 text-white',
+                banner: 'from-slate-900 via-rose-900 to-pink-950 border-rose-500/40',
+                badge: 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+            }
+        };
+
+        let QUICK_LINKS_DATA = [
+            { id: 1, title: 'e-TMK', desc: 'Pusat ICT Digital', icon: 'school', target: 'e-tmk', color: 'blue' },
+            { id: 2, title: 'e-PBD', desc: 'Pentaksiran Bilik Darjah', icon: 'book', target: 'e-pbd', color: 'emerald' },
+            { id: 3, title: 'e-Mampan', desc: 'Pengurusan Mampan', icon: 'trophy', target: 'e-mampan', color: 'amber' },
+            { id: 4, title: 'e-Bank Soalan', desc: 'Koleksi Soalan', icon: 'media', target: 'e-banksoalan', color: 'purple' },
+            { id: 5, title: 'e-PIBG', desc: 'Portal Ibu Bapa & Guru', icon: 'users', target: 'e-pibg', color: 'rose' }
+        ];
+
+        const DUMMY_POSTS = [
+            {
+                id: 'post_dummy_1',
+                tajuk: 'Majlis Sambutan Hari Guru & Pekerja Sekolah 2026',
+                tarikh: '16 Mei 2026',
+                modul: 'info_galeri',
+                sub_kategori: 'berita_pengumuman',
+                kandungan_html: '<p>Sambutan Hari Guru peringkat sekolah telah berlangsung dengan meriah. Terima kasih atas perkhidmatan semua warga pendidik.</p>',
+                banner_img: 'https://picsum.photos/800/400?random=1',
+                dokumen_url: ''
+            }
+        ];
+
+        const DUMMY_BULETIN = [
+            {
+                id: 'post_dummy_2',
+                tajuk: 'Laporan Kejohanan Olahraga Tahunan Kali Ke-15',
+                tarikh: '20 Jun 2026',
+                modul: 'info_galeri',
+                sub_kategori: 'buletin_majalah',
+                kandungan_html: '<p>Rumah Sukan Laksamana telah dinobatkan sebagai Juara Keseluruhan Kejohanan Olahraga bagi tahun 2026.</p>',
+                banner_img: 'https://picsum.photos/800/400?random=2',
+                dokumen_url: ''
+            }
+        ];
+
+        const DUMMY_GALLERY = [
+            {
+                id: 'prog_dummy_1',
+                tajuk: 'Program Gotong-Royong Perdana Sekolah 2026',
+                tarikh: '2026-07-10',
+                jumlah_foto: 4,
+                penerangan: 'Aktiviti pembersihan dan keceriaan kawasan sekolah bersama PIBG dan murid-murid.',
+                gambar: [
+                    'https://picsum.photos/600/400?random=10',
+                    'https://picsum.photos/600/400?random=11',
+                    'https://picsum.photos/600/400?random=12',
+                    'https://picsum.photos/600/400?random=13'
+                ]
+            }
+        ];
+
+        let DEMO_POSTS_DATA = [];
+        let DEMO_BULETIN_DATA = [];
+        let DEMO_GALLERY_DATA = [];
+        let SCHOOL_STATS = { totalStudents: 0, totalTeachers: 0, attendancePct: '98.5%' };
+
+        let MENU_STRUCTURE = {
+            utama: { label: "Utama", desc: "SK Segambut Makmur", items: [] },
+            profil: { label: "Profil", desc: "Info Latar Belakang & Pentadbiran Sekolah", items: [] },
+            kurikulum: { label: "Kurikulum", desc: "Pengurusan Akademik & Pentaksiran Sekolah", items: [] },
+            hem: { label: "Hal Ehwal Murid", desc: "Pembangunan Sahsiah, Kebajikan & Disiplin Murid", items: [] },
+            kokurikulum: { label: "Ko Kurikulum", desc: "Penglibatan Sukan, Badan Beruniform & Kelab", items: [] },
+            info_galeri: {
+                label: "Info & Galeri",
+                desc: "Koleksi Berita, Majalah Digital & Album Foto Aktiviti",
+                items: [
+                    { id: 'berita_pengumuman', title: 'Berita & Pengumuman Terkini', desc: 'Info & Pekeliling Rasmi Sekolah' },
+                    { id: 'buletin_majalah', title: 'Buletin / Majalah Sekolah', desc: 'Laporan Aktiviti & Pencapaian' },
+                    { id: 'galeri_foto_video', title: 'Galeri Foto & Video Aktiviti', desc: 'Koleksi Foto Program Sekolah' }
+                ]
+            },
+            'e-tmk': { label: "e-TMK", desc: "Pusat Pengurusan ICT & Digital Sekolah", hidden: true, items: [] },
+            'e-pbd': { label: "e-PBD", desc: "Sistem Pentaksiran Bilik Darjah", hidden: true, items: [] },
+            'e-mampan': { label: "e-Mampan", desc: "Portal Pengurusan Mampan & Kelestarian", hidden: true, items: [] },
+            'e-banksoalan': { label: "e-Bank Soalan", desc: "Pusat Sumber Soalan & Modul Latihan", hidden: true, items: [] },
+            'e-pibg': { label: "e-PIBG", desc: "Portal Interaktif Ibu Bapa & Guru", hidden: true, items: [] }
+        };
+
+        const ICONS = {
+            utama: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1v4a1 1 0 001 1m-6 0h6"></path></svg>',
+            profil: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h5m0 0h5m-5 0V11m0 0H9m6 0a2 2 0 012 2v6m-8-6a2 2 0 00-2 2v6"></path></svg>',
+            kurikulum: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 16.5 5c1.747 0 3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>',
+            hem: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>',
+            kokurikulum: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>',
+            info_galeri: '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2 2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
+        };
+
+        function showLoader(txt = "Memuatkan data...") {
+            const loader = document.getElementById('global-loader');
+            const lTxt = document.getElementById('loader-text');
+            if (lTxt) lTxt.innerText = txt;
+            if (loader) loader.classList.remove('hidden');
+        }
+
+        function hideLoader() {
+            const loader = document.getElementById('global-loader');
+            if (loader) loader.classList.add('hidden');
+        }
+
+        async function fetchPortalData() {
+            showLoader("Menghubungi pangkalan data Google Sheets...");
+            try {
+                const response = await fetch(`${WEB_APP_URL}?action=getPortalData`);
+                const result = await response.json();
+                hideLoader();
+
+                if (result.success) {
+                    APP_DATA = result;
+                    
+                    if (result.posts && Array.isArray(result.posts) && result.posts.length > 0) {
+                        DEMO_POSTS_DATA = result.posts
+                            .filter(p => p.sub_kategori === 'berita_pengumuman' || !p.sub_kategori)
+                            .map(p => ({
+                                ...p,
+                                tarikh: formatDateDisplay(p.tarikh),
+                                banner_img: fixGoogleDriveImageUrl(p.banner_img)
+                            }));
+
+                        DEMO_BULETIN_DATA = result.posts
+                            .filter(p => p.sub_kategori === 'buletin_majalah')
+                            .map(p => ({
+                                ...p,
+                                tarikh: formatDateDisplay(p.tarikh),
+                                banner_img: fixGoogleDriveImageUrl(p.banner_img)
+                            }));
+                    } else {
+                        DEMO_POSTS_DATA = DUMMY_POSTS;
+                        DEMO_BULETIN_DATA = DUMMY_BULETIN;
+                    }
+
+                    if (result.gallery && Array.isArray(result.gallery) && result.gallery.length > 0) {
+                        DEMO_GALLERY_DATA = result.gallery.map(g => {
+                            let rawImages = typeof g.gambar_json === 'string' ? JSON.parse(g.gambar_json) : (g.gambar_json || []);
+                            let fixedImages = Array.isArray(rawImages) ? rawImages.map(img => fixGoogleDriveImageUrl(img)) : [];
+                            return {
+                                id: g.id,
+                                tajuk: g.tajuk,
+                                tarikh: formatDateDisplay(g.tarikh),
+                                jumlah_foto: g.jumlah_foto || fixedImages.length,
+                                penerangan: g.penerangan || '',
+                                gambar: fixedImages
+                            };
+                        });
+                    } else {
+                        DEMO_GALLERY_DATA = DUMMY_GALLERY;
+                    }
+
+                    if (result.menuStructure) {
+                        for (let modKey in result.menuStructure) {
+                            if (modKey !== 'info_galeri' && MENU_STRUCTURE[modKey]) {
+                                let rawItems = result.menuStructure[modKey];
+                                if (typeof rawItems === 'string') {
+                                    try { rawItems = JSON.parse(rawItems); } catch(e) { rawItems = []; }
+                                }
+                                MENU_STRUCTURE[modKey].items = Array.isArray(rawItems) ? rawItems : [];
+                            }
+                        }
+                    }
+
+                    if (result.quickLinks && result.quickLinks.length > 0) {
+                        QUICK_LINKS_DATA = result.quickLinks;
+                    }
+
+                    if (result.sidebarConfig && Object.keys(result.sidebarConfig).length > 0) {
+                        SIDEBAR_CONFIG_DATA = { ...SIDEBAR_CONFIG_DATA, ...result.sidebarConfig };
+                    }
+
+                    if (result.sidebarOrder) {
+                        SIDEBAR_WIDGET_ORDER = typeof result.sidebarOrder === 'string' ? JSON.parse(result.sidebarOrder) : result.sidebarOrder;
+                    }
+
+                    if (result.stats) {
+                        SCHOOL_STATS = result.stats;
+                    }
+
+                    renderHeaderNav();
+                    renderPublicSidebarWidgets();
+                    renderQuickLinks();
+                    handleUrlRouting();
+                    
+                    showToast("Data portal berjaya dimuatkan!");
+                } else {
+                    showToast("Gagal memuatkan data backend: " + result.error, "error");
+                }
+            } catch (err) {
+                hideLoader();
+                console.error("Fetch GET Error:", err);
+                DEMO_POSTS_DATA = DUMMY_POSTS;
+                DEMO_BULETIN_DATA = DUMMY_BULETIN;
+                DEMO_GALLERY_DATA = DUMMY_GALLERY;
+                renderHeaderNav();
+                renderPublicSidebarWidgets();
+                renderQuickLinks();
+                handleUrlRouting();
+                showToast("Ralat sambungan backend. Portal memuatkan data laluan sementara.", "error");
+            }
+        }
+
+        function handleUrlRouting() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetMod = urlParams.get('mod');
+            const targetPost = urlParams.get('post');
+
+            if (targetPost) {
+                openFullPostView(targetPost);
+            } else if (targetMod && MENU_STRUCTURE[targetMod]) {
+                CURRENT_MODULE = targetMod;
+                loadModule(targetMod, false);
+            } else {
+                loadModule('utama', false);
+            }
+        }
+
+        function openLogin() {
+            window.location.href = 'LoginSession.html';
+        }
+
+        let currentHebahanIndex = 0;
+        let hebahanTimer = null;
+
+        function getAutoHebahanList() {
+            if (!DEMO_POSTS_DATA || DEMO_POSTS_DATA.length === 0) {
+                return [{ tajuk: "Tiada Pengumuman", kandungan: "Tiada hebahan terkini buat masa ini.", tarikh: "-", tag: "Info" }];
+            }
+            return DEMO_POSTS_DATA.map(post => {
+                const tmp = document.createElement("DIV");
+                tmp.innerHTML = post.kandungan_html || "";
+                const cleanText = tmp.textContent || tmp.innerText || "";
+                
+                return {
+                    tajuk: post.tajuk,
+                    kandungan: cleanText,
+                    tarikh: formatDateDisplay(post.tarikh),
+                    tag: "Pengumuman"
+                };
+            });
+        }
+
+        function renderHebahan() {
+            const bodyContainer = document.getElementById('hebahan-card-body');
+            const dotsContainer = document.getElementById('hebahan-dots');
+            if (!bodyContainer || !dotsContainer) return;
+
+            const hebahanList = getAutoHebahanList();
+            if (currentHebahanIndex >= hebahanList.length) currentHebahanIndex = 0;
+
+            const item = hebahanList[currentHebahanIndex];
+
+            bodyContainer.className = "bg-gradient-to-br from-slate-50 to-amber-50/30 p-3.5 rounded-2xl border border-amber-200/60 text-xs text-brandDark leading-relaxed min-h-[96px] flex flex-col justify-between transition-all fade-in-slide";
+
+            bodyContainer.innerHTML = `
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="font-extrabold text-brandDark text-sm truncate pr-2">${item.tajuk}</p>
+                        <span class="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 border border-amber-500/20 shrink-0">${item.tag}</span>
+                    </div>
+                    <p class="text-slate-600 font-medium line-clamp-2">${item.kandungan}</p>
+                </div>
+                <div class="text-[10px] text-slate-400 font-bold mt-2 text-right">
+                    ${item.tarikh}
+                </div>
+            `;
+
+            let dotsHtml = '';
+            hebahanList.forEach((_, idx) => {
+                const isActive = idx === currentHebahanIndex;
+                dotsHtml += `<button onclick="goHebahan(${idx})" class="h-1.5 rounded-full transition-all ${isActive ? 'w-5 bg-amber-500' : 'w-1.5 bg-slate-300 hover:bg-slate-400'}"></button>`;
+            });
+            dotsContainer.innerHTML = dotsHtml;
+        }
+
+        function nextHebahan() {
+            const hebahanList = getAutoHebahanList();
+            currentHebahanIndex = (currentHebahanIndex + 1) % hebahanList.length;
+            renderHebahan();
+        }
+
+        function prevHebahan() {
+            const hebahanList = getAutoHebahanList();
+            currentHebahanIndex = (currentHebahanIndex - 1 + hebahanList.length) % hebahanList.length;
+            renderHebahan();
+        }
+
+        function goHebahan(idx) {
+            currentHebahanIndex = idx;
+            renderHebahan();
+        }
+
+        function startHebahanAuto() {
+            if (hebahanTimer) clearInterval(hebahanTimer);
+            hebahanTimer = setInterval(() => { nextHebahan(); }, 5000);
+        }
+
+        function pauseHebahanAuto() {
+            if (hebahanTimer) clearInterval(hebahanTimer);
+        }
+
+        function renderPublicSidebarWidgets() {
+            const container = document.getElementById('default-sidebar-widgets');
+            if (!container) return;
+
+            let html = '';
+
+            SIDEBAR_WIDGET_ORDER.forEach(widgetKey => {
+                if (widgetKey === 'hebahan') {
+                    html += `
+                        <div class="card-custom p-5 bg-white border-l-4 border-l-amber-500 relative" onmouseenter="pauseHebahanAuto()" onmouseleave="startHebahanAuto()">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-sm font-black text-brandDark flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-amber-500 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg>
+                                    Hebahan Ringkas
+                                </h3>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="prevHebahan()" title="Hebahan Sebelumnya" class="p-1 rounded-lg bg-slate-100 hover:bg-amber-500 hover:text-white text-slate-600 transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path></svg>
+                                    </button>
+                                    <button onclick="nextHebahan()" title="Hebahan Seterusnya" class="p-1 rounded-lg bg-slate-100 hover:bg-amber-500 hover:text-white text-slate-600 transition">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="hebahan-card-body" class="bg-gradient-to-br from-slate-50 to-amber-50/30 p-3.5 rounded-2xl border border-amber-200/60 text-xs text-brandDark leading-relaxed min-h-[96px] flex flex-col justify-between transition-all"></div>
+                            <div id="hebahan-dots" class="flex items-center justify-center gap-1.5 mt-3"></div>
+                        </div>
+                    `;
+                } else if (widgetKey === 'contact') {
+                    html += `
+                        <div class="card-custom p-5 bg-white">
+                            <h3 class="text-sm font-black text-brandDark mb-3 pb-2 border-b border-brandBorder">
+                                Khidmat Pelanggan & Pejabat
+                            </h3>
+                            <div class="space-y-2.5 text-xs">
+                                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-brandBorder transition hover:bg-slate-100">
+                                    <div class="w-8 h-8 rounded-xl bg-blue-100 text-brandAccent flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                    </div>
+                                    <span id="sidebar-display-phone" class="font-bold text-brandDark text-sm">${SIDEBAR_CONFIG_DATA.phone}</span>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-brandBorder transition hover:bg-slate-100">
+                                    <div class="w-8 h-8 rounded-xl bg-blue-100 text-brandAccent flex items-center justify-center shrink-0">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002-2L21 8M5 19h14a2 2 0 002-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    <span id="sidebar-display-email" class="font-bold text-brandDark truncate text-xs">${SIDEBAR_CONFIG_DATA.email}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (widgetKey === 'hours') {
+                    html += `
+                        <div class="card-custom p-5 bg-white">
+                            <h3 class="text-sm font-black text-brandDark mb-2">Waktu Urusan Pejabat</h3>
+                            <ul class="text-xs text-slate-600 space-y-2 border-t border-brandBorder pt-3 font-medium">
+                                <li class="flex justify-between"><span>Isnin - Khamis:</span> <span id="sidebar-display-hours-mon-thu" class="font-bold text-brandDark">${SIDEBAR_CONFIG_DATA.hours_mon_thu}</span></li>
+                                <li class="flex justify-between"><span>Jumaat:</span> <span id="sidebar-display-hours-fri" class="font-bold text-brandDark">${SIDEBAR_CONFIG_DATA.hours_fri}</span></li>
+                                <li class="flex justify-between text-amber-600 font-extrabold"><span>Sabtu & Ahad:</span> <span id="sidebar-display-hours-sat-sun">${SIDEBAR_CONFIG_DATA.hours_sat_sun}</span></li>
+                            </ul>
+                        </div>
+                    `;
+                } else if (widgetKey === 'portals') {
+                    let linksHtml = '';
+                    if (SIDEBAR_CONFIG_DATA.portal_links && SIDEBAR_CONFIG_DATA.portal_links.length > 0) {
+                        SIDEBAR_CONFIG_DATA.portal_links.forEach(p => {
+                            linksHtml += `
+                                <a href="${p.url}" target="_blank" class="flex items-center justify-between p-2.5 bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-brandNavy rounded-xl border border-slate-200 transition font-bold text-xs">
+                                    <span class="truncate pr-2">🌐 ${p.name}</span>
+                                    <span class="text-[10px] text-blue-600 font-black">&rarr;</span>
+                                </a>
+                            `;
+                        });
+                    } else {
+                        linksHtml = '<p class="text-xs text-slate-400 italic">Tiada pautan portal disetkan.</p>';
+                    }
+
+                    html += `
+                        <div class="card-custom p-5 bg-white">
+                            <h3 class="text-sm font-black text-brandDark mb-2 pb-2 border-b border-brandBorder flex items-center gap-2">
+                                🔗 Pautan Portal Luar
+                            </h3>
+                            <div class="space-y-2 pt-1">
+                                ${linksHtml}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+            renderHebahan();
+        }
+
+        function renderHeaderNav() {
+            const nav = document.getElementById('header-main-nav');
+            if(!nav) return;
+
+            let html = '';
+            Object.keys(MENU_STRUCTURE).forEach(key => {
+                const item = MENU_STRUCTURE[key];
+                if (item.hidden) return;
+
+                const isActive = CURRENT_MODULE === key;
+                const cls = isActive 
+                    ? 'px-3 py-2 text-xs lg:text-sm font-black rounded-xl transition text-white bg-gradient-to-r from-brandDark to-brandNavy shadow-md whitespace-nowrap'
+                    : 'px-3 py-2 text-xs lg:text-sm font-bold rounded-xl transition text-slate-600 hover:text-brandDark hover:bg-slate-100 whitespace-nowrap';
+                
+                html += `<button onclick="loadModule('${key}')" id="nav-${key}" class="${cls}">${item.label}</button>`;
+            });
+
+            nav.innerHTML = html;
+        }
+
+        function renderBanner(modName) {
+            const bannerSection = document.getElementById('corporate-banner');
+            if (!bannerSection) return;
+
+            if (modName === 'utama') {
+                bannerSection.innerHTML = `
+                    <div class="bg-gradient-to-br from-slate-900 via-brandNavy to-brandDark rounded-[2rem] p-8 sm:p-10 shadow-2xl text-white relative overflow-hidden border border-slate-700/60">
+                        <div class="absolute -right-10 -bottom-10 w-96 h-96 bg-brandAccent/20 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute -left-10 -top-10 w-80 h-80 bg-brandGold/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                            <div class="lg:col-span-7 space-y-5 text-left">
+                                <div class="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-amber-500/5 border border-amber-500/30 text-amber-300 text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                    Portal Korporat Digital
+                                </div>
+                                <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight text-white">
+                                    Peneraju Kecemerlangan <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-sky-300 to-amber-300">Pendidikan Digital</span>
+                                </h2>
+                                <p class="text-sm sm:text-base text-slate-300 leading-relaxed font-medium max-w-2xl">
+                                    Selamat datang ke hub maklumat rasmi sekolah. Akses pantas untuk maklumat persekolahan, pekeliling rasmi, takwim akademik, serta saluran maklumat yang telus.
+                                </p>
+                            </div>
+
+                            <div class="lg:col-span-5 flex flex-col justify-between bg-white/10 backdrop-blur-xl p-6 rounded-3xl border border-white/15 shadow-2xl space-y-4">
+                                <div>
+                                    <div class="flex items-center justify-between border-b border-white/15 pb-3 mb-4">
+                                        <p class="text-xs font-black uppercase tracking-wider text-amber-400">
+                                            Ringkasan Statistik Sekolah
+                                        </p>
+                                        <span class="text-[10px] bg-white/10 px-2.5 py-1 rounded-full text-slate-300 font-semibold">Terkini 2026</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl text-brandDark shadow-md flex flex-col items-center justify-center text-center transition hover:scale-[1.02]">
+                                            <span class="text-2xl font-black text-brandNavy">${SCHOOL_STATS.totalStudents || 0}</span>
+                                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-0.5">Bilangan Murid</span>
+                                        </div>
+                                        <div class="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl text-brandDark shadow-md flex flex-col items-center justify-center text-center transition hover:scale-[1.02]">
+                                            <span class="text-2xl font-black text-brandNavy">${SCHOOL_STATS.totalTeachers || 0}</span>
+                                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-0.5">Guru & Staf</span>
+                                        </div>
+                                        <div class="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl text-brandDark shadow-md flex flex-col items-center justify-center text-center transition hover:scale-[1.02]">
+                                            <span class="text-2xl font-black text-brandNavy">${SCHOOL_STATS.attendancePct || '98.5%'}</span>
+                                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-0.5">Purata Kehadiran</span>
+                                        </div>
+                                        <div class="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl text-brandDark shadow-md flex flex-col items-center justify-center text-center transition hover:scale-[1.02]">
+                                            <span class="text-2xl font-black text-brandNavy">36</span>
+                                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-0.5">Bilangan Kelas</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="header-datetime" class="pt-3 border-t border-white/15 text-center text-xs font-bold text-slate-200 tracking-wide flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4 text-amber-400 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span>Memuatkan masa...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                updateDateTime();
+            } else {
+                const modObj = MENU_STRUCTURE[modName] || {};
+                const titleText = modObj.label || modName.replace('_', ' ').toUpperCase();
+                const descText = modObj.desc || '';
+
+                const quickLinkItem = QUICK_LINKS_DATA.find(q => q.target === modName);
+                let themeConfig = QUICK_LINK_THEMES.blue;
+                if (quickLinkItem && QUICK_LINK_THEMES[quickLinkItem.color]) {
+                    themeConfig = QUICK_LINK_THEMES[quickLinkItem.color];
+                }
+
+                bannerSection.innerHTML = `
+                    <div class="bg-gradient-to-r ${themeConfig.banner} rounded-2xl px-6 py-5 shadow-lg text-white border flex items-center justify-between transition-all">
+                        <div class="flex items-center gap-3.5">
+                            <div class="p-3 rounded-2xl ${themeConfig.iconBg} shrink-0 shadow-inner">
+                                ${ICONS[modName] || ''}
+                            </div>
+                            <div>
+                                <h2 class="text-xl sm:text-2xl font-black tracking-tight text-white uppercase">${titleText}</h2>
+                                ${descText ? `<p class="text-xs text-slate-200 font-medium mt-0.5">${descText}</p>` : ''}
+                            </div>
+                        </div>
+                        <span class="hidden sm:inline-block text-xs font-extrabold uppercase ${themeConfig.badge} px-3 py-1.5 rounded-xl tracking-widest border">
+                            Modul Rasmi
+                        </span>
+                    </div>
+                `;
+            }
+        }
+
+        function renderQuickLinks() {
+            const container = document.getElementById('quick-links-section');
+            if (!container) return;
+
+            let html = '';
+            QUICK_LINKS_DATA.forEach(item => {
+                const iconSvg = QUICK_ICONS[item.icon] || QUICK_ICONS['link'];
+                const theme = QUICK_LINK_THEMES[item.color] || QUICK_LINK_THEMES['blue'];
+
+                html += `
+                    <div onclick="handleQuickLinkClick('${item.target}')" class="quick-icon-card-square aspect-square ${theme.card} p-4 flex flex-col items-center justify-center text-center shadow-lg transition-all group">
+                        <div class="w-12 h-12 rounded-2xl ${theme.iconBg} flex items-center justify-center shrink-0 shadow-md group-hover:scale-110 transition duration-300 mb-2">
+                            ${iconSvg}
+                        </div>
+                        <h4 class="text-sm sm:text-base font-black leading-tight tracking-tight">${item.title}</h4>
+                        <p class="text-[11px] text-white/80 font-medium mt-1 line-clamp-2 leading-tight">${item.desc}</p>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function handleQuickLinkClick(target) {
+            if (!target) return;
+            if (target.startsWith('http://') || target.startsWith('https://')) {
+                window.open(target, '_blank');
+            } else {
+                loadModule(target);
+            }
+        }
+
+        function updateHeaderNavActiveState(modName) {
+            renderHeaderNav();
+
+            const subTabContainer = document.getElementById('sub-menu-tabs-container');
+            const modObj = MENU_STRUCTURE[modName] || { items: [] };
+            const subModules = Array.isArray(modObj.items) ? modObj.items : [];
+
+            if (subModules.length > 0) {
+                subTabContainer.classList.remove('hidden');
+                if (!subModules.some(s => s.id === CURRENT_SUB_MODULE)) {
+                    CURRENT_SUB_MODULE = subModules[0].id;
+                }
+                renderSubMenuTabs(modName);
+            } else {
+                subTabContainer.classList.add('hidden');
+                CURRENT_SUB_MODULE = null;
+            }
+        }
+
+        function renderSubMenuTabs(modName) {
+            const container = document.getElementById('sub-menu-tabs-container');
+            let rawSubModules = MENU_STRUCTURE[modName]?.items;
+            let subModules = Array.isArray(rawSubModules) ? [...rawSubModules] : [];
+
+            let html = '';
+            subModules.forEach(m => {
+                const isActive = CURRENT_SUB_MODULE === m.id;
+                html += `
+                    <button onclick="switchSubTab('${m.id}')" class="px-4 py-2 rounded-xl text-xs font-black transition flex flex-col items-start ${isActive ? 'bg-brandDark text-white shadow-md' : 'text-slate-700 bg-slate-100 hover:bg-slate-200'}">
+                        <span>${m.title}</span>
+                        ${m.desc ? `<span class="text-[9px] font-normal opacity-80">${m.desc}</span>` : ''}
+                    </button>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function switchSubTab(subId) {
+            CURRENT_SUB_MODULE = subId;
+            renderSubMenuTabs(CURRENT_MODULE);
+            closeFullGalleryView();
+
+            const currentItems = Array.isArray(MENU_STRUCTURE[CURRENT_MODULE]?.items) ? MENU_STRUCTURE[CURRENT_MODULE].items : [];
+            const subObj = currentItems.find(s => s.id === subId);
+            const titleDisplay = subObj ? subObj.title : (subId ? subId.replace('_', ' ').toUpperCase() : '');
+            const descDisplay = subObj && subObj.desc ? subObj.desc : '';
+
+            const mainContent = document.getElementById('main-content');
+
+            if (subId === 'berita_pengumuman') {
+                renderBeritaPage(mainContent);
+                return;
+            }
+            if (subId === 'buletin_majalah') {
+                renderBuletinPage(mainContent);
+                return;
+            }
+            if (subId === 'galeri_foto_video') {
+                renderPublicGalleryPage(mainContent);
+                return;
+            }
+
+            if (subObj) {
+                const type = subObj.type || 'text_post';
+
+                if (type === 'chart_org') {
+                    const members = subObj.members || [];
+                    let chartHtml = `
+                        <div class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                            <div class="border-b border-brandBorder pb-4">
+                                <h2 class="text-lg font-black text-brandDark flex items-center gap-2">👔 ${titleDisplay}</h2>
+                                ${descDisplay ? `<p class="text-xs text-slate-500 font-semibold mt-1">${descDisplay}</p>` : ''}
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+                    `;
+
+                    members.forEach((m, idx) => {
+                        chartHtml += `
+                            <div class="card-custom p-5 bg-gradient-to-b from-slate-50 to-white text-center space-y-3 border border-slate-200 relative overflow-hidden">
+                                <span class="absolute top-2 right-2 text-[10px] font-black bg-brandNavy text-white px-2 py-0.5 rounded-full">#${idx+1}</span>
+                                <img src="${fixGoogleDriveImageUrl(m.img) || 'https://ui-avatars.com/api/?name='+encodeURIComponent(m.name)}" class="w-20 h-20 rounded-2xl mx-auto object-cover border-2 border-amber-400 shadow-md">
+                                <div>
+                                    <h4 class="text-xs font-black text-brandDark uppercase tracking-wider">${m.role}</h4>
+                                    <p class="text-sm font-extrabold text-brandNavy mt-0.5">${m.name}</p>
+                                    ${m.grade ? `<span class="inline-block text-[10px] bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-md font-bold mt-1">${m.grade}</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    chartHtml += `</div></div>`;
+                    mainContent.innerHTML = chartHtml;
+                    return;
+                }
+
+                if (type === 'icon_cards') {
+                    const cards = subObj.cards || [];
+                    let cardsHtml = `
+                        <div class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                            <div class="border-b border-brandBorder pb-4">
+                                <h2 class="text-lg font-black text-brandDark flex items-center gap-2">🏆 ${titleDisplay}</h2>
+                                <p class="text-xs text-slate-500 font-semibold mt-1">Sila klik pada mana-mana kelab / persatuan di bawah untuk membaca info penuh.</p>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+                    `;
+
+                    cards.forEach((c) => {
+                        cardsHtml += `
+                            <div onclick="openClubFullPage('${CURRENT_MODULE}', '${subId}', '${c.id}')" class="p-5 border border-slate-200 rounded-2xl space-y-3 bg-slate-50/50 hover:bg-blue-50/60 hover:border-brandAccent transition cursor-pointer group">
+                                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brandNavy to-brandDark text-amber-400 flex items-center justify-center text-xl shadow-md group-hover:scale-110 transition duration-300">
+                                    ${c.icon || '📌'}
+                                </div>
+                                <div>
+                                    <h4 class="text-base font-black text-brandDark group-hover:text-brandAccent transition">${c.title}</h4>
+                                    <p class="text-xs text-slate-500 font-medium mt-1 leading-relaxed">${c.desc}</p>
+                                </div>
+                                <div class="pt-2 border-t border-slate-200/60 flex items-center justify-end">
+                                    <span class="text-xs font-black text-brandAccent flex items-center gap-1 group-hover:translate-x-1 transition">
+                                        Paparan Penuh &rarr;
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    cardsHtml += `</div></div>`;
+                    mainContent.innerHTML = cardsHtml;
+                    return;
+                }
+
+                let textHtml = `
+                    <div class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                        <div class="border-b border-brandBorder pb-4">
+                            <h2 class="text-lg font-black text-brandDark capitalize flex items-center gap-2.5">
+                                ${ICONS[CURRENT_MODULE] || ''}
+                                ${titleDisplay}
+                            </h2>
+                            ${descDisplay ? `<p class="text-xs text-slate-500 font-semibold mt-1">${descDisplay}</p>` : ''}
+                        </div>
+                        <div class="text-sm text-slate-700 leading-relaxed font-medium space-y-4">
+                            ${subObj.body || '<p class="italic text-slate-400">Kandungan maklumat untuk tab ini sedang dikemaskini oleh pihak pentadbiran sekolah.</p>'}
+                        </div>
+                        ${subObj.doc_url ? `
+                            <div class="pt-4 border-t border-slate-200">
+                                <a href="${subObj.doc_url}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brandNavy text-white text-xs font-bold shadow-md hover:bg-brandDark transition">
+                                    📄 Buka Dokumen Lampiran
+                                </a>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                mainContent.innerHTML = textHtml;
+                return;
+            }
+        }
+
+        function renderBeritaPage(container) {
+            let html = `
+                <div class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                    <div class="flex items-center justify-between border-b border-brandBorder pb-4">
+                        <div>
+                            <h2 class="text-lg font-black text-brandDark flex items-center gap-2">📢 Berita & Pengumuman Terkini</h2>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Maklumat rasmi, aktiviti, dan pekeliling terkini sekolah.</p>
+                        </div>
+                        <span class="text-xs font-black uppercase px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl">Berita Rasmi</span>
+                    </div>
+                    <div class="space-y-6">
+            `;
+
+            if (DEMO_POSTS_DATA.length === 0) {
+                html += `<p class="text-xs text-slate-400 italic">Tiada berita atau pengumuman dipaparkan.</p>`;
+            } else {
+                DEMO_POSTS_DATA.forEach(item => {
+                    const bannerUrl = fixGoogleDriveImageUrl(item.banner_img);
+                    const formattedDate = formatDateDisplay(item.tarikh);
+                    html += `
+                        <div class="card-custom p-5 bg-white border border-slate-200/80 flex flex-col md:flex-row gap-5 items-start">
+                            ${bannerUrl ? `<img src="${bannerUrl}" class="w-full md:w-56 h-40 object-cover rounded-2xl shrink-0 border border-slate-100" alt="Banner">` : ''}
+                            <div class="space-y-2.5 flex-1 w-full">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[10px] font-black uppercase px-2.5 py-0.5 bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded-md">Pengumuman</span>
+                                    <span class="text-[11px] font-bold text-slate-400">${formattedDate}</span>
+                                </div>
+                                <h3 class="text-base font-black text-brandDark hover:text-brandNavy transition cursor-pointer" onclick="openFullPostView('${item.id}', 'berita_pengumuman')">${item.tajuk}</h3>
+                                <div class="text-xs text-slate-600 leading-relaxed font-medium line-clamp-2">${item.kandungan_html}</div>
+                                <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
+                                    ${item.dokumen_url ? `<a href="${item.dokumen_url}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-brandAccent hover:bg-blue-100 text-xs font-bold transition border border-blue-200/60">📄 Surat / PDF</a>` : '<span></span>'}
+                                    <button onclick="openFullPostView('${item.id}', 'berita_pengumuman')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-brandNavy to-brandDark text-white text-xs font-extrabold hover:opacity-90 transition shadow-md flex items-center gap-1.5 ml-auto">
+                                        📖 Baca Berita Penuh & Dokumen &rarr;
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+        }
+
+        function openFullPostView(postId, sourceSubModule = 'berita_pengumuman') {
+            ACTIVE_FULL_POST_ID = postId;
+            
+            let post = DEMO_POSTS_DATA.find(p => p.id === postId);
+            if (!post) {
+                post = DEMO_BULETIN_DATA.find(p => p.id === postId) || DEMO_POSTS_DATA[0];
+            }
+
+            document.getElementById('default-sidebar-widgets').classList.add('hidden');
+            document.getElementById('gallery-directory-sidebar').classList.remove('hidden');
+
+            const isBuletin = sourceSubModule === 'buletin_majalah' || (post && post.sub_kategori === 'buletin_majalah');
+            document.getElementById('directory-sidebar-title').innerText = isBuletin ? '📚 Direktori Buletin Aktiviti' : '📰 Direktori Berita & Program';
+            document.getElementById('directory-sidebar-subtitle').innerText = 'Pilih hantaran untuk dibaca';
+
+            renderNewsDirectorySidebar(sourceSubModule);
+
+            const mainContent = document.getElementById('main-content');
+            const bannerUrl = post ? fixGoogleDriveImageUrl(post.banner_img) : '';
+            const formattedDate = post ? formatDateDisplay(post.tarikh) : '';
+
+            let html = `
+                <div class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brandBorder pb-4">
+                        <div>
+                            <span class="text-[10px] font-black uppercase px-2.5 py-1 ${isBuletin ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-blue-50 text-brandAccent border-blue-200'} border rounded-lg">
+                                ${isBuletin ? 'Laporan Aktiviti Buletin' : 'Paparan Berita Penuh'}
+                            </span>
+                            <h2 class="text-xl sm:text-2xl font-black text-brandDark mt-1.5">${post ? post.tajuk : ''}</h2>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Diterbitkan pada: ${formattedDate}</p>
+                        </div>
+                        <button onclick="closeFullGalleryView()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shrink-0 border border-slate-200">
+                            ⬅️ Kembali
+                        </button>
+                    </div>
+
+                    ${bannerUrl ? `<div class="overflow-hidden rounded-2xl border border-slate-200 shadow-sm"><img src="${bannerUrl}" class="w-full h-64 sm:h-80 object-cover" alt="Banner Post"></div>` : ''}
+
+                    <div class="post-content-body text-sm text-slate-700 leading-relaxed font-medium space-y-4 pt-2">
+                        ${post ? post.kandungan_html : ''}
+                    </div>
+
+                    ${post && post.dokumen_url ? `
+                        <div class="pt-4 border-t border-slate-200">
+                            <div class="p-4 bg-blue-50/60 rounded-2xl border border-blue-200/80 flex items-center justify-between flex-wrap gap-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">📑</span>
+                                    <div>
+                                        <h4 class="text-xs font-black uppercase text-brandDark">Dokumen / Surat Rasmi Lampiran</h4>
+                                        <p class="text-[11px] text-slate-500 font-medium">Muat turun dokumen berkaitan pengumuman ini.</p>
+                                    </div>
+                                </div>
+                                <a href="${post.dokumen_url}" target="_blank" class="px-4 py-2 bg-brandNavy hover:bg-brandDark text-white text-xs font-bold rounded-xl shadow-md transition">
+                                    Buka Dokumen
+                                </a>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            mainContent.innerHTML = html;
+            window.scrollTo({ top: 150, behavior: 'smooth' });
+        }
+
+        function renderNewsDirectorySidebar(sourceSubModule = 'berita_pengumuman') {
+            const container = document.getElementById('gallery-directory-list');
+            if (!container) return;
+
+            const dataSource = (sourceSubModule === 'buletin_majalah') ? DEMO_BULETIN_DATA : DEMO_POSTS_DATA;
+
+            let html = '';
+            dataSource.forEach(p => {
+                const isActive = p.id === ACTIVE_FULL_POST_ID;
+                const formattedDate = formatDateDisplay(p.tarikh);
+                html += `
+                    <button onclick="openFullPostView('${p.id}', '${sourceSubModule}')" class="w-full text-left p-3 rounded-xl text-xs font-bold transition flex items-center justify-between border ${isActive ? 'bg-brandNavy text-white border-brandNavy shadow-md' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'}">
+                        <span class="truncate pr-2">${p.tajuk}</span>
+                        <span class="text-[10px] opacity-80 shrink-0 font-semibold">${formattedDate}</span>
+                    </button>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderBuletinPage(container) {
+            let html = `
+                <div class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                    <div class="flex items-center justify-between border-b border-brandBorder pb-4">
+                        <div>
+                            <h2 class="text-lg font-black text-brandDark flex items-center gap-2">📚 Buletin & Majalah Sekolah</h2>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Laporan aktiviti, liputan khas, dan rekod program yang telah dijalankan.</p>
+                        </div>
+                        <span class="text-xs font-black uppercase px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-xl">Post Aktiviti</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            `;
+
+            if (DEMO_BULETIN_DATA.length === 0) {
+                html += `<p class="text-xs text-slate-400 italic col-span-2">Tiada buletin dipaparkan.</p>`;
+            } else {
+                DEMO_BULETIN_DATA.forEach(item => {
+                    const bannerUrl = fixGoogleDriveImageUrl(item.banner_img);
+                    const formattedDate = formatDateDisplay(item.tarikh);
+                    html += `
+                        <div class="card-custom p-5 bg-white border border-slate-200 flex flex-col justify-between space-y-4">
+                            <div class="space-y-3">
+                                ${bannerUrl ? `
+                                    <div class="relative overflow-hidden rounded-2xl h-48 bg-slate-100 border border-slate-200 cursor-pointer" onclick="openFullPostView('${item.id}', 'buletin_majalah')">
+                                        <img src="${bannerUrl}" class="w-full h-full object-cover transition hover:scale-105 duration-300" alt="Cover Buletin">
+                                        <span class="absolute top-3 right-3 text-[10px] font-black uppercase px-2.5 py-1 bg-brandNavy text-white rounded-lg shadow-md">Laporan Aktiviti</span>
+                                    </div>
+                                ` : ''}
+                                <div>
+                                    <span class="text-[10px] font-bold text-slate-400">Diterbitkan: ${formattedDate}</span>
+                                    <h3 class="text-base font-black text-brandDark mt-0.5 hover:text-brandNavy transition cursor-pointer" onclick="openFullPostView('${item.id}', 'buletin_majalah')">${item.tajuk}</h3>
+                                    <div class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed line-clamp-3">${item.kandungan_html}</div>
+                                </div>
+                            </div>
+                            <div class="pt-2 border-t border-slate-100">
+                                <button onclick="openFullPostView('${item.id}', 'buletin_majalah')" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-brandNavy to-brandDark text-white text-xs font-extrabold transition flex items-center justify-center gap-2 shadow-md hover:opacity-90">
+                                    📖 Baca Laporan Aktiviti Penuh &rarr;
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+        }
+
+        function renderPublicGalleryPage(container) {
+            let html = `
+                <div class="card-custom p-6 sm:p-8 bg-white space-y-8">
+                    <div class="flex items-center justify-between border-b border-brandBorder pb-4">
+                        <div>
+                            <h2 class="text-lg font-black text-brandDark flex items-center gap-2">📸 Galeri Foto & Video Aktiviti Sekolah</h2>
+                            <p class="text-xs text-slate-500 font-medium mt-1">Koleksi kepingan foto penuh aktiviti dan majlis rasmi sekolah.</p>
+                        </div>
+                        <span class="text-xs font-black uppercase px-3 py-1 bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded-xl">Foto Sekata</span>
+                    </div>
+                    <div class="space-y-8">
+            `;
+
+            if (DEMO_GALLERY_DATA.length === 0) {
+                html += `<p class="text-xs text-slate-400 italic">Tiada album galeri dipaparkan.</p>`;
+            } else {
+                DEMO_GALLERY_DATA.forEach(prog => {
+                    const fourPhotos = (prog.gambar || []).slice(0, 4);
+                    const formattedDate = formatDateDisplay(prog.tarikh);
+
+                    html += `
+                        <div class="p-6 rounded-2xl bg-slate-50/70 border border-slate-200/80 space-y-4 hover:border-blue-300 transition shadow-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-3">
+                                <div>
+                                    <h3 class="text-base font-extrabold text-brandDark">${prog.tajuk}</h3>
+                                    <p class="text-xs text-slate-500 font-medium mt-0.5">${prog.penerangan}</p>
+                                </div>
+                                <span class="text-[11px] font-bold text-slate-400 shrink-0 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-xs">${formattedDate}</span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    `;
+
+                    fourPhotos.forEach(imgUrl => {
+                        const fixedUrl = fixGoogleDriveImageUrl(imgUrl);
+                        html += `
+                            <div class="overflow-hidden rounded-xl border border-slate-200 bg-slate-200 shadow-xs group">
+                                <img src="${fixedUrl}" class="w-full h-48 sm:h-52 object-cover group-hover:scale-105 transition duration-300 cursor-pointer" onclick="openFullGalleryView('${prog.id}')">
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                            </div>
+                            <div class="pt-2 flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-500">Jumlah Gambar: <strong class="text-brandDark">${prog.jumlah_foto || (prog.gambar ? prog.gambar.length : 0)} Foto</strong></span>
+                                <button onclick="openFullGalleryView('${prog.id}')" class="px-4 py-2 rounded-xl bg-gradient-to-r from-brandNavy to-brandDark text-white text-xs font-bold hover:opacity-90 transition shadow-md flex items-center gap-2">
+                                    🔍 Paparan Penuh & Koleksi Album
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            html += `</div></div>`;
+            container.innerHTML = html;
+        }
+
+        function openFullGalleryView(progId) {
+            ACTIVE_FULL_GALLERY_ID = progId;
+            const prog = DEMO_GALLERY_DATA.find(p => p.id === progId) || DEMO_GALLERY_DATA[0];
+
+            document.getElementById('default-sidebar-widgets').classList.add('hidden');
+            document.getElementById('gallery-directory-sidebar').classList.remove('hidden');
+
+            document.getElementById('directory-sidebar-title').innerText = '📁 Direktori Program';
+            document.getElementById('directory-sidebar-subtitle').innerText = 'Pilih album untuk paparan foto & video';
+
+            renderGalleryDirectorySidebar();
+
+            const mainContent = document.getElementById('main-content');
+            const formattedDate = prog ? formatDateDisplay(prog.tarikh) : '';
+
+            let html = `
+                <div class="card-custom p-6 sm:p-8 bg-white space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-brandBorder pb-4">
+                        <div>
+                            <span class="text-[10px] font-black uppercase px-2.5 py-1 bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded-lg">Album Penuh</span>
+                            <h2 class="text-xl font-black text-brandDark mt-1">${prog ? prog.tajuk : ''}</h2>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">${formattedDate} • ${prog && prog.gambar ? prog.gambar.length : 0} Foto Keseluruhan</p>
+                        </div>
+                        <button onclick="closeFullGalleryView()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 shrink-0 border border-slate-200">
+                            ⬅️ Kembali
+                        </button>
+                    </div>
+
+                    <p class="text-xs text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-200 font-medium">${prog ? prog.penerangan : ''}</p>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
+            `;
+
+            if (prog && prog.gambar) {
+                prog.gambar.forEach(imgUrl => {
+                    const fixedUrl = fixGoogleDriveImageUrl(imgUrl);
+                    html += `
+                        <div class="overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-xs group">
+                            <img src="${fixedUrl}" class="w-full h-44 object-cover group-hover:scale-105 transition duration-300 cursor-pointer">
+                        </div>
+                    `;
+                });
+            }
+
+            html += `</div></div>`;
+            mainContent.innerHTML = html;
+            window.scrollTo({ top: 150, behavior: 'smooth' });
+        }
+
+        function renderGalleryDirectorySidebar() {
+            const container = document.getElementById('gallery-directory-list');
+            if (!container) return;
+
+            let html = '';
+            DEMO_GALLERY_DATA.forEach(p => {
+                const isActive = p.id === ACTIVE_FULL_GALLERY_ID;
+                html += `
+                    <button onclick="openFullGalleryView('${p.id}')" class="w-full text-left p-3 rounded-xl text-xs font-bold transition flex items-center justify-between border ${isActive ? 'bg-brandNavy text-white border-brandNavy shadow-md' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'}">
+                        <span class="truncate pr-2">${p.tajuk}</span>
+                        <span class="text-[10px] opacity-80 shrink-0 font-semibold">${p.gambar ? p.gambar.length : 0} Foto</span>
+                    </button>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function closeFullGalleryView() {
+            ACTIVE_FULL_GALLERY_ID = null;
+            ACTIVE_FULL_POST_ID = null;
+
+            const defaultSidebar = document.getElementById('default-sidebar-widgets');
+            const gallerySidebar = document.getElementById('gallery-directory-sidebar');
+
+            if (defaultSidebar) defaultSidebar.classList.remove('hidden');
+            if (gallerySidebar) gallerySidebar.classList.add('hidden');
+
+            if (CURRENT_SUB_MODULE === 'galeri_foto_video') {
+                renderPublicGalleryPage(document.getElementById('main-content'));
+            } else if (CURRENT_SUB_MODULE === 'berita_pengumuman') {
+                renderBeritaPage(document.getElementById('main-content'));
+            } else if (CURRENT_SUB_MODULE === 'buletin_majalah') {
+                renderBuletinPage(document.getElementById('main-content'));
+            }
+        }
+
+        function renderUtama(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="card-custom p-6 sm:p-8 bg-white">
+                        <h3 class="text-lg font-black text-brandDark mb-2">Selamat Datang ke Portal Pengurusan Digital</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed font-medium">
+                            Gunakan pautan pantas atau menu di header di atas untuk mengakses modul-modul sekolah. Portal ini dibina untuk memastikan integrasi maklumat antara sekolah dan ibu bapa berjalan secara lancar, pantas, dan efisien.
+                        </p>
+                    </div>
+
+                    <div class="card-custom p-6 sm:p-8 bg-white flex flex-col sm:flex-row items-center gap-6">
+                        <img src="https://ui-avatars.com/api/?name=Pengetua+Sekolah&background=0F172A&color=fff&size=128" class="w-24 h-24 rounded-2xl object-cover shadow-lg border-2 border-amber-400 shrink-0" alt="Pengetua">
+                        <div class="space-y-2 text-center sm:text-left">
+                            <span class="inline-block text-xs font-black text-brandNavy uppercase tracking-wider bg-blue-50 px-3 py-1 rounded-lg border border-blue-100">Perutusan Pentadbiran</span>
+                            <h4 class="text-base font-black text-brandDark">En. Ahmad bin Ali</h4>
+                            <p class="text-xs font-bold text-slate-500">Pengetua Cemerlang Sekolah</p>
+                            <p class="text-sm text-slate-700 italic leading-relaxed pt-1 font-medium">
+                                "Komitmen kami adalah menyediakan platform maklumat yang telus, mesra pengguna, dan mudah diakses oleh semua warga sekolah serta ibu bapa pada bila-bila masa."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderETMKPage(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="card-custom p-6 bg-white border-l-4 border-l-blue-600">
+                        <h2 class="text-xl font-black text-brandDark flex items-center gap-2">💻 e-TMK: Pusat Teknologi Maklumat & Komunikasi</h2>
+                        <p class="text-xs text-slate-500 font-medium mt-1">Pengurusan infrastruktur digital, makmal komputer, portal ICT, dan perkhidmatan teknikal sekolah.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">🖥️</span>
+                            <h3 class="text-2xl font-black text-blue-700">42</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Komputer Unit</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">🏫</span>
+                            <h3 class="text-2xl font-black text-blue-700">2</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Makmal ICT</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">📡</span>
+                            <h3 class="text-2xl font-black text-blue-700">100 Mbps</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Rangkaian Internet</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">🎓</span>
+                            <h3 class="text-2xl font-black text-blue-700">96%</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Celik Digital</p>
+                        </div>
+                    </div>
+
+                    <div class="card-custom p-6 bg-white space-y-4">
+                        <h3 class="text-sm font-black text-brandDark border-b border-slate-200 pb-2">🚀 Perkhidmatan & Modul e-TMK</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                                <h4 class="text-xs font-black text-blue-800">📅 Tempahan Makmal Komputer</h4>
+                                <p class="text-xs text-slate-600 mt-1">Jadual dan borang tempahan slot guna makmal komputer bagi PdP guru.</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                                <h4 class="text-xs font-black text-blue-800">🛠️ Laporan Aduan Kerosakan ICT</h4>
+                                <p class="text-xs text-slate-600 mt-1">Sistem maklum balas dan aduan kerosakan PC, LCD, atau capaian internet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderEPBDPage(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="card-custom p-6 bg-white border-l-4 border-l-emerald-600">
+                        <h2 class="text-xl font-black text-brandDark flex items-center gap-2">📊 e-PBD: Portal Pentaksiran Bilik Darjah</h2>
+                        <p class="text-xs text-slate-500 font-medium mt-1">Pusat maklumat, panduan tahap penguasaan (TP), dan rekod perkembangan pembelajaran murid.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">📈</span>
+                            <h3 class="text-2xl font-black text-emerald-700">TP 4-6</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Purata Penguasaan</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">📋</span>
+                            <h3 class="text-2xl font-black text-emerald-700">100%</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Rekod Kemaskini</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">👨‍🏫</span>
+                            <h3 class="text-2xl font-black text-emerald-700">36</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Guru Pentaksir</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">🗓️</span>
+                            <h3 class="text-2xl font-black text-emerald-700">2 Kali</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pelaporan/Tahun</p>
+                        </div>
+                    </div>
+
+                    <div class="card-custom p-6 bg-white space-y-4">
+                        <h3 class="text-sm font-black text-brandDark border-b border-slate-200 pb-2">📁 Sumber & Panduan PBD</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                                <h4 class="text-xs font-black text-emerald-800">📘 Panduan Penjaminan Kualiti PBD</h4>
+                                <p class="text-xs text-slate-600 mt-1">Dokumen rujukan pementoran, pemantauan, penyelarasan, dan pengesanan PBD.</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                                <h4 class="text-xs font-black text-emerald-800">📑 Template Pelaporan PBD</h4>
+                                <p class="text-xs text-slate-600 mt-1">Muat turun template peratusan dan statistik pencapaian mata pelajaran.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderEMampanPage(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="card-custom p-6 bg-white border-l-4 border-l-amber-500">
+                        <h2 class="text-xl font-black text-brandDark flex items-center gap-2">🌱 e-Mampan: Portal Pengurusan Mampan & Kelestarian</h2>
+                        <p class="text-xs text-slate-500 font-medium mt-1">Inisiatif sekolah hijau, kitar semula, penjimatan tenaga, dan pendidikan alam sekitar.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">♻</span>
+                            <h3 class="text-2xl font-black text-amber-700">450 kg</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Kitar Semula/Bulan</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">🌳</span>
+                            <h3 class="text-2xl font-black text-amber-700">120</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pokok Ditanam</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">⚡</span>
+                            <h3 class="text-2xl font-black text-amber-700">15%</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Penjimatan Tenaga</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">🏆</span>
+                            <h3 class="text-2xl font-black text-amber-700">Anugerah</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Sekolah Hijau</p>
+                        </div>
+                    </div>
+
+                    <div class="card-custom p-6 bg-white space-y-4">
+                        <h3 class="text-sm font-black text-brandDark border-b border-slate-200 pb-2">🌿 Program Kelestarian Sekolah</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                                <h4 class="text-xs font-black text-amber-800">📦 Program Pengumpulan Minyak Terpakai</h4>
+                                <p class="text-xs text-slate-600 mt-1">Kempen kesedaran pemeliharaan alam sekitar bersama warga sekolah dan komuniti.</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                                <h4 class="text-xs font-black text-amber-800">💧 Projek Takkungan Air Hujan (SPAH)</h4>
+                                <p class="text-xs text-slate-600 mt-1">Sistem penjimatan air untuk kegunaan pembersihan dan taman herba sekolah.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderEBankSoalanPage(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="card-custom p-6 bg-white border-l-4 border-l-purple-600">
+                        <h2 class="text-xl font-black text-brandDark flex items-center gap-2">📚 e-Bank Soalan: Repository Soalan & Modul Latihan</h2>
+                        <p class="text-xs text-slate-500 font-medium mt-1">Koleksi kertas soalan peperiksaan, latihan harian, dan bahan ulangkaji teratur mengikut subjek.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">📄</span>
+                            <h3 class="text-2xl font-black text-purple-700">250+</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Set Soalan</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">📖</span>
+                            <h3 class="text-2xl font-black text-purple-700">12</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Mata Pelajaran</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">📥</span>
+                            <h3 class="text-2xl font-black text-purple-700">1.2k</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Muat Turun</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">✨</span>
+                            <h3 class="text-2xl font-black text-purple-700">Tahun 1-6</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Tahap Murid</p>
+                        </div>
+                    </div>
+
+                    <div class="card-custom p-6 bg-white space-y-4">
+                        <h3 class="text-sm font-black text-brandDark border-b border-slate-200 pb-2">📝 Kategori Bank Soalan</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                                <h4 class="text-xs font-black text-purple-800">📑 Ujian Akhir Sesi Akademik (UASA)</h4>
+                                <p class="text-xs text-slate-600 mt-1">Koleksi format soalan UASA terkini bagi Tahun 4, 5, dan 6.</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                                <h4 class="text-xs font-black text-purple-800">💡 Modul Topikal & Latihan Format Baru</h4>
+                                <p class="text-xs text-slate-600 mt-1">Bahan ulangkaji mengikut bab untuk kegunaan murid dan guru.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderEPIBGPage(container) {
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="card-custom p-6 bg-white border-l-4 border-l-rose-600">
+                        <h2 class="text-xl font-black text-brandDark flex items-center gap-2">🤝 e-PIBG: Portal Interaktif Ibu Bapa & Guru</h2>
+                        <p class="text-xs text-slate-500 font-medium mt-1">Saluran komunikasi, maklumat aktiviti PIBG, dana sumbangan, dan buletin kejayaan murid.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">👨‍👩‍👧</span>
+                            <h3 class="text-2xl font-black text-rose-700">850</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Ahli PIBG</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">📢</span>
+                            <h3 class="text-2xl font-black text-rose-700">100%</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Kehadiran Mesyuarat</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">💰</span>
+                            <h3 class="text-2xl font-black text-rose-700">Tabung</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pembangunan Murid</p>
+                        </div>
+                        <div class="card-custom p-5 bg-white text-center space-y-1">
+                            <span class="text-3xl">🌟</span>
+                            <h3 class="text-2xl font-black text-rose-700">8 Aktiviti</h3>
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Anjuran Bersama</p>
+                        </div>
+                    </div>
+
+                    <div class="card-custom p-6 bg-white space-y-4">
+                        <h3 class="text-sm font-black text-brandDark border-b border-slate-200 pb-2">🏛️ Maklumat & Perkhidmatan e-PIBG</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                                <h4 class="text-xs font-black text-rose-800">📋 Senarai AJK PIBG Sesi 2026/2027</h4>
+                                <p class="text-xs text-slate-600 mt-1">Barisan kepimpinan Jawatankuasa Ibu Bapa dan Guru sekolah.</p>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                                <h4 class="text-xs font-black text-rose-800">💳 Sumbangan & Tabung Kebajikan Murid</h4>
+                                <p class="text-xs text-slate-600 mt-1">Saluran sumbangan rasmi secara digital untuk program sekolah.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadModule(modName, autoScroll = true) {
+            CURRENT_MODULE = modName;
+            closeFullGalleryView();
+            renderBanner(modName);
+            renderQuickLinks();
+            updateHeaderNavActiveState(modName);
+
+            const sidebar = document.getElementById('sidebar-info');
+            const mainContent = document.getElementById('main-content');
+            const quickLinksWrapper = document.getElementById('quick-links-wrapper');
+
+            if (quickLinksWrapper) {
+                if (modName === 'utama') {
+                    quickLinksWrapper.classList.remove('hidden');
+                } else {
+                    quickLinksWrapper.classList.add('hidden');
+                }
+            }
+            
+            const SPECIAL_LINK_PAGES = ['e-tmk', 'e-pbd', 'e-mampan', 'e-banksoalan', 'e-pibg'];
+
+            if (SPECIAL_LINK_PAGES.includes(modName)) {
+                if (sidebar) sidebar.classList.add('hidden');
+            } else {
+                if (sidebar) sidebar.classList.remove('hidden');
+            }
+
+            if (modName === 'utama') {
+                renderUtama(mainContent);
+                if (autoScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (modName === 'e-tmk') {
+                renderETMKPage(mainContent);
+                if (autoScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (modName === 'e-pbd') {
+                renderEPBDPage(mainContent);
+                if (autoScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (modName === 'e-mampan') {
+                renderEMampanPage(mainContent);
+                if (autoScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (modName === 'e-banksoalan') {
+                renderEBankSoalanPage(mainContent);
+                if (autoScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (modName === 'e-pibg') {
+                renderEPIBGPage(mainContent);
+                if (autoScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                switchSubTab(CURRENT_SUB_MODULE);
+                if (autoScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if(!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast-enter pointer-events-auto px-4 py-3 rounded-2xl text-xs font-extrabold text-white shadow-xl flex items-center gap-2 ${type==='success'?'bg-emerald-600':'bg-red-600'}`;
+            toast.innerHTML = `<span>${type==='success'?'✅':'⚠️'}</span><span>${msg}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => { toast.remove(); }, 3500);
+        }
+
+        function updateDateTime() {
+            const el = document.getElementById('header-datetime');
+            if (!el) return;
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            el.innerHTML = `<span>🕒 ${now.toLocaleDateString('ms-MY', options)}</span>`;
+        }
+
+        setInterval(updateDateTime, 1000);
+
+        /* INITIALIZE APP ON LOAD */
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchPortalData();
+            startHebahanAuto();
+        });
+    </script>
+</body>
+</html>
