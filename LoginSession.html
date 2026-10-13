@@ -23,12 +23,12 @@
             theme: {
                 extend: {
                     colors: { 
-                        brandDark: '#0F172A',       /* Slate Navy Deep */
-                        brandNavy: '#1E3A8A',       /* Medium Navy */
-                        brandAccent: '#2563EB',     /* Blue Accent */
-                        brandGold: '#D97706',       /* Amber Gold */
-                        brandBg: '#F8FAFC',         /* Clean Slate Light */
-                        brandBorder: '#E2E8F0'      /* Modern Border */
+                        brandDark: '#0F172A',
+                        brandNavy: '#1E3A8A',
+                        brandAccent: '#2563EB',
+                        brandGold: '#D97706',
+                        brandBg: '#F8FAFC',
+                        brandBorder: '#E2E8F0'
                     },
                     fontFamily: { 
                         sans: ['Plus Jakarta Sans', 'sans-serif'] 
@@ -47,7 +47,6 @@
             line-height: 1.6;
         }
 
-        /* Modern Glassmorphic Card */
         .card-custom {
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
@@ -56,7 +55,6 @@
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* Gradient Glow Buttons */
         .btn-gradient-dark {
             background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
             transition: all 0.25s ease;
@@ -78,6 +76,9 @@
 
         .toast-enter { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+
+        .animate-scale-up { animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes scaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body class="bg-gradient-to-br from-slate-950 via-brandDark to-brandNavy antialiased min-h-screen flex items-center justify-center p-4 selection:bg-brandNavy selection:text-white">
@@ -165,12 +166,9 @@
     <!-- SAMBUNGAN FAIL CONFIG BACKEND -->
     <script src="config.js"></script>
 
-    <!-- SAMBUNGAN FAIL CONFIG BACKEND -->
-
     <!-- LOGIK JAVASCRIPT LOG MASUK -->
     <script>
     let PENDING_ADMIN_USER = null;
-    // Isi Client ID OAuth jenis Web application dari Google Cloud Console.
     const GOOGLE_CLIENT_ID = '637460698521-djt73cs1emsa5n5m7p2q8s4feohmhnuh.apps.googleusercontent.com';
 
     function showLoader(txt = "Memuatkan sistem...") {
@@ -232,7 +230,6 @@
                 return;
             }
             const user = res.user;
-            // Cache ini hanya untuk UI navigasi; bukan token autoriti backend.
             localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
             sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
             showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
@@ -240,15 +237,16 @@
         } catch (err) {
             hideLoader();
             console.error('Google Identity login error:', err);
-            showToast('Tidak dapat menghubungi backend. Semak URL Web App, deployment dan CORS.', 'error');
+            showToast('Tidak dapat menghubungi backend. Semak WEB_APP_URL dalam config.js.', 'error');
         }
     }
 
     async function postToBackend(payload) {
-        if (typeof WEB_APP_URL === 'undefined' || !WEB_APP_URL) throw new Error('WEB_APP_URL tiada dalam config.js');
+        if (typeof WEB_APP_URL === 'undefined' || !WEB_APP_URL) {
+            throw new Error('WEB_APP_URL tiada atau tidak ditakrifkan dalam config.js');
+        }
         const response = await fetch(WEB_APP_URL, {
             method: 'POST',
-            // text/plain mengelakkan preflight OPTIONS bagi permintaan ringkas.
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload),
             redirect: 'follow'
@@ -276,8 +274,7 @@
     }
 
     function checkFastLogin() {
-        // Jangan auto-login berdasarkan cache lama kerana localStorage boleh diubah pengguna.
-        // Kosongkan cache login legacy supaya pengguna perlu disahkan semula oleh backend.
+        // Kosongkan simpanan sesi lama bagi memastikan log masuk semula disahkan oleh backend.
         localStorage.removeItem('SAVED_MOE_USER');
         sessionStorage.removeItem('CURRENT_USER');
     }
@@ -285,13 +282,15 @@
     function selectAdminDashboard(choice) {
         if (!PENDING_ADMIN_USER) return;
         const userToSave = { ...PENDING_ADMIN_USER };
+        userToSave.role = choice === 'admin' ? 'admin' : 'guru';
+        
+        // Simpan sesi terkemas kini pada kedua-dua storage
+        localStorage.setItem('SAVED_MOE_USER', JSON.stringify(userToSave));
+        sessionStorage.setItem('CURRENT_USER', JSON.stringify(userToSave));
+
         if (choice === 'admin') {
-            userToSave.role = 'admin';
-            sessionStorage.setItem('CURRENT_USER', JSON.stringify(userToSave));
             window.location.href = 'DashboardAdmin.html';
         } else {
-            userToSave.role = 'guru';
-            sessionStorage.setItem('CURRENT_USER', JSON.stringify(userToSave));
             window.location.href = 'DashboardGuru.html';
         }
     }
@@ -322,12 +321,12 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         checkFastLogin();
-        // GIS script mempunyai async/defer; cuba inisialisasi dan tunggu jika belum sedia.
         let attempts = 0;
         const timer = setInterval(() => {
             attempts++;
             if (window.google && google.accounts && google.accounts.id) {
-                clearInterval(timer); initGoogleIdentity();
+                clearInterval(timer); 
+                initGoogleIdentity();
             } else if (attempts >= 30) {
                 clearInterval(timer);
                 showToast('Google Identity tidak dapat dimuatkan. Cuba refresh atau semak sekatan rangkaian.', 'error');
