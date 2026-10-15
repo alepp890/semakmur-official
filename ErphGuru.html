@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modul E-RPH - Portal Semakmur</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Load Konfigurasi Sistem -->
+  <script src="config.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#10b981',
+              600: '#0d9488',
+              700: '#0f766e',
+              800: '#115e59',
+              900: '#134e4a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8fafc;
+    }
+    .coligo-gradient {
+      background: linear-gradient(135deg, #0d9488 0%, #059669 100%);
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+    }
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printArea, #printArea * {
+        visibility: visible;
+      }
+      #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP NAVBAR -->
+  <header class="coligo-gradient text-white shadow-lg sticky top-0 z-30 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <a href="DashboardGuru_4.html" class="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition text-white">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div class="flex items-center space-x-2">
+          <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center font-bold text-lg">
+            <i class="fa-solid fa-book-open"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-lg leading-tight">e-RPH Digital</h1>
+            <p class="text-xs text-teal-100">Sistem Pengurusan Pengajaran Harian</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profil Guru Ringkas -->
+      <div class="flex items-center space-x-3">
+        <div class="text-right hidden sm:block">
+          <p id="userNama" class="text-sm font-semibold">Guru Semakmur</p>
+          <p id="userEmail" class="text-xs text-teal-100">guru@moe-dl.edu.my</p>
+        </div>
+        <div class="w-10 h-10 rounded-full bg-white text-teal-700 flex items-center justify-center font-bold text-lg shadow">
+          <i class="fa-solid fa-user-tie"></i>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- RINGKASAN & STATISTIK MINGGUAN -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 no-print">
+      
+      <!-- Card status RPH -->
+      <div class="col-span-1 md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">Status Penulisan RPH</h2>
+            <p class="text-sm text-slate-500">Pilih minggu persekolahan untuk menyemak dan memantau status RPH anda.</p>
+          </div>
+          <select id="selectMinggu" onchange="loadErphList()" class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500">
+            <!-- Dynamic Minggu Options -->
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 text-center">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="block text-2xl font-bold text-slate-700" id="statJumlah">0</span>
+            <span class="text-xs text-slate-500 font-medium">Jumlah RPH</span>
+          </div>
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-100">
+            <span class="block text-2xl font-bold text-amber-600" id="statDraf">0</span>
+            <span class="text-xs text-amber-700 font-medium">Draf</span>
+          </div>
+          <div class="p-3 bg-blue-50 rounded-xl border border-blue-100">
+            <span class="block text-2xl font-bold text-blue-600" id="statHantar">0</span>
+            <span class="text-xs text-blue-700 font-medium">Dihantar</span>
+          </div>
+          <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
+            <span class="block text-2xl font-bold text-emerald-600" id="statDisah">0</span>
+            <span class="text-xs text-emerald-700 font-medium">Disahkan</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Penyemak -->
+      <div class="bg-gradient-to-br from-teal-800 to-emerald-900 text-white p-6 rounded-2xl shadow-md flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="px-3 py-1 bg-white/20 rounded-full text-xs font-semibold tracking-wide">Pegawai Penyemak</span>
+            <i class="fa-solid fa-user-check text-teal-200 text-lg"></i>
+          </div>
+          <h3 id="penyemakNama" class="font-bold text-lg leading-snug">Pentadbir Sekolah</h3>
+          <p id="penyemakJawatan" class="text-xs text-teal-200">Pengetua / PK Pentadbiran</p>
+          <p id="penyemakEmail" class="text-xs text-teal-300 mt-1 italic">-</p>
+        </div>
+        <div class="pt-4 border-t border-white/10 mt-4 flex items-center justify-between text-xs text-teal-100">
+          <span>Hantar RPH sebelum Jumaat (12.00 Mkt)</span>
+          <i class="fa-solid fa-clock"></i>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB NAVIGATION -->
+    <div class="flex space-x-2 border-b border-slate-200 no-print">
+      <button onclick="switchTab('jadual')" id="tabBtnJadual" class="px-5 py-3 font-semibold text-sm border-b-2 border-teal-600 text-teal-600 flex items-center space-x-2 transition">
+        <i class="fa-solid fa-calendar-day"></i>
+        <span>Jadual & Cipta RPH</span>
+      </button>
+      <button onclick="switchTab('senarai')" id="tabBtnSenarai" class="px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center space-x-2 transition">
+        <i class="fa-solid fa-list-check"></i>
+        <span>Rekod & Senarai RPH</span>
+      </button>
+      <button onclick="switchTab('borang')" id="tabBtnBorang" class="px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center space-x-2 transition hidden">
+        <i class="fa-solid fa-pen-to-square"></i>
+        <span id="borangTabLabel">Borang Penulisan RPH</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: JADUAL HARI INI & CIPTA RPH PANTAS -->
+    <section id="tabJadual" class="space-y-4 no-print">
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 class="font-bold text-slate-800 text-base">Jadual Waktu Mengajar Hari Ini</h3>
+          <p class="text-xs text-slate-500">Pilih hari untuk memaparkan subjek dan mencipta RPH baharu dengan satu klik.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <select id="selectHariJadual" onchange="loadJadualGuru()" class="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500">
+            <option value="Isnin">Isnin</option>
+            <option value="Selasa">Selasa</option>
+            <option value="Rabu">Rabu</option>
+            <option value="Khamis">Khamis</option>
+            <option value="Jumaat">Jumaat</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="jadualContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Dynamic Cards Jadual Waktu -->
+        <div class="col-span-full text-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+          <i class="fa-solid fa-spinner fa-spin text-2xl mb-2 text-teal-600"></i>
+          <p class="text-sm">Memuat turun jadual waktu...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: REKOD & SENARAI RPH -->
+    <section id="tabSenarai" class="hidden space-y-4 no-print">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h3 class="font-bold text-slate-800 text-base">Rekod RPH Minggu Semasa</h3>
+          <button onclick="bukaBorangBaharu()" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold flex items-center space-x-2 transition self-start">
+            <i class="fa-solid fa-plus"></i>
+            <span>Cipta RPH Manual</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                <th class="p-4">Hari / Tarikh</th>
+                <th class="p-4">Masa</th>
+                <th class="p-4">Kelas & Subjek</th>
+                <th class="p-4">Tajuk / Bidang</th>
+                <th class="p-4 text-center">Status Hantar</th>
+                <th class="p-4 text-center">Status Semak</th>
+                <th class="p-4 text-right">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="rphTableBody" class="divide-y divide-slate-100 text-slate-700">
+              <!-- Dynamic Rows RPH -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: BORANG PENULISAN RPH -->
+    <section id="tabBorang" class="hidden space-y-6 no-print">
+      <form id="formErph" onsubmit="simpanErph(event)" class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100 space-y-6">
+        
+        <input type="hidden" id="rphId">
+
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+          <h3 class="font-bold text-slate-800 text-lg flex items-center space-x-2">
+            <i class="fa-solid fa-pen-nib text-teal-600"></i>
+            <span>Borang Penyediaan RPH</span>
+          </h3>
+          <button type="button" onclick="switchTab('senarai')" class="text-xs text-slate-500 hover:text-slate-800">
+            <i class="fa-solid fa-xmark text-base"></i> Batal
+          </button>
+        </div>
+
+        <!-- BAHAGIAN 1: MAKLUMAT ASAS -->
+        <div class="space-y-4">
+          <h4 class="text-xs font-bold text-teal-700 uppercase tracking-wider">1. Maklumat Asas & Kelas</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Minggu Persekolahan</label>
+              <input type="text" id="fMinggu" required readonly class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Hari</label>
+              <select id="fHari" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-teal-500">
+                <option value="Isnin">Isnin</option>
+                <option value="Selasa">Selasa</option>
+                <option value="Rabu">Rabu</option>
+                <option value="Khamis">Khamis</option>
+                <option value="Jumaat">Jumaat</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Tarikh</label>
+              <input type="date" id="fTarikh" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-teal-500">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Masa Mula</label>
+                <input type="time" id="fMasaMula" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Masa Tamat</label>
+                <input type="time" id="fMasaTamat" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Kelas</label>
+              <input type="text" id="fKelas" required placeholder="Contoh: 5 Gemilang" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Mata Pelajaran</label>
+              <input type="text" id="fSubjek" required placeholder="Contoh: Matematik" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold" onchange="loadDskpOptions()">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Tingkatan / Tahun</label>
+              <input type="text" id="fTingkatan" placeholder="Contoh: Tahun 5" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold" onchange="loadDskpOptions()">
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-slate-100">
+
+        <!-- BAHAGIAN 2: STANDARD & OBJEKTIF (DSKP) -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold text-teal-700 uppercase tracking-wider">2. Standard Kandungan & Objektif (DSKP)</h4>
+            <button type="button" onclick="loadDskpOptions()" class="text-xs text-teal-600 hover:underline flex items-center space-x-1">
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span>Cari Padanan DSKP</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Tajuk / Bidang Pembelajaran</label>
+              <input type="text" id="fTajuk" placeholder="Masukkan tajuk pembelajaran..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Pilihan DSKP Master (Jika Ada)</label>
+              <select id="fDskpSelect" onchange="pilihDskpAuto()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                <option value="">-- Pilih DSKP Dari Rekod --</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Standard Kandungan (SK)</label>
+              <textarea id="fSk" rows="2" placeholder="Contoh: 1.1 Nombor Bulat..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Standard Pembelajaran (SP)</label>
+              <textarea id="fSp" rows="2" placeholder="Contoh: 1.1.1 Membaca dan menulis..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"></textarea>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Objektif Pembelajaran</label>
+              <textarea id="fObjektif" rows="3" placeholder="Pada akhir PdPc, murid dapat..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Kriteria Kejayaan</label>
+              <textarea id="fKriteria" rows="3" placeholder="Murid berjaya sekiranya..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-slate-100">
+
+        <!-- BAHAGIAN 3: AKTIVITI & ELEMEN TAMBAHAN -->
+        <div class="space-y-4">
+          <h4 class="text-xs font-bold text-teal-700 uppercase tracking-wider">3. Aktiviti PdPc & Elemen Merentasi Kurikulum</h4>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Aktiviti Pemula (Set Induksi)</label>
+              <textarea id="fAktivitiPemula" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Aktiviti Utama (Penyampaian)</label>
+              <textarea id="fAktivitiUtama" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"></textarea>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Aktiviti Penutup</label>
+              <textarea id="fAktivitiPenutup" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"></textarea>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">BBM / ABM</label>
+              <input type="text" id="fBbm" placeholder="Buku Teks, LCD, Lembaran Worksheets" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">EMK</label>
+              <input type="text" id="fEmk" placeholder="Nilai Murni, Kelestarian, STEM" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">KBAT / i-Think</label>
+              <input type="text" id="fKbat" placeholder="Peta Titi, Mengaplikasi" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Pentaksiran (PBD)</label>
+              <input type="text" id="fPbd" placeholder="Pemerhatian, Latihan Bertulis" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-slate-100">
+
+        <!-- BAHAGIAN 4: REFLEKSI -->
+        <div class="space-y-4">
+          <h4 class="text-xs font-bold text-teal-700 uppercase tracking-wider">4. Impak & Refleksi PdPc</h4>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Bilangan Murid Mencapai Objektif</label>
+              <input type="number" id="fRefleksiCapai" value="0" min="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-emerald-600">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Bilangan Perlu Bimbingan / Pemulihan</label>
+              <input type="number" id="fRefleksiTidakCapai" value="0" min="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-rose-600">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan / Tindakan Susulan</label>
+              <input type="text" id="fCatatanRefleksi" placeholder="PdPc berjalan lancar..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+            </div>
+          </div>
+        </div>
+
+        <!-- BUTTON ACTION -->
+        <div class="pt-6 border-t border-slate-100 flex items-center justify-end space-x-3">
+          <button type="button" onclick="switchTab('senarai')" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
+            Batal
+          </button>
+          <button type="submit" onclick="setStatusHantar('Draf')" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold shadow-sm transition">
+            <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Draf
+          </button>
+          <button type="submit" onclick="setStatusHantar('Dihantar')" class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-semibold shadow-sm transition">
+            <i class="fa-solid fa-paper-plane mr-1"></i> Hantar RPH
+          </button>
+        </div>
+
+      </form>
+    </section>
+
+  </main>
+
+  <!-- MODAL PAPARAN CETAK / PREVIEW RPH -->
+  <div id="modalPrint" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="p-4 bg-slate-800 text-white flex items-center justify-between no-print">
+        <h3 class="font-bold text-sm">Paparan Dokumen RPH</h3>
+        <div class="flex items-center space-x-2">
+          <button onclick="window.print()" class="px-3 py-1.5 bg-teal-600 hover:bg-teal-500 rounded-lg text-xs font-semibold transition">
+            <i class="fa-solid fa-print mr-1"></i> Cetak / PDF
+          </button>
+          <button onclick="tutupModalPrint()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-semibold transition">
+            Tutup
+          </button>
+        </div>
+      </div>
+
+      <!-- KANDUNGAN RPH UNTUK DICETAK -->
+      <div id="printArea" class="p-8 overflow-y-auto space-y-4 text-xs leading-relaxed text-slate-900 bg-white">
+        <!-- Content dynamic injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIK SCRIPT FRONTEND -->
+  <script>
+    let currentUser = null;
+    let currentStatusHantar = 'Draf';
+    let globalDskpList = [];
+    let globalErphList = [];
+
+    // On Load Window
+    window.addEventListener('DOMContentLoaded', () => {
+      initSession();
+    });
+
+    function initSession() {
+      const stored = localStorage.getItem('currentUser');
+      if (stored) {
+        try {
+          currentUser = JSON.parse(stored);
+        } catch(e) {
+          currentUser = { email: 'guru@moe-dl.edu.my', name: 'Guru Semakmur' };
+        }
+      } else {
+        currentUser = { email: 'guru@moe-dl.edu.my', name: 'Guru Semakmur' };
+      }
+
+      document.getElementById('userNama').innerText = currentUser.name || 'Guru Semakmur';
+      document.getElementById('userEmail').innerText = currentUser.email || '';
+
+      // Fetch Initial System Data
+      fetchInitialData();
+    }
+
+    async function fetchInitialData() {
+      try {
+        const res = await fetch(CONFIG.WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            action: 'getErphInitialData',
+            payload: { emailGuru: currentUser.email }
+          })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          const data = result.data;
+          
+          // Populate Minggu Dropdown
+          const selectMinggu = document.getElementById('selectMinggu');
+          selectMinggu.innerHTML = '';
+          if (data.mingguList && data.mingguList.length > 0) {
+            data.mingguList.forEach(m => {
+              const opt = document.createElement('option');
+              opt.value = m.minggu;
+              opt.innerText = `Minggu ${m.minggu}`;
+              selectMinggu.appendChild(opt);
+            });
+          } else {
+            selectMinggu.innerHTML = '<option value="1">Minggu 1</option>';
+          }
+
+          // Populate Penyemak Info
+          if (data.penyemakInfo) {
+            document.getElementById('penyemakNama').innerText = data.penyemakInfo.nama || 'Pentadbir Sekolah';
+            document.getElementById('penyemakJawatan').innerText = data.penyemakInfo.jawatan || 'Pengetua / PK';
+            document.getElementById('penyemakEmail').innerText = data.penyemakInfo.email || '-';
+          }
+
+          loadJadualGuru();
+          loadErphList();
+        }
+      } catch (err) {
+        console.error('Ralat fetching initial data:', err);
+      }
+    }
+
+    async function loadJadualGuru() {
+      const hari = document.getElementById('selectHariJadual').value;
+      const container = document.getElementById('jadualContainer');
+      container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-xl mb-2 text-teal-600"></i><p>Memuatkan jadual...</p></div>`;
+
+      try {
+        const res = await fetch(CONFIG.WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            action: 'getJadualGuruByHari',
+            payload: { emailGuru: currentUser.email, hari: hari }
+          })
+        });
+        const result = await res.json();
+
+        if (result.success && result.data.length > 0) {
+          container.innerHTML = result.data.map(j => `
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between space-y-4 hover:border-teal-300 transition">
+              <div class="flex items-start justify-between">
+                <span class="px-2.5 py-1 bg-teal-50 text-teal-700 font-bold rounded-lg text-xs">${j.masaMula} - ${j.masaTamat}</span>
+                <span class="px-2.5 py-1 bg-slate-100 text-slate-600 font-semibold rounded-lg text-xs">${j.kelas}</span>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 text-base">${j.subjek}</h4>
+                <p class="text-xs text-slate-500">${j.tingkatan || ''}</p>
+              </div>
+              <button onclick="ciptaRphDariJadual('${j.hari}', '${j.masaMula}', '${j.masaTamat}', '${j.kelas}', '${j.subjek}', '${j.tingkatan || ''}')" class="w-full py-2 bg-slate-900 hover:bg-teal-600 text-white font-semibold rounded-xl text-xs transition flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-pen"></i>
+                <span>Cipta RPH</span>
+              </button>
+            </div>
+          `).join('');
+        } else {
+          container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200"><p class="text-sm">Tiada jadual mengajar direkodkan bagi hari ${hari}.</p></div>`;
+        }
+      } catch (err) {
+        container.innerHTML = `<div class="col-span-full text-center py-8 text-rose-500"><p class="text-sm">Gagal memuatkan jadual waktu.</p></div>`;
+      }
+    }
+
+    async function loadErphList() {
+      const minggu = document.getElementById('selectMinggu').value;
+      const tbody = document.getElementById('rphTableBody');
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-xl mb-2 text-teal-600"></i><p>Memuatkan rekod RPH...</p></td></tr>`;
+
+      try {
+        const res = await fetch(CONFIG.WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            action: 'getErphListGuru',
+            payload: { emailGuru: currentUser.email, minggu: minggu }
+          })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          globalErphList = result.data || [];
+          updateStatistik(globalErphList);
+
+          if (globalErphList.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tiada rekod RPH untuk Minggu ${minggu}.</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = globalErphList.map(r => `
+            <tr class="hover:bg-slate-50 transition">
+              <td class="p-4 font-semibold text-slate-800">${r.hari}<br><span class="text-xs font-normal text-slate-500">${r.tarikh}</span></td>
+              <td class="p-4 text-xs font-medium text-slate-600">${r.masaMula} - ${r.masaTamat}</td>
+              <td class="p-4 font-semibold text-slate-800">${r.subjek}<br><span class="text-xs font-normal text-slate-500">${r.kelas}</span></td>
+              <td class="p-4 text-xs text-slate-600 max-w-xs truncate">${r.tajukBidang || '-'}</td>
+              <td class="p-4 text-center">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold ${r.statusHantar === 'Dihantar' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}">
+                  ${r.statusHantar}
+                </span>
+              </td>
+              <td class="p-4 text-center">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold ${r.statusSemak === 'Disahkan' ? 'bg-emerald-100 text-emerald-700' : (r.statusSemak === 'Perlu Pembetulan' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600')}">
+                  ${r.statusSemak}
+                </span>
+              </td>
+              <td class="p-4 text-right space-x-1">
+                <button onclick="previewRph('${r.idRph}')" title="Papar/Cetak" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs transition">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button onclick="editRph('${r.idRph}')" title="Edit RPH" class="p-2 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-lg text-xs transition">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-rose-500">Gagal memuatkan rekod RPH.</td></tr>`;
+      }
+    }
+
+    function updateStatistik(list) {
+      document.getElementById('statJumlah').innerText = list.length;
+      document.getElementById('statDraf').innerText = list.filter(r => r.statusHantar === 'Draf').length;
+      document.getElementById('statHantar').innerText = list.filter(r => r.statusHantar === 'Dihantar').length;
+      document.getElementById('statDisah').innerText = list.filter(r => r.statusSemak === 'Disahkan').length;
+    }
+
+    function switchTab(tab) {
+      document.getElementById('tabJadual').classList.add('hidden');
+      document.getElementById('tabSenarai').classList.add('hidden');
+      document.getElementById('tabBorang').classList.add('hidden');
+
+      document.getElementById('tabBtnJadual').className = "px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center space-x-2 transition";
+      document.getElementById('tabBtnSenarai').className = "px-5 py-3 font-semibold text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center space-x-2 transition";
+      document.getElementById('tabBtnBorang').classList.add('hidden');
+
+      if (tab === 'jadual') {
+        document.getElementById('tabJadual').classList.remove('hidden');
+        document.getElementById('tabBtnJadual').className = "px-5 py-3 font-semibold text-sm border-b-2 border-teal-600 text-teal-600 flex items-center space-x-2 transition";
+      } else if (tab === 'senarai') {
+        document.getElementById('tabSenarai').classList.remove('hidden');
+        document.getElementById('tabBtnSenarai').className = "px-5 py-3 font-semibold text-sm border-b-2 border-teal-600 text-teal-600 flex items-center space-x-2 transition";
+      } else if (tab === 'borang') {
+        document.getElementById('tabBorang').classList.remove('hidden');
+        document.getElementById('tabBtnBorang').classList.remove('hidden');
+        document.getElementById('tabBtnBorang').className = "px-5 py-3 font-semibold text-sm border-b-2 border-teal-600 text-teal-600 flex items-center space-x-2 transition";
+      }
+    }
+
+    function ciptaRphDariJadual(hari, masaMula, masaTamat, kelas, subjek, tingkatan) {
+      document.getElementById('formErph').reset();
+      document.getElementById('rphId').value = '';
+      document.getElementById('fMinggu').value = document.getElementById('selectMinggu').value || '1';
+      document.getElementById('fHari').value = hari;
+      document.getElementById('fMasaMula').value = masaMula;
+      document.getElementById('fMasaTamat').value = masaTamat;
+      document.getElementById('fKelas').value = kelas;
+      document.getElementById('fSubjek').value = subjek;
+      document.getElementById('fTingkatan').value = tingkatan;
+
+      // Format Tarikh Hari Ini
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('fTarikh').value = today;
+
+      document.getElementById('borangTabLabel').innerText = "Borang Cipta RPH Baharu";
+      switchTab('borang');
+      loadDskpOptions();
+    }
+
+    function bukaBorangBaharu() {
+      ciptaRphDariJadual('Isnin', '08:00', '09:00', '', '', '');
+    }
+
+    function editRph(idRph) {
+      const item = globalErphList.find(r => r.idRph === idRph);
+      if (!item) return;
+
+      document.getElementById('rphId').value = item.idRph;
+      document.getElementById('fMinggu').value = item.minggu;
+      document.getElementById('fHari').value = item.hari;
+      document.getElementById('fTarikh').value = item.tarikh;
+      document.getElementById('fMasaMula').value = item.masaMula;
+      document.getElementById('fMasaTamat').value = item.masaTamat;
+      document.getElementById('fKelas').value = item.kelas;
+      document.getElementById('fSubjek').value = item.subjek;
+      document.getElementById('fTingkatan').value = item.tingkatan;
+      document.getElementById('fTajuk').value = item.tajukBidang;
+      document.getElementById('fSk').value = item.standardKandungan;
+      document.getElementById('fSp').value = item.standardPembelajaran;
+      document.getElementById('fObjektif').value = item.objektifPembelajaran;
+      document.getElementById('fKriteria').value = item.kriteriaKejayaan;
+      document.getElementById('fAktivitiPemula').value = item.aktivitiPemula;
+      document.getElementById('fAktivitiUtama').value = item.aktivitiUtama;
+      document.getElementById('fAktivitiPenutup').value = item.aktivitiPenutup;
+      document.getElementById('fBbm').value = item.bbm;
+      document.getElementById('fEmk').value = item.emk;
+      document.getElementById('fKbat').value = item.kbat;
+      document.getElementById('fPbd').value = item.pbd;
+      document.getElementById('fRefleksiCapai').value = item.refleksiBilCapai || 0;
+      document.getElementById('fRefleksiTidakCapai').value = item.refleksiBilTidakCapai || 0;
+      document.getElementById('fCatatanRefleksi').value = item.catatanRefleksi;
+
+      document.getElementById('borangTabLabel').innerText = "Kemaskini RPH";
+      switchTab('borang');
+    }
+
+    async function loadDskpOptions() {
+      const subjek = document.getElementById('fSubjek').value;
+      const tingkatan = document.getElementById('fTingkatan').value;
+      const select = document.getElementById('fDskpSelect');
+
+      if (!subjek) return;
+
+      try {
+        const res = await fetch(CONFIG.WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            action: 'getDskpOptions',
+            payload: { subjek: subjek, tingkatan: tingkatan }
+          })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          globalDskpList = result.data || [];
+          select.innerHTML = '<option value="">-- Pilih DSKP Dari Rekod --</option>';
+          globalDskpList.forEach((d, index) => {
+            const opt = document.createElement('option');
+            opt.value = index;
+            opt.innerText = `${d.tajukBidang} | ${d.standardKandungan}`;
+            select.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        console.error('Ralat fetching DSKP options:', err);
+      }
+    }
+
+    function pilihDskpAuto() {
+      const index = document.getElementById('fDskpSelect').value;
+      if (index === '') return;
+
+      const dskp = globalDskpList[index];
+      if (dskp) {
+        document.getElementById('fTajuk').value = dskp.tajukBidang || '';
+        document.getElementById('fSk').value = dskp.standardKandungan || '';
+        document.getElementById('fSp').value = dskp.standardPembelajaran || '';
+        document.getElementById('fObjektif').value = dskp.objektifCadangan || '';
+      }
+    }
+
+    function setStatusHantar(status) {
+      currentStatusHantar = status;
+    }
+
+    async function simpanErph(e) {
+      e.preventDefault();
+
+      Swal.fire({
+        title: 'Menyimpan RPH...',
+        text: 'Sila tunggu sebentar',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      const payload = {
+        idRph: document.getElementById('rphId').value,
+        emailGuru: currentUser.email,
+        namaGuru: currentUser.name,
+        minggu: document.getElementById('fMinggu').value,
+        hari: document.getElementById('fHari').value,
+        tarikh: document.getElementById('fTarikh').value,
+        masaMula: document.getElementById('fMasaMula').value,
+        masaTamat: document.getElementById('fMasaTamat').value,
+        kelas: document.getElementById('fKelas').value,
+        subjek: document.getElementById('fSubjek').value,
+        tingkatan: document.getElementById('fTingkatan').value,
+        tajukBidang: document.getElementById('fTajuk').value,
+        standardKandungan: document.getElementById('fSk').value,
+        standardPembelajaran: document.getElementById('fSp').value,
+        objektifPembelajaran: document.getElementById('fObjektif').value,
+        kriteriaKejayaan: document.getElementById('fKriteria').value,
+        aktivitiPemula: document.getElementById('fAktivitiPemula').value,
+        aktivitiUtama: document.getElementById('fAktivitiUtama').value,
+        aktivitiPenutup: document.getElementById('fAktivitiPenutup').value,
+        bbm: document.getElementById('fBbm').value,
+        emk: document.getElementById('fEmk').value,
+        kbat: document.getElementById('fKbat').value,
+        pbd: document.getElementById('fPbd').value,
+        refleksiBilCapai: document.getElementById('fRefleksiCapai').value,
+        refleksiBilTidakCapai: document.getElementById('fRefleksiTidakCapai').value,
+        catatanRefleksi: document.getElementById('fCatatanRefleksi').value,
+        statusHantar: currentStatusHantar,
+        emailPenyemak: document.getElementById('penyemakEmail').innerText,
+        namaPenyemak: document.getElementById('penyemakNama').innerText
+      };
+
+      try {
+        const res = await fetch(CONFIG.WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            action: 'saveErph',
+            payload: payload
+          })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Berjaya!',
+            text: result.message,
+            timer: 2000,
+            showConfirmButton: false
+          });
+          switchTab('senarai');
+          loadErphList();
+        } else {
+          Swal.fire('Ralat', result.message, 'error');
+        }
+      } catch (err) {
+        Swal.fire('Ralat', 'Gagal menyambung ke server.', 'error');
+      }
+    }
+
+    function previewRph(idRph) {
+      const r = globalErphList.find(item => item.idRph === idRph);
+      if (!r) return;
+
+      const html = `
+        <div class="text-center border-b pb-4 mb-4">
+          <h2 class="text-base font-bold uppercase tracking-wide text-slate-800">RANCANGAN PENGAJARAN HARIAN (e-RPH)</h2>
+          <p class="text-xs text-slate-500">SEKOLAH KEBANGSAAN SEMAKMUR</p>
+        </div>
+
+        <table class="w-full border-collapse border border-slate-300 text-xs mb-4">
+          <tr>
+            <td class="border border-slate-300 p-2 font-bold bg-slate-100 w-1/4">Nama Guru</td>
+            <td class="border border-slate-300 p-2">${r.namaGuru}</td>
+            <td class="border border-slate-300 p-2 font-bold bg-slate-100 w-1/4">Minggu / Hari / Tarikh</td>
+            <td class="border border-slate-300 p-2">M${r.minggu} | ${r.hari} (${r.tarikh})</td>
+          </tr>
+          <tr>
+            <td class="border border-slate-300 p-2 font-bold bg-slate-100">Masa / Kelas</td>
+            <td class="border border-slate-300 p-2">${r.masaMula} - ${r.masaTamat} (${r.kelas})</td>
+            <td class="border border-slate-300 p-2 font-bold bg-slate-100">Mata Pelajaran</td>
+            <td class="border border-slate-300 p-2">${r.subjek} ${r.tingkatan}</td>
+          </tr>
+        </table>
+
+        <div class="space-y-3">
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <p class="font-bold text-slate-700">Tajuk / Bidang:</p>
+            <p>${r.tajukBidang || '-'}</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <p class="font-bold text-slate-700">Standard Kandungan (SK):</p>
+              <p>${r.standardKandungan || '-'}</p>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <p class="font-bold text-slate-700">Standard Pembelajaran (SP):</p>
+              <p>${r.standardPembelajaran || '-'}</p>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <p class="font-bold text-slate-700">Objektif Pembelajaran:</p>
+            <p>${r.objektifPembelajaran || '-'}</p>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <p class="font-bold text-slate-700">Kriteria Kejayaan:</p>
+            <p>${r.kriteriaKejayaan || '-'}</p>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <p class="font-bold text-slate-700 mb-1">Aktiviti PdPc:</p>
+            <p><strong>Pemula:</strong> ${r.aktivitiPemula || '-'}</p>
+            <p><strong>Utama:</strong> ${r.aktivitiUtama || '-'}</p>
+            <p><strong>Penutup:</strong> ${r.aktivitiPenutup || '-'}</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <p><strong>BBM:</strong> ${r.bbm || '-'}</p>
+              <p><strong>EMK:</strong> ${r.emk || '-'}</p>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+              <p><strong>KBAT / i-Think:</strong> ${r.kbat || '-'}</p>
+              <p><strong>Pentaksiran PBD:</strong> ${r.pbd || '-'}</p>
+            </div>
+          </div>
+
+          <div class="p-3 bg-teal-50 rounded-lg border border-teal-200 text-teal-900">
+            <p class="font-bold">Impak / Refleksi:</p>
+            <p>• ${r.refleksiBilCapai} murid mencapai objektif pembelajaran.</p>
+            <p>• ${r.refleksiBilTidakCapai} murid diberi bimbingan pemulihan.</p>
+            <p>• Catatan: ${r.catatanRefleksi || '-'}</p>
+          </div>
+
+          <div class="pt-4 border-t text-xs text-slate-500 flex justify-between">
+            <span>Status Hantar: <strong>${r.statusHantar}</strong></span>
+            <span>Status Semakan: <strong>${r.statusSemak}</strong> (${r.namaPenyemak || 'Penyemak'})</span>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('printArea').innerHTML = html;
+      document.getElementById('modalPrint').classList.remove('hidden');
+    }
+
+    function tutupModalPrint() {
+      document.getElementById('modalPrint').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
