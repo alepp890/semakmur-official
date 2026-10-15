@@ -184,133 +184,183 @@
             <!-- RUANG KANDUNGAN UTAMA -->
             <main class="p-4 sm:p-8 space-y-6 flex-1 max-w-7xl mx-auto w-full">
 
-                <!-- 3. KAD STATUS RINGKASAN GURU -->
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    
-                    <!-- Kad 1: Jumlah Murid Kelas -->
-                    <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Jumlah Murid</span>
-                            <span class="text-lg group-hover:scale-110 transition-transform">🎓</span>
+                <!-- BEKAS 1: SECTION UTAMA (RINGKASAN DASHBOARD) -->
+                <div id="section-utama-content" class="space-y-6">
+
+                    <!-- 3. KAD STATUS RINGKASAN GURU -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        
+                        <!-- Kad 1: Jumlah Murid Kelas -->
+                        <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Jumlah Murid</span>
+                                <span class="text-lg group-hover:scale-110 transition-transform">🎓</span>
+                            </div>
+                            <div class="flex items-baseline gap-2 pt-1">
+                                <h3 id="stat-class-students" class="text-2xl font-black text-slate-900">32 Orang</h3>
+                                <span class="text-[10px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">6 Bestari</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 font-medium">18 Lelaki | 14 Perempuan</p>
                         </div>
-                        <div class="flex items-baseline gap-2 pt-1">
-                            <h3 id="stat-class-students" class="text-2xl font-black text-slate-900">32 Orang</h3>
-                            <span class="text-[10px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">6 Bestari</span>
+
+                        <!-- Kad 2: Kehadiran Hari Ini -->
+                        <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Kehadiran Hari Ini</span>
+                                <span class="text-lg group-hover:scale-110 transition-transform">📅</span>
+                            </div>
+                            <div class="flex items-baseline gap-2 pt-1">
+                                <h3 id="stat-today-attendance" class="text-2xl font-black text-slate-900">31/32</h3>
+                                <span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md">96.8%</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 font-medium">1 Murid Tidak Hadir (MC)</p>
                         </div>
-                        <p class="text-[11px] text-slate-500 font-medium">18 Lelaki | 14 Perempuan</p>
+
+                        <!-- Kad 3: Semakan Tugasan Pending -->
+                        <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Belum Disemak</span>
+                                <span class="text-lg group-hover:scale-110 transition-transform">📥</span>
+                            </div>
+                            <div class="flex items-baseline gap-2 pt-1">
+                                <h3 id="stat-pending-grading" class="text-2xl font-black text-slate-900">14 Hantaran</h3>
+                                <span class="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">Perlu Semak</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 font-medium">Modul Bahasa Melayu Bab 5</p>
+                        </div>
+
+                        <!-- Kad 4: Rekod PBD Dikemaskini -->
+                        <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">PBD Sesi Ini</span>
+                                <span class="text-lg group-hover:scale-110 transition-transform">📊</span>
+                            </div>
+                            <div class="flex items-baseline gap-2 pt-1">
+                                <h3 id="stat-pbd-completion" class="text-2xl font-black text-slate-900">100% Selesai</h3>
+                                <span class="text-[10px] font-bold text-blue-800 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md">Fasa 1</span>
+                            </div>
+                            <p class="text-[11px] text-slate-500 font-medium">Sedia Untuk Pelaporan Waris</p>
+                        </div>
+
                     </div>
 
-                    <!-- Kad 2: Kehadiran Hari Ini -->
-                    <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Kehadiran Hari Ini</span>
-                            <span class="text-lg group-hover:scale-110 transition-transform">📅</span>
-                        </div>
-                        <div class="flex items-baseline gap-2 pt-1">
-                            <h3 id="stat-today-attendance" class="text-2xl font-black text-slate-900">31/32</h3>
-                            <span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md">96.8%</span>
-                        </div>
-                        <p class="text-[11px] text-slate-500 font-medium">1 Murid Tidak Hadir (MC)</p>
-                    </div>
+                    <!-- 4. PENGURUSAN PANTAS GURU -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        <!-- KIRI: SENARAI TUGASAN AKTIF & KEMAJUAN -->
+                        <div class="lg:col-span-2 card-custom p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                                    <span>📝</span> Tugasan & Latihan Dalam Semakan
+                                </h3>
+                                <button onclick="switchTeacherTab('tugasan')" class="text-xs font-bold text-amber-600 hover:underline">
+                                    + Cipta Tugasan Baru
+                                </button>
+                            </div>
 
-                    <!-- Kad 3: Semakan Tugasan Pending -->
-                    <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Belum Disemak</span>
-                            <span class="text-lg group-hover:scale-110 transition-transform">📥</span>
-                        </div>
-                        <div class="flex items-baseline gap-2 pt-1">
-                            <h3 id="stat-pending-grading" class="text-2xl font-black text-slate-900">14 Hantaran</h3>
-                            <span class="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">Perlu Semak</span>
-                        </div>
-                        <p class="text-[11px] text-slate-500 font-medium">Modul Bahasa Melayu Bab 5</p>
-                    </div>
+                            <div class="space-y-3">
+                                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-extrabold text-slate-900">Latihan Penulisan Karangan Syarahan</span>
+                                        <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded">Tarikh Akhir: Jumaat</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 font-medium">Kelas: 6 Bestari • Subjek: Bahasa Melayu</p>
+                                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-amber-500 h-full w-3/4"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 pt-1">
+                                        <span>24 daripada 32 murid telah menghantar</span>
+                                        <span class="text-amber-600">75% Selesai</span>
+                                    </div>
+                                </div>
 
-                    <!-- Kad 4: Rekod PBD Dikemaskini -->
-                    <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">PBD Sesi Ini</span>
-                            <span class="text-lg group-hover:scale-110 transition-transform">📊</span>
+                                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-extrabold text-slate-900">Kuaris Tata-Bahasa & Kata Ganda</span>
+                                        <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 rounded">Selesai</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 font-medium">Kelas: 5 Cemerlang • Subjek: Bahasa Melayu</p>
+                                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-emerald-500 h-full w-full"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 pt-1">
+                                        <span>30 daripada 30 murid telah menghantar</span>
+                                        <span class="text-emerald-600">100% Selesai</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex items-baseline gap-2 pt-1">
-                            <h3 id="stat-pbd-completion" class="text-2xl font-black text-slate-900">100% Selesai</h3>
-                            <span class="text-[10px] font-bold text-blue-800 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md">Fasa 1</span>
+
+                        <!-- KANAN: NOTIS & PERINGATAN TUGASAN PENTADBIRAN -->
+                        <div class="card-custom p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-4">
+                            <div class="border-b border-slate-200/80 pb-3">
+                                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                                    <span>📌</span> Peringatan Tugas Pentadbiran
+                                </h3>
+                            </div>
+
+                            <div class="space-y-3 text-xs">
+                                <div class="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/80 space-y-1">
+                                    <span class="text-[10px] font-bold text-blue-700 uppercase">Mesyuarat Panitia</span>
+                                    <h4 class="font-bold text-slate-900">Mesyuarat Panitia BM Bil 3/2026</h4>
+                                    <p class="text-slate-600">Rabu ini • 2:30 Petang • Bilik Mesyuarat Utama</p>
+                                </div>
+
+                                <div class="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/80 space-y-1">
+                                    <span class="text-[10px] font-bold text-amber-700 uppercase">Tarikh Akhir PBD</span>
+                                    <h4 class="font-bold text-slate-900">Kunci Masuk TP PBD Fasa 2</h4>
+                                    <p class="text-slate-600">Sila pastikan rekod lengkap sebelum 25 Oktober 2026.</p>
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-[11px] text-slate-500 font-medium">Sedia Untuk Pelaporan Waris</p>
+
                     </div>
 
                 </div>
 
-                <!-- 4. PENGURUSAN PANTAS GURU -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    
-                    <!-- KIRI: SENARAI TUGASAN AKTIF & KEMAJUAN -->
-                    <div class="lg:col-span-2 card-custom p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-4">
-                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-3">
+                <!-- BEKAS 2: SECTION TUGASAN CLASSROOM (DISEMBUNYIKAN SECARA LALAI) -->
+                <div id="section-tugasan-content" class="hidden card-custom p-6 bg-white space-y-6">
+                    <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
+                        <div>
                             <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                                <span>📝</span> Tugasan & Latihan Dalam Semakan
+                                <span>📝</span> Cipta Tugasan / Ujian (Auto-Post ke Google Classroom)
                             </h3>
-                            <button onclick="switchTeacherTab('tugasan')" class="text-xs font-bold text-amber-600 hover:underline">
-                                + Cipta Tugasan Baru
+                            <p class="text-xs text-slate-500">Tugasan yang dicipta di sini akan secara automatik dihantar ke Google Classroom murid.</p>
+                        </div>
+                        <button type="button" onclick="loadGoogleClassroomCourses()" class="px-3 py-1.5 bg-blue-50 text-brandNavy border border-blue-200 rounded-xl text-xs font-bold hover:bg-blue-100 transition">
+                            🔄 Muat Semula Kelas GC
+                        </button>
+                    </div>
+
+                    <form id="form-create-gc-assignment" onsubmit="handleCreateGCAssignment(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Pilih Kelas Google Classroom *</label>
+                            <select id="gc-course-select" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
+                                <option value="">-- Tekan "Muat Semula Kelas GC" untuk muat senarai kelas --</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Tajuk Tugasan / Ujian *</label>
+                            <input type="text" id="gc-title" required placeholder="Contoh: Ujian Bahasa Melayu Bab 4" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Arahan Tugasan *</label>
+                            <textarea id="gc-description" rows="3" required placeholder="Sila baca modul dan jawab soalan yang diberikan..." class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-medium outline-none"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Tarikh Akhir (Due Date) *</label>
+                            <input type="date" id="gc-duedate" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold outline-none">
+                        </div>
+
+                        <div class="pt-3 flex justify-end gap-3">
+                            <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-extrabold shadow-lg hover:opacity-90 transition">
+                                🚀 Hantar Tugasan (Auto-Post ke GC)
                             </button>
                         </div>
-
-                        <div class="space-y-3">
-                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-extrabold text-slate-900">Latihan Penulisan Karangan Syarahan</span>
-                                    <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded">Tarikh Akhir: Jumaat</span>
-                                </div>
-                                <p class="text-xs text-slate-600 font-medium">Kelas: 6 Bestari • Subjek: Bahasa Melayu</p>
-                                <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-amber-500 h-full w-3/4"></div>
-                                </div>
-                                <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 pt-1">
-                                    <span>24 daripada 32 murid telah menghantar</span>
-                                    <span class="text-amber-600">75% Selesai</span>
-                                </div>
-                            </div>
-
-                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-extrabold text-slate-900">Kuaris Tata-Bahasa & Kata Ganda</span>
-                                    <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 rounded">Selesai</span>
-                                </div>
-                                <p class="text-xs text-slate-600 font-medium">Kelas: 5 Cemerlang • Subjek: Bahasa Melayu</p>
-                                <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-emerald-500 h-full w-full"></div>
-                                </div>
-                                <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 pt-1">
-                                    <span>30 daripada 30 murid telah menghantar</span>
-                                    <span class="text-emerald-600">100% Selesai</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- KANAN: NOTIS & PERINGATAN TUGASAN PENTADBIRAN -->
-                    <div class="card-custom p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-4">
-                        <div class="border-b border-slate-200/80 pb-3">
-                            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                                <span>📌</span> Peringatan Tugas Pentadbiran
-                            </h3>
-                        </div>
-
-                        <div class="space-y-3 text-xs">
-                            <div class="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/80 space-y-1">
-                                <span class="text-[10px] font-bold text-blue-700 uppercase">Mesyuarat Panitia</span>
-                                <h4 class="font-bold text-slate-900">Mesyuarat Panitia BM Bil 3/2026</h4>
-                                <p class="text-slate-600">Rabu ini • 2:30 Petang • Bilik Mesyuarat Utama</p>
-                            </div>
-
-                            <div class="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/80 space-y-1">
-                                <span class="text-[10px] font-bold text-amber-700 uppercase">Tarikh Akhir PBD</span>
-                                <h4 class="font-bold text-slate-900">Kunci Masuk TP PBD Fasa 2</h4>
-                                <p class="text-slate-600">Sila pastikan rekod lengkap sebelum 25 Oktober 2026.</p>
-                            </div>
-                        </div>
-                    </div>
-
+                    </form>
                 </div>
 
             </main>
@@ -385,6 +435,21 @@
                 }
             });
 
+            // Kawal paparan modul di skrin
+            const sectionUtama = document.getElementById('section-utama-content');
+            const sectionTugasan = document.getElementById('section-tugasan-content');
+
+            if (tabKey === 'tugasan') {
+                if (sectionUtama) sectionUtama.classList.add('hidden');
+                if (sectionTugasan) {
+                    sectionTugasan.classList.remove('hidden');
+                    loadGoogleClassroomCourses(); // Auto-load kelas apabila tab dibuka
+                }
+            } else {
+                if (sectionUtama) sectionUtama.classList.remove('hidden');
+                if (sectionTugasan) sectionTugasan.classList.add('hidden');
+            }
+
             if (window.innerWidth < 1280) {
                 toggleTeacherSidebar();
             }
@@ -416,6 +481,107 @@
         function logout() {
             sessionStorage.removeItem('CURRENT_USER');
             window.location.href = 'index.html?mode=portal';
+        }
+
+        // ========================================================
+        // FUNGSI INTEGRASI GOOGLE CLASSROOM API
+        // ========================================================
+        function getClassroomToken() {
+            return sessionStorage.getItem('CLASSROOM_ACCESS_TOKEN');
+        }
+
+        async function loadGoogleClassroomCourses() {
+            const token = getClassroomToken();
+            if (!token) {
+                showToast("Sila log masuk menggunakan Google Identity di skrin log masuk dahulu.", "error");
+                return;
+            }
+
+            showLoader("Memuatkan senarai kelas Google Classroom...");
+            try {
+                const res = await fetch('https://classroom.googleapis.com/v1/courses?courseStates=ACTIVE', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                hideLoader();
+
+                const select = document.getElementById('gc-course-select');
+                if (!select) return;
+
+                select.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+                if (data.courses && data.courses.length > 0) {
+                    data.courses.forEach(c => {
+                        select.innerHTML += `<option value="${c.id}">${c.name} (${c.section || 'Umum'})</option>`;
+                    });
+                    showToast("Senarai kelas Google Classroom berjaya dimuatkan!");
+                } else {
+                    select.innerHTML = '<option value="">Tiada kelas aktif dijumpai.</option>';
+                }
+            } catch (err) {
+                hideLoader();
+                console.error("Ralat load Google Classroom courses:", err);
+                showToast("Ralat memuatkan kelas dari Google Classroom.", "error");
+            }
+        }
+
+        async function handleCreateGCAssignment(e) {
+            e.preventDefault();
+            const token = getClassroomToken();
+            if (!token) {
+                showToast("Sesi kebenaran Google Classroom telah tamat. Sila log masuk semula.", "error");
+                return;
+            }
+
+            const courseId = document.getElementById('gc-course-select').value;
+            if (!courseId) {
+                showToast("Sila pilih kelas Google Classroom terlebih dahulu!", "error");
+                return;
+            }
+
+            const title = document.getElementById('gc-title').value.trim();
+            const description = document.getElementById('gc-description').value.trim();
+            const dateVal = new Date(document.getElementById('gc-duedate').value);
+
+            const payloadGC = {
+                title: title,
+                description: description,
+                workType: 'ASSIGNMENT',
+                state: 'PUBLISHED',
+                maxPoints: 100,
+                dueDate: {
+                    year: dateVal.getFullYear(),
+                    month: dateVal.getMonth() + 1,
+                    day: dateVal.getDate()
+                },
+                dueTime: { hours: 23, minutes: 59 }
+            };
+
+            showLoader("Menghantar tugasan ke Google Classroom...");
+
+            try {
+                const resGC = await fetch(`https://classroom.googleapis.com/v1/courses/${courseId}/courseWork`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payloadGC)
+                });
+
+                const resultGC = await resGC.json();
+
+                if (resGC.ok) {
+                    hideLoader();
+                    showToast("Berjaya! Tugasan dipost ke Google Classroom murid!");
+                    document.getElementById('form-create-gc-assignment').reset();
+                } else {
+                    hideLoader();
+                    showToast("Gagal hantar ke Google Classroom: " + (resultGC.error ? resultGC.error.message : 'Ralat API'), "error");
+                }
+            } catch (err) {
+                hideLoader();
+                showToast("Ralat sambungan: " + err.message, "error");
+            }
         }
 
         /* INITIALIZE ON LOAD */
