@@ -22,11 +22,11 @@
                         brandNavy: '#1E3A8A',
                         brandAccent: '#2563EB',
                         brandGold: '#D97706',
-                        brandBg: '#E2E8F0',
-                        brandBorder: '#CBD5E1'
+                        brandBg: '#CBD5E1',
+                        brandBorder: '#94A3B8'
                     },
                     fontFamily: { 
-                        sans: ['Plus Jakarta Sans', 'sans-serif'] 
+                        sans: ['Plus Jakarta Sans', 'Arial', 'sans-serif'] 
                     }
                 }
             }
@@ -41,18 +41,49 @@
         }
 
         body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #E2E8F0; 
+            font-family: 'Plus Jakarta Sans', 'Arial', sans-serif; 
+            background-color: #CBD5E1; 
             color: #0F172A; 
             font-size: 15px; 
-            line-height: 1.55;
+            line-height: 1.5;
         }
 
-        .card-custom {
+        /* Gaya Korporat Klasik Awal 2000-an (Tajam, Berbingkai Jelas & Solid) */
+        .card-classic {
             background: #FFFFFF;
+            border: 2px solid #64748B;
+            box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.15);
+            border-radius: 0px;
+        }
+
+        .header-box-classic {
+            background-color: #1E3A8A;
+            color: #FFFFFF;
+            border-bottom: 2px solid #0F172A;
+            padding: 8px 12px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .table-classic {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #64748B;
+        }
+
+        .table-classic th {
+            background-color: #1E3A8A;
+            color: #FFFFFF;
+            border: 1px solid #475569;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .table-classic td {
             border: 1px solid #CBD5E1;
-            box-shadow: 0 2px 4px -1px rgba(15, 23, 42, 0.06);
-            border-radius: 0.5rem;
+            padding: 8px;
+            font-size: 13px;
         }
 
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -72,7 +103,7 @@
             height: 34px;
             margin: 5px;
             border: 3.5px solid #2563EB;
-            border-radius: 50%;
+            border-radius: 0;
             animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
             border-color: #2563EB transparent transparent transparent;
         }
@@ -82,99 +113,96 @@
         }
     </style>
 </head>
-<body class="bg-slate-200 text-slate-900 h-full flex flex-col overflow-hidden antialiased selection:bg-brandNavy selection:text-white">
+<body class="bg-slate-300 text-slate-900 h-full flex flex-col overflow-hidden antialiased selection:bg-brandNavy selection:text-white">
 
-    <!-- GLOBAL SKRIN PEMUATAN -->
-    <div id="global-loader" class="fixed inset-0 bg-slate-950/80 backdrop-blur-xs z-[9999] flex flex-col items-center justify-center transition-all duration-200">
+    <!-- GLOBAL SKRIN PEMUATAN KLASIK -->
+    <div id="global-loader" class="fixed inset-0 bg-slate-900/85 backdrop-blur-xs z-[9999] flex flex-col items-center justify-center transition-all duration-200">
         <div class="loader-ring mb-3"><div></div><div></div><div></div></div>
-        <p class="text-white font-bold text-sm" id="loader-text">Memuatkan Dashboard...</p>
+        <p class="text-white font-bold text-sm tracking-wide" id="loader-text">Memuatkan Dashboard...</p>
     </div>
 
-    <!-- 1. STICKY HEADER GELAP BERGRADIENT (HEIGHT TAMBAH 100% -> H-24) -->
-    <header class="bg-gradient-to-r from-slate-950 via-brandDark to-brandNavy text-white h-20 shrink-0 border-b border-slate-800 flex items-center justify-between px-5 sm:px-6 z-40 shadow-md">
+    <!-- 1. STICKY HEADER GELAP BERGRADIENT (H-24) -->
+    <header class="bg-gradient-to-r from-slate-950 via-brandDark to-brandNavy text-white h-24 shrink-0 border-b-2 border-slate-900 flex items-center justify-between px-6 z-40 shadow-sm">
         
         <!-- TAJUK UTAMA HEADER & BUTTON MOBILE TOGGLE -->
         <div class="flex items-center gap-4">
-            <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-md bg-white/10 hover:bg-white/20 text-white">
+            <button onclick="toggleMobileSidebar()" class="md:hidden p-2 bg-slate-800 text-white border border-slate-600">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
             </button>
             
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-md bg-brandAccent text-white flex items-center justify-center font-bold text-xl shadow-sm border border-white/20">
+                <div class="w-10 h-10 bg-brandNavy text-white flex items-center justify-center font-bold text-xl border border-blue-400">
                     🎓
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg sm:text-xl text-white tracking-tight leading-tight">Dashboard Guru SeMAKMUR</h1>
-                    <p class="text-xs text-slate-300 font-medium hidden sm:block mt-0.5">Portal Pengurusan Pentadbiran & Academic Teacher Hub</p>
+                    <h1 class="font-bold text-xl text-white tracking-tight leading-tight">Dashboard Guru SeMAKMUR</h1>
+                    <p class="text-xs text-slate-300 font-medium hidden sm:block">Portal Pengurusan Pentadbiran & Academic Teacher Hub</p>
                 </div>
             </div>
         </div>
 
         <!-- BUTANG SEBELAH KANAN HEADER -->
-        <div class="flex items-center gap-2.5">
-            <a href="index.html?mode=portal" class="px-3.5 py-2 rounded-md bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm border border-white/15 transition flex items-center gap-2">
-                <svg class="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        <div class="flex items-center gap-2">
+            <a href="index.html?mode=portal" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-slate-600 transition flex items-center gap-2">
                 <span>Paparan Portal</span>
             </a>
 
-            <button onclick="handleLogout()" class="px-3.5 py-2 rounded-md bg-red-600/90 hover:bg-red-600 text-white font-bold text-xs sm:text-sm border border-red-500/50 transition flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            <button onclick="handleLogout()" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white font-bold text-xs sm:text-sm border border-red-900 transition flex items-center gap-2">
                 <span>Log Keluar</span>
             </button>
         </div>
     </header>
 
-    <!-- CONTAINER UTAMA (HEADER + SIDEBAR + CONTENT) -->
+    <!-- CONTAINER UTAMA (SIDEBAR + CONTENT) -->
     <div class="flex flex-1 overflow-hidden relative">
         
-        <!-- 2. STICKY SIDEBAR KIRI DENGAN WARNA KONTRA GELAP (SLATE-900) -->
-        <aside id="sidebar-container" class="w-64 md:w-68 bg-slate-900 text-slate-100 border-r border-slate-800 flex flex-col justify-between p-3.5 shrink-0 h-full overflow-y-auto z-30 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-200">
+        <!-- 2. STICKY SIDEBAR KIRI (WARNA GELAP KONTRA CLASSIC CORPORATE) -->
+        <aside id="sidebar-container" class="w-64 md:w-68 bg-slate-900 text-slate-100 border-r-2 border-slate-950 flex flex-col justify-between p-3.5 shrink-0 h-full overflow-y-auto z-30 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-200">
             <div>
-                <!-- KOTAK PROFIL KONTRA (SLATE-800 DENGAN BORDER ACCENT) -->
-                <div class="p-3 rounded-md bg-slate-800/90 border border-slate-700/80 text-center mb-4 shadow-sm">
+                <!-- KOTAK PROFIL KONTRA KELAS KORPORAT -->
+                <div class="p-3 bg-slate-800 border-2 border-slate-700 text-center mb-4">
                     <div class="relative w-16 h-16 mx-auto mb-2">
-                        <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Avatar Guru" class="w-16 h-16 rounded-md object-cover border-2 border-amber-400 mx-auto shadow-sm">
-                        <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-800 rounded-full"></span>
+                        <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Avatar Guru" class="w-16 h-16 object-cover border-2 border-amber-400 mx-auto">
                     </div>
                     <h2 id="user-display-name" class="font-bold text-sm text-white leading-snug">Nama Guru</h2>
                     <p id="user-email-display" class="text-xs font-medium text-slate-300 truncate mt-0.5">guru@moe-dl.edu.my</p>
                     
-                    <div class="mt-2.5 pt-2 border-t border-slate-700/80 flex items-center justify-center">
-                        <span id="class-teacher-badge" class="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 font-bold text-xs border border-amber-400/40">
-                            🏫 Kelas: <span id="class-badge-text">1 IRIS</span>
+                    <div class="mt-2 pt-2 border-t border-slate-700 flex items-center justify-center">
+                        <span id="class-teacher-badge" class="px-2 py-1 bg-amber-600 text-white font-bold text-xs border border-amber-400">
+                            Kelas: <span id="class-badge-text">1 IRIS</span>
                         </span>
                     </div>
                 </div>
 
-                <!-- NAVIGASI MENU UTAMA -->
-                <nav class="space-y-1.5">
+                <!-- NAVIGASI MENU UTAMA KLASIK -->
+                <nav class="space-y-1">
                     <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 mb-1">Menu Utama</p>
                     
-                    <button onclick="switchMainMenu('laman_utama')" id="nav-laman_utama" class="menu-nav-btn w-full px-3 py-2.5 rounded-md font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-brandAccent text-white shadow-sm">
+                    <button onclick="switchMainMenu('laman_utama')" id="nav-laman_utama" class="menu-nav-btn w-full px-3 py-2 font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-brandNavy text-white border border-blue-400">
                         <span>🏠</span> <span>Laman Utama</span>
                     </button>
 
-                    <button onclick="switchMainMenu('pengurusan_kelas')" id="nav-pengurusan_kelas" class="menu-nav-btn w-full px-3 py-2.5 rounded-md font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800/80 hover:text-white text-left transition flex items-center gap-3">
+                    <button onclick="switchMainMenu('pengurusan_kelas')" id="nav-pengurusan_kelas" class="menu-nav-btn w-full px-3 py-2 font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800 hover:text-white text-left transition flex items-center gap-3 border border-transparent">
                         <span>🏫</span> <span>Pengurusan Kelas</span>
                     </button>
 
-                    <button onclick="switchMainMenu('tugasan_guru')" id="nav-tugasan_guru" class="menu-nav-btn w-full px-3 py-2.5 rounded-md font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800/80 hover:text-white text-left transition flex items-center gap-3">
+                    <button onclick="switchMainMenu('tugasan_guru')" id="nav-tugasan_guru" class="menu-nav-btn w-full px-3 py-2 font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800 hover:text-white text-left transition flex items-center gap-3 border border-transparent">
                         <span>📝</span> <span>Tugasan Guru</span>
                     </button>
 
-                    <button onclick="switchMainMenu('pentadbiran')" id="nav-pentadbiran" class="menu-nav-btn w-full px-3 py-2.5 rounded-md font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800/80 hover:text-white text-left transition flex items-center gap-3">
+                    <button onclick="switchMainMenu('pentadbiran')" id="nav-pentadbiran" class="menu-nav-btn w-full px-3 py-2 font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800 hover:text-white text-left transition flex items-center gap-3 border border-transparent">
                         <span>⚙️</span> <span>Pentadbiran</span>
                     </button>
 
-                    <button onclick="switchMainMenu('kurikulum')" id="nav-kurikulum" class="menu-nav-btn w-full px-3 py-2.5 rounded-md font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800/80 hover:text-white text-left transition flex items-center gap-3">
+                    <button onclick="switchMainMenu('kurikulum')" id="nav-kurikulum" class="menu-nav-btn w-full px-3 py-2 font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800 hover:text-white text-left transition flex items-center gap-3 border border-transparent">
                         <span>📚</span> <span>Kurikulum</span>
                     </button>
 
-                    <button onclick="switchMainMenu('hem')" id="nav-hem" class="menu-nav-btn w-full px-3 py-2.5 rounded-md font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800/80 hover:text-white text-left transition flex items-center gap-3">
+                    <button onclick="switchMainMenu('hem')" id="nav-hem" class="menu-nav-btn w-full px-3 py-2 font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800 hover:text-white text-left transition flex items-center gap-3 border border-transparent">
                         <span>🧑‍🤝‍🧑</span> <span>Hal Ehwal Murid</span>
                     </button>
 
-                    <button onclick="switchMainMenu('kokurikulum')" id="nav-kokurikulum" class="menu-nav-btn w-full px-3 py-2.5 rounded-md font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800/80 hover:text-white text-left transition flex items-center gap-3">
+                    <button onclick="switchMainMenu('kokurikulum')" id="nav-kokurikulum" class="menu-nav-btn w-full px-3 py-2 font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800 hover:text-white text-left transition flex items-center gap-3 border border-transparent">
                         <span>🏆</span> <span>Ko-Kurikulum</span>
                     </button>
                 </nav>
@@ -185,72 +213,56 @@
             </div>
         </aside>
 
-        <!-- 3. KANDUNGAN UTAMA (BACKGROUND KELABU SIKIT GELAP BG-SLATE-200, BOLEH SCROLL) -->
+        <!-- 3. KANDUNGAN UTAMA (BACKGROUND KELABU KORPORAT BG-SLATE-300, HANYA INI BOLEH SCROLL) -->
         <main class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
             
-            <!-- HEADER TOOLBAR BERSAMA BUTANG TOGGLE PANEL KANAN -->
-            <div class="flex items-center justify-between gap-2 bg-white p-2.5 rounded-md border border-slate-300 shadow-xs">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Modul Terpilih:</span>
-                    <span id="current-mod-name" class="text-xs font-bold text-brandNavy bg-blue-50 px-2.5 py-1 rounded border border-blue-200">Laman Utama</span>
+            <!-- TOOLBAR NAVIGASI TEKS SAHAJA (TANPA KOTAK) -->
+            <div class="flex items-center justify-between gap-2 pb-1 border-b-2 border-slate-400">
+                <div class="text-xs sm:text-sm font-bold text-slate-800">
+                    <span>Lokasi Semasa: </span>
+                    <span id="breadcrumb-text" class="text-brandNavy font-bold">Laman Utama / Pengumuman Sekolah</span>
                 </div>
 
-                <button onclick="toggleRightPanel()" id="btn-toggle-right" class="px-3 py-1.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-300 transition flex items-center gap-1.5">
-                    <span>📌</span> <span id="toggle-right-text">Sorok Panel Kanan</span>
+                <button onclick="toggleRightPanel()" id="btn-toggle-right" class="px-3 py-1 bg-slate-700 hover:bg-slate-800 text-white font-bold text-xs transition border border-slate-900">
+                    <span id="toggle-right-text">Sorok Panel Kanan</span>
                 </button>
             </div>
 
-            <!-- 4. BARIS KAD STATISTIK KOMPAK (KECIL ~50% & SAIS TULISAN DIPELARASKAN) -->
-            <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div class="card-custom p-3 bg-white border-l-4 border-l-blue-600 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-tight">Murid Kelas</p>
-                        <h3 id="stat-total-students" class="text-base sm:text-lg font-bold text-slate-900 mt-0.5">0 Orang</h3>
-                        <p class="text-xs font-medium text-emerald-600">✓ Profil_Murid</p>
-                    </div>
-                    <div class="w-9 h-9 rounded bg-blue-50 text-blue-600 flex items-center justify-center text-base font-bold">
-                        👥
+            <!-- 4. BARIS KAD STATISTIK KOMPAK (HANYA DIPAPARKAN DI LAMAN UTAMA) -->
+            <section id="stat-cards-section" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="card-classic bg-white border-2 border-slate-600">
+                    <div class="header-box-classic bg-blue-900 text-xs uppercase">Murid Kelas</div>
+                    <div class="p-3 text-center">
+                        <h3 id="stat-total-students" class="text-lg font-bold text-slate-900">0 Orang</h3>
                     </div>
                 </div>
 
-                <div class="card-custom p-3 bg-white border-l-4 border-l-amber-500 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-tight">Status e-RPH</p>
-                        <h3 class="text-base sm:text-lg font-bold text-slate-900 mt-0.5">Hantar</h3>
-                        <p class="text-xs font-medium text-amber-600">Disahkan</p>
-                    </div>
-                    <div class="w-9 h-9 rounded bg-amber-50 text-amber-600 flex items-center justify-center text-base font-bold">
-                        📖
+                <div class="card-classic bg-white border-2 border-slate-600">
+                    <div class="header-box-classic bg-amber-700 text-xs uppercase">Status e-RPH</div>
+                    <div class="p-3 text-center">
+                        <h3 class="text-lg font-bold text-slate-900">Hantar</h3>
                     </div>
                 </div>
 
-                <div class="card-custom p-3 bg-white border-l-4 border-l-emerald-500 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-tight">Jadual Hari Ini</p>
-                        <h3 class="text-base sm:text-lg font-bold text-slate-900 mt-0.5">4 Waktu</h3>
-                        <p class="text-xs font-medium text-slate-500">BM & Sejarah</p>
-                    </div>
-                    <div class="w-9 h-9 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center text-base font-bold">
-                        ⏰
+                <div class="card-classic bg-white border-2 border-slate-600">
+                    <div class="header-box-classic bg-emerald-700 text-xs uppercase">Jadual Hari Ini</div>
+                    <div class="p-3 text-center">
+                        <h3 class="text-lg font-bold text-slate-900">4 Waktu</h3>
                     </div>
                 </div>
 
-                <div class="card-custom p-3 bg-white border-l-4 border-l-indigo-600 flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-tight">Surat Waris</p>
-                        <h3 class="text-base sm:text-lg font-bold text-slate-900 mt-0.5">2 Respon</h3>
-                        <p class="text-xs font-medium text-indigo-600">Semakan</p>
-                    </div>
-                    <div class="w-9 h-9 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center text-base font-bold">
-                        📩
+                <div class="card-classic bg-white border-2 border-slate-600">
+                    <div class="header-box-classic bg-indigo-900 text-xs uppercase">Surat Waris</div>
+                    <div class="p-3 text-center">
+                        <h3 class="text-lg font-bold text-slate-900">2 Respon</h3>
                     </div>
                 </div>
             </section>
 
-            <!-- 5. SUBMENU BERBENTUK TAB DENGAN SAMA SIZE (FLEX-WRAP / ROW BARU APABILA LEBIH) -->
-            <section class="card-custom p-1.5 bg-white border border-slate-300">
-                <div id="sub-tabs-bar" class="flex flex-wrap gap-1.5 text-xs sm:text-sm">
-                    <!-- Sub-tabs janaan JS sama size -->
+            <!-- 5. SUBMENU BERBENTUK TAB DENGAN SAMA SIZE & ROW BARU (HIDDEN DI LAMAN UTAMA) -->
+            <section id="sub-tabs-container" class="card-classic p-1.5 bg-white border-2 border-slate-600 hidden">
+                <div id="sub-tabs-bar" class="flex flex-wrap gap-1 text-xs sm:text-sm">
+                    <!-- Sub-tabs janaan JS -->
                 </div>
             </section>
 
@@ -260,86 +272,94 @@
                 <!-- RUANG KANDUNGAN UTAMA -->
                 <div class="flex-1 w-full space-y-4" id="main-tab-content-area">
                     
-                    <div class="card-custom p-4 bg-white space-y-4">
-                        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-                            <div>
-                                <h3 class="font-bold text-base sm:text-lg text-slate-900 flex items-center gap-2">
-                                    <span>🏫</span> <span>Pengurusan Murid Kelas <span id="active-class-title-text" class="text-blue-600">...</span></span>
-                                </h3>
-                                <p class="text-xs font-medium text-slate-500 mt-0.5">Data murid diambil dari pangkalan data sekolah (`Profil_Murid`)</p>
-                            </div>
-                            <button onclick="fetchClassStudentsRealData()" class="px-3 py-1.5 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold text-xs sm:text-sm transition border border-blue-200">
+                    <!-- KANDUNGAN UTAMA / PENGURUSAN KELAS -->
+                    <div class="card-classic bg-white border-2 border-slate-600">
+                        <div id="main-content-header" class="header-box-classic bg-brandNavy text-sm sm:text-base flex items-center justify-between px-4">
+                            <span id="active-panel-title">Pengumuman & Maklumat Utama Sekolah</span>
+                            <button onclick="fetchClassStudentsRealData()" id="btn-refresh-students" class="hidden px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs border border-white">
                                 🔄 Kemaskini
                             </button>
                         </div>
 
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse text-xs sm:text-sm">
-                                <thead>
-                                    <tr class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-300">
-                                        <th class="p-2.5 pl-3">Bil</th>
-                                        <th class="p-2.5">Nama Murid</th>
-                                        <th class="p-2.5">ID DELIMa / E-Mel</th>
-                                        <th class="p-2.5">Jantina</th>
-                                        <th class="p-2.5 text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="students-table-body" class="divide-y divide-slate-200 font-medium">
-                                    <tr>
-                                        <td colspan="5" class="p-5 text-center text-slate-400 italic">
-                                            Sila tunggu, sedang menarik data murid...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="p-4" id="main-content-body">
+                            <!-- Kandungan Dinamik mengikut Menu & Sub-tab -->
+                            <div class="space-y-3" id="announcements-view">
+                                <div class="p-3 border border-slate-400 bg-slate-50">
+                                    <div class="flex items-center justify-between font-bold text-xs text-blue-900 mb-1">
+                                        <span>[PENTADBIRAN] Mesyuarat Kurikulum Bil 3/2026</span>
+                                        <span class="text-slate-500">15 Okt 2026</span>
+                                    </div>
+                                    <p class="text-xs text-slate-800">Semua guru diminta menghadiri mesyuarat kurikulum di Bilik Gerakan jam 2.00 petang.</p>
+                                </div>
+
+                                <div class="p-3 border border-slate-400 bg-slate-50">
+                                    <div class="flex items-center justify-between font-bold text-xs text-blue-900 mb-1">
+                                        <span>[HEM] Pengesahan Kehadiran Murid Harian</span>
+                                        <span class="text-slate-500">12 Okt 2026</span>
+                                    </div>
+                                    <p class="text-xs text-slate-800">Guru kelas dikehendaki mengesahkan kehadiran murid sebelum jam 9.00 pagi setiap hari.</p>
+                                </div>
+                            </div>
+
+                            <div class="hidden overflow-x-auto" id="students-table-view">
+                                <table class="table-classic">
+                                    <thead>
+                                        <tr>
+                                            <th class="w-12 text-center">Bil</th>
+                                            <th>Nama Murid</th>
+                                            <th>ID DELIMa / E-Mel</th>
+                                            <th class="w-20 text-center">Jantina</th>
+                                            <th class="w-24 text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="students-table-body" class="font-medium text-center">
+                                        <tr>
+                                            <td colspan="5" class="p-4 text-center text-slate-500 italic">
+                                                Sila tunggu, sedang menarik data murid...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
                 </div>
 
-                <!-- 7. PANEL MAKLUMAT PENTING SISI KANAN (BOLEH DI-TOGGLE) -->
-                <aside id="right-panel" class="w-full lg:w-72 shrink-0 space-y-3 transition-all duration-200">
+                <!-- 7. PANEL MAKLUMAT PENTING SISI KANAN (DI-SHOW HANYA DI LAMAN UTAMA SEPERTI DIBENTUK) -->
+                <aside id="right-panel" class="w-full lg:w-72 shrink-0 space-y-3">
                     
                     <!-- PANEL SEBARAN & ANNOUNCEMENT -->
-                    <div class="card-custom p-3.5 bg-white space-y-2.5 border-t-4 border-t-brandNavy">
-                        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                            <h3 class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
-                                <span>📌</span> <span>Maklumat & Sebaran</span>
-                            </h3>
-                            <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-600 font-bold text-[10px]">Terkini</span>
+                    <div class="card-classic bg-white border-2 border-slate-600">
+                        <div class="header-box-classic bg-slate-800 text-xs">
+                            Maklumat & Sebaran Ringkas
                         </div>
 
-                        <div class="space-y-2 text-xs sm:text-sm">
-                            <div class="p-2.5 rounded bg-slate-50 border border-slate-200 space-y-1">
-                                <div class="flex items-center justify-between">
-                                    <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px]">PENTADBIRAN</span>
-                                    <span class="text-[11px] text-slate-500">15 Okt 2026</span>
-                                </div>
-                                <h4 class="font-bold text-slate-900 text-xs sm:text-sm">Mesyuarat Kurikulum Bil 3/2026</h4>
-                                <p class="text-xs text-slate-600">Jam 2.00 petang di Bilik Gerakan.</p>
+                        <div class="p-3 space-y-2 text-xs">
+                            <div class="p-2 border border-slate-300 bg-slate-50">
+                                <div class="font-bold text-blue-900">[PENTADBIRAN]</div>
+                                <div class="font-bold text-slate-900">Mesyuarat Kurikulum</div>
+                                <div class="text-slate-600">Jam 2.00 petang di Bilik Gerakan.</div>
                             </div>
 
-                            <div class="p-2.5 rounded bg-slate-50 border border-slate-200 space-y-1">
-                                <div class="flex items-center justify-between">
-                                    <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold text-[10px]">HEM</span>
-                                    <span class="text-[11px] text-slate-500">12 Okt 2026</span>
-                                </div>
-                                <h4 class="font-bold text-slate-900 text-xs sm:text-sm">Rekod Kehadiran Murid</h4>
-                                <p class="text-xs text-slate-600">Sahkan kehadiran sebelum jam 9.00 pagi.</p>
+                            <div class="p-2 border border-slate-300 bg-slate-50">
+                                <div class="font-bold text-blue-900">[HEM]</div>
+                                <div class="font-bold text-slate-900">Rekod Kehadiran</div>
+                                <div class="text-slate-600">Sahkan kehadiran sebelum 9.00 pagi.</div>
                             </div>
                         </div>
                     </div>
 
                     <!-- PAUTAN PANTAS SISTER SISTEM -->
-                    <div class="card-custom p-3.5 bg-white space-y-2.5">
-                        <h3 class="font-bold text-sm text-slate-900 border-b border-slate-200 pb-1.5 flex items-center gap-1.5">
-                            <span>🚀</span> <span>Aplikasi Luar</span>
-                        </h3>
-                        <div class="grid grid-cols-2 gap-2 text-xs sm:text-sm">
-                            <a href="https://apdm.moe.gov.my" target="_blank" class="p-2 rounded bg-slate-50 hover:bg-blue-50 border border-slate-200 text-center transition font-bold text-slate-800">
+                    <div class="card-classic bg-white border-2 border-slate-600">
+                        <div class="header-box-classic bg-slate-800 text-xs">
+                            Aplikasi Luar
+                        </div>
+                        <div class="p-3 grid grid-cols-2 gap-2 text-xs text-center font-bold">
+                            <a href="https://apdm.moe.gov.my" target="_blank" class="p-2 bg-slate-100 hover:bg-slate-200 border border-slate-400 text-slate-900">
                                 APDM MOE
                             </a>
-                            <a href="https://splkpm.moe.gov.my" target="_blank" class="p-2 rounded bg-slate-50 hover:bg-purple-50 border border-slate-200 text-center transition font-bold text-slate-800">
+                            <a href="https://splkpm.moe.gov.my" target="_blank" class="p-2 bg-slate-100 hover:bg-slate-200 border border-slate-400 text-slate-900">
                                 SPLKPM
                             </a>
                         </div>
@@ -359,11 +379,21 @@
     <script>
     let CURRENT_GURU_USER = null;
     let ACTIVE_MAIN_MENU = 'laman_utama';
+    let ACTIVE_SUB_TAB = 'pengumuman';
 
-    /* DEFINISI SUB-TAB MENDATAR BAGI SETIAP MENU UTAMA */
+    /* LABELS BAGI SETIAP MENU UTAMA & SUB-TAB */
+    const MENU_LABELS = {
+        'laman_utama': 'Laman Utama',
+        'pengurusan_kelas': 'Pengurusan Kelas',
+        'tugasan_guru': 'Tugasan Guru',
+        'pentadbiran': 'Pentadbiran',
+        'kurikulum': 'Kurikulum',
+        'hem': 'Hal Ehwal Murid',
+        'kokurikulum': 'Ko-Kurikulum'
+    };
+
     const MENU_SUBTABS = {
         'laman_utama': [
-            { key: 'ringkasan', label: '📊 Ringkasan Harian' },
             { key: 'pengumuman', label: '📢 Pengumuman Sekolah' }
         ],
         'pengurusan_kelas': [
@@ -427,19 +457,17 @@
             
             if (className && className !== '-' && className.toLowerCase() !== 'tiada') {
                 document.getElementById('class-badge-text').innerText = className;
-                document.getElementById('active-class-title-text').innerText = className;
                 fetchClassStudentsRealData(className);
             } else {
                 document.getElementById('class-badge-text').innerText = 'Tiada';
-                document.getElementById('active-class-title-text').innerText = 'Tiada Kelas Seliaan';
                 document.getElementById('students-table-body').innerHTML = `
-                    <tr><td colspan="5" class="p-5 text-center text-slate-400 italic">
-                        Akaun anda tidak didaftarkan sebagai Guru Kelas dalam pangkalan data Profil_Guru.
+                    <tr><td colspan="5" class="p-4 text-center text-slate-500 italic">
+                        Akaun anda tidak didaftarkan sebagai Guru Kelas dalam Profil_Guru.
                     </td></tr>`;
                 hideLoader();
             }
 
-            renderSubTabs('laman_utama');
+            switchMainMenu('laman_utama');
         } catch (e) {
             console.error('Session Error:', e);
             window.location.href = 'LoginSession.html';
@@ -450,64 +478,117 @@
     function switchMainMenu(menuKey) {
         ACTIVE_MAIN_MENU = menuKey;
 
-        // Visual nama modul
-        const labels = {
-            'laman_utama': 'Laman Utama', 'pengurusan_kelas': 'Pengurusan Kelas', 'tugasan_guru': 'Tugasan Guru',
-            'pentadbiran': 'Pentadbiran', 'kurikulum': 'Kurikulum', 'hem': 'Hal Ehwal Murid', 'kokurikulum': 'Ko-Kurikulum'
-        };
-        document.getElementById('current-mod-name').innerText = labels[menuKey] || menuKey;
-
-        // Reset styling semua butang menu sidebar
+        // Reset styling butang sidebar
         document.querySelectorAll('.menu-nav-btn').forEach(btn => {
-            btn.className = "menu-nav-btn w-full px-3 py-2.5 rounded-md font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800/80 hover:text-white text-left transition flex items-center gap-3";
+            btn.className = "menu-nav-btn w-full px-3 py-2 font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-800 hover:text-white text-left transition flex items-center gap-3 border border-transparent";
         });
 
-        // Set butang aktif
+        // Set highlight menu aktif
         const activeBtn = document.getElementById(`nav-${menuKey}`);
         if (activeBtn) {
-            activeBtn.className = "menu-nav-btn w-full px-3 py-2.5 rounded-md font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-brandAccent text-white shadow-sm";
+            activeBtn.className = "menu-nav-btn w-full px-3 py-2 font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-brandNavy text-white border border-blue-400";
         }
 
-        renderSubTabs(menuKey);
+        const statSection = document.getElementById('stat-cards-section');
+        const subTabsContainer = document.getElementById('sub-tabs-container');
+        const rightPanel = document.getElementById('right-panel');
+
+        if (menuKey === 'laman_utama') {
+            // 1. Laman Utama: Papar statistik, tunjuk right panel, sembunyikan subtab
+            if (statSection) statSection.classList.remove('hidden');
+            if (subTabsContainer) subTabsContainer.classList.add('hidden');
+            if (rightPanel) rightPanel.classList.remove('hidden');
+            
+            ACTIVE_SUB_TAB = 'pengumuman';
+            updateBreadcrumb();
+            renderContentView('pengumuman');
+        } else {
+            // 2. Menu Lain: Auto-hide statistik, auto-hide right panel, paparkan sub-tabs
+            if (statSection) statSection.classList.add('hidden');
+            if (subTabsContainer) subTabsContainer.classList.remove('hidden');
+            if (rightPanel) rightPanel.classList.add('hidden');
+
+            renderSubTabs(menuKey);
+        }
     }
 
-    /* RENDER SUB-TAB MENDATAR DENGAN SAMA SIZE & ROW BARU BILA LEBIH */
+    /* RENDER SUB-TAB MENDATAR DENGAN SAIS SAMA */
     function renderSubTabs(menuKey) {
         const subBar = document.getElementById('sub-tabs-bar');
         const tabs = MENU_SUBTABS[menuKey] || [];
 
         if (!tabs || tabs.length === 0) {
-            subBar.innerHTML = `<span class="text-xs text-slate-400 italic p-2">Tiada sub-menu bagi modul ini.</span>`;
+            subBar.innerHTML = `<span class="text-xs text-slate-500 italic p-2">Tiada sub-menu bagi modul ini.</span>`;
             return;
         }
 
         let html = '';
         tabs.forEach((tab, idx) => {
             const isActive = idx === 0;
+            if (isActive) ACTIVE_SUB_TAB = tab.key;
+
             const activeClass = isActive 
-                ? 'bg-brandNavy text-white font-bold border-b-2 border-amber-400 shadow-xs' 
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium border border-slate-200';
+                ? 'bg-brandNavy text-white font-bold border border-blue-400' 
+                : 'bg-slate-100 text-slate-800 hover:bg-slate-200 font-medium border border-slate-400';
             
-            // Tab dibuat dengan saiz fleksibel yang sama rata (flex-1 min-w-[130px] sm:min-w-[150px])
             html += `
-                <button onclick="switchSubTab('${tab.key}', this)" class="sub-tab-item flex-1 min-w-[130px] sm:min-w-[150px] px-3 py-2 text-xs sm:text-sm rounded transition text-center ${activeClass}">
+                <button onclick="switchSubTab('${tab.key}', '${tab.label}', this)" class="sub-tab-item flex-1 min-w-[130px] sm:min-w-[150px] px-3 py-2 text-xs sm:text-sm transition text-center ${activeClass}">
                     ${tab.label}
                 </button>
             `;
         });
 
         subBar.innerHTML = html;
+        updateBreadcrumb();
+        renderContentView(ACTIVE_SUB_TAB);
     }
 
-    function switchSubTab(subKey, btnEl) {
+    function switchSubTab(subKey, subLabel, btnEl) {
+        ACTIVE_SUB_TAB = subKey;
         document.querySelectorAll('.sub-tab-item').forEach(b => {
-            b.className = "sub-tab-item flex-1 min-w-[130px] sm:min-w-[150px] px-3 py-2 text-xs sm:text-sm rounded transition text-center bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium border border-slate-200";
+            b.className = "sub-tab-item flex-1 min-w-[130px] sm:min-w-[150px] px-3 py-2 text-xs sm:text-sm transition text-center bg-slate-100 text-slate-800 hover:bg-slate-200 font-medium border border-slate-400";
         });
         if (btnEl) {
-            btnEl.className = "sub-tab-item flex-1 min-w-[130px] sm:min-w-[150px] px-3 py-2 text-xs sm:text-sm rounded transition text-center bg-brandNavy text-white font-bold border-b-2 border-amber-400 shadow-xs";
+            btnEl.className = "sub-tab-item flex-1 min-w-[130px] sm:min-w-[150px] px-3 py-2 text-xs sm:text-sm transition text-center bg-brandNavy text-white font-bold border border-blue-400";
         }
-        showLoader('Memuatkan...');
-        setTimeout(() => hideLoader(), 180);
+
+        updateBreadcrumb();
+        renderContentView(subKey);
+    }
+
+    /* KEMASKINI TEKS BREADCRUMB */
+    function updateBreadcrumb() {
+        const mainLabel = MENU_LABELS[ACTIVE_MAIN_MENU] || 'Laman Utama';
+        const tabs = MENU_SUBTABS[ACTIVE_MAIN_MENU] || [];
+        const currentTabObj = tabs.find(t => t.key === ACTIVE_SUB_TAB);
+        const subLabel = currentTabObj ? currentTabObj.label.replace(/^[^\s]+\s/, '') : '';
+
+        const breadcrumbEl = document.getElementById('breadcrumb-text');
+        if (breadcrumbEl) {
+            breadcrumbEl.innerText = subLabel ? `${mainLabel} / ${subLabel}` : mainLabel;
+        }
+    }
+
+    /* RENDER PAPARAN KANDUNGAN UTAMA */
+    function renderContentView(subKey) {
+        const titleEl = document.getElementById('active-panel-title');
+        const annView = document.getElementById('announcements-view');
+        const stView = document.getElementById('students-table-view');
+        const btnRefresh = document.getElementById('btn-refresh-students');
+
+        if (subKey === 'senarai_murid' || subKey === 'pengurusan_kelas') {
+            const className = (CURRENT_GURU_USER ? (CURRENT_GURU_USER.guru_kelas || CURRENT_GURU_USER.class_name) : '') || '1 IRIS';
+            if (titleEl) titleEl.innerText = `Senarai Murid Kelas ${className}`;
+            if (annView) annView.classList.add('hidden');
+            if (stView) stView.classList.remove('hidden');
+            if (btnRefresh) btnRefresh.classList.remove('hidden');
+        } else {
+            const mainLabel = MENU_LABELS[ACTIVE_MAIN_MENU] || 'Laman Utama';
+            if (titleEl) titleEl.innerText = `Modul ${mainLabel}`;
+            if (annView) annView.classList.remove('hidden');
+            if (stView) stView.classList.add('hidden');
+            if (btnRefresh) btnRefresh.classList.add('hidden');
+        }
     }
 
     /* TOGGLE PANEL KANAN (PANEL MAKLUMAT PENTING) */
@@ -587,11 +668,12 @@
     /* PAPARAN JADUAL MURID REAL DATA */
     function renderStudentTable(students) {
         const tbody = document.getElementById('students-table-body');
-        document.getElementById('stat-total-students').innerText = `${students.length} Orang`;
+        const statTotal = document.getElementById('stat-total-students');
+        if (statTotal) statTotal.innerText = `${students.length} Orang`;
 
         if (!students || students.length === 0) {
             tbody.innerHTML = `
-                <tr><td colspan="5" class="p-5 text-center text-slate-400 italic font-normal">
+                <tr><td colspan="5" class="p-4 text-center text-slate-500 italic font-normal">
                     Tiada data murid dijumpai bagi kelas ini dalam Profil_Murid.
                 </td></tr>`;
             return;
@@ -605,15 +687,11 @@
 
             html += `
                 <tr class="hover:bg-slate-100 transition">
-                    <td class="p-2.5 pl-3 text-slate-500 font-bold">${idx + 1}</td>
-                    <td class="p-2.5 font-bold text-slate-900">${name}</td>
-                    <td class="p-2.5 font-mono text-blue-600 text-xs sm:text-sm font-semibold">${emailDelima}</td>
-                    <td class="p-2.5 text-slate-700">${jantina}</td>
-                    <td class="p-2.5 text-center">
-                        <span class="px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-bold">
-                            ✓ Aktif
-                        </span>
-                    </td>
+                    <td class="p-2 text-center text-slate-600 font-bold">${idx + 1}</td>
+                    <td class="p-2 text-left font-bold text-slate-900">${name}</td>
+                    <td class="p-2 text-left font-mono text-blue-800 text-xs font-bold">${emailDelima}</td>
+                    <td class="p-2 text-center text-slate-800">${jantina}</td>
+                    <td class="p-2 text-center font-bold text-emerald-800">✓ Aktif</td>
                 </tr>
             `;
         });
