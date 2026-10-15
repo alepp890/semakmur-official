@@ -10,6 +10,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -141,7 +147,7 @@
                     <span>Jadual & Tugasan</span>
                 </button>
 
-                <button onclick="switchMainMenu('kurikulum')" id="nav-kurikulum" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
+                <button onclick="bukaErphModule()" id="nav-kurikulum" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                     <span>Kurikulum & e-RPH</span>
                 </button>
@@ -176,7 +182,7 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
                 <h1 class="text-xl sm:text-2xl font-extrabold text-slate-800 tracking-tight" id="header-greeting">
-                    Selamat Datang <span id="header-user-name" class="text-[#1f7a9c]">Cikgu Khalid</span>,
+                    Selamat Datang <span id="header-user-name" class="text-[#1f7a9c]">Cikgu</span>,
                 </h1>
             </div>
 
@@ -219,7 +225,7 @@
                 </button>
             </div>
 
-            <!-- SUB-TABS BAR (DILIMPAHKAN BAGI MENU SELAIN DASHBOARD) -->
+            <!-- SUB-TABS BAR -->
             <div id="sub-tabs-container" class="card-coligo p-2 bg-white hidden">
                 <div id="sub-tabs-bar" class="flex flex-wrap gap-2 text-xs">
                     <!-- Sub-tabs janaan JS -->
@@ -227,27 +233,30 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                <!-- KAD PAUTAN E-RPH DIGITAL -->
-<div onclick="bukaErphModule()" class="cursor-pointer bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-teal-500 hover:shadow-md transition-all group flex flex-col justify-between">
-  <div>
-    <div class="flex items-center justify-between mb-4">
-      <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl group-hover:bg-teal-600 group-hover:text-white transition-all shadow-sm">
-        <i class="fa-solid fa-book-open"></i>
-      </div>
-      <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">Integrasi SSO</span>
-    </div>
-    <h3 class="font-bold text-slate-800 text-lg group-hover:text-teal-600 transition-colors">Modul e-RPH Digital</h3>
-    <p class="text-xs text-slate-500 mt-1 leading-relaxed">Penyediaan, penyemakan, draf harian, dan rekod Rancangan Pengajaran Harian.</p>
-  </div>
-  <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-teal-600">
-    <span>Buka Aplikasi e-RPH</span>
-    <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-  </div>
-</div>
+                
                 <!-- KOLUM KIRI UTAMA (SPAN 8) -->
                 <div class="lg:col-span-8 space-y-5" id="main-left-column">
 
-                    <!-- CARD 1: KEMAJUAN KELAS / COURSES PROGRESS (COLIGO STYLE) -->
+                    <!-- KAD PAUTAN E-RPH DIGITAL (BERADA DALAM KOLUM KIRI) -->
+                    <div onclick="bukaErphModule()" class="cursor-pointer bg-gradient-to-r from-teal-700 via-teal-800 to-emerald-800 text-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all group flex flex-col justify-between relative overflow-hidden">
+                        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="w-11 h-11 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-xl text-teal-100 group-hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-book-open"></i>
+                                </div>
+                                <span class="px-3 py-1 bg-emerald-400/20 border border-emerald-300/30 text-emerald-200 text-xs font-extrabold rounded-full tracking-wide">Aplikasi Rasmi</span>
+                            </div>
+                            <h3 class="font-extrabold text-white text-lg group-hover:text-teal-200 transition-colors">Modul e-RPH Digital</h3>
+                            <p class="text-xs text-teal-100/80 mt-1 leading-relaxed">Akses pantas bagi penyediaan, penyemakan draf harian, dan rekod Rancangan Pengajaran Harian.</p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-white/15 flex items-center justify-between text-xs font-bold text-teal-200">
+                            <span>Buka Modul e-RPH Guru</span>
+                            <i class="fa-solid fa-arrow-right group-hover:translate-x-1.5 transition-transform"></i>
+                        </div>
+                    </div>
+
+                    <!-- CARD 1: KEMAJUAN KELAS / COURSES PROGRESS -->
                     <div id="courses-progress-card" class="card-coligo p-5">
                         <div class="flex items-center justify-between mb-1">
                             <h2 class="font-extrabold text-base text-slate-800">Kemajuan PdPc & e-RPH Kelas</h2>
@@ -318,7 +327,7 @@
                         </div>
                     </div>
 
-                    <!-- CARD 2: TUGASAN & STATUS PENGHANTARAN (WHAT'S DUE) -->
+                    <!-- CARD 2: TUGASAN & STATUS PENGHANTARAN -->
                     <div class="card-coligo p-5">
                         <div class="flex items-center justify-between mb-1">
                             <div>
@@ -388,7 +397,7 @@
                         </div>
                     </div>
 
-                    <!-- SENARAI MURID VIEW (HANYA DITAMPILKAN JIKA DIBUKA MENU PENGURUSAN KELAS) -->
+                    <!-- SENARAI MURID VIEW -->
                     <div id="students-table-view" class="card-coligo p-5 hidden">
                         <div class="flex items-center justify-between mb-4">
                             <h2 class="font-extrabold text-base text-slate-800" id="students-card-title">Senarai Murid Kelas</h2>
@@ -420,10 +429,10 @@
 
                 </div>
 
-                <!-- KOLUM KANAN (TODAY SCHEDULE & LATEST ANNOUNCEMENTS) (SPAN 4) -->
+                <!-- KOLUM KANAN (SPAN 4) -->
                 <aside class="lg:col-span-4 space-y-5 shrink-0" id="right-panel">
 
-                    <!-- CARD 1: TODAY SCHEDULE (JADUAL MENGAJAR HARI INI) -->
+                    <!-- CARD 1: TODAY SCHEDULE -->
                     <div class="card-coligo p-5">
                         <div class="mb-4">
                             <h2 class="font-extrabold text-base text-slate-800">Jadual Hari Ini</h2>
@@ -465,7 +474,7 @@
                         </div>
                     </div>
 
-                    <!-- CARD 2: PENGUMUMAN TERKINI (ANNOUNCEMENT) -->
+                    <!-- CARD 2: PENGUMUMAN TERKINI -->
                     <div class="card-coligo p-5">
                         <div class="flex items-center justify-between mb-3">
                             <h2 class="font-extrabold text-base text-slate-800">Pengumuman Sekolah</h2>
@@ -552,7 +561,7 @@
     }
 
     function checkUserSession() {
-        const sessionData = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER');
+        const sessionData = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser');
         if (!sessionData) {
             window.location.href = 'LoginSession.html';
             return;
@@ -560,7 +569,11 @@
 
         try {
             CURRENT_GURU_USER = JSON.parse(sessionData);
-            const name = CURRENT_GURU_USER.name || 'Guru Sekolah';
+            
+            // Sync untuk e-RPH
+            localStorage.setItem('currentUser', JSON.stringify(CURRENT_GURU_USER));
+
+            const name = CURRENT_GURU_USER.name || CURRENT_GURU_USER.nama || 'Guru Sekolah';
             document.getElementById('user-display-name').innerText = name;
             document.getElementById('header-user-name').innerText = name;
             document.getElementById('user-email-display').innerText = CURRENT_GURU_USER.email || '';
@@ -776,31 +789,44 @@
     function handleLogout() {
         sessionStorage.clear();
         localStorage.removeItem('SAVED_MOE_USER');
+        localStorage.removeItem('currentUser');
         window.location.href = 'LoginSession.html';
+    }
+
+    // FUNGSI SEMAK SESI & BUKA MODUL E-RPH
+    function bukaErphModule() {
+        const storedUser = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser') || localStorage.getItem('userSession');
+        
+        if (!storedUser) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sesi Luput',
+                    text: 'Sila log masuk semula ke Portal Guru.',
+                    confirmButtonColor: '#1f7a9c'
+                }).then(() => {
+                    window.location.href = 'LoginSession.html';
+                });
+            } else {
+                alert('Sesi Luput. Sila log masuk semula.');
+                window.location.href = 'LoginSession.html';
+            }
+            return;
+        }
+
+        // Pastikan currentUser diselenggara dalam localStorage untuk ErphGuru.html
+        try {
+            const parsed = JSON.parse(storedUser);
+            localStorage.setItem('currentUser', JSON.stringify(parsed));
+        } catch(e) {}
+
+        // Navigasi terus ke modul e-RPH
+        window.location.href = 'ErphGuru.html';
     }
 
     window.addEventListener('DOMContentLoaded', () => {
         checkUserSession();
     });
-        // FUNGSI SEMAK SESI & BUKA MODUL E-RPH
-function bukaErphModule() {
-  const storedUser = localStorage.getItem('currentUser') || localStorage.getItem('userSession');
-  
-  if (!storedUser) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Sesi Luput',
-      text: 'Sila log masuk semula ke Portal Guru.',
-      confirmButtonColor: '#0d9488'
-    }).then(() => {
-      window.location.href = 'LoginSession.html';
-    });
-    return;
-  }
-
-  // Navigasi terus ke modul e-RPH
-  window.location.href = 'ErphGuru.html';
-}
     </script>
 </body>
 </html>
