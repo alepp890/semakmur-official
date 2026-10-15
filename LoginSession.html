@@ -295,6 +295,32 @@
         }
     }
 
+        // Inisialisasi OAuth Token Client untuk Google Classroom
+let classroomTokenClient;
+
+function requestClassroomAccess(callback) {
+    if (!window.google || !google.accounts || !google.accounts.oauth2) {
+        showToast('Google OAuth SDK belum sedia.', 'error');
+        return;
+    }
+    
+    classroomTokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: CLASSROOM_SCOPES,
+        callback: (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
+                // Simpan access token dalam sessionStorage
+                sessionStorage.setItem('CLASSROOM_ACCESS_TOKEN', tokenResponse.access_token);
+                if (callback) callback();
+            } else {
+                showToast('Kebenaran Google Classroom ditolak.', 'error');
+            }
+        }
+    });
+
+    classroomTokenClient.requestAccessToken();
+}
+
     async function handleManualLogin(e) {
         e.preventDefault();
         const email = document.getElementById('login-email').value.trim();
