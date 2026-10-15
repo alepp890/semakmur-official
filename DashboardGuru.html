@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal Guru - Portal Rasmi Sekolah</title>
+    <title>Dashboard Guru - Portal Rasmi Sekolah</title>
 
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Sambungan Awal ke Servis Google -->
-    <link rel="preconnect" href="https://script.google.com">
-    <link rel="preconnect" href="https://drive.google.com">
-    <link rel="dns-prefetch" href="https://script.google.com">
-    <link rel="dns-prefetch" href="https://drive.google.com">
-
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
@@ -22,12 +18,12 @@
             theme: {
                 extend: {
                     colors: { 
-                        brandDark: '#0F172A',       /* Slate Navy Deep */
-                        brandNavy: '#1E3A8A',       /* Medium Navy */
-                        brandAccent: '#2563EB',     /* Blue Accent */
-                        brandGold: '#D97706',       /* Amber Gold */
-                        brandBg: '#F8FAFC',         /* Clean Slate Light */
-                        brandBorder: '#E2E8F0'      /* Modern Border */
+                        brandDark: '#0F172A',
+                        brandNavy: '#1E3A8A',
+                        brandAccent: '#2563EB',
+                        brandGold: '#D97706',
+                        brandBg: '#F8FAFC',
+                        brandBorder: '#E2E8F0'
                     },
                     fontFamily: { 
                         sans: ['Plus Jakarta Sans', 'sans-serif'] 
@@ -42,556 +38,417 @@
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: #F8FAFC; 
             color: #0F172A; 
-            font-size: 15px;
-            line-height: 1.6;
+            font-size: 14px;
         }
 
-        /* Modern Wix-Style Card */
         .card-custom {
             background: #FFFFFF;
             border: 1px solid #E2E8F0;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.03);
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
             border-radius: 1.25rem;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.25s ease;
         }
 
-        /* Scrollbar Custom */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #F8FAFC; }
-        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
-
-        .loader-spinner {
-            border: 4px solid #CBD5E1; 
-            border-top: 4px solid #F59E0B;
-            border-radius: 50%; 
-            width: 44px; 
-            height: 44px; 
-            animation: spin 0.8s linear infinite;
+        .loader-ring {
+            display: inline-block;
+            position: relative;
+            width: 48px;
+            height: 48px;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-ring div {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 38px;
+            height: 38px;
+            margin: 5px;
+            border: 4px solid #2563EB;
+            border-radius: 50%;
+            animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: #2563EB transparent transparent transparent;
+        }
+        @keyframes loader-ring {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-        .toast-enter { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col xl:flex-row w-full font-sans selection:bg-brandNavy selection:text-white">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col pb-20 md:pb-6 antialiased">
 
-    <!-- GLOBAL LOADER & TOAST -->
-    <div id="global-loader" class="fixed inset-0 bg-brandDark/85 backdrop-blur-md z-[9999] flex flex-col items-center justify-center hidden">
-        <div class="loader-spinner mb-4"></div>
-        <p class="text-white text-center font-bold text-base drop-shadow-md" id="loader-text">Memuatkan data...</p>
+    <!-- GLOBAL SKRIN PEMUATAN -->
+    <div id="global-loader" class="fixed inset-0 bg-brandDark/80 backdrop-blur-md z-[9999] flex flex-col items-center justify-center transition-all duration-300">
+        <div class="loader-ring mb-3"><div></div><div></div><div></div></div>
+        <p class="text-white font-bold text-sm" id="loader-text">Memuatkan data Guru Kelas...</p>
     </div>
 
-    <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
-
-    <!-- WRAPPER DASHBOARD GURU -->
-    <div id="teacher-dashboard-wrapper" class="min-h-screen bg-slate-50 flex flex-col xl:flex-row w-full font-sans antialiased text-slate-800">
-
-        <!-- 1. SIDEBAR NAVIGASI KIRI GURU -->
-        <aside id="teacher-sidebar" class="fixed xl:sticky top-0 left-0 z-50 h-screen w-72 bg-gradient-to-b from-slate-900 via-brandDark to-brandNavy text-white flex flex-col justify-between transition-transform duration-300 -translate-x-full xl:translate-x-0 shrink-0 shadow-2xl border-r border-slate-800">
-            <div class="p-5 flex-1 overflow-y-auto">
-                <!-- Tajuk Sidebar & Butang Tutup Mobile -->
-                <div class="flex items-center justify-between pb-5 border-b border-slate-800/80">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-600 border border-amber-400/30 text-white flex items-center justify-center font-black text-lg shadow-md">
-                            👨‍🏫
-                        </div>
-                        <div>
-                            <h2 class="font-extrabold text-sm tracking-tight text-white leading-tight">Portal Guru</h2>
-                            <p class="text-[10px] text-amber-300/90 font-bold uppercase tracking-widest mt-0.5">Sistem Pengajaran</p>
-                        </div>
-                    </div>
-                    <button onclick="toggleTeacherSidebar()" class="xl:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition">
-                        ✕
-                    </button>
+    <!-- HEADER / NAVIGATION DESKTOP & MOBILE -->
+    <header class="bg-gradient-to-r from-slate-900 via-brandDark to-brandNavy text-white sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-400/30 flex items-center justify-center font-black text-lg">
+                    👨‍🏫
                 </div>
-
-                <!-- Senarai Menu Navigasi Sidebar -->
-                <div class="mt-6">
-                    <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider mb-2.5 px-3">Pengurusan PdP</p>
-                    <nav class="space-y-1.5 text-xs font-bold">
-                        <a href="#section-utama" onclick="switchTeacherTab('utama')" id="tnav-utama" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg transition-all border border-amber-400/30">
-                            <span>📌</span> <span>Ringkasan & Tugasan</span>
-                        </a>
-                        <a href="#section-kehadiran" onclick="switchTeacherTab('kehadiran')" id="tnav-kehadiran" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent hover:border-slate-700/50 transition-all duration-200">
-                            <span>📅</span> <span>Semakan Kehadiran Kelas</span>
-                        </a>
-                        <a href="#section-pbd" onclick="switchTeacherTab('pbd')" id="tnav-pbd" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent hover:border-slate-700/50 transition-all duration-200">
-                            <span>📊</span> <span>Kemaskini Rekod PBD</span>
-                        </a>
-                        <a href="#section-tugasan" onclick="switchTeacherTab('tugasan')" id="tnav-tugasan" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent hover:border-slate-700/50 transition-all duration-200">
-                            <span>📝</span> <span>Cipta Tugasan Baru</span>
-                        </a>
-                        <a href="#section-hebahan" onclick="switchTeacherTab('hebahan')" id="tnav-hebahan" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent hover:border-slate-700/50 transition-all duration-200">
-                            <span>📢</span> <span>Hebahan Kelas / Waris</span>
-                        </a>
-                    </nav>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 id="user-display-name" class="font-black text-sm sm:text-base leading-tight">Nama Guru</h1>
+                        <span id="class-teacher-badge" class="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-extrabold hidden">Guru Kelas</span>
+                    </div>
+                    <p id="user-email-display" class="text-xs text-blue-200/80 font-medium">guru@moe-dl.edu.my</p>
                 </div>
             </div>
 
-            <!-- Bahagian Bawah Sidebar -->
-            <div class="p-4 border-t border-slate-800/80 space-y-2 bg-slate-950/60">
-                <a href="index.html?mode=portal" class="w-full py-2.5 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all flex items-center justify-center gap-2 border border-slate-700/60 shadow-xs">
-                    👁️ Lihat Portal Awam
-                </a>
-                <button onclick="logout()" class="w-full py-2.5 px-3 rounded-xl bg-red-500/10 hover:bg-red-600/20 text-red-300 border border-red-500/20 text-xs font-bold transition-all flex items-center justify-center gap-2">
-                    🚪 Log Keluar
+            <!-- BUTANG LOG KELUAR -->
+            <div class="flex items-center gap-2">
+                <button onclick="handleLogout()" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-red-500/20 hover:text-red-300 text-slate-200 text-xs font-bold transition flex items-center gap-1.5 border border-white/10">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    <span class="hidden sm:inline">Log Keluar</span>
                 </button>
             </div>
-        </aside>
-
-        <!-- BACKDROP MOBILE APABILA SIDEBAR DIBUKA -->
-        <div id="teacher-sidebar-overlay" onclick="toggleTeacherSidebar()" class="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-40 hidden xl:hidden"></div>
-
-        <!-- KANDUNGAN UTAMA DASHBOARD -->
-        <div class="flex-1 min-w-0 flex flex-col bg-slate-50">
-
-            <!-- 2. HEADER DASHBOARD GURU GLASSMORPHIC -->
-            <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 sm:px-8 py-3.5 shadow-sm">
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 max-w-7xl mx-auto w-full">
-                    
-                    <!-- KIRI HEADER: BUTTON MENU MOBILE & MAKLUMAT GURU -->
-                    <div class="flex items-center gap-4">
-                        <button onclick="toggleTeacherSidebar()" class="xl:hidden p-2.5 rounded-xl bg-slate-100 text-slate-800 hover:bg-slate-200 transition">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                        </button>
-                        <div>
-                            <h1 class="text-base sm:text-lg font-bold text-slate-900">
-                                Selamat Datang, <span id="teacher-user-name" class="text-slate-900 font-extrabold">Cikgu Ahmad Subari</span>
-                            </h1>
-                            <div class="flex items-center gap-3 text-xs text-slate-500 font-semibold mt-0.5">
-                                <span>Akaun ID: <strong id="teacher-account-id" class="text-slate-800 font-bold">GRU-10442</strong></span>
-                                <span class="text-slate-300">•</span>
-                                <span>Gred: <strong class="text-brandNavy font-bold">DG44</strong></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- KANAN HEADER: DROPDOWN PILIHAN KELAS -->
-                    <div class="flex items-center gap-3.5 self-end lg:self-auto bg-slate-100/80 p-1.5 rounded-xl border border-slate-200 hover:border-amber-400/50 transition-colors shadow-xs">
-                        <span class="text-xs font-bold text-slate-600 pl-2 shrink-0">🏫 Kelas Utama:</span>
-                        <select id="teacher-class-selector" onchange="switchClassContext(this.value)" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold bg-white text-slate-900 outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer shadow-xs">
-                            <option value="class_6b">6 Bestari (Guru Kelas)</option>
-                            <option value="class_5c">5 Cemerlang (Mata Pelajaran)</option>
-                            <option value="class_4m">4 Maju (Mata Pelajaran)</option>
-                        </select>
-                    </div>
-
-                </div>
-            </header>
-
-            <!-- RUANG KANDUNGAN UTAMA -->
-            <main class="p-4 sm:p-8 space-y-6 flex-1 max-w-7xl mx-auto w-full">
-
-                <!-- BEKAS 1: SECTION UTAMA (RINGKASAN DASHBOARD) -->
-                <div id="section-utama-content" class="space-y-6">
-
-                    <!-- 3. KAD STATUS RINGKASAN GURU -->
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                        
-                        <!-- Kad 1: Jumlah Murid Kelas -->
-                        <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Jumlah Murid</span>
-                                <span class="text-lg group-hover:scale-110 transition-transform">🎓</span>
-                            </div>
-                            <div class="flex items-baseline gap-2 pt-1">
-                                <h3 id="stat-class-students" class="text-2xl font-black text-slate-900">32 Orang</h3>
-                                <span class="text-[10px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">6 Bestari</span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 font-medium">18 Lelaki | 14 Perempuan</p>
-                        </div>
-
-                        <!-- Kad 2: Kehadiran Hari Ini -->
-                        <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Kehadiran Hari Ini</span>
-                                <span class="text-lg group-hover:scale-110 transition-transform">📅</span>
-                            </div>
-                            <div class="flex items-baseline gap-2 pt-1">
-                                <h3 id="stat-today-attendance" class="text-2xl font-black text-slate-900">31/32</h3>
-                                <span class="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md">96.8%</span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 font-medium">1 Murid Tidak Hadir (MC)</p>
-                        </div>
-
-                        <!-- Kad 3: Semakan Tugasan Pending -->
-                        <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Belum Disemak</span>
-                                <span class="text-lg group-hover:scale-110 transition-transform">📥</span>
-                            </div>
-                            <div class="flex items-baseline gap-2 pt-1">
-                                <h3 id="stat-pending-grading" class="text-2xl font-black text-slate-900">14 Hantaran</h3>
-                                <span class="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">Perlu Semak</span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 font-medium">Modul Bahasa Melayu Bab 5</p>
-                        </div>
-
-                        <!-- Kad 4: Rekod PBD Dikemaskini -->
-                        <div class="card-custom p-5 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-2 hover:-translate-y-1 hover:shadow-md hover:border-amber-400/60 transition-all duration-300 group">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">PBD Sesi Ini</span>
-                                <span class="text-lg group-hover:scale-110 transition-transform">📊</span>
-                            </div>
-                            <div class="flex items-baseline gap-2 pt-1">
-                                <h3 id="stat-pbd-completion" class="text-2xl font-black text-slate-900">100% Selesai</h3>
-                                <span class="text-[10px] font-bold text-blue-800 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded-md">Fasa 1</span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 font-medium">Sedia Untuk Pelaporan Waris</p>
-                        </div>
-
-                    </div>
-
-                    <!-- 4. PENGURUSAN PANTAS GURU -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        
-                        <!-- KIRI: SENARAI TUGASAN AKTIF & KEMAJUAN -->
-                        <div class="lg:col-span-2 card-custom p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-4">
-                            <div class="flex items-center justify-between border-b border-slate-200/80 pb-3">
-                                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                                    <span>📝</span> Tugasan & Latihan Dalam Semakan
-                                </h3>
-                                <button onclick="switchTeacherTab('tugasan')" class="text-xs font-bold text-amber-600 hover:underline">
-                                    + Cipta Tugasan Baru
-                                </button>
-                            </div>
-
-                            <div class="space-y-3">
-                                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs font-extrabold text-slate-900">Latihan Penulisan Karangan Syarahan</span>
-                                        <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded">Tarikh Akhir: Jumaat</span>
-                                    </div>
-                                    <p class="text-xs text-slate-600 font-medium">Kelas: 6 Bestari • Subjek: Bahasa Melayu</p>
-                                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                                        <div class="bg-amber-500 h-full w-3/4"></div>
-                                    </div>
-                                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 pt-1">
-                                        <span>24 daripada 32 murid telah menghantar</span>
-                                        <span class="text-amber-600">75% Selesai</span>
-                                    </div>
-                                </div>
-
-                                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs font-extrabold text-slate-900">Kuaris Tata-Bahasa & Kata Ganda</span>
-                                        <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-emerald-500/10 text-emerald-700 border border-emerald-500/20 rounded">Selesai</span>
-                                    </div>
-                                    <p class="text-xs text-slate-600 font-medium">Kelas: 5 Cemerlang • Subjek: Bahasa Melayu</p>
-                                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
-                                        <div class="bg-emerald-500 h-full w-full"></div>
-                                    </div>
-                                    <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 pt-1">
-                                        <span>30 daripada 30 murid telah menghantar</span>
-                                        <span class="text-emerald-600">100% Selesai</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- KANAN: NOTIS & PERINGATAN TUGASAN PENTADBIRAN -->
-                        <div class="card-custom p-6 bg-white border border-slate-200/80 rounded-2xl shadow-sm space-y-4">
-                            <div class="border-b border-slate-200/80 pb-3">
-                                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                                    <span>📌</span> Peringatan Tugas Pentadbiran
-                                </h3>
-                            </div>
-
-                            <div class="space-y-3 text-xs">
-                                <div class="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/80 space-y-1">
-                                    <span class="text-[10px] font-bold text-blue-700 uppercase">Mesyuarat Panitia</span>
-                                    <h4 class="font-bold text-slate-900">Mesyuarat Panitia BM Bil 3/2026</h4>
-                                    <p class="text-slate-600">Rabu ini • 2:30 Petang • Bilik Mesyuarat Utama</p>
-                                </div>
-
-                                <div class="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/80 space-y-1">
-                                    <span class="text-[10px] font-bold text-amber-700 uppercase">Tarikh Akhir PBD</span>
-                                    <h4 class="font-bold text-slate-900">Kunci Masuk TP PBD Fasa 2</h4>
-                                    <p class="text-slate-600">Sila pastikan rekod lengkap sebelum 25 Oktober 2026.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- BEKAS 2: SECTION TUGASAN CLASSROOM (DISEMBUNYIKAN SECARA LALAI) -->
-                <div id="section-tugasan-content" class="hidden card-custom p-6 bg-white space-y-6">
-                    <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
-                        <div>
-                            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                                <span>📝</span> Cipta Tugasan / Ujian (Auto-Post ke Google Classroom)
-                            </h3>
-                            <p class="text-xs text-slate-500">Tugasan yang dicipta di sini akan secara automatik dihantar ke Google Classroom murid.</p>
-                        </div>
-                        <button type="button" onclick="loadGoogleClassroomCourses()" class="px-3 py-1.5 bg-blue-50 text-brandNavy border border-blue-200 rounded-xl text-xs font-bold hover:bg-blue-100 transition">
-                            🔄 Muat Semula Kelas GC
-                        </button>
-                    </div>
-
-                    <form id="form-create-gc-assignment" onsubmit="handleCreateGCAssignment(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Pilih Kelas Google Classroom *</label>
-                            <select id="gc-course-select" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold bg-white outline-none">
-                                <option value="">-- Tekan "Muat Semula Kelas GC" untuk muat senarai kelas --</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Tajuk Tugasan / Ujian *</label>
-                            <input type="text" id="gc-title" required placeholder="Contoh: Ujian Bahasa Melayu Bab 4" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold outline-none">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Arahan Tugasan *</label>
-                            <textarea id="gc-description" rows="3" required placeholder="Sila baca modul dan jawab soalan yang diberikan..." class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-medium outline-none"></textarea>
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-black uppercase text-slate-700 mb-1">Tarikh Akhir (Due Date) *</label>
-                            <input type="date" id="gc-duedate" required class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-bold outline-none">
-                        </div>
-
-                        <div class="pt-3 flex justify-end gap-3">
-                            <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-extrabold shadow-lg hover:opacity-90 transition">
-                                🚀 Hantar Tugasan (Auto-Post ke GC)
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-            </main>
         </div>
-    </div>
+    </header>
 
-    <!-- SAMBUNGAN FAIL CONFIG BACKEND -->
+    <!-- KANDUNGAN UTAMA DASHBOARD -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 flex-grow w-full">
+        
+        <!-- SECTION 1: MODUL KHAS GURU KELAS (DATA REAL) -->
+        <section class="mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md">
+                        🏫
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-black text-brandDark">Pengurusan Guru Kelas</h2>
+                        <p class="text-xs text-slate-500 font-medium">Senarai murid terkini daripada pangkalan data sekolah (`Profil_Murid`)</p>
+                    </div>
+                </div>
+                <button onclick="fetchClassStudentsRealData()" class="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold text-xs transition flex items-center gap-1 border border-blue-200">
+                    🔄 <span>Kemaskini</span>
+                </button>
+            </div>
+
+            <!-- KAD KELAS & STATISTIK REAL -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                <div class="card-custom p-4 bg-gradient-to-br from-blue-900 to-brandDark text-white border-none shadow-xl">
+                    <p class="text-xs text-blue-200 font-bold uppercase tracking-wider">Kelas Seliaan Anda</p>
+                    <h3 id="class-name-title" class="text-2xl font-black text-amber-400 mt-1">-</h3>
+                    <p class="text-[11px] text-blue-100/70 font-medium mt-1">Status: Active Class Record</p>
+                </div>
+                <div class="card-custom p-4 bg-white border border-slate-200">
+                    <p class="text-xs text-slate-400 font-extrabold uppercase tracking-wider">Jumlah Murid Mendaftar</p>
+                    <h3 id="total-students-count" class="text-2xl font-black text-brandDark mt-1">0 Orang</h3>
+                    <p class="text-[11px] text-emerald-600 font-bold mt-1">✓ Berdaftar di Sheet Profil_Murid</p>
+                </div>
+                <div class="card-custom p-4 bg-white border border-slate-200">
+                    <p class="text-xs text-slate-400 font-extrabold uppercase tracking-wider">Status Akaun DELIMa</p>
+                    <h3 id="delima-active-count" class="text-2xl font-black text-blue-600 mt-1">0 Dikesan</h3>
+                    <p class="text-[11px] text-slate-500 font-medium mt-1">Padanan e-mel ID_Delima (Lajur 8)</p>
+                </div>
+            </div>
+
+            <!-- JADUAL REAL DATA MURID KELAS -->
+            <div class="card-custom overflow-hidden bg-white border border-slate-200 shadow-sm">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                    <h3 class="font-black text-xs sm:text-sm text-brandDark flex items-center gap-2">
+                        <span>📋</span> <span>Senarai Murid Kelas <span id="class-label-inline" class="text-blue-600">...</span></span>
+                    </h3>
+                    <input type="text" id="search-student" onkeyup="filterStudentTable()" placeholder="Cari nama murid..." class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs outline-none focus:border-blue-500 bg-white w-40 sm:w-60">
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse" id="students-table">
+                        <thead>
+                            <tr class="bg-slate-100/80 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold border-b border-slate-200">
+                                <th class="p-3 pl-4">Bil</th>
+                                <th class="p-3">Nama Murid</th>
+                                <th class="p-3">ID DELIMa / E-Mel</th>
+                                <th class="p-3">Jantina</th>
+                                <th class="p-3 text-center">Status Akaun</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-table-body" class="divide-y divide-slate-100 text-xs font-medium">
+                            <tr>
+                                <td colspan="5" class="p-6 text-center text-slate-400 italic">
+                                    Sila tunggu, sedang menarik data murid dari backend...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: MODUL TUGASAN PdP & TAKWIM (DATA DUMMY GAMBARAN UTAMA) -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            
+            <!-- JADUAL MENGAJAR HARI INI (DUMMY) -->
+            <div class="card-custom p-5 bg-white lg:col-span-2 space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <h3 class="font-black text-sm text-brandDark flex items-center gap-2">
+                        <span>📅</span> <span>Jadual Mengajar Hari Ini</span>
+                    </h3>
+                    <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold">Data Contoh</span>
+                </div>
+
+                <div class="space-y-2.5">
+                    <div class="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="p-2 bg-blue-600 text-white rounded-xl text-xs font-bold">08:00 - 09:00</span>
+                            <div>
+                                <h4 class="font-extrabold text-xs sm:text-sm text-brandDark">Bahasa Melayu</h4>
+                                <p class="text-[11px] text-slate-500">Kelas 4 UM • Bilik Darjah 4UM</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 font-extrabold text-[10px]">Selesai</span>
+                    </div>
+
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <span class="p-2 bg-slate-800 text-white rounded-xl text-xs font-bold">10:30 - 11:30</span>
+                            <div>
+                                <h4 class="font-extrabold text-xs sm:text-sm text-brandDark">Sejarah</h4>
+                                <p class="text-[11px] text-slate-500">Kelas 5 UKM • Makmal Komputer</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 font-extrabold text-[10px]">Seterusnya</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAUTAN PANTAS SISTER SISTEM (QUICK LAUNCHER) -->
+            <div class="card-custom p-5 bg-white space-y-4">
+                <div class="pb-3 border-b border-slate-100">
+                    <h3 class="font-black text-sm text-brandDark flex items-center gap-2">
+                        <span>🚀</span> <span>Aplikasi Utama Sekolah</span>
+                    </h3>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                    <a href="https://apdm.moe.gov.my" target="_blank" class="p-3 rounded-2xl bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 transition text-center group">
+                        <span class="text-xl block mb-1">📲</span>
+                        <span class="block text-xs font-extrabold text-brandDark group-hover:text-blue-600">APDM MOE</span>
+                    </a>
+                    <a href="#" class="p-3 rounded-2xl bg-slate-50 hover:bg-amber-50 border border-slate-100 hover:border-amber-200 transition text-center group">
+                        <span class="text-xl block mb-1">📋</span>
+                        <span class="block text-xs font-extrabold text-brandDark group-hover:text-amber-600">AppSheet Kehadiran</span>
+                    </a>
+                    <a href="https://splkpm.moe.gov.my" target="_blank" class="p-3 rounded-2xl bg-slate-50 hover:bg-purple-50 border border-slate-100 hover:border-purple-200 transition text-center group">
+                        <span class="text-xl block mb-1">🎓</span>
+                        <span class="block text-xs font-extrabold text-brandDark group-hover:text-purple-600">SPLKPM</span>
+                    </a>
+                    <a href="https://delima.moe-dl.edu.my" target="_blank" class="p-3 rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-100 hover:border-emerald-200 transition text-center group">
+                        <span class="text-xl block mb-1">🌐</span>
+                        <span class="block text-xs font-extrabold text-brandDark group-hover:text-emerald-600">DELIMa 2.0</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- PWA MOBILE NAVIGATION BAR AT BOTTOM -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-50 flex items-center justify-around py-2 shadow-2xl">
+        <button class="flex flex-col items-center gap-1 text-blue-600 font-extrabold text-[10px]">
+            <span class="text-lg">🏫</span>
+            <span>Guru Kelas</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-700 font-bold text-[10px]">
+            <span class="text-lg">📚</span>
+            <span>e-RPH</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-700 font-bold text-[10px]">
+            <span class="text-lg">🚀</span>
+            <span>Aplikasi</span>
+        </button>
+        <button onclick="handleLogout()" class="flex flex-col items-center gap-1 text-red-500 font-bold text-[10px]">
+            <span class="text-lg">🚪</span>
+            <span>Keluar</span>
+        </button>
+    </nav>
+
+    <!-- SAMBUNGAN CONFIG -->
     <script src="config.js"></script>
 
-    <!-- LOGIK JAVASCRIPT DASHBOARD GURU -->
+    <!-- LOGIK JAVASCRIPT GURU KELAS -->
     <script>
-        let CURRENT_USER = null;
+    let CURRENT_GURU_USER = null;
 
-        function checkSession() {
-            const userJson = sessionStorage.getItem('CURRENT_USER');
-            if (!userJson) {
-                window.location.href = 'LoginSession.html';
-                return;
-            }
-            try {
-                CURRENT_USER = JSON.parse(userJson);
-                const role = (CURRENT_USER.role || '').toLowerCase();
-                if (role !== 'guru') {
-                    window.location.href = 'LoginSession.html';
-                }
-            } catch (e) {
-                window.location.href = 'LoginSession.html';
-            }
+    function showLoader(txt = "Memuatkan data...") {
+        const loader = document.getElementById('global-loader');
+        const lTxt = document.getElementById('loader-text');
+        if (lTxt) lTxt.innerText = txt;
+        if (loader) loader.classList.remove('hidden');
+    }
+
+    function hideLoader() {
+        const loader = document.getElementById('global-loader');
+        if (loader) loader.classList.add('hidden');
+    }
+
+    /* SEMAK SESI LOG MASUK */
+    function checkUserSession() {
+        const sessionData = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER');
+        if (!sessionData) {
+            window.location.href = 'LoginSession.html';
+            return;
         }
 
-        function showLoader(txt = "Memuatkan data...") {
-            const loader = document.getElementById('global-loader');
-            const lTxt = document.getElementById('loader-text');
-            if (lTxt) lTxt.innerText = txt;
-            if (loader) loader.classList.remove('hidden');
-        }
+        try {
+            CURRENT_GURU_USER = JSON.parse(sessionData);
+            document.getElementById('user-display-name').innerText = CURRENT_GURU_USER.name || 'Guru Sekolah';
+            document.getElementById('user-email-display').innerText = CURRENT_GURU_USER.email || '';
 
-        function hideLoader() {
-            const loader = document.getElementById('global-loader');
-            if (loader) loader.classList.add('hidden');
-        }
-
-        function showToast(msg, type = 'success') {
-            const container = document.getElementById('toast-container');
-            if(!container) return;
-
-            const toast = document.createElement('div');
-            toast.className = `toast-enter pointer-events-auto px-4 py-3 rounded-2xl text-xs font-extrabold text-white shadow-xl flex items-center gap-2 ${type==='success'?'bg-emerald-600':'bg-red-600'}`;
-            toast.innerHTML = `<span>${type==='success'?'✅':'⚠️'}</span><span>${msg}</span>`;
-            container.appendChild(toast);
-
-            setTimeout(() => { toast.remove(); }, 3500);
-        }
-
-        function toggleTeacherSidebar() {
-            const sidebar = document.getElementById('teacher-sidebar');
-            const overlay = document.getElementById('teacher-sidebar-overlay');
-            if (sidebar) sidebar.classList.toggle('-translate-x-full');
-            if (overlay) overlay.classList.toggle('hidden');
-        }
-
-        function switchTeacherTab(tabKey) {
-            const tabs = ['utama', 'kehadiran', 'pbd', 'tugasan', 'hebahan'];
-            tabs.forEach(k => {
-                const btn = document.getElementById(`tnav-${k}`);
-                if (btn) {
-                    if (k === tabKey) {
-                        btn.className = "flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg transition-all border border-amber-400/30";
-                    } else {
-                        btn.className = "flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800/70 hover:text-white border border-transparent hover:border-slate-700/50 transition-all duration-200";
-                    }
-                }
-            });
-
-            // Kawal paparan modul di skrin
-            const sectionUtama = document.getElementById('section-utama-content');
-            const sectionTugasan = document.getElementById('section-tugasan-content');
-
-            if (tabKey === 'tugasan') {
-                if (sectionUtama) sectionUtama.classList.add('hidden');
-                if (sectionTugasan) {
-                    sectionTugasan.classList.remove('hidden');
-                    loadGoogleClassroomCourses(); // Auto-load kelas apabila tab dibuka
-                }
-            } else {
-                if (sectionUtama) sectionUtama.classList.remove('hidden');
-                if (sectionTugasan) sectionTugasan.classList.add('hidden');
-            }
-
-            if (window.innerWidth < 1280) {
-                toggleTeacherSidebar();
-            }
-
-            showToast(`Memuatkan modul: ${tabKey.toUpperCase()}`);
-        }
-
-        function switchClassContext(classId) {
-            showLoader("Menukar konteks kelas...");
+            // Semak jika guru ini memegang peranan Guru Kelas
+            const className = CURRENT_GURU_USER.guru_kelas || CURRENT_GURU_USER.class_name || CURRENT_GURU_USER.kelas || '';
             
-            setTimeout(() => {
+            if (className && className !== '-' && className.toLowerCase() !== 'tiada') {
+                document.getElementById('class-teacher-badge').classList.remove('hidden');
+                document.getElementById('class-name-title').innerText = className;
+                document.getElementById('class-label-inline').innerText = className;
+                fetchClassStudentsRealData(className);
+            } else {
+                document.getElementById('class-name-title').innerText = 'Tiada Kelas Ditugaskan';
+                document.getElementById('students-table-body').innerHTML = `
+                    <tr><td colspan="5" class="p-6 text-center text-slate-400 italic">
+                        Akaun anda tidak didaftarkan sebagai Guru Kelas dalam pangkalan data Profil_Guru.
+                    </td></tr>`;
                 hideLoader();
-                if (classId === 'class_6b') {
-                    document.getElementById('stat-class-students').innerText = '32 Orang';
-                    document.getElementById('stat-today-attendance').innerText = '31/32';
-                    showToast("Memaparkan maklumat Kelas 6 Bestari");
-                } else if (classId === 'class_5c') {
-                    document.getElementById('stat-class-students').innerText = '30 Orang';
-                    document.getElementById('stat-today-attendance').innerText = '30/30';
-                    showToast("Memaparkan maklumat Kelas 5 Cemerlang");
-                } else {
-                    document.getElementById('stat-class-students').innerText = '28 Orang';
-                    document.getElementById('stat-today-attendance').innerText = '27/28';
-                    showToast("Memaparkan maklumat Kelas 4 Maju");
-                }
-            }, 400);
+            }
+        } catch (e) {
+            console.error('Session Error:', e);
+            window.location.href = 'LoginSession.html';
         }
+    }
 
-        function logout() {
-            sessionStorage.removeItem('CURRENT_USER');
-            window.location.href = 'index.html?mode=portal';
-        }
+    /* FUNGSI PENYATUAN POST BACKEND */
+    async function postToBackend(payload) {
+        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
+            ? WEB_APP_URL 
+            : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
 
-        // ========================================================
-        // FUNGSI INTEGRASI GOOGLE CLASSROOM API
-        // ========================================================
-        function getClassroomToken() {
-            return sessionStorage.getItem('CLASSROOM_ACCESS_TOKEN');
-        }
-
-        async function loadGoogleClassroomCourses() {
-            const token = getClassroomToken();
-            if (!token) {
-                showToast("Sila log masuk menggunakan Google Identity di skrin log masuk dahulu.", "error");
-                return;
-            }
-
-            showLoader("Memuatkan senarai kelas Google Classroom...");
-            try {
-                const res = await fetch('https://classroom.googleapis.com/v1/courses?courseStates=ACTIVE', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                hideLoader();
-
-                const select = document.getElementById('gc-course-select');
-                if (!select) return;
-
-                select.innerHTML = '<option value="">-- Pilih Kelas --</option>';
-                if (data.courses && data.courses.length > 0) {
-                    data.courses.forEach(c => {
-                        select.innerHTML += `<option value="${c.id}">${c.name} (${c.section || 'Umum'})</option>`;
-                    });
-                    showToast("Senarai kelas Google Classroom berjaya dimuatkan!");
-                } else {
-                    select.innerHTML = '<option value="">Tiada kelas aktif dijumpai.</option>';
-                }
-            } catch (err) {
-                hideLoader();
-                console.error("Ralat load Google Classroom courses:", err);
-                showToast("Ralat memuatkan kelas dari Google Classroom.", "error");
-            }
-        }
-
-        async function handleCreateGCAssignment(e) {
-            e.preventDefault();
-            const token = getClassroomToken();
-            if (!token) {
-                showToast("Sesi kebenaran Google Classroom telah tamat. Sila log masuk semula.", "error");
-                return;
-            }
-
-            const courseId = document.getElementById('gc-course-select').value;
-            if (!courseId) {
-                showToast("Sila pilih kelas Google Classroom terlebih dahulu!", "error");
-                return;
-            }
-
-            const title = document.getElementById('gc-title').value.trim();
-            const description = document.getElementById('gc-description').value.trim();
-            const dateVal = new Date(document.getElementById('gc-duedate').value);
-
-            const payloadGC = {
-                title: title,
-                description: description,
-                workType: 'ASSIGNMENT',
-                state: 'PUBLISHED',
-                maxPoints: 100,
-                dueDate: {
-                    year: dateVal.getFullYear(),
-                    month: dateVal.getMonth() + 1,
-                    day: dateVal.getDate()
-                },
-                dueTime: { hours: 23, minutes: 59 }
-            };
-
-            showLoader("Menghantar tugasan ke Google Classroom...");
-
-            try {
-                const resGC = await fetch(`https://classroom.googleapis.com/v1/courses/${courseId}/courseWork`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payloadGC)
-                });
-
-                const resultGC = await resGC.json();
-
-                if (resGC.ok) {
-                    hideLoader();
-                    showToast("Berjaya! Tugasan dipost ke Google Classroom murid!");
-                    document.getElementById('form-create-gc-assignment').reset();
-                } else {
-                    hideLoader();
-                    showToast("Gagal hantar ke Google Classroom: " + (resultGC.error ? resultGC.error.message : 'Ralat API'), "error");
-                }
-            } catch (err) {
-                hideLoader();
-                showToast("Ralat sambungan: " + err.message, "error");
-            }
-        }
-
-        /* INITIALIZE ON LOAD */
-        window.addEventListener('DOMContentLoaded', () => {
-            checkSession();
-            if (CURRENT_USER) {
-                const nameEl = document.getElementById('teacher-user-name');
-                if (nameEl) nameEl.innerText = CURRENT_USER.name || 'Cikgu Ahmad Subari';
-            }
+        const response = await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload),
+            redirect: 'follow'
         });
+
+        if (!response.ok) throw new Error('Ralat Pelayan HTTP ' + response.status);
+        return await response.json();
+    }
+
+    /* MENARIK DATA REAL MURID DARI SHEET PROFIL_MURID */
+    async function fetchClassStudentsRealData(overrideClassName = null) {
+        const className = overrideClassName || (CURRENT_GURU_USER ? (CURRENT_GURU_USER.guru_kelas || CURRENT_GURU_USER.class_name) : '');
+        if (!className) return;
+
+        showLoader(`Menarik data murid kelas ${className} dari Google Sheet...`);
+
+        try {
+            const res = await postToBackend({
+                action: 'getClassStudents',
+                data: { className: className }
+            });
+            hideLoader();
+
+            if (res && res.success && Array.isArray(res.students)) {
+                renderStudentTable(res.students);
+            } else {
+                fallbackFetchPortalData(className);
+            }
+        } catch (err) {
+            console.warn('Backend getClassStudents error, trying fallback:', err);
+            fallbackFetchPortalData(className);
+        }
+    }
+
+    async function fallbackFetchPortalData(className) {
+        try {
+            const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
+            const res = await fetch(`${targetUrl}?action=getPortalData`).then(r => r.json());
+            hideLoader();
+
+            if (res && res.students) {
+                const filtered = res.students.filter(s => String(s.kelas || s.Nama_Kelas || '').toLowerCase().trim() === className.toLowerCase().trim());
+                renderStudentTable(filtered);
+            } else {
+                renderStudentTable([]);
+            }
+        } catch (e) {
+            hideLoader();
+            renderStudentTable([]);
+        }
+    }
+
+    /* PAPARAN JADUAL MURID REAL DATA */
+    function renderStudentTable(students) {
+        const tbody = document.getElementById('students-table-body');
+        document.getElementById('total-students-count').innerText = `${students.length} Orang`;
+
+        let delimaCount = 0;
+
+        if (!students || students.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="5" class="p-6 text-center text-slate-400 italic">
+                    Tiada data murid dijumpai bagi kelas ini dalam Profil_Murid.
+                </td></tr>`;
+            document.getElementById('delima-active-count').innerText = `0 Dikesan`;
+            return;
+        }
+
+        let html = '';
+        students.forEach((st, idx) => {
+            const emailDelima = st.id_delima || st.ID_Delima || st.email || st.email_delima || '-';
+            const jantina = st.jantina || st.Jantina || '-';
+            const name = st.nama || st.Nama_Murid || st.Nama || 'Murid ' + (idx + 1);
+
+            if (emailDelima && emailDelima.includes('@moe-dl.edu.my')) {
+                delimaCount++;
+            }
+
+            html += `
+                <tr class="hover:bg-slate-50/80 transition">
+                    <td class="p-3 pl-4 text-slate-400 font-bold">${idx + 1}</td>
+                    <td class="p-3 font-extrabold text-slate-800">${name}</td>
+                    <td class="p-3 font-mono text-blue-600 text-[11px]">${emailDelima}</td>
+                    <td class="p-3 text-slate-500">${jantina}</td>
+                    <td class="p-3 text-center">
+                        <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-extrabold">
+                            ✓ Aktif
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+        document.getElementById('delima-active-count').innerText = `${delimaCount} Dikesan`;
+    }
+
+    /* PENAPISAN CARIAN CARI NAMA MURID */
+    function filterStudentTable() {
+        const input = document.getElementById('search-student').value.toLowerCase();
+        const rows = document.querySelectorAll('#students-table-body tr');
+
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(input) ? '' : 'none';
+        });
+    }
+
+    /* LOG KELUAR */
+    function handleLogout() {
+        sessionStorage.clear();
+        localStorage.removeItem('SAVED_MOE_USER');
+        window.location.href = 'LoginSession.html';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        checkUserSession();
+    });
     </script>
 </body>
 </html>
