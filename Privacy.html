@@ -4,154 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dasar Privasi - Portal Rasmi Sekolah</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brandDark: '#0F172A',
-                        brandNavy: '#1E3A8A',
-                        brandAccent: '#2563EB',
-                        brandBg: '#F8FAFC',
-                        brandBorder: '#E2E8F0'
-                    },
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
 </head>
-<body class="bg-brandBg text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-brandNavy selection:text-white">
+<body>
+    <h1>Dasar Privasi (Privacy Policy)</h1>
+    <p>Tarikh Kuat Kuasa: 15 Oktober 2026</p>
 
-    <!-- HEADER -->
-    <header class="bg-white border-b border-brandBorder sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-brandDark via-brandNavy to-brandAccent text-white flex items-center justify-center font-black text-lg shadow-md">
-                    P
-                </div>
-                <div>
-                    <h1 class="font-black text-base text-brandDark leading-tight">Portal Rasmi Sekolah</h1>
-                    <p class="text-[11px] font-bold text-slate-500">Dasar Privasi & Perlindungan Data</p>
-                </div>
-            </div>
-            <a href="index.html" class="px-4 py-2 text-xs font-bold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition border border-slate-200">
-                &larr; Kembali ke Portal
-            </a>
-        </div>
-    </header>
+    <h2>1. Pengenalan</h2>
+    <p>
+        Aplikasi <strong>Portal Rasmi Sekolah</strong> komited untuk melindungi privasi pengguna kami. Dasar Privasi ini menjelaskan bagaimana kami mengumpul, mengguna, dan melindungi maklumat peribadi anda apabila anda menggunakan aplikasi kami.
+    </p>
 
-    <!-- KANDUNGAN UTAMA DASAR PRIVASI -->
-    <main class="max-w-4xl mx-auto px-4 py-10 flex-1 w-full space-y-8">
-        
-        <div class="bg-white p-6 sm:p-10 rounded-3xl border border-brandBorder shadow-xs space-y-6">
-            
-            <div class="border-b border-brandBorder pb-6">
-                <span class="px-3 py-1 bg-blue-50 text-brandAccent font-bold text-xs rounded-lg border border-blue-100">
-                    Tarikh Kemaskini Terakhir: 15 Oktober 2026
-                </span>
-                <h2 class="text-2xl sm:text-3xl font-black text-brandDark mt-3">Dasar Privasi (Privacy Policy)</h2>
-                <p class="text-xs sm:text-sm text-slate-600 font-medium mt-1">
-                    Komitmen kami terhadap perlindungan data peribadi guru, murid, dan waris dalam penggunaan aplikasi **Portal Rasmi Sekolah**.
-                </p>
-            </div>
+    <h2>2. Data Yang Dikumpul</h2>
+    <p>Apabila anda log masuk menggunakan akaun Google anda, kami mengumpul maklumat berikut:</p>
+    <ul>
+        <li>Nama penuh</li>
+        <li>Alamat e-mel</li>
+        <li>Gambar profil (avatar)</li>
+    </ul>
 
-            <!-- SEKSYEN 1 -->
-            <section class="space-y-2">
-                <h3 class="text-base font-extrabold text-brandDark flex items-center gap-2">
-                    <span class="text-brandAccent">1.</span> Pengenalan
-                </h3>
-                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                    Aplikasi **Portal Rasmi Sekolah** (yang dipaparkan di domain <code class="bg-slate-100 px-1.5 py-0.5 rounded text-brandNavy font-bold">https://alepp890.github.io/</code>) dibangunkan untuk memudahkan pengurusan pembelajaran digital, semakan kehadiran, serta integrasi tugasan Google Classroom secara bersepadu bagi warga sekolah.
-                </p>
-            </section>
+    <h2>3. Penggunaan Data</h2>
+    <p>Maklumat yang dikumpul hanya digunakan untuk tujuan:</p>
+    <ul>
+        <li>Mengesahkan identiti anda semasa log masuk ke Portal Rasmi Sekolah.</li>
+        <li>Memaparkan profil pengguna di dalam dashboard portal.</li>
+        <li>Menghantar notifikasi penting berkaitan akaun persekolahan anda.</li>
+    </ul>
 
-            <!-- SEKSYEN 2 -->
-            <section class="space-y-2">
-                <h3 class="text-base font-extrabold text-brandDark flex items-center gap-2">
-                    <span class="text-brandAccent">2.</span> Maklumat & Data Yang Dikutip
-                </h3>
-                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                    Apabila anda log masuk menggunakan Google OAuth 2.0 / Google Identity Services, aplikasi ini mengakses maklumat terhad dengan kebenaran anda:
-                </p>
-                <ul class="list-disc list-inside text-xs sm:text-sm text-slate-600 space-y-1.5 font-medium pl-2">
-                    <li><strong>Maklumat Profil Asas:</strong> Alamat e-mel rasmi (seperti akaun MOE/DELIMa <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">@moe-dl.edu.my</code>) dan nama penuh profil.</li>
-                    <li><strong>Data Google Classroom (Skop Sensitif API):</strong> Senarai kelas aktif (<code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">classroom.courses.readonly</code>), tugasan kelas (<code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">classroom.coursework.students</code>), dan rekod penghantaran tugasan murid (<code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">classroom.coursework.me</code>).</li>
-                </ul>
-            </section>
+    <h2>4. Perlindungan & Perkongsian Data</h2>
+    <p>
+        Kami tidak akan menjual, menyewa, atau berkongsi maklumat peribadi anda kepada mana-mana pihak ketiga. Semua data disimpan secara selamat dan hanya digunakan untuk fungsi asas portal ini.
+    </p>
 
-            <!-- SEKSYEN 3 -->
-            <section class="space-y-2">
-                <h3 class="text-base font-extrabold text-brandDark flex items-center gap-2">
-                    <span class="text-brandAccent">3.</span> Tujuan Penggunaan Data
-                </h3>
-                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                    Semua data yang diterima melalui Google API hanya digunakan khas bagi tujuan fungsi portal seperti berikut:
-                </p>
-                <ul class="list-disc list-inside text-xs sm:text-sm text-slate-600 space-y-1.5 font-medium pl-2">
-                    <li>Membolehkan guru mencipta dan menghantar tugasan terus ke Google Classroom murid dari portal.</li>
-                    <li>Membolehkan murid menyemak status tugasan dan menanda tugasan selesai secara berpusat.</li>
-                    <li>Merekodkan log kehadiran dan aktiviti pengguna ke pangkalan data rasmi sekolah (Google Sheets) bagi tujuan analisis pentadbiran.</li>
-                </ul>
-            </section>
+    <h2>5. Pemadam Data & Hak Pengguna</h2>
+    <p>
+        Jika anda ingin memadamkan akaun atau data peribadi anda daripada sistem kami, sila hubungi kami melalui e-mel di bawah.
+    </p>
 
-            <!-- SEKSYEN 4 -->
-            <section class="space-y-2">
-                <h3 class="text-base font-extrabold text-brandDark flex items-center gap-2">
-                    <span class="text-brandAccent">4.</span> Perlindungan & Perkongsian Data
-                </h3>
-                <div class="p-4 bg-blue-50/70 border border-blue-200/80 rounded-2xl space-y-2">
-                    <p class="text-xs sm:text-sm text-brandDark font-extrabold">
-                        🔒 Ketetapan Mutlak Perlindungan Data:
-                    </p>
-                    <ul class="list-disc list-inside text-xs sm:text-sm text-slate-700 space-y-1 font-medium">
-                        <li>Kami <strong>TIDAK SEWINANG-WINANGNYA</strong> menjual, menyewakan, atau mengagihkan data peribadi pengguna kepada mana-mana pihak ketiga.</li>
-                        <li>Data anda tidak digunakan untuk tujuan pengiklanan atau pemprofilan komersial.</li>
-                        <li>Penyimpanan data log secara dalaman dikawal menggunakan prasarana selamat Google Workspace / Google Apps Script.</li>
-                    </ul>
-                </div>
-            </section>
+    <h2>6. Hubungi Kami</h2>
+    <p>Jika anda mempunyai sebarang soalan mengenai Dasar Privasi ini, sila hubungi pihak pentadbir di: e-mel anda (contoh: <code>support@domain-anda.com</code> atau e-mel akaun peribadi anda).</p>
 
-            <!-- SEKSYEN 5 -->
-            <section class="space-y-2">
-                <h3 class="text-base font-extrabold text-brandDark flex items-center gap-2">
-                    <span class="text-brandAccent">5.</span> Kawalan & Pembatalan Akses Pengguna
-                </h3>
-                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                    Pengguna berhak membatalkan akses kebenaran aplikasi ini pada bila-bila masa melalui tetapan akaun Google anda di <a href="https://myaccount.google.com/permissions" target="_blank" class="text-brandAccent font-bold hover:underline">Google Security Settings (Third-party apps with account access)</a>.
-                </p>
-            </section>
-
-            <!-- SEKSYEN 6 -->
-            <section class="space-y-2 pt-2 border-t border-brandBorder">
-                <h3 class="text-base font-extrabold text-brandDark flex items-center gap-2">
-                    <span class="text-brandAccent">6.</span> Hubungi Kami
-                </h3>
-                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
-                    Sekiranya anda mempunyai sebarang pertanyaan atau kemusykilan mengenai Dasar Privasi ini, sila hubungi pihak pentadbiran portal melalui:
-                </p>
-                <div class="text-xs sm:text-sm font-bold text-brandDark space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <p>📧 Emel Pentadbir: <span class="text-brandNavy">rasmi@sekolah.edu.my</span></p>
-                    <p>🌐 Halaman Utama: <a href="index.html" class="text-brandAccent underline">https://alepp890.github.io/</a></p>
-                </div>
-            </section>
-
-        </div>
-
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="bg-white border-t border-brandBorder py-6 px-4 text-center">
-        <p class="text-xs font-bold text-slate-600">
-            Portal Rasmi Sekolah &copy; 2026. Hak Cipta Terpelihara | <a href="index.html" class="text-brandAccent hover:underline">Halaman Utama Portal</a>
-        </p>
-    </footer>
-
+    <p><a href="index.html">&larr; Kembali ke Halaman Utama</a></p>
 </body>
 </html>
