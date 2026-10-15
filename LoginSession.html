@@ -4,18 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Log Masuk - Portal Rasmi Sekolah</title>
+
+    <!-- Google Identity Services SDK -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Sambungan Awal ke Servis Google -->
-    <link rel="preconnect" href="https://script.google.com">
-    <link rel="preconnect" href="https://drive.google.com">
-    <link rel="dns-prefetch" href="https://script.google.com">
-    <link rel="dns-prefetch" href="https://drive.google.com">
-
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
@@ -64,15 +62,32 @@
             box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.4);
         }
 
-        .loader-spinner {
-            border: 4px solid #CBD5E1; 
-            border-top: 4px solid #2563EB;
-            border-radius: 50%; 
-            width: 44px; 
-            height: 44px; 
-            animation: spin 0.8s linear infinite;
+        /* Interaktif & Ringan Loader Spinner */
+        .loader-ring {
+            display: inline-block;
+            position: relative;
+            width: 64px;
+            height: 64px;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-ring div {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 52px;
+            height: 52px;
+            margin: 6px;
+            border: 5px solid #2563EB;
+            border-radius: 50%;
+            animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: #2563EB transparent transparent transparent;
+        }
+        .loader-ring div:nth-child(1) { animation-delay: -0.45s; }
+        .loader-ring div:nth-child(2) { animation-delay: -0.3s; }
+        .loader-ring div:nth-child(3) { animation-delay: -0.15s; }
+        @keyframes loader-ring {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
         .toast-enter { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
@@ -83,15 +98,38 @@
 </head>
 <body class="bg-gradient-to-br from-slate-950 via-brandDark to-brandNavy antialiased min-h-screen flex items-center justify-center p-4 selection:bg-brandNavy selection:text-white">
 
-    <!-- GLOBAL LOADER & TOAST -->
-    <div id="global-loader" class="fixed inset-0 bg-brandDark/85 backdrop-blur-md z-[9999] flex flex-col items-center justify-center hidden">
-        <div class="loader-spinner mb-4"></div>
-        <p class="text-white text-center font-bold text-base drop-shadow-md" id="loader-text">Memuatkan sistem...</p>
+    <!-- GLOBAL INTERAKTIF SKRIN PEMUATAN (LOADING PAGE) -->
+    <div id="global-loader" class="fixed inset-0 bg-brandDark/85 backdrop-blur-md z-[9999] flex flex-col items-center justify-center hidden transition-all duration-300">
+        <div class="relative flex items-center justify-center mb-4">
+            <div class="loader-ring"><div></div><div></div><div></div><div></div></div>
+            <div class="absolute text-xl animate-pulse">🎓</div>
+        </div>
+        <p class="text-white text-center font-bold text-sm tracking-wide drop-shadow-md" id="loader-text">Memuatkan sistem...</p>
+        <span class="text-xs text-blue-300/80 font-medium mt-1">Sila tunggu sebentar</span>
     </div>
 
+    <!-- POPUP NOTIFIKASI TOAST CONTAINER -->
     <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
-    <!-- TETINGKAP MODAL PILIHAN DASHBOARD (KHAS UNTUK SISTEM_AKSES = ADMIN) -->
+    <!-- POPUP MODAL NOTIFIKASI / RALAT / KEJAYAAN -->
+    <div id="popup-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9995] flex items-center justify-center p-4 hidden">
+        <div class="card-custom w-full max-w-sm p-6 bg-white text-center space-y-4 animate-scale-up shadow-2xl">
+            <div id="popup-icon-wrapper" class="w-14 h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-red-100">
+                <span id="popup-icon">⚠️</span>
+            </div>
+            <div>
+                <h3 id="popup-title" class="text-base font-black text-brandDark">Maklum Balas Sistem</h3>
+                <p id="popup-message" class="text-xs text-slate-600 font-medium mt-1.5 leading-relaxed">Mesej ralat akan dipaparkan di sini.</p>
+            </div>
+            <div class="pt-2">
+                <button onclick="closePopupModal()" class="w-full py-2.5 px-4 bg-brandDark hover:bg-brandNavy text-white font-bold text-xs rounded-xl shadow-md transition">
+                    Faham & Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TETINGKAP MODAL PILIHAN DASHBOARD (UNTUK GURU BERSTATUS ADMIN) -->
     <div id="admin-choice-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9990] flex items-center justify-center p-4 hidden">
         <div class="card-custom w-full max-w-md p-6 bg-white text-center space-y-5 animate-scale-up">
             <div class="w-14 h-14 bg-blue-50 text-brandAccent rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-blue-100">
@@ -126,17 +164,16 @@
                 <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
             </div>
             <h1 class="text-xl font-black text-brandDark">Log Masuk Portal Sekolah</h1>
-            <p class="text-xs text-slate-500 font-medium mt-1">Pusat Akses Warga Sekolah & Waris</p>
         </div>
 
         <!-- 1. LOG MASUK AKAUN MOE MELALUI GOOGLE IDENTITY SERVICES -->
         <div class="mb-6">
             <p class="text-xs text-slate-500 font-semibold text-center mb-3">Log masuk guru dan murid menggunakan akaun rasmi MOE-DL</p>
             <div id="google-signin-button" class="flex justify-center min-h-[44px]"></div>
-            <p class="text-[11px] text-slate-400 text-center mt-2">Pengesahan akaun dibuat oleh Google.</p>
+            
             <div class="relative flex py-4 items-center">
                 <div class="flex-grow border-t border-slate-200"></div>
-                <span class="flex-shrink mx-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Atau Guna E-mel</span>
+                <span class="flex-shrink mx-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Atau Guna E-mel Manual</span>
                 <div class="flex-grow border-t border-slate-200"></div>
             </div>
         </div>
@@ -144,7 +181,7 @@
         <!-- 2. BORANG LOG MASUK MANUAL (EMEL & KATA LALUAN) -->
         <form id="login-form" onsubmit="handleManualLogin(event)" class="space-y-4">
             <div>
-                <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-1.5">Alamat E-mel / ID Pengguna</label>
+                <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-1.5">Alamat E-Mel</label>
                 <input type="email" id="login-email" required placeholder="Contoh: nama@sekolah.edu.my / waris@gmail.com" class="w-full px-4 py-3 rounded-2xl border border-brandBorder focus:border-brandAccent focus:ring-2 focus:ring-brandAccent/20 outline-none bg-slate-50 text-sm font-medium">
             </div>
             <div>
@@ -169,8 +206,8 @@
     <!-- LOGIK JAVASCRIPT LOG MASUK -->
     <script>
     let PENDING_ADMIN_USER = null;
-    const GOOGLE_CLIENT_ID = '637460698521-djt73cs1emsa5n5m7p2q8s4feohmhnuh.apps.googleusercontent.com';
 
+    /* SKRIN PEMUATAN (LOADING) */
     function showLoader(txt = "Memuatkan sistem...") {
         const loader = document.getElementById('global-loader');
         const lTxt = document.getElementById('loader-text');
@@ -181,41 +218,90 @@
         const loader = document.getElementById('global-loader');
         if (loader) loader.classList.add('hidden');
     }
+
+    /* POPUP NOTIFIKASI TOAST RINGKAS */
     function showToast(msg, type = 'success') {
         const container = document.getElementById('toast-container');
         if (!container) return;
         const toast = document.createElement('div');
         toast.className = `toast-enter pointer-events-auto px-4 py-3 rounded-2xl text-xs font-extrabold text-white shadow-xl flex items-center gap-2 ${type==='success'?'bg-emerald-600':'bg-red-600'}`;
-        const icon = document.createElement('span'); icon.textContent = type === 'success' ? '✅' : '⚠️';
-        const text = document.createElement('span'); text.textContent = String(msg || 'Ralat tidak diketahui.');
-        toast.append(icon, text); container.appendChild(toast);
-        setTimeout(() => toast.remove(), 4500);
+        const icon = document.createElement('span'); 
+        icon.textContent = type === 'success' ? '✅' : '⚠️';
+        const text = document.createElement('span'); 
+        text.textContent = String(msg || 'Ralat tidak diketahui.');
+        toast.append(icon, text); 
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
     }
 
+    /* POPUP MODAL INTERAKTIF UNTUK RALAT / AMARAN / MAKLUM BALAS PENTING */
+    function showPopupModal(msg, title = "Maklum Balas Sistem", icon = "⚠️", isSuccess = false) {
+        const modal = document.getElementById('popup-modal');
+        const msgEl = document.getElementById('popup-message');
+        const titleEl = document.getElementById('popup-title');
+        const iconEl = document.getElementById('popup-icon');
+        const iconWrapper = document.getElementById('popup-icon-wrapper');
+
+        if (msgEl) msgEl.innerText = msg;
+        if (titleEl) titleEl.innerText = title;
+        if (iconEl) iconEl.innerText = icon;
+
+        if (iconWrapper) {
+            if (isSuccess) {
+                iconWrapper.className = "w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-emerald-100";
+            } else {
+                iconWrapper.className = "w-14 h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-red-100";
+            }
+        }
+
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closePopupModal() {
+        const modal = document.getElementById('popup-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    /* INISIALISASI GOOGLE IDENTITY SERVICES (SSO LOG MASUK) */
     function initGoogleIdentity() {
+        const clientIdToUse = (typeof GOOGLE_CLIENT_ID !== 'undefined' && GOOGLE_CLIENT_ID) ? GOOGLE_CLIENT_ID : '637460698521-djt73cs1emsa5n5m7p2q8s4feohmhnuh.apps.googleusercontent.com';
+
         if (!window.google || !google.accounts || !google.accounts.id) {
-            showToast('Google Identity belum dimuatkan. Semak sambungan internet atau sekatan pelayar.', 'error');
+            console.warn('Google Identity SDK belum bersedia.');
             return;
         }
-        if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.startsWith('GANTIKAN_')) {
-            showToast('Client ID Google belum dimasukkan dalam LoginSession.html.', 'error');
-            return;
+
+        try {
+            google.accounts.id.initialize({
+                client_id: clientIdToUse,
+                callback: handleGoogleCredential,
+                auto_select: false,
+                cancel_on_tap_outside: true
+            });
+
+            const btnContainer = document.getElementById('google-signin-button');
+            if (btnContainer) {
+                btnContainer.innerHTML = ''; // Clear fallback
+                google.accounts.id.renderButton(btnContainer, {
+                    type: 'standard',
+                    theme: 'outline',
+                    size: 'large',
+                    text: 'signin_with',
+                    shape: 'pill',
+                    logo_alignment: 'left',
+                    width: 320
+                });
+            }
+        } catch (err) {
+            console.error("Ralat rendering butang Google:", err);
+            showPopupModal("Ralat memuatkan butang Google Sign-In. Sila muat semula halaman.", "Ralat Google SSO", "⚠️");
         }
-        google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: handleGoogleCredential,
-            auto_select: false,
-            cancel_on_tap_outside: true
-        });
-        google.accounts.id.renderButton(document.getElementById('google-signin-button'), {
-            type: 'standard', theme: 'outline', size: 'large', text: 'signin_with',
-            shape: 'pill', logo_alignment: 'left', width: 320
-        });
     }
 
+    /* PENGENDALIAN TOKEN GOOGLE DARI GOOGLE SIGN-IN */
     async function handleGoogleCredential(response) {
         if (!response || !response.credential) {
-            showToast('Google tidak memulangkan token identiti.', 'error');
+            showPopupModal("Google tidak memulangkan token pengesahan identiti.", "Ralat Pengesahan", "⚠️");
             return;
         }
         showLoader('Mengesahkan akaun Google MOE...');
@@ -225,38 +311,46 @@
                 data: { credential: response.credential }
             });
             hideLoader();
+
             if (!res || !res.success || !res.user) {
-                showToast((res && res.error) || 'Akaun tidak berjaya disahkan.', 'error');
+                showPopupModal((res && res.error) || 'Akaun Google MOE tidak berjaya disahkan atau tidak wujud dalam data sekolah.', 'Log Masuk Gagal', '❌');
                 return;
             }
+
             const user = res.user;
             localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
             sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+
             showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
-            setTimeout(() => routeUser(user), 450);
+            setTimeout(() => routeUser(user), 500);
         } catch (err) {
             hideLoader();
             console.error('Google Identity login error:', err);
-            showToast('Tidak dapat menghubungi backend. Semak WEB_APP_URL dalam config.js.', 'error');
+            showPopupModal('Sistem tidak dapat menghubungi backend Apps Script. Sila semak sambungan rangkaian.', 'Ralat Sambungan Backend', '🌐');
         }
     }
 
+    /* FUNGSI POST UTAMA KE BACKEND APPS SCRIPT */
     async function postToBackend(payload) {
-        if (typeof WEB_APP_URL === 'undefined' || !WEB_APP_URL) {
-            throw new Error('WEB_APP_URL tiada atau tidak ditakrifkan dalam config.js');
-        }
-        const response = await fetch(WEB_APP_URL, {
+        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
+            ? WEB_APP_URL 
+            : 'https://script.google.com/macros/s/AKfycbz0-s-WXQF6O9o9tH9CzzKUdxoZRaYAjEUdPGu4J0eWJpqHPNVASR5FxTyyc33htAjA/exec';
+
+        const response = await fetch(targetUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload),
             redirect: 'follow'
         });
-        if (!response.ok) throw new Error('HTTP ' + response.status);
+
+        if (!response.ok) throw new Error('Ralat Pelayan HTTP ' + response.status);
         return await response.json();
     }
 
+    /* HALUAN PENULINGAN PERANAN PENGGUNA (ROUTING) */
     function routeUser(user) {
         if (!user) return;
+
         if (user.is_admin || user.role === 'admin_choice') {
             PENDING_ADMIN_USER = user;
             document.getElementById('admin-choice-modal').classList.remove('hidden');
@@ -264,27 +358,27 @@
             window.location.href = 'DashboardGuru.html';
         } else if (user.role === 'murid' || user.role === 'student') {
             window.location.href = 'DashboardMurid.html';
-        } else if (user.role === 'parent') {
+        } else if (user.role === 'parent' || user.role === 'waris') {
             window.location.href = 'DashboardParent.html';
         } else if (user.role === 'admin') {
             window.location.href = 'DashboardAdmin.html';
         } else {
-            showToast('Akaun berjaya dikenal pasti tetapi tiada laluan dashboard untuk peranan ini.', 'error');
+            showPopupModal('Akaun anda berjaya disahkan tetapi peranan pengguna tidak dikenal pasti.', 'Peranan Tidak Sah', '⚠️');
         }
     }
 
-    function checkFastLogin() {
-        // Kosongkan simpanan sesi lama bagi memastikan log masuk semula disahkan oleh backend.
+    /* MEMADAM SESI LAMA SEBELUM LOG MASUK BARU */
+    function clearOldSessions() {
         localStorage.removeItem('SAVED_MOE_USER');
         sessionStorage.removeItem('CURRENT_USER');
     }
 
+    /* PILIHAN DASHBOARD UNTUK GURU DENGAN AKSES ADMIN */
     function selectAdminDashboard(choice) {
         if (!PENDING_ADMIN_USER) return;
         const userToSave = { ...PENDING_ADMIN_USER };
         userToSave.role = choice === 'admin' ? 'admin' : 'guru';
         
-        // Simpan sesi terkemas kini pada kedua-dua storage
         localStorage.setItem('SAVED_MOE_USER', JSON.stringify(userToSave));
         sessionStorage.setItem('CURRENT_USER', JSON.stringify(userToSave));
 
@@ -295,58 +389,43 @@
         }
     }
 
-        // Inisialisasi OAuth Token Client untuk Google Classroom
-let classroomTokenClient;
-
-function requestClassroomAccess(callback) {
-    if (!window.google || !google.accounts || !google.accounts.oauth2) {
-        showToast('Google OAuth SDK belum sedia.', 'error');
-        return;
-    }
-    
-    classroomTokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: CLASSROOM_SCOPES,
-        callback: (tokenResponse) => {
-            if (tokenResponse && tokenResponse.access_token) {
-                // Simpan access token dalam sessionStorage
-                sessionStorage.setItem('CLASSROOM_ACCESS_TOKEN', tokenResponse.access_token);
-                if (callback) callback();
-            } else {
-                showToast('Kebenaran Google Classroom ditolak.', 'error');
-            }
-        }
-    });
-
-    classroomTokenClient.requestAccessToken();
-}
-
+    /* PENGENDALIAN LOG MASUK MANUAL (WARIS / EMEL LAIN) */
     async function handleManualLogin(e) {
         e.preventDefault();
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-pass').value;
+
+        if (!email || !password) {
+            showPopupModal("Sila isi e-mel dan kata laluan anda dengan lengkap.", "Borang Tidak Lengkap", "⚠️");
+            return;
+        }
+
         showLoader('Menyemak padanan e-mel dan kata laluan...');
         try {
             const res = await postToBackend({ action: 'manualLogin', data: { email, password } });
             hideLoader();
+
             if (res && res.success && res.user) {
                 const user = res.user;
                 localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
                 sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+
                 showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
-                setTimeout(() => routeUser(user), 450);
+                setTimeout(() => routeUser(user), 500);
             } else {
-                showToast((res && res.error) || 'Log masuk gagal. Semak e-mel dan kata laluan.', 'error');
+                showPopupModal((res && res.error) || 'Log masuk gagal. Semak e-mel dan kata laluan anda.', 'Akses Ditolak', '🔐');
             }
         } catch (err) {
             hideLoader();
             console.error('Manual Login Error:', err);
-            showToast('Ralat sambungan ke backend. Semak URL, deployment dan CORS.', 'error');
+            showPopupModal('Ralat sambungan ke pelayan backend. Sila pastikan sambungan internet stabil.', 'Ralat Rangkaian', '🌐');
         }
     }
 
+    /* INISIALISASI APABILA DOM SIAP DILUATKAN */
     window.addEventListener('DOMContentLoaded', () => {
-        checkFastLogin();
+        clearOldSessions();
+
         let attempts = 0;
         const timer = setInterval(() => {
             attempts++;
@@ -355,9 +434,9 @@ function requestClassroomAccess(callback) {
                 initGoogleIdentity();
             } else if (attempts >= 30) {
                 clearInterval(timer);
-                showToast('Google Identity tidak dapat dimuatkan. Cuba refresh atau semak sekatan rangkaian.', 'error');
+                console.warn('Google Identity SDK lambat dimuatkan.');
             }
-        }, 250);
+        }, 200);
     });
     </script>
 </body>
