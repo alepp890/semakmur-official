@@ -454,6 +454,13 @@
     let globalDskpList = [];
     let globalErphList = [];
 
+    // Helper pautan URL Backend dari config.js
+    function getBackendUrl() {
+      if (typeof WEB_APP_URL !== 'undefined') return WEB_APP_URL;
+      if (typeof CONFIG !== 'undefined' && CONFIG.WEB_APP_URL) return CONFIG.WEB_APP_URL;
+      return '';
+    }
+
     // On Load Window
     window.addEventListener('DOMContentLoaded', () => {
       initSession();
@@ -480,7 +487,7 @@
 
     async function fetchInitialData() {
       try {
-        const res = await fetch(CONFIG.WEB_APP_URL, {
+        const res = await fetch(getBackendUrl(), {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
@@ -528,7 +535,7 @@
       container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-xl mb-2 text-teal-600"></i><p>Memuatkan jadual...</p></div>`;
 
       try {
-        const res = await fetch(CONFIG.WEB_APP_URL, {
+        const res = await fetch(getBackendUrl(), {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
@@ -569,7 +576,7 @@
       tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400"><i class="fa-solid fa-spinner fa-spin text-xl mb-2 text-teal-600"></i><p>Memuatkan rekod RPH...</p></td></tr>`;
 
       try {
-        const res = await fetch(CONFIG.WEB_APP_URL, {
+        const res = await fetch(getBackendUrl(), {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
@@ -714,7 +721,7 @@
       if (!subjek) return;
 
       try {
-        const res = await fetch(CONFIG.WEB_APP_URL, {
+        const res = await fetch(getBackendUrl(), {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
@@ -799,7 +806,7 @@
       };
 
       try {
-        const res = await fetch(CONFIG.WEB_APP_URL, {
+        const res = await fetch(getBackendUrl(), {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
