@@ -37,12 +37,18 @@
     </script>
 
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: #0F172A; 
             color: #0F172A; 
             font-size: 15px;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .card-custom {
@@ -66,17 +72,17 @@
         .loader-ring {
             display: inline-block;
             position: relative;
-            width: 64px;
-            height: 64px;
+            width: 56px;
+            height: 56px;
         }
         .loader-ring div {
             box-sizing: border-box;
             display: block;
             position: absolute;
-            width: 52px;
-            height: 52px;
+            width: 44px;
+            height: 44px;
             margin: 6px;
-            border: 5px solid #2563EB;
+            border: 4px solid #2563EB;
             border-radius: 50%;
             animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
             border-color: #2563EB transparent transparent transparent;
@@ -96,107 +102,118 @@
         @keyframes scaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-950 via-brandDark to-brandNavy antialiased min-h-screen flex items-center justify-center p-4 selection:bg-brandNavy selection:text-white">
+<body class="bg-gradient-to-br from-slate-950 via-brandDark to-brandNavy antialiased h-screen w-screen overflow-hidden flex items-center justify-center p-3 sm:p-4 selection:bg-brandNavy selection:text-white">
 
     <!-- GLOBAL INTERAKTIF SKRIN PEMUATAN (LOADING PAGE) -->
     <div id="global-loader" class="fixed inset-0 bg-brandDark/85 backdrop-blur-md z-[9999] flex flex-col items-center justify-center hidden transition-all duration-300">
-        <div class="relative flex items-center justify-center mb-4">
+        <div class="relative flex items-center justify-center mb-3">
             <div class="loader-ring"><div></div><div></div><div></div><div></div></div>
-            <div class="absolute text-xl animate-pulse">🎓</div>
+            <div class="absolute text-lg animate-pulse">🎓</div>
         </div>
         <p class="text-white text-center font-bold text-sm tracking-wide drop-shadow-md" id="loader-text">Memuatkan sistem...</p>
-        <span class="text-xs text-blue-300/80 font-medium mt-1">Sila tunggu sebentar</span>
+        <span class="text-xs text-blue-300/80 font-medium mt-0.5">Sila tunggu sebentar</span>
     </div>
 
     <!-- POPUP NOTIFIKASI TOAST CONTAINER -->
-    <div id="toast-container" class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+    <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 pointer-events-none"></div>
 
     <!-- POPUP MODAL NOTIFIKASI / RALAT / KEJAYAAN -->
     <div id="popup-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9995] flex items-center justify-center p-4 hidden">
-        <div class="card-custom w-full max-w-sm p-6 bg-white text-center space-y-4 animate-scale-up shadow-2xl">
-            <div id="popup-icon-wrapper" class="w-14 h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-red-100">
+        <div class="card-custom w-full max-w-sm p-5 sm:p-6 bg-white text-center space-y-4 animate-scale-up shadow-2xl border-t-4 border-t-red-500 rounded-2xl">
+            <div id="popup-icon-wrapper" class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-red-100">
                 <span id="popup-icon">⚠️</span>
             </div>
-            <div>
-                <h3 id="popup-title" class="text-base font-black text-brandDark">Maklum Balas Sistem</h3>
-                <p id="popup-message" class="text-xs text-slate-600 font-medium mt-1.5 leading-relaxed">Mesej ralat akan dipaparkan di sini.</p>
+            <div class="space-y-1">
+                <h3 id="popup-title" class="text-base sm:text-lg font-black text-brandDark tracking-tight">Maklum Balas Sistem</h3>
+                <p id="popup-message" class="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed">Mesej ralat akan dipaparkan di sini.</p>
             </div>
-            <div class="pt-2">
-                <button onclick="closePopupModal()" class="w-full py-2.5 px-4 bg-brandDark hover:bg-brandNavy text-white font-bold text-xs rounded-xl shadow-md transition">
-                    Faham & Tutup
+            <div class="pt-1">
+                <button onclick="closePopupModal()" class="w-full py-2.5 px-4 bg-brandDark hover:bg-brandNavy text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition active:scale-[0.98]">
+                    Tutup
                 </button>
             </div>
         </div>
     </div>
 
     <!-- TETINGKAP MODAL PILIHAN DASHBOARD (UNTUK GURU BERSTATUS ADMIN) -->
-    <div id="admin-choice-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9990] flex items-center justify-center p-4 hidden">
-        <div class="card-custom w-full max-w-md p-6 bg-white text-center space-y-5 animate-scale-up">
-            <div class="w-14 h-14 bg-blue-50 text-brandAccent rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-blue-100">
+    <div id="admin-choice-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[9990] flex items-center justify-center p-4 hidden">
+        <div class="card-custom w-full max-w-md p-6 bg-white text-center space-y-5 animate-scale-up shadow-2xl border border-slate-100 rounded-3xl">
+            <div class="w-16 h-16 bg-gradient-to-tr from-brandDark to-brandNavy text-amber-400 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-lg border border-white/20">
                 ⚙️
             </div>
-            <div>
-                <h3 class="text-lg font-black text-brandDark">Akses Pentadbir Dikesan</h3>
-                <p class="text-xs text-slate-500 font-medium mt-1">Sila pilih dashboard yang ingin anda akses untuk sesi ini:</p>
+            <div class="space-y-1">
+                <h3 class="text-lg sm:text-xl font-black text-brandDark tracking-tight">Akses Pentadbir Dikesan</h3>
+                <p class="text-xs sm:text-sm text-slate-500 font-semibold">Sila pilih peranan dashboard yang ingin anda akses:</p>
             </div>
-            <div class="space-y-3 pt-2">
-                <button onclick="selectAdminDashboard('admin')" class="w-full py-3.5 px-4 bg-gradient-to-r from-brandNavy to-brandDark text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg hover:opacity-95 transition flex items-center justify-center gap-2">
-                    <span>⚙️</span> <span>Dashboard Pentadbir (Admin)</span>
+            <div class="space-y-2.5 pt-1">
+                <button onclick="selectAdminDashboard('admin')" class="w-full py-3 px-4 bg-gradient-to-r from-brandNavy via-brandDark to-slate-900 text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all flex items-center justify-between border border-blue-500/30 group">
+                    <span class="flex items-center gap-3">
+                        <span class="p-2 bg-white/10 rounded-xl text-base">⚙️</span>
+                        <span class="text-left">
+                            <span class="block">Dashboard Pentadbir</span>
+                            <span class="block text-[10px] text-blue-200/80 font-normal">Pengurusan Sistem & Kandungan</span>
+                        </span>
+                    </span>
+                    <span class="text-amber-400 group-hover:translate-x-1 transition">&rarr;</span>
                 </button>
-                <button onclick="selectAdminDashboard('guru')" class="w-full py-3.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold text-xs sm:text-sm rounded-2xl transition flex items-center justify-center gap-2 border border-slate-200">
-                    <span>👨‍🏫</span> <span>Dashboard Guru</span>
+                <button onclick="selectAdminDashboard('guru')" class="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-800 font-black text-xs sm:text-sm rounded-2xl transition-all flex items-center justify-between border border-slate-200 group hover:scale-[1.01]">
+                    <span class="flex items-center gap-3">
+                        <span class="p-2 bg-amber-500/10 text-amber-600 rounded-xl text-base">👨‍🏫</span>
+                        <span class="text-left">
+                            <span class="block">Dashboard Guru</span>
+                            <span class="block text-[10px] text-slate-500 font-normal">Pengurusan PdP & Kehadiran</span>
+                        </span>
+                    </span>
+                    <span class="text-slate-400 group-hover:translate-x-1 transition">&rarr;</span>
                 </button>
             </div>
         </div>
     </div>
 
     <!-- KAD LOG MASUK UTAMA -->
-    <div class="card-custom w-full max-w-md p-8 relative z-10 mx-auto bg-white rounded-3xl my-8">
+    <div class="card-custom w-full max-w-md p-5 sm:p-6 relative z-10 mx-auto bg-white rounded-3xl shadow-2xl my-auto flex flex-col justify-between max-h-[95vh] overflow-y-auto sm:overflow-visible">
         
-        <!-- Butang Kembali Ke Portal Awam -->
-        <a href="index.html?mode=portal" class="absolute top-5 right-5 text-slate-400 hover:text-brandDark transition flex items-center gap-1 text-xs font-bold" title="Kembali ke Portal Awam">
-            <span>Portal</span>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <!-- Butang Lencana Portal Awam Pro -->
+        <a href="index.html?mode=portal" class="absolute top-4 right-4 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1.5 text-xs font-black border border-slate-200/80 shadow-xs group" title="Kembali ke Portal Awam">
+            <svg class="w-3.5 h-3.5 text-brandNavy" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <span>Portal Awam</span>
+            <span class="text-slate-400 group-hover:text-slate-700 transition font-extrabold ml-0.5">✕</span>
         </a>
 
-        <div class="text-center mb-6">
-            <div class="h-14 w-14 bg-gradient-to-tr from-brandDark via-brandNavy to-brandAccent text-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg border border-white/20">
-                <svg class="w-7 h-7 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        <div>
+            <div class="text-center mb-4 mt-1">
+                <div class="h-12 w-12 bg-gradient-to-tr from-brandDark via-brandNavy to-brandAccent text-white rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-md border border-white/20">
+                    <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h1 class="text-lg sm:text-xl font-black text-brandDark tracking-tight">Log Masuk Portal Sekolah</h1>
             </div>
-            <h1 class="text-xl font-black text-brandDark">Log Masuk Portal Sekolah</h1>
-        </div>
 
-        <!-- 1. LOG MASUK AKAUN MOE MELALUI GOOGLE IDENTITY SERVICES -->
-        <div class="mb-6">
-            <p class="text-xs text-slate-500 font-semibold text-center mb-3">Log masuk guru dan murid menggunakan akaun rasmi MOE-DL</p>
-            <div id="google-signin-button" class="flex justify-center min-h-[44px]"></div>
-            
-            <div class="relative flex py-4 items-center">
-                <div class="flex-grow border-t border-slate-200"></div>
-                <span class="flex-shrink mx-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">Atau Guna E-mel Manual</span>
-                <div class="flex-grow border-t border-slate-200"></div>
+            <!-- 1. LOG MASUK AKAUN MOE MELALUI GOOGLE IDENTITY SERVICES -->
+            <div class="mb-4 space-y-2">
+                <p class="text-[11px] sm:text-xs text-slate-500 font-bold text-center">Log masuk guru dan murid menggunakan akaun rasmi MOE-DL</p>
+                <div id="google-signin-button" class="flex justify-center min-h-[40px]"></div>
+                
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-slate-200"></div>
+                    <span class="flex-shrink mx-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Atau Guna E-mel Manual</span>
+                    <div class="flex-grow border-t border-slate-200"></div>
+                </div>
             </div>
-        </div>
 
-        <!-- 2. BORANG LOG MASUK MANUAL (EMEL & KATA LALUAN) -->
-        <form id="login-form" onsubmit="handleManualLogin(event)" class="space-y-4">
-            <div>
-                <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-1.5">Alamat E-Mel</label>
-                <input type="email" id="login-email" required placeholder="Contoh: nama@sekolah.edu.my / waris@gmail.com" class="w-full px-4 py-3 rounded-2xl border border-brandBorder focus:border-brandAccent focus:ring-2 focus:ring-brandAccent/20 outline-none bg-slate-50 text-sm font-medium">
-            </div>
-            <div>
-                <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-1.5">Kata Laluan</label>
-                <input type="password" id="login-pass" required placeholder="••••••••" class="w-full px-4 py-3 rounded-2xl border border-brandBorder focus:border-brandAccent focus:ring-2 focus:ring-brandAccent/20 outline-none bg-slate-50 text-sm font-medium">
-            </div>
-            <button type="submit" class="btn-gradient-dark w-full py-3.5 px-4 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg transition">
-                Log Masuk Sistem
-            </button>
-        </form>
-
-        <div class="mt-6 pt-4 border-t border-slate-100 text-center">
-            <a href="index.html?mode=portal" class="text-xs font-bold text-brandAccent hover:underline flex items-center justify-center gap-1">
-                <span>⬅️ Kembali Ke Portal Awam Utama</span>
-            </a>
+            <!-- 2. BORANG LOG MASUK MANUAL (EMEL & KATA LALUAN) -->
+            <form id="login-form" onsubmit="handleManualLogin(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-1">Alamat E-Mel</label>
+                    <input type="email" id="login-email" required placeholder="nama@sekolah.edu.my / waris@gmail.com" class="w-full px-3.5 py-2.5 rounded-xl border border-brandBorder focus:border-brandAccent focus:ring-2 focus:ring-brandAccent/20 outline-none bg-slate-50 text-xs sm:text-sm font-medium transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-1">Kata Laluan</label>
+                    <input type="password" id="login-pass" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-brandBorder focus:border-brandAccent focus:ring-2 focus:ring-brandAccent/20 outline-none bg-slate-50 text-xs sm:text-sm font-medium transition">
+                </div>
+                <button type="submit" class="btn-gradient-dark w-full py-3 px-4 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition hover:scale-[1.01] active:scale-[0.99]">
+                    Log Masuk Sistem
+                </button>
+            </form>
         </div>
     </div>
 
@@ -248,9 +265,9 @@
 
         if (iconWrapper) {
             if (isSuccess) {
-                iconWrapper.className = "w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-emerald-100";
+                iconWrapper.className = "w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-emerald-100";
             } else {
-                iconWrapper.className = "w-14 h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-red-100";
+                iconWrapper.className = "w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-red-100";
             }
         }
 
@@ -281,7 +298,7 @@
 
             const btnContainer = document.getElementById('google-signin-button');
             if (btnContainer) {
-                btnContainer.innerHTML = ''; // Clear fallback
+                btnContainer.innerHTML = '';
                 google.accounts.id.renderButton(btnContainer, {
                     type: 'standard',
                     theme: 'outline',
@@ -289,7 +306,7 @@
                     text: 'signin_with',
                     shape: 'pill',
                     logo_alignment: 'left',
-                    width: 320
+                    width: 300
                 });
             }
         } catch (err) {
@@ -313,7 +330,11 @@
             hideLoader();
 
             if (!res || !res.success || !res.user) {
-                showPopupModal((res && res.error) || 'Akaun Google MOE tidak berjaya disahkan atau tidak wujud dalam data sekolah.', 'Log Masuk Gagal', '❌');
+                let errorMsg = (res && res.error) ? res.error : 'Akaun Google MOE tidak berjaya disahkan.';
+                if (errorMsg.includes('tidak dijumpai sebagai Guru atau Murid')) {
+                    errorMsg = 'Akaun Google MOE ini tidak didaftarkan dalam rekod sekolah.';
+                }
+                showPopupModal(errorMsg, 'Log Masuk Gagal', '❌');
                 return;
             }
 
@@ -326,7 +347,7 @@
         } catch (err) {
             hideLoader();
             console.error('Google Identity login error:', err);
-            showPopupModal('Sistem tidak dapat menghubungi backend Apps Script. Sila semak sambungan rangkaian.', 'Ralat Sambungan Backend', '🌐');
+            showPopupModal('Sistem tidak dapat menghubungi pelayan backend. Sila semak sambungan rangkaian.', 'Ralat Sambungan Backend', '🌐');
         }
     }
 
@@ -334,7 +355,7 @@
     async function postToBackend(payload) {
         const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
             ? WEB_APP_URL 
-            : 'https://script.google.com/macros/s/AKfycbz0-s-WXQF6O9o9tH9CzzKUdxoZRaYAjEUdPGu4J0eWJpqHPNVASR5FxTyyc33htAjA/exec';
+            : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
 
         const response = await fetch(targetUrl, {
             method: 'POST',
@@ -413,7 +434,7 @@
                 showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
                 setTimeout(() => routeUser(user), 500);
             } else {
-                showPopupModal((res && res.error) || 'Log masuk gagal. Semak e-mel dan kata laluan anda.', 'Akses Ditolak', '🔐');
+                showPopupModal((res && res.error) || 'E-mel atau kata laluan tidak padan dalam pangkalan data.', 'Akses Ditolak', '🔐');
             }
         } catch (err) {
             hideLoader();
