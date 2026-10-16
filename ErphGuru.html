@@ -1114,7 +1114,7 @@
       }
     }
 
-    // 3. Render Widget Jadual Sebenar
+    // 3. Render Widget Jadual Sebenar (Updated with Safe Keys)
     function renderJadualWaktuWidget(namaHari) {
       const container = document.getElementById('jadualWidgetContainer');
       if (!container) return;
@@ -1130,14 +1130,23 @@
 
       let html = '';
       state.todayJadual.forEach((slot, idx) => {
+        // Semak variasi kunci huruf kecil dan huruf besar dari Apps Script
+        const waktu = slot.waktu || slot.Waktu || ('Waktu ' + (idx + 1));
+        const jamMula = slot.jam_mula || slot.Jam_Mula || '-';
+        const jamTamat = slot.jam_tamat || slot.Jam_Tamat || '-';
+        const namaKelas = slot.nama_kelas || slot.Nama_Kelas || 'Kelas';
+        const subjek = slot.subjek || slot.Subjek || 'Subjek';
+        const kategori = slot.kategori || slot.Kategori || 'Biasa';
+        const guruPair = slot.guru_pair || slot.Guru_Pair || '';
+
         html += `
           <div class="p-3.5 rounded-xl bg-teal-50/50 border border-teal-100 hover:shadow-sm transition-all">
             <div class="flex items-center justify-between text-xs text-brand-700 font-semibold mb-1">
-              <span>${slot.waktu || 'Waktu ' + (idx + 1)} | ${slot.jam_mula} - ${slot.jam_tamat}</span>
-              <span class="bg-teal-200/60 px-2 py-0.5 rounded text-[10px] font-bold">${slot.nama_kelas}</span>
+              <span>${waktu} | ${jamMula} - ${jamTamat}</span>
+              <span class="bg-teal-200/60 px-2 py-0.5 rounded text-[10px] font-bold">${namaKelas}</span>
             </div>
-            <h4 class="font-bold text-slate-800 text-sm">${slot.subjek}</h4>
-            <p class="text-xs text-slate-500 mt-0.5">Kategori: ${slot.kategori} ${slot.guru_pair ? '(Pair: ' + slot.guru_pair + ')' : ''}</p>
+            <h4 class="font-bold text-slate-800 text-sm">${subjek}</h4>
+            <p class="text-xs text-slate-500 mt-0.5">Kategori: ${kategori} ${guruPair ? '(Pair: ' + guruPair + ')' : ''}</p>
             <div class="mt-2 flex items-center justify-between pt-2 border-t border-teal-100/60 text-xs">
               <span class="text-amber-700 font-medium">⏳ Menunggu e-RPH</span>
               <button onclick="setActiveTab('tabBuilder')" class="text-brand-600 hover:underline font-semibold">Bina RPH</button>
