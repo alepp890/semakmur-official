@@ -60,7 +60,9 @@
       .print-card {
         box-shadow: none !important;
         border: 1px solid #000 !important;
-        padding: 0 !important;
+        padding: 1.5rem !important;
+        margin: 0 !important;
+        width: 100% !important;
       }
     }
     .print-only {
@@ -303,8 +305,10 @@
 
       </div>
 
-      <!-- PENTADBIR SPECIFIC DASHBOARD VIEW -->
+      <!-- PENTADBIR SPECIFIC DASHBOARD VIEW (DESIGN DARIPADA CONTOH_4) -->
       <div id="pentadbirDashboardView" class="space-y-6 hidden">
+        
+        <!-- PENTADBIR BANNER TINDAKAN GURU -->
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-r from-slate-50 via-white to-amber-50/30">
           <div class="flex items-center space-x-4">
             <div class="p-3 bg-rose-100 text-rose-700 rounded-2xl shrink-0">
@@ -315,16 +319,91 @@
                 <h3 class="font-display font-bold text-slate-800 text-base">Status Tindakan Guru (Sekolah)</h3>
                 <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Perlu Tindakan Pentadbir</span>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5">Senarai guru yang belum melengkapkan penulisan RPH harian atau refleksi.</p>
+              <p class="text-xs text-slate-500 mt-0.5">Senarai guru yang belum melengkapkan penulisan RPH harian atau refleksi untuk hari ini.</p>
             </div>
           </div>
 
           <div class="flex items-center space-x-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-200">
+            <div class="flex items-center space-x-4 text-xs">
+              <div class="text-center px-3 py-1 bg-rose-50 border border-rose-100 rounded-xl">
+                <span class="text-[10px] text-rose-700 font-bold block">Tak Buat RPH</span>
+                <span class="text-base font-extrabold text-rose-600">3 Guru</span>
+              </div>
+              <div class="text-center px-3 py-1 bg-amber-50 border border-amber-100 rounded-xl">
+                <span class="text-[10px] text-amber-800 font-bold block">Tak Buat Refleksi</span>
+                <span class="text-base font-extrabold text-amber-600">4 Guru</span>
+              </div>
+            </div>
+
             <button onclick="openIncompleteTeachersModal()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center space-x-1.5 shrink-0">
               <span>Lihat Lebih Lanjut</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </button>
           </div>
         </div>
+
+        <!-- Pentadbir KPI Ringkasan Kad Ringkas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
+            <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+              <span>Dihantar Hari Ini</span>
+              <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">Lengkap</span>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-800">42 / 48 Guru</h3>
+            <p class="text-xs text-slate-500 mt-1">87.5% pematuhan harian</p>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
+            <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+              <span>Menunggu Semakan Pentadbir</span>
+              <span id="statPendingBadge" class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Tugasan Anda</span>
+            </div>
+            <h3 id="statPendingCount" class="text-2xl font-bold text-amber-600">6 RPH</h3>
+            <p class="text-xs text-slate-500 mt-1">Perlu ulasan & pengesahan cop digital</p>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
+            <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
+              <span>Disahkan Minggu Ini</span>
+              <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">Terurus</span>
+            </div>
+            <h3 class="text-2xl font-bold text-brand-600">184 RPH</h3>
+            <p class="text-xs text-slate-500 mt-1">Rekod dikemaskini dalam pangkalan data</p>
+          </div>
+        </div>
+
+        <!-- Pentadbir Approval Queue Table -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div>
+              <h3 class="font-display font-bold text-slate-800 text-lg">Modul Semakan & Pengesahan Pentadbir (PGB / PK)</h3>
+              <p class="text-xs text-slate-400">Senarai e-RPH guru seliaan yang memerlukan semakan dan pengesahan digital</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <button onclick="filterApprovalQueue('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Semua</button>
+              <button onclick="filterApprovalQueue('PENDING')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200">Perlu Semakan (6)</button>
+              <button onclick="filterApprovalQueue('APPROVED')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200">Disah / Disemak</button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+              <thead class="bg-slate-50 text-slate-500 font-semibold uppercase border-b border-slate-100">
+                <tr>
+                  <th class="py-3 px-4">Nama Guru</th>
+                  <th class="py-3 px-4">Subjek & Kelas</th>
+                  <th class="py-3 px-4">Tarikh & Masa Hantar</th>
+                  <th class="py-3 px-4">Status Semakan</th>
+                  <th class="py-3 px-4">Penarafan / Refleksi</th>
+                  <th class="py-3 px-4 text-center">Tindakan</th>
+                </tr>
+              </thead>
+              <tbody id="pentadbirApprovalTableBody" class="divide-y divide-slate-100">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
     </section>
@@ -539,6 +618,9 @@
 
     </section>
 
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: SEMAKAN PENTADBIR                                                -->
+    <!-- ========================================================================= -->
     <section id="tabApproval" class="tab-content space-y-6 hidden">
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4">
@@ -551,27 +633,299 @@
       </div>
     </section>
 
+    <!-- ========================================================================= -->
+    <!-- VIEW 4: CETAK & EKSPORT DOKUMEN RASMI (DESIGN DARIPADA CONTOH_4)          -->
+    <!-- ========================================================================= -->
     <section id="tabPrint" class="tab-content space-y-6 hidden">
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex justify-between items-center no-print">
-        <h2 class="font-display font-bold text-slate-800 text-lg">Modul Cetakan & Eksport Dokumen Rasmi</h2>
-        <button onclick="window.print()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md">Cetak / Simpan PDF</button>
-      </div>
-      <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-300 max-w-4xl mx-auto space-y-6 print-card text-black font-sans">
-        <div class="border-b-2 border-black pb-4 text-center">
-          <h1 class="text-base font-bold uppercase">Kementerian Pendidikan Malaysia</h1>
-          <h2 class="text-sm font-bold text-slate-800">SEKOLAH KEBANGSAAN SEMAKMUR</h2>
-          <p class="text-[11px] text-slate-600">REKOD PENGAJARAN DAN PEMBELAJARAN HARIAN (e-RPH TS25)</p>
+      
+      <!-- KONTROL CETAKAN / FILTER -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row justify-between items-center gap-4 no-print">
+        <div class="flex items-center space-x-3">
+          <div class="p-2.5 bg-teal-50 text-brand-700 rounded-xl">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          </div>
+          <div>
+            <h2 class="font-display font-bold text-slate-800 text-base">Modul Cetakan & Eksport Dokumen Rasmi</h2>
+            <p class="text-xs text-slate-400">Jana salinan fizikal PDF e-RPH terpengesah lengkap dengan Cop Digital & Kod QR Semakan JNJK/PPD.</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
+          <button onclick="window.print()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            <span>Cetak / Simpan PDF</span>
+          </button>
         </div>
       </div>
+
+      <!-- OFFICIAL PRINTABLE DOCUMENT PREVIEW FRAME -->
+      <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-300 max-w-4xl mx-auto space-y-6 print-card text-black font-sans">
+        
+        <!-- Document Header (KPM Style) -->
+        <div class="border-b-2 border-black pb-4 text-center relative">
+          <div class="flex items-center justify-center space-x-4">
+            <div class="w-14 h-14 bg-slate-200 rounded-full flex items-center justify-center font-bold text-xs border border-slate-400">
+              KPM
+            </div>
+            <div>
+              <h1 class="text-base font-bold uppercase tracking-wide">Kementerian Pendidikan Malaysia</h1>
+              <h2 class="text-sm font-bold text-slate-800">SEKOLAH KEBANGSAAN SEMAKMUR</h2>
+              <p class="text-[11px] text-slate-600">REKOD PENGAJARAN DAN PEMBELAJARAN HARIAN (e-RPH TS25)</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RPH Document Body -->
+        <div class="space-y-4 text-xs">
+          
+          <table class="w-full border-collapse border border-slate-400">
+            <tbody>
+              <tr class="bg-slate-100">
+                <td class="border border-slate-400 p-2 font-bold w-1/4">Nama Guru</td>
+                <td class="border border-slate-400 p-2 w-1/4" id="printGuruName">Guru Akademik</td>
+                <td class="border border-slate-400 p-2 font-bold w-1/4">Tarikh / Hari</td>
+                <td class="border border-slate-400 p-2 w-1/4" id="printHariMasa">Isnin (08:10 - 08:40)</td>
+              </tr>
+              <tr>
+                <td class="border border-slate-400 p-2 font-bold">Mata Pelajaran</td>
+                <td class="border border-slate-400 p-2 font-semibold text-brand-800" id="printSubjek">Bahasa Melayu</td>
+                <td class="border border-slate-400 p-2 font-bold">Minggu / Masa PdPC</td>
+                <td class="border border-slate-400 p-2">Minggu <span id="printMinggu">36</span> (<span id="printTarikh">19/10/2026</span>)</td>
+              </tr>
+              <tr class="bg-slate-100">
+                <td class="border border-slate-400 p-2 font-bold">Kelas / Bil. Murid</td>
+                <td class="border border-slate-400 p-2" id="printKelas">1 Iris</td>
+                <td class="border border-slate-400 p-2 font-bold">Kod DSKP / Modul</td>
+                <td class="border border-slate-400 p-2">DSKP KPM Terkini</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- DSKP Details Table -->
+          <div class="border border-slate-400 p-3 space-y-2">
+            <p><span class="font-bold">Tema / Unit:</span> <span id="printTema">Kebersihan Dan Kesihatan</span></p>
+            <p><span class="font-bold">Tajuk Utama:</span> <span id="printTajuk">Kebersihan Diri Tanggungjawab Bersama</span></p>
+            <p><span class="font-bold">Standard Pembelajaran (SP):</span> <span id="printSP">1.1.1 Membaca dan memahami frasa serta ayat mudah dengan sebutan yang betul.</span></p>
+          </div>
+
+          <!-- OP & KK -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="border border-slate-400 p-3">
+              <span class="font-bold underline block mb-1">Objektif Pembelajaran (OP):</span>
+              <p>Pada akhir pembelajaran murid dapat:</p>
+              <p class="pt-1 whitespace-pre-line" id="printOP">Pada akhir PdPC, murid dapat membaca sekurang-kurangnya 3 frasa tentang kebersihan diri dengan betul.</p>
+            </div>
+            <div class="border border-slate-400 p-3">
+              <span class="font-bold underline block mb-1">Kriteria Kejayaan (KK):</span>
+              <p>Murid dianggap berjaya sekiranya:</p>
+              <p class="pt-1 whitespace-pre-line" id="printKK">Murid dianggap berjaya sekiranya dapat menyebut 3 frasa dan memadankan gambar dengan tepat.</p>
+            </div>
+          </div>
+
+          <!-- Activities -->
+          <div class="border border-slate-400 p-3 space-y-2">
+            <span class="font-bold underline block">Ringkasan Aktiviti PdPC:</span>
+            <p><strong>Permulaan (Set Induksi):</strong> <span id="printActStart">Murid menonton tayangan video lagu kebersihan diri dan bersoal jawab dengan guru.</span></p>
+            <p><strong>Utama (P&P):</strong> <span id="printActMain">Murid membaca frasa dalam kumpulan, melakukan aktiviti suai padan kad frasa, dan melengkapkan lembaran kerja terbeza.</span></p>
+            <p><strong>Penutup (Rumusan):</strong> <span id="printActEnd">Guru membuat rumusan dan memberikan pujian atas penglibatan murid.</span></p>
+          </div>
+
+          <!-- Reflection & Impak -->
+          <div class="border border-slate-400 p-3 bg-slate-50">
+            <span class="font-bold underline block mb-1">Refleksi & Impak Pembelajaran:</span>
+            <p><strong>Pencapaian OP:</strong> <span id="printReflectCount">28 / 32 Murid</span></p>
+            <p><strong>Tindakan Susulan:</strong> <span id="printReflectNote">4 murid yang belum mencapai OP diberikan bimbingan terbeza semasa aktiviti kumpulan.</span></p>
+          </div>
+
+          <!-- Digital Stamp & QR Verification Section -->
+          <div class="border-2 border-dashed border-teal-600 p-4 rounded-xl flex items-center justify-between bg-teal-50/30">
+            <div class="space-y-1">
+              <span class="text-[10px] uppercase tracking-wider font-bold text-slate-500">Pengesahan Digital Pentadbir</span>
+              <p class="font-bold text-sm text-brand-800">DISEMAK & DISAHKAN OLEH:</p>
+              <p class="font-semibold text-slate-800">Guru Besar / PK Kurikulum</p>
+              <p class="text-[11px] text-slate-500">Tarikh Cop Digital: <span class="font-mono">19-10-2026 | 11:20 AM</span></p>
+              <p class="text-[10px] text-emerald-700 font-bold">Catatan: "Aktiviti PdPC dirancang dengan sangat baik & berpusat murid."</p>
+            </div>
+
+            <!-- Simulated QR Code -->
+            <div class="text-center space-y-1 shrink-0">
+              <div class="w-20 h-20 bg-white border-2 border-slate-800 p-1 mx-auto flex items-center justify-center shadow-sm">
+                <svg class="w-full h-full text-slate-800" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 3h2v3h-2v-3zm0-5h4v2h-4v-2zm-4 0h2v4h-2v-4zm2 5h2v3h-2v-3z"/>
+                </svg>
+              </div>
+              <span class="text-[9px] font-mono block text-slate-500">JNJK-VERIFIED-2026</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
     </section>
 
+    <!-- ========================================================================= -->
+    <!-- VIEW 5: PANDUAN ALUR KERJA (DESIGN DARIPADA CONTOH_4)                    -->
+    <!-- ========================================================================= -->
     <section id="tabWorkflow" class="tab-content space-y-6 hidden">
+      
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
-        <h2 class="text-xl font-display font-bold text-slate-800">Panduan Alur Kerja & Operasional Portal e-RPH KPM</h2>
+        <div>
+          <span class="bg-teal-100 text-brand-800 text-xs px-2.5 py-0.5 rounded-full font-bold">Sistem Dokumentasi Rasmi</span>
+          <h2 class="text-xl font-display font-bold text-slate-800 mt-1">Panduan Alur Kerja & Operasional Portal e-RPH KPM</h2>
+          <p class="text-xs text-slate-400">Penerangan lengkap alur kerja perancangan, penghantaran harian, semakan pentadbir dan verifikasi audit.</p>
+        </div>
+
+        <!-- 5 Step Interactive Workflow Map -->
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+          
+          <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 text-center space-y-2">
+            <div class="w-8 h-8 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center mx-auto text-xs">1</div>
+            <h4 class="font-bold text-slate-800 text-xs">Cara Buat RPH</h4>
+            <p class="text-[11px] text-slate-500">Pilih slot jadual ➔ Auto DSKP ➔ Isi OP, KK & Langkah PdPC.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-center space-y-2">
+            <div class="w-8 h-8 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center mx-auto text-xs">2</div>
+            <h4 class="font-bold text-slate-800 text-xs">Submit Harian</h4>
+            <p class="text-[11px] text-slate-500">Fasa 1 Perancangan ➔ Selesai PdPC ➔ Fasa 2 Refleksi.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 text-center space-y-2">
+            <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center mx-auto text-xs">3</div>
+            <h4 class="font-bold text-slate-800 text-xs">Cara View RPH</h4>
+            <p class="text-[11px] text-slate-500">Paparan Rekod Mengikut Minggu & Hari Semasa.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-2">
+            <div class="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center mx-auto text-xs">4</div>
+            <h4 class="font-bold text-slate-800 text-xs">Semakan Pentadbir</h4>
+            <p class="text-[11px] text-slate-500">PGB/PK semak, ulas, beri penarafan & Cop Digital.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-purple-50 border border-purple-200 text-center space-y-2">
+            <div class="w-8 h-8 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center mx-auto text-xs">5</div>
+            <h4 class="font-bold text-slate-800 text-xs">Cara Cetak & Audit</h4>
+            <p class="text-[11px] text-slate-500">Eksport PDF rasmi bersama Kod QR Verifikasi JNJK.</p>
+          </div>
+
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-3 text-xs">
+          <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <span>💡</span> Nota Penting & Etika Penggunaan Portal
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-600">
+            <div class="space-y-1">
+              <p class="font-semibold text-slate-800">1. Apakah maksud Penetapan Cut-off Time 11:59 Malam?</p>
+              <p>Sistem akan merekodkan timestamp penghantaran. Refleksi yang dihantar selepas hari berkenaan akan ditanda secara automatik sebagai "Hantar Lewat".</p>
+            </div>
+            <div class="space-y-1">
+              <p class="font-semibold text-slate-800">2. Bagaimana jika subjek tiada dalam pilihan DSKP?</p>
+              <p>Sila pastikan kod ringkas subjek dalam Jadual Waktu telah dipetakan dengan tepat pada kamus pemetaan `SUBJECT_MAP` dalam portal.</p>
+            </div>
+          </div>
+        </div>
+
       </div>
+
     </section>
 
   </main>
+
+  <!-- MODAL 1: SENARAI GURU TAK LENGKAP (UNTUK PENTADBIR) -->
+  <div id="incompleteTeachersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <div class="bg-gradient-to-r from-rose-700 to-rose-800 text-white p-4 flex justify-between items-center">
+        <div>
+          <h3 class="font-display font-bold text-base flex items-center gap-2">
+            <span>🚨</span> Senarai Guru Belum Lengkapkan e-RPH / Refleksi
+          </h3>
+          <p class="text-xs text-rose-100">Status Pemantauan Harian Pentadbir (19 Oktober 2026)</p>
+        </div>
+        <button onclick="closeIncompleteTeachersModal()" class="text-white/80 hover:text-white p-1 rounded-lg">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 text-xs">
+        <div class="space-y-2">
+          <h4 class="font-bold text-rose-700 uppercase tracking-wider text-[11px] flex items-center justify-between">
+            <span>❌ Belum Hantar Perancangan RPH (3 Guru)</span>
+            <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px]">Tindakan Segera</span>
+          </h4>
+
+          <div class="divide-y divide-slate-100 border border-rose-100 rounded-xl overflow-hidden bg-rose-50/30">
+            <div class="p-3 flex items-center justify-between">
+              <div>
+                <p class="font-bold text-slate-800">Cikgu Ahmad Razak bin Hashim</p>
+                <p class="text-[11px] text-slate-500">Sejarah Tingkatan 3 | Slot 2 (10:00 AM)</p>
+              </div>
+              <button onclick="sendReminder('Cikgu Ahmad Razak')" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-[10px]">
+                🔔 Hantar Peringatan
+              </button>
+            </div>
+
+            <div class="p-3 flex items-center justify-between">
+              <div>
+                <p class="font-bold text-slate-800">Cikgu Maria binti Abdullah</p>
+                <p class="text-[11px] text-slate-500">Bahasa Inggeris T2 | Slot 3 (11:30 AM)</p>
+              </div>
+              <button onclick="sendReminder('Cikgu Maria')" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-[10px]">
+                🔔 Hantar Peringatan
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center">
+        <button onclick="sendReminderAll()" class="px-4 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-bold rounded-xl transition-all">
+          📢 Hantar Peringatan Pukal kepada Semua
+        </button>
+        <button onclick="closeIncompleteTeachersModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-all">
+          Tutup
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL 2: SEMAKAN & APPROVAL PENTADBIR -->
+  <div id="reviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <div class="bg-gradient-to-r from-brand-700 to-brand-800 text-white p-4 flex justify-between items-center">
+        <div>
+          <h3 class="font-display font-bold text-base">Semakan & Pengesahan e-RPH</h3>
+          <p id="modalTeacherInfo" class="text-xs text-teal-100">Guru Akademik | Bahasa Melayu</p>
+        </div>
+        <button onclick="closeReviewModal()" class="text-white/80 hover:text-white p-1 rounded-lg">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 text-xs">
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+          <p><strong class="text-slate-700">Tajuk:</strong> <span id="modalTopic">Persamaan Kuadratik & Graf</span></p>
+          <p><strong class="text-slate-700">Standard Pembelajaran:</strong> <span id="modalSP">1.1.3 Membentuk persamaan kuadratik dan pemfaktoran.</span></p>
+          <p><strong class="text-slate-700">Refleksi Guru:</strong> <span id="modalReflect" class="text-emerald-700 font-medium">28/32 Murid capai OP. Bimbingan pemulihan dijalankan.</span></p>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Catatan / Ulasan Pentadbir</label>
+          <textarea id="modalCommentInput" rows="3" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-brand-500 font-medium text-slate-800" placeholder="Masukkan ulasan penambahbaikan..."></textarea>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
+        <button onclick="closeReviewModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-all">
+          Batal
+        </button>
+        <button onclick="saveApprovalAction()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-1">
+          <span>✓ Sahkan & Cop Digital</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none no-print">
@@ -607,7 +961,9 @@
       todayJadual: [],
       allUserJadual: [],
       dskpList: [],
-      rphList: []
+      rphList: [],
+      activeModalRphId: null,
+      currentStarRating: 5
     };
 
     function initUserSession() {
@@ -620,6 +976,10 @@
           document.getElementById('userName').innerText = name;
           document.getElementById('userRoleTitle').innerText = `Guru Akademik | ${email}`;
           
+          if (document.getElementById('printGuruName')) {
+            document.getElementById('printGuruName').innerText = name;
+          }
+
           fetchJadualHariIni(email);
         } catch (e) {
           fetchJadualHariIni('guru@moe-dl.edu.my');
@@ -766,7 +1126,6 @@
       onBuilderDateDayChange();
     }
 
-    // 3. KEMASKINI ONBUILDERDATEDAYCHANGE MENGGUNAKAN COMBINECONSECUTIVESLOTS & SUBJECT_MAP
     async function onBuilderDateDayChange() {
       const val = document.getElementById('builderSelectDateDay').value;
       if (!val) return;
@@ -791,7 +1150,6 @@
         const result = await response.json();
         if (result && result.success && Array.isArray(result.data) && result.data.length > 0) {
           
-          // GABUNGKAN SLOT BERTURUTAN UNTUK SUBJEK SAMA
           const combinedSlots = combineConsecutiveSlots(result.data);
           state.allUserJadual = combinedSlots;
 
@@ -818,13 +1176,13 @@
       }
     }
 
-    // 4. KEMASKINI ONBUILDERSLOTCHANGE UNTUK TUKAR KOD SUBJEK KEPADA NAMA PENUH DSKP
     function onBuilderSlotChange() {
       const idx = document.getElementById('builderSelectSlot').value;
       if (idx === '' || !state.allUserJadual[idx]) return;
 
       const slot = state.allUserJadual[idx];
       const [selectedHari, selectedDate] = document.getElementById('builderSelectDateDay').value.split('|');
+      const weekNum = document.getElementById('builderSelectWeek').value || '36';
 
       const jamMula = slot.jam_mula || '';
       const jamTamat = slot.jam_tamat || '';
@@ -838,13 +1196,19 @@
       document.getElementById('rphSubjectSelect').value = subjekPenuh;
       document.getElementById('rphClass').value = namaKelas;
 
+      // KEMASKINI PAPARAN PRACETAK AUTO
+      if (document.getElementById('printMinggu')) document.getElementById('printMinggu').innerText = weekNum;
+      if (document.getElementById('printTarikh')) document.getElementById('printTarikh').innerText = selectedDate;
+      if (document.getElementById('printHariMasa')) document.getElementById('printHariMasa').innerText = `${selectedHari} (${jamMula} - ${jamTamat})`;
+      if (document.getElementById('printSubjek')) document.getElementById('printSubjek').innerText = subjekPenuh;
+      if (document.getElementById('printKelas')) document.getElementById('printKelas').innerText = namaKelas;
+
       let tahunMatch = namaKelas.match(/\d+/);
       let tahun = tahunMatch ? tahunMatch[0] : '3';
 
       fetchDskpData(subjekPenuh, tahun);
     }
 
-    // TARIK DATA DSKP DARI SHEET Data_DSKP
     async function fetchDskpData(subjek, tahun) {
       const badge = document.getElementById('dskpStatusBadge');
       badge.innerText = '⏳ Sedang menarik DSKP dari pangkalan data...';
@@ -904,7 +1268,6 @@
       tajukSelect.innerHTML = html;
     }
 
-    // AUTOMATIK DSKP POPULATE KE BORANG (SP, OP, KK, SET INDUKSI, AKTIVITI, RUMUSAN)
     function onTajukChange() {
       const selectedTheme = document.getElementById('rphThemeSelect').value;
       const selectedTajuk = document.getElementById('rphTajukSelect').value;
@@ -919,6 +1282,16 @@
         document.getElementById('rphActStart').value = item.set_induksi || '';
         document.getElementById('rphActMain').value = item.aktiviti || '';
         document.getElementById('rphActEnd').value = item.rumusan || '';
+
+        // KEMASKINI DOKUMEN CETAKAN
+        if (document.getElementById('printTema')) document.getElementById('printTema').innerText = selectedTheme;
+        if (document.getElementById('printTajuk')) document.getElementById('printTajuk').innerText = selectedTajuk;
+        if (document.getElementById('printSP')) document.getElementById('printSP').innerText = item.sp || '';
+        if (document.getElementById('printOP')) document.getElementById('printOP').innerText = item.objektif || '';
+        if (document.getElementById('printKK')) document.getElementById('printKK').innerText = item.kriteria_kejayaan || '';
+        if (document.getElementById('printActStart')) document.getElementById('printActStart').innerText = item.set_induksi || '';
+        if (document.getElementById('printActMain')) document.getElementById('printActMain').innerText = item.aktiviti || '';
+        if (document.getElementById('printActEnd')) document.getElementById('printActEnd').innerText = item.rumusan || '';
 
         showToast('Data DSKP (SP, OP, KK & Aktiviti) diisi secara automatik!', '✨');
       }
@@ -970,6 +1343,49 @@
     function filterGuruTableByDay() {}
     function submitRphForm() { showToast('e-RPH Hari Ini Berjaya Dihantar!', '🚀'); }
     function saveDraftRPH() { showToast('Draf RPH Berjaya Disimpan!', '💾'); }
+
+    // FUNGSI PENTADBIR & MODAL
+    function openIncompleteTeachersModal() {
+      document.getElementById('incompleteTeachersModal').classList.remove('hidden');
+    }
+
+    function closeIncompleteTeachersModal() {
+      document.getElementById('incompleteTeachersModal').classList.add('hidden');
+    }
+
+    function sendReminder(teacherName) {
+      showToast(`Notifikasi peringatan dihantar kepada ${teacherName}!`, '🔔');
+    }
+
+    function sendReminderAll() {
+      showToast('Peringatan pukal dihantar kepada semua guru yang terlibat!', '📢');
+      closeIncompleteTeachersModal();
+    }
+
+    function openReviewModal(rphId) {
+      document.getElementById('reviewModal').classList.remove('hidden');
+    }
+
+    function closeReviewModal() {
+      document.getElementById('reviewModal').classList.add('hidden');
+    }
+
+    function saveApprovalAction() {
+      closeReviewModal();
+      showToast('Pengesahan & Cop Digital e-RPH Berjaya Disimpan!', '✅');
+    }
+
+    function approveAllPending() {
+      showToast('Semua e-RPH telah disahkan secara pukal!', '🎉');
+    }
+
+    function filterApprovalQueue(type) {
+      showToast(`Filter Pentadbir: ${type}`, '🔍');
+    }
+
+    function toggleNotificationModal() {
+      showToast('Notifikasi: Tiada teguran baharu daripada pentadbir.', '🔔');
+    }
 
     function showToast(message, icon = '🔔') {
       const toast = document.getElementById('toastNotification');
