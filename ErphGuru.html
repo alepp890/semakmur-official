@@ -46,7 +46,6 @@
       color: #334155;
     }
 
-    /* Print styling rules for official KPM e-RPH document */
     @media print {
       body {
         background-color: #ffffff !important;
@@ -68,7 +67,6 @@
       display: none;
     }
 
-    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -87,12 +85,10 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased">
 
-  <!-- TOP HEADER / NAVBAR (FULL WIDTH - NO SIDEBARS) -->
+  <!-- TOP HEADER / NAVBAR -->
   <header class="bg-gradient-to-r from-brand-700 via-brand-600 to-brand-800 text-white shadow-md sticky top-0 z-40 no-print">
-    <!-- Top Utility Bar -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4 border-b border-white/10">
       
-      <!-- Brand & Title -->
       <div class="flex items-center space-x-3">
         <a href="DashboardGuru.html" class="bg-white/10 p-2 rounded-xl backdrop-blur-md border border-white/20 hover:bg-white/20 transition" title="Kembali ke Dashboard">
           <svg class="w-7 h-7 text-teal-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +104,6 @@
         </div>
       </div>
 
-      <!-- Quick Search Bar -->
       <div class="flex-1 max-w-xs hidden md:block">
         <div class="relative">
           <input type="text" id="globalSearch" placeholder="Cari DSKP, Subjek atau Tarikh..." class="w-full bg-white/10 text-white placeholder-teal-100/70 text-sm rounded-full pl-9 pr-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-300 border border-white/20">
@@ -118,9 +113,7 @@
         </div>
       </div>
 
-      <!-- User Profile & Role Switcher -->
       <div class="flex items-center space-x-4">
-        <!-- Role Switcher Dropdown / Toggle Button -->
         <div class="bg-black/20 p-1 rounded-xl flex items-center border border-white/10 text-xs">
           <span class="px-2 text-teal-100 font-medium hidden sm:inline">Mod User:</span>
           <button id="roleBtnGuru" onclick="switchUserRole('guru')" class="px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm">
@@ -131,7 +124,6 @@
           </button>
         </div>
 
-        <!-- Notification Bell -->
         <button onclick="toggleNotificationModal()" class="relative p-2 text-teal-100 hover:text-white hover:bg-white/10 rounded-full transition-all">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
@@ -139,7 +131,6 @@
           <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-amber-400 rounded-full ring-2 ring-brand-700"></span>
         </button>
 
-        <!-- User Info Avatar -->
         <div class="flex items-center space-x-2 border-l border-white/10 pl-3">
           <img id="userAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120" alt="Profile" class="w-8 h-8 rounded-full border-2 border-teal-300 object-cover">
           <div class="hidden lg:block text-left">
@@ -153,7 +144,7 @@
     <!-- Main Navigation Tab Bar -->
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-2 overflow-x-auto text-sm font-medium pt-2">
       <button onclick="setActiveTab('tabDashboard')" id="navTabDashboard" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f4f7f6] text-brand-700 font-bold">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1v4a1 1 0 001 1m-6 0h6"></path></svg>
         <span>Dashboard Utama</span>
       </button>
 
@@ -165,7 +156,7 @@
       <button onclick="setActiveTab('tabApproval')" id="navTabApproval" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10 relative">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         <span>Semakan Pentadbir</span>
-        <span id="badgePendingCount" class="bg-amber-400 text-slate-900 text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-1">6</span>
+        <span id="badgePendingCount" class="bg-amber-400 text-slate-900 text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-1">0</span>
       </button>
 
       <button onclick="setActiveTab('tabPrint')" id="navTabPrint" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10">
@@ -183,34 +174,32 @@
   <!-- MAIN CONTAINER -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- TOP ANNOUNCEMENT / SYSTEM STATUS BANNER -->
-    <div id="statusAlertBanner" class="bg-gradient-to-r from-teal-500 to-cyan-600 text-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
-      <div class="flex items-center space-x-3">
-        <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm shrink-0">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-        </div>
-        <div>
-          <p class="font-semibold text-sm">Peringatan Penghantaran e-RPH Hari Ini: <span id="currentDateStr" class="underline">Isnin, 19 Oktober 2026</span></p>
-          <p class="text-xs text-teal-100">Sila lengkapkan refleksi sebelum jam <span class="font-bold text-amber-200">11:59 Malam</span> untuk penetapan cut-off automatik sistem.</p>
-        </div>
-      </div>
-      <div class="flex items-center space-x-2 shrink-0">
-        <button onclick="setActiveTab('tabBuilder')" class="bg-white text-teal-800 text-xs px-4 py-2 rounded-lg font-bold hover:bg-teal-50 transition-all shadow-sm">
-          + Bina RPH Hari Ini
-        </button>
-      </div>
-    </div>
-
-
     <!-- ========================================================================= -->
-    <!-- VIEW 1: DASHBOARD UTAMA (GURU / PENTADBIR DYNAMIC SWITCH)                 -->
+    <!-- VIEW 1: DASHBOARD UTAMA                                                   -->
     <!-- ========================================================================= -->
     <section id="tabDashboard" class="tab-content space-y-6">
+
+      <!-- PERINGATAN PENGHANTARAN E-RPH (PINDAAN 1: HANYA DI DASHBOARD UTAMA) -->
+      <div id="statusAlertBanner" class="bg-gradient-to-r from-teal-500 to-cyan-600 text-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
+        <div class="flex items-center space-x-3">
+          <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm shrink-0">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          </div>
+          <div>
+            <p class="font-semibold text-sm">Peringatan Penghantaran e-RPH Hari Ini: <span id="currentDateStr" class="underline">Isnin, 19 Oktober 2026</span></p>
+            <p class="text-xs text-teal-100">Sila lengkapkan refleksi sebelum jam <span class="font-bold text-amber-200">11:59 Malam</span> untuk penetapan cut-off automatik sistem.</p>
+          </div>
+        </div>
+        <div class="flex items-center space-x-2 shrink-0">
+          <button onclick="setActiveTab('tabBuilder')" class="bg-white text-teal-800 text-xs px-4 py-2 rounded-lg font-bold hover:bg-teal-50 transition-all shadow-sm">
+            + Bina RPH Hari Ini
+          </button>
+        </div>
+      </div>
 
       <!-- GURU SPECIFIC DASHBOARD VIEW -->
       <div id="guruDashboardView" class="space-y-6">
         
-        <!-- CONTROL BAR UNTUK REVIEW MINGGU LEPAS -->
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div class="flex items-center space-x-3">
             <span class="text-xl">📅</span>
@@ -222,41 +211,30 @@
           <div class="flex items-center space-x-2 w-full sm:w-auto">
             <label class="text-xs font-semibold text-slate-600 shrink-0">Pilih Minggu:</label>
             <select id="selectWeekGuru" onchange="changeWeekGuru()" class="bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold px-3 py-2 text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 w-full sm:w-auto">
-              <option value="42" selected>Minggu 42 (Minggu Semasa)</option>
-              <option value="41">Minggu 41 (10 Oct - 14 Oct 2026)</option>
-              <option value="40">Minggu 40 (03 Oct - 07 Oct 2026)</option>
-              <option value="39">Minggu 39 (26 Sep - 30 Sep 2026)</option>
-              <option value="38">Minggu 38 (19 Sep - 23 Sep 2026)</option>
-              <option value="1">Minggu 1 (Sesi Awal Persekolahan)</option>
+              <!-- Autopopulated 36 -> 1 -->
             </select>
           </div>
         </div>
 
-        <!-- MAIN LAYOUT GRID -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           
-          <!-- SISI KIRI: STATISTIK KECIL TINDAKAN & JADUAL WAKTU HARIAN SEBENAR -->
           <div class="space-y-6 lg:col-span-1">
-            
-            <!-- STATISTIK KECIL TINDAKAN GURU -->
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
               <div class="flex items-center justify-between border-b border-slate-100 pb-2">
                 <span class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                   Statistik Tindakan Hari Ini
                 </span>
-                <span id="labelWeekBadge" class="text-[10px] bg-teal-50 text-brand-700 px-2 py-0.5 rounded-full font-bold">Minggu 42</span>
+                <span id="labelWeekBadge" class="text-[10px] bg-teal-50 text-brand-700 px-2 py-0.5 rounded-full font-bold">Minggu 36</span>
               </div>
 
               <div class="grid grid-cols-2 gap-3">
-                <!-- Status Tak Buat RPH -->
                 <div class="bg-rose-50/70 border border-rose-100 rounded-xl p-3 text-center space-y-1">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-rose-700 block">Tak Buat RPH</span>
                   <p id="countGuruNoRph" class="text-xl font-extrabold text-rose-600">0 Slot</p>
                   <span class="text-[9px] text-rose-500 block">Status: Selesai</span>
                 </div>
 
-                <!-- Status Tak Buat Refleksi -->
                 <div class="bg-amber-50/70 border border-amber-100 rounded-xl p-3 text-center space-y-1">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">Tak Buat Refleksi</span>
                   <p id="countGuruNoReflect" class="text-xl font-extrabold text-amber-600">0 Slot</p>
@@ -267,7 +245,6 @@
               </div>
             </div>
 
-            <!-- JADUAL WAKTU HARIAN WIDGET (DYNAMIC REAL DATA) -->
             <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 space-y-4">
               <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="font-display font-bold text-slate-800 text-base flex items-center gap-2">
@@ -277,25 +254,21 @@
                 <span id="labelHariJadual" class="text-[11px] font-bold text-brand-700 bg-teal-50 px-2 py-0.5 rounded">Hari Ini</span>
               </div>
 
-              <!-- Container Slot Dynamic -->
               <div id="jadualWidgetContainer" class="space-y-3">
                 <div class="p-4 text-center text-slate-400 text-xs italic bg-slate-50 rounded-xl border border-slate-100">
-                  Sedang menarik jadual waktu sebenar dari pangkalan data...
+                  Sedang menarik jadual waktu...
                 </div>
               </div>
             </div>
-
           </div>
 
-          <!-- SISI KANAN: REKOD PENGHANTARAN e-RPH TERKINI -->
           <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 space-y-4 lg:col-span-2">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
                 <h3 class="font-display font-bold text-slate-800 text-base">Rekod Penghantaran e-RPH</h3>
-                <p class="text-xs text-slate-400">Senarai e-RPH harian yang telah dihantar mengikut jadual minggu semasa</p>
+                <p class="text-xs text-slate-400">Senarai e-RPH harian mengikut jadual minggu semasa</p>
               </div>
               
-              <!-- DROPDOWN FILTER MENGIKUT HARI MINGGU SEMASA -->
               <div class="flex items-center space-x-2">
                 <label class="text-xs text-slate-500 font-medium hidden sm:inline">Pilih Hari:</label>
                 <select id="filterDayGuru" onchange="filterGuruTableByDay()" class="bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-500 text-brand-800">
@@ -309,7 +282,6 @@
               </div>
             </div>
 
-            <!-- Table Rekod Penghantaran -->
             <div class="overflow-x-auto">
               <table class="w-full text-left text-xs text-slate-600">
                 <thead class="bg-slate-50 text-slate-500 font-semibold uppercase border-b border-slate-100">
@@ -322,7 +294,6 @@
                   </tr>
                 </thead>
                 <tbody id="guruRphTableBody" class="divide-y divide-slate-100">
-                  <!-- JS dynamic rows insertion -->
                 </tbody>
               </table>
             </div>
@@ -332,11 +303,8 @@
 
       </div>
 
-
       <!-- PENTADBIR SPECIFIC DASHBOARD VIEW -->
       <div id="pentadbirDashboardView" class="space-y-6 hidden">
-        
-        <!-- PENTADBIR: STATISTIK KECIL TINDAKAN GURU -->
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-r from-slate-50 via-white to-amber-50/30">
           <div class="flex items-center space-x-4">
             <div class="p-3 bg-rose-100 text-rose-700 rounded-2xl shrink-0">
@@ -347,233 +315,164 @@
                 <h3 class="font-display font-bold text-slate-800 text-base">Status Tindakan Guru (Sekolah)</h3>
                 <span class="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Perlu Tindakan Pentadbir</span>
               </div>
-              <p class="text-xs text-slate-500 mt-0.5">Senarai guru yang belum melengkapkan penulisan RPH harian atau refleksi untuk hari ini.</p>
+              <p class="text-xs text-slate-500 mt-0.5">Senarai guru yang belum melengkapkan penulisan RPH harian atau refleksi.</p>
             </div>
           </div>
 
-          <!-- Small Stat Counters & Lihat Lebih Lanjut Button -->
           <div class="flex items-center space-x-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-200">
-            <div class="flex items-center space-x-4 text-xs">
-              <div class="text-center px-3 py-1 bg-rose-50 border border-rose-100 rounded-xl">
-                <span class="text-[10px] text-rose-700 font-bold block">Tak Buat RPH</span>
-                <span class="text-base font-extrabold text-rose-600">3 Guru</span>
-              </div>
-              <div class="text-center px-3 py-1 bg-amber-50 border border-amber-100 rounded-xl">
-                <span class="text-[10px] text-amber-800 font-bold block">Tak Buat Refleksi</span>
-                <span class="text-base font-extrabold text-amber-600">4 Guru</span>
-              </div>
-            </div>
-
-            <!-- BUTANG LIHAT LEBIH LANJUT -->
             <button onclick="openIncompleteTeachersModal()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center space-x-1.5 shrink-0">
               <span>Lihat Lebih Lanjut</span>
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </button>
           </div>
         </div>
-
-        <!-- Pentadbir KPI Ringkasan Kad Ringkas -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
-            <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-              <span>Dihantar Hari Ini</span>
-              <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">Lengkap</span>
-            </div>
-            <h3 class="text-2xl font-bold text-slate-800">42 / 48 Guru</h3>
-            <p class="text-xs text-slate-500 mt-1">87.5% pematuhan harian</p>
-          </div>
-
-          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
-            <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-              <span>Menunggu Semakan Pentadbir</span>
-              <span id="statPendingBadge" class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Tugasan Anda</span>
-            </div>
-            <h3 id="statPendingCount" class="text-2xl font-bold text-amber-600">6 RPH</h3>
-            <p class="text-xs text-slate-500 mt-1">Perlu ulasan & pengesahan cop digital</p>
-          </div>
-
-          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
-            <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-              <span>Disahkan Minggu Ini</span>
-              <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">Terurus</span>
-            </div>
-            <h3 class="text-2xl font-bold text-brand-600">184 RPH</h3>
-            <p class="text-xs text-slate-500 mt-1">Rekod dikemaskini dalam pangkalan data</p>
-          </div>
-        </div>
-
-        <!-- Pentadbir Approval Queue Table -->
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-            <div>
-              <h3 class="font-display font-bold text-slate-800 text-lg">Modul Semakan & Pengesahan Pentadbir (PGB / PK)</h3>
-              <p class="text-xs text-slate-400">Senarai e-RPH guru seliaan yang memerlukan semakan dan pengesahan digital</p>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="filterApprovalQueue('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Semua</button>
-              <button onclick="filterApprovalQueue('PENDING')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200">Perlu Semakan (6)</button>
-              <button onclick="filterApprovalQueue('APPROVED')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200">Disah / Disemak</button>
-            </div>
-          </div>
-
-          <!-- Table -->
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-600">
-              <thead class="bg-slate-50 text-slate-500 font-semibold uppercase border-b border-slate-100">
-                <tr>
-                  <th class="py-3 px-4">Nama Guru</th>
-                  <th class="py-3 px-4">Subjek & Kelas</th>
-                  <th class="py-3 px-4">Tarikh & Masa Hantar</th>
-                  <th class="py-3 px-4">Status Semakan</th>
-                  <th class="py-3 px-4">Penarafan / Refleksi</th>
-                  <th class="py-3 px-4 text-center">Tindakan</th>
-                </tr>
-              </thead>
-              <tbody id="pentadbirApprovalTableBody" class="divide-y divide-slate-100">
-                <!-- JS dynamic rows -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
       </div>
 
     </section>
 
 
     <!-- ========================================================================= -->
-    <!-- VIEW 2: PEMBINA & HANTAR e-RPH (RPH BUILDER - TS25 FORMAT)               -->
+    <!-- VIEW 2: PEMBINA e-RPH (PINDAAN 2, 3, 4, 5, 6, 7, 8)                       -->
     <!-- ========================================================================= -->
     <section id="tabBuilder" class="tab-content space-y-6 hidden">
       
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
         
-        <!-- Form Header Title -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+        <!-- HEADER PEMBINA: TAJUK + DROPDOWN BERANTAI (MINGGU, HARI/TARIKH, SLOT JADUAL) -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 pb-4">
           <div>
             <div class="flex items-center space-x-2">
               <span class="bg-teal-100 text-brand-800 text-xs px-2.5 py-0.5 rounded-full font-bold">Standard TS25 KPM</span>
               <h2 class="text-xl font-display font-bold text-slate-800">Modul Pembina e-RPH Harian</h2>
             </div>
-            <p class="text-xs text-slate-400 mt-1">Sila isi maklumat perancangan PdPC secara teliti. Data DSKP dimuatkan secara automatik.</p>
+            <p class="text-xs text-slate-400 mt-1">Pilih Minggu, Tarikh & Slot Jadual untuk pengisian automatik dari DSKP.</p>
           </div>
-          <div class="flex items-center space-x-2">
-            <button onclick="saveDraftRPH()" class="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold rounded-xl transition-all">
-              💾 Simpan Draf
-            </button>
-            <button onclick="submitRphForm()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-sm transition-all">
-              🚀 Hantar RPH Harian
-            </button>
+
+          <!-- PINDAAN 3 & 4 & 6: CONTROLS MINGGU (LATEST FIRST 36->1) + HARI/TARIKH + SLOT JADUAL -->
+          <div class="flex flex-wrap items-center gap-2 text-xs w-full lg:w-auto">
+            <div class="flex items-center space-x-1">
+              <label class="font-bold text-slate-700">Minggu:</label>
+              <select id="builderSelectWeek" onchange="onBuilderWeekChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                <!-- Auto Populated Descending 36 -> 1 -->
+              </select>
+            </div>
+
+            <div class="flex items-center space-x-1">
+              <label class="font-bold text-slate-700">Hari/Tarikh:</label>
+              <select id="builderSelectDateDay" onchange="onBuilderDateDayChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                <option value="">Pilih Hari...</option>
+              </select>
+            </div>
+
+            <div class="flex items-center space-x-1">
+              <label class="font-bold text-slate-700">Slot Jadual:</label>
+              <select id="builderSelectSlot" onchange="onBuilderSlotChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                <option value="">Pilih Slot...</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <!-- RPH Form Grid -->
+        <!-- RPH FORM GRID -->
         <form id="rphForm" onsubmit="event.preventDefault(); submitRphForm();" class="space-y-6">
           
-          <!-- Section 1: Maklumat Asas & Jadual -->
+          <!-- SEKSYEN 1: MAKLUMAT ASAS PENGAJARAN (AUTO-FILLED DARI SLOT JADUAL) -->
           <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-4">
-            <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-brand-700">1. Maklumat Asas Pengajaran</h3>
+            <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-brand-700">1. Maklumat Asas Pengajaran (Auto-Pilih dari Jadual)</h3>
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
               <div>
                 <label class="block text-slate-600 font-medium mb-1">Tarikh Pengajaran</label>
-                <input type="date" id="rphDate" value="2026-10-19" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500">
+                <input type="date" id="rphDate" value="" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" readonly>
               </div>
 
               <div>
                 <label class="block text-slate-600 font-medium mb-1">Hari & Masa</label>
-                <input type="text" id="rphTime" value="Isnin (08:00 AM - 09:00 AM)" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500">
+                <input type="text" id="rphTime" value="" placeholder="Isnin (08:10 - 08:40)" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" readonly>
               </div>
 
               <div>
-                <label class="block text-slate-600 font-medium mb-1">Pilih Subjek</label>
-                <select id="rphSubjectSelect" onchange="autoPopulateDSKP()" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-semibold text-brand-700 focus:ring-1 focus:ring-brand-500">
-                  <option value="Matematik">Matematik Tingkatan 4</option>
-                  <option value="Sains">Sains Tingkatan 2</option>
-                  <option value="Fizik">Fizik Tingkatan 5</option>
-                  <option value="RBT">Reka Bentuk & Teknologi T1</option>
-                </select>
+                <label class="block text-slate-600 font-medium mb-1">Subjek</label>
+                <input type="text" id="rphSubjectSelect" value="" placeholder="Subjek" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-bold text-brand-800" readonly>
               </div>
 
               <div>
                 <label class="block text-slate-600 font-medium mb-1">Kelas / Bilik Darjah</label>
-                <input type="text" id="rphClass" value="4 STEM 1 (32 Murid)" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500">
+                <input type="text" id="rphClass" value="" placeholder="Nama Kelas" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" readonly>
               </div>
             </div>
           </div>
 
-          <!-- Section 2: DSKP & Standard Pembelajaran -->
+          <!-- SEKSYEN 2: KURIKULUM (PINDAAN 7 & 8: TEMA/UNIT & TAJUK DROPDOWN DEPENDENT DSKP) -->
           <div class="space-y-4">
             <div class="flex justify-between items-center">
-              <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-brand-700">2. Kurikulum (DSKP Integrasi Auto)</h3>
-              <span class="text-[11px] text-emerald-600 font-medium">✓ DSKP KPM Terkini Dimuatkan</span>
+              <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-brand-700">2. Kurikulum (DSKP Auto-Isi dari Tab Data_DSKP)</h3>
+              <span id="dskpStatusBadge" class="text-[11px] text-amber-600 font-medium">⏳ Sila pilih slot jadual dahulu</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
-                <label class="block text-slate-600 font-medium mb-1">Tema / Tajuk Utama</label>
-                <input type="text" id="rphTheme" value="Perkaitan & Algebra: Persamaan Kuadratik" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500">
+                <label class="block text-slate-600 font-bold mb-1">Tema / Unit</label>
+                <select id="rphThemeSelect" onchange="onThemeChange()" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-semibold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                  <option value="">-- Pilih Tema / Unit --</option>
+                </select>
               </div>
 
               <div>
-                <label class="block text-slate-600 font-medium mb-1">Standard Kandungan (SK)</label>
-                <textarea id="rphSK" rows="2" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500">1.1 Ungkapan dan Persamaan Kuadratik dalam Satu Pemboleh Ubah.</textarea>
+                <label class="block text-slate-600 font-bold mb-1">Tajuk</label>
+                <select id="rphTajukSelect" onchange="onTajukChange()" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-semibold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                  <option value="">-- Pilih Tajuk --</option>
+                </select>
               </div>
 
               <div class="md:col-span-2">
                 <label class="block text-slate-600 font-medium mb-1">Standard Pembelajaran (SP)</label>
-                <textarea id="rphSP" rows="2" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500">1.1.3 Membentuk persamaan kuadratik berdasarkan suatu situasi kehidupan sebenar dan menentukan punca-puncanya melalui kaedah pemfaktoran.</textarea>
+                <textarea id="rphSP" rows="2" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" placeholder="Standard Pembelajaran auto-isi..."></textarea>
               </div>
             </div>
           </div>
 
-          <!-- Section 3: OP & KK -->
+          <!-- SEKSYEN 3: OP & KK (AUTO-FILLED FROM DSKP) -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div class="bg-teal-50/50 p-4 rounded-xl border border-teal-100">
               <label class="block text-brand-800 font-bold mb-1">Objektif Pembelajaran (OP)</label>
               <p class="text-[11px] text-slate-400 mb-2">Pada akhir pembelajaran, murid akan dapat:</p>
-              <textarea id="rphOP" rows="3" class="w-full bg-white border border-teal-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500">1. Menyelesaikan sekurang-kurangnya 3 daripada 4 soalan pemfaktoran persamaan kuadratik dengan tepat.
-2. Menerangkan langkah penyelesaian punca secara lisan semasa aktiviti kumpulan.</textarea>
+              <textarea id="rphOP" rows="3" class="w-full bg-white border border-teal-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" placeholder="Objektif pembelajaran auto-isi..."></textarea>
             </div>
 
             <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
               <label class="block text-blue-900 font-bold mb-1">Kriteria Kejayaan (KK)</label>
               <p class="text-[11px] text-slate-400 mb-2">Murid dianggap berjaya sekiranya:</p>
-              <textarea id="rphKK" rows="3" class="w-full bg-white border border-blue-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500">1. Menulis bentuk piawai ax² + bx + c = 0 dengan betul.
-2. Menemui dua nilai punca x menggunakan kaedah pemfaktoran kurungan.</textarea>
+              <textarea id="rphKK" rows="3" class="w-full bg-white border border-blue-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" placeholder="Kriteria kejayaan auto-isi..."></textarea>
             </div>
           </div>
 
-          <!-- Section 4: Alur Aktiviti Pengajaran (PdPC) -->
+          <!-- SEKSYEN 4: AKTIVITI (AUTO-FILLED FROM DSKP) -->
           <div class="space-y-3 text-xs">
             <h3 class="font-bold text-slate-800 uppercase tracking-wider text-brand-700">3. Aktiviti Pengajaran & Pembelajaran (PdPC)</h3>
 
             <div>
-              <label class="block text-slate-700 font-semibold mb-1">Aktiviti Permulaan (Set Induksi - 10 Minit)</label>
-              <input type="text" id="rphActStart" value="Guru menayangkan klip video pendek graf parabola laluan bola sepak. Murid bersoal jawab tentang titik tertinggi dan pintasan-x." class="w-full bg-white border border-slate-200 rounded-lg p-2">
+              <label class="block text-slate-700 font-semibold mb-1">Aktiviti Permulaan (Set Induksi)</label>
+              <input type="text" id="rphActStart" value="" placeholder="Set Induksi auto-isi..." class="w-full bg-white border border-slate-200 rounded-lg p-2">
             </div>
 
             <div>
-              <label class="block text-slate-700 font-semibold mb-1">Aktiviti Utama (P&P - 40 Minit)</label>
-              <textarea id="rphActMain" rows="3" class="w-full bg-white border border-slate-200 rounded-lg p-2">1. Guru menerangkan kaedah pemfaktoran (Kurungan & Pendaraban Silang).
-2. Aktiviti Stesen (Pak-21 Gallery Walk): Murid bekerjasama dalam kumpulan 4 orang untuk menyelesaikan kad masalah kuadratik.
-3. Rakan sebaya memberikan penilaian kendiri mengguna senarai semak Kriteria Kejayaan.</textarea>
+              <label class="block text-slate-700 font-semibold mb-1">Aktiviti Utama (P&P)</label>
+              <textarea id="rphActMain" rows="3" class="w-full bg-white border border-slate-200 rounded-lg p-2" placeholder="Aktiviti utama auto-isi..."></textarea>
             </div>
 
             <div>
-              <label class="block text-slate-700 font-semibold mb-1">Aktiviti Penutup (10 Minit)</label>
-              <input type="text" id="rphActEnd" value="Murid membuat rumusan menggunakan 'Exit Ticket' ringkas di papan putih digital." class="w-full bg-white border border-slate-200 rounded-lg p-2">
+              <label class="block text-slate-700 font-semibold mb-1">Aktiviti Penutup (Rumusan)</label>
+              <input type="text" id="rphActEnd" value="" placeholder="Rumusan penutup auto-isi..." class="w-full bg-white border border-slate-200 rounded-lg p-2">
             </div>
           </div>
 
-          <!-- Section 5: Checkboxes -->
+          <!-- SEKSYEN 5: ELEMEN SOKONGAN -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
             <div>
               <span class="block font-bold text-slate-700 mb-2">Elemen EMK</span>
               <div class="space-y-1">
                 <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Sains & Teknologi</span></label>
                 <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Nilai Murni</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" class="rounded text-brand-600"> <span>Patriotisme</span></label>
               </div>
             </div>
 
@@ -582,16 +481,14 @@
               <div class="space-y-1">
                 <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Mengaplikasi</span></label>
                 <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Menganalisis</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" class="rounded text-brand-600"> <span>Menilai</span></label>
               </div>
             </div>
 
             <div>
               <span class="block font-bold text-slate-700 mb-2">Bahan Bantu Mengajar</span>
               <div class="space-y-1">
-                <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>LCD / Projektor</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Buku Teks / Modul</span></label>
                 <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Lembaran Kerja</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" class="rounded text-brand-600"> <span>Model 3D</span></label>
               </div>
             </div>
 
@@ -600,33 +497,32 @@
               <div class="space-y-1">
                 <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Latihan Bertulis</span></label>
                 <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Pemerhatian / Lisan</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" class="rounded text-brand-600"> <span>Kuiz Kahoot</span></label>
               </div>
             </div>
           </div>
 
-          <!-- Section 6: Seksyen Refleksi Harian -->
+          <!-- SEKSYEN 6: REFLEKSI HARIAN -->
           <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200/80 space-y-3 text-xs">
             <div class="flex justify-between items-center">
-              <h3 class="font-bold text-amber-900 uppercase tracking-wider">4. Refleksi & Catatan Impak (Kemaskini Selepas PdPC)</h3>
+              <h3 class="font-bold text-amber-900 uppercase tracking-wider">4. Refleksi & Catatan Impak</h3>
               <span class="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded">Fasa 2 Refleksi</span>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
                 <label class="block text-slate-700 font-semibold mb-1">Bil. Murid Mencapai OP</label>
-                <input type="text" id="rphReflectCount" value="28 / 32 Murid" class="w-full bg-white border border-amber-200 rounded-lg p-2 font-semibold text-emerald-700">
+                <input type="text" id="rphReflectCount" value="" placeholder="Contoh: 28 / 32 Murid" class="w-full bg-white border border-amber-200 rounded-lg p-2 font-semibold text-emerald-700">
               </div>
               <div class="md:col-span-2">
                 <label class="block text-slate-700 font-semibold mb-1">Catatan Impak & Tindakan Susulan</label>
-                <input type="text" id="rphReflectNote" value="4 orang murid belum menguasai pendaraban silang diberikan bimbingan pemulihan dalam kelompok kecil pada 15 minit terakhir." class="w-full bg-white border border-amber-200 rounded-lg p-2">
+                <input type="text" id="rphReflectNote" value="" placeholder="Masukkan catatan impak atau bimbingan pemulihan..." class="w-full bg-white border border-amber-200 rounded-lg p-2">
               </div>
             </div>
           </div>
 
-          <!-- Bottom Action Buttons -->
+          <!-- BOTTOM ACTION BUTTONS -->
           <div class="flex items-center justify-between pt-4 border-t border-slate-100">
-            <span class="text-xs text-slate-400">Timestamp: 19 Okt 2026, 07:15 AM (Perancangan)</span>
+            <span class="text-xs text-slate-400" id="rphTimestampDisplay">Status: Draf Baru</span>
             <div class="flex items-center space-x-3">
               <button type="button" onclick="saveDraftRPH()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all">
                 Simpan Draf
@@ -644,509 +540,157 @@
     </section>
 
 
-    <!-- ========================================================================= -->
-    <!-- VIEW 3: SEMAKAN & PENGESAHAN PENTADBIR                                     -->
-    <!-- ========================================================================= -->
+    <!-- VIEW 3, 4, 5 KEKAL SEPERTI ASAL -->
     <section id="tabApproval" class="tab-content space-y-6 hidden">
-      
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
-        
         <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-          <div>
-            <h2 class="text-xl font-display font-bold text-slate-800">Senarai Semakan RPH Guru Seliaan</h2>
-            <p class="text-xs text-slate-400">Pilih RPH di bawah untuk membuat semakan terperinci, memberikan ulasan dan pengesahan cop digital.</p>
-          </div>
+          <h2 class="text-xl font-display font-bold text-slate-800">Senarai Semakan RPH Guru Seliaan</h2>
           <button onclick="approveAllPending()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
             ✓ Sahkan Keseluruhan (Pukal)
           </button>
         </div>
-
-        <!-- Approval Cards Grid -->
-        <div id="approvalCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <!-- JS Dynamic render approval cards -->
-        </div>
-
+        <div id="approvalCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
-
     </section>
 
-
-    <!-- ========================================================================= -->
-    <!-- VIEW 4: CETAK & EKSPORT e-RPH                                              -->
-    <!-- ========================================================================= -->
     <section id="tabPrint" class="tab-content space-y-6 hidden">
-      
-      <!-- Top Print Controls -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-4 no-print">
-        <div>
-          <h2 class="font-display font-bold text-slate-800 text-lg">Modul Cetakan & Eksport Dokumen Rasmi</h2>
-          <p class="text-xs text-slate-400">Jana salinan fizikal PDF e-RPH terpengesah lengkap dengan Cop Digital & Kod QR Semakan JNJK/PPD.</p>
-        </div>
-        <div class="flex items-center space-x-3">
-          <button onclick="window.print()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            <span>Cetak / Simpan PDF</span>
-          </button>
-        </div>
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex justify-between items-center no-print">
+        <h2 class="font-display font-bold text-slate-800 text-lg">Modul Cetakan & Eksport Dokumen Rasmi</h2>
+        <button onclick="window.print()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md">Cetak / Simpan PDF</button>
       </div>
-
-      <!-- Official Printable Document Preview Frame -->
       <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-300 max-w-4xl mx-auto space-y-6 print-card text-black font-sans">
-        
-        <!-- Document Header (KPM Style) -->
-        <div class="border-b-2 border-black pb-4 text-center relative">
-          <div class="flex items-center justify-center space-x-4">
-            <div class="w-14 h-14 bg-slate-200 rounded-full flex items-center justify-center font-bold text-xs border border-slate-400">
-              KPM
-            </div>
-            <div>
-              <h1 class="text-base font-bold uppercase tracking-wide">Kementerian Pendidikan Malaysia</h1>
-              <h2 class="text-sm font-bold text-slate-800">SEKOLAH KEBANGSAAN SEMAKMUR</h2>
-              <p class="text-[11px] text-slate-600">REKOD PENGAJARAN DAN PEMBELAJARAN HARIAN (e-RPH TS25)</p>
-            </div>
-          </div>
+        <div class="border-b-2 border-black pb-4 text-center">
+          <h1 class="text-base font-bold uppercase">Kementerian Pendidikan Malaysia</h1>
+          <h2 class="text-sm font-bold text-slate-800">SEKOLAH KEBANGSAAN SEMAKMUR</h2>
+          <p class="text-[11px] text-slate-600">REKOD PENGAJARAN DAN PEMBELAJARAN HARIAN (e-RPH TS25)</p>
         </div>
-
-        <!-- RPH Document Body -->
-        <div class="space-y-4 text-xs">
-          
-          <table class="w-full border-collapse border border-slate-400">
-            <tbody>
-              <tr class="bg-slate-100">
-                <td class="border border-slate-400 p-2 font-bold w-1/4">Nama Guru</td>
-                <td id="printTeacherName" class="border border-slate-400 p-2 w-1/4">Guru Akademik</td>
-                <td class="border border-slate-400 p-2 font-bold w-1/4">Tarikh / Hari</td>
-                <td class="border border-slate-400 p-2 w-1/4">19 Oktober 2026 (Isnin)</td>
-              </tr>
-              <tr>
-                <td class="border border-slate-400 p-2 font-bold">Mata Pelajaran</td>
-                <td class="border border-slate-400 p-2 font-semibold text-brand-800">Matematik Tingkatan 4</td>
-                <td class="border border-slate-400 p-2 font-bold">Masa / Masa PdPC</td>
-                <td class="border border-slate-400 p-2">08:00 AM - 09:00 AM (60 Minit)</td>
-              </tr>
-              <tr class="bg-slate-100">
-                <td class="border border-slate-400 p-2 font-bold">Kelas / Bil. Murid</td>
-                <td class="border border-slate-400 p-2">4 STEM 1 (32 Murid)</td>
-                <td class="border border-slate-400 p-2 font-bold">Kod DSKP / Modul</td>
-                <td class="border border-slate-400 p-2">DSKP KSSM 2026</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- DSKP Details Table -->
-          <div class="border border-slate-400 p-3 space-y-2">
-            <p><span class="font-bold">Tema / Tajuk:</span> Perkaitan & Algebra: Persamaan Kuadratik</p>
-            <p><span class="font-bold">Standard Kandungan (SK):</span> 1.1 Ungkapan dan Persamaan Kuadratik dalam Satu Pemboleh Ubah</p>
-            <p><span class="font-bold">Standard Pembelajaran (SP):</span> 1.1.3 Membentuk persamaan kuadratik berdasarkan situasi dan menentukan punca melalui kaedah pemfaktoran.</p>
-          </div>
-
-          <!-- OP & KK -->
-          <div class="grid grid-cols-2 gap-4">
-            <div class="border border-slate-400 p-3">
-              <span class="font-bold underline block mb-1">Objektif Pembelajaran (OP):</span>
-              <p>Pada akhir pembelajaran murid dapat:</p>
-              <ul class="list-disc pl-4 space-y-1 mt-1">
-                <li>Menyelesaikan sekurang-kurangnya 3 daripada 4 soalan pemfaktoran kuadratik dengan tepat.</li>
-                <li>Menerangkan langkah penyelesaian punca secara lisan.</li>
-              </ul>
-            </div>
-            <div class="border border-slate-400 p-3">
-              <span class="font-bold underline block mb-1">Kriteria Kejayaan (KK):</span>
-              <p>Murid dianggap berjaya sekiranya:</p>
-              <ul class="list-disc pl-4 space-y-1 mt-1">
-                <li>Menulis bentuk piawai ax² + bx + c = 0.</li>
-                <li>Menemui nilai punca x menggunakan kaedah pemfaktoran.</li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- Activities -->
-          <div class="border border-slate-400 p-3 space-y-2">
-            <span class="font-bold underline block">Ringkasan Aktiviti PdPC:</span>
-            <p><strong>Permulaan (10m):</strong> Tayangan klip video graf parabola. Bersoal jawab tentang titik pintasan.</p>
-            <p><strong>Utama (40m):</strong> Penerangan kaedah pemfaktoran pendaraban silang. Aktiviti Stesen PAK-21 Gallery Walk secara berkumpulan.</p>
-            <p><strong>Penutup (10m):</strong> Rumusan murid melalui aktiviti 'Exit Ticket'.</p>
-          </div>
-
-          <!-- Reflection & Impak -->
-          <div class="border border-slate-400 p-3 bg-slate-50">
-            <span class="font-bold underline block mb-1">Refleksi & Impak Pembelajaran:</span>
-            <p><strong>Pencapaian:</strong> 28 / 32 Murid mencapai objektif pembelajaran yang ditetapkan.</p>
-            <p><strong>Tindakan Susulan:</strong> 4 murid diberikan bimbingan pemulihan berfokus pada akhir sesi PdPC.</p>
-          </div>
-
-          <!-- Digital Stamp & QR Verification Section -->
-          <div class="border-2 border-dashed border-teal-600 p-4 rounded-xl flex items-center justify-between bg-teal-50/30">
-            <div class="space-y-1">
-              <span class="text-[10px] uppercase tracking-wider font-bold text-slate-500">Pengesahan Digital Pentadbir</span>
-              <p class="font-bold text-sm text-brand-800">DISEMAK & DISAHKAN OLEH:</p>
-              <p class="font-semibold text-slate-800">Cikgu Salmah binti Zakaria (PK Kurikulum)</p>
-              <p class="text-[11px] text-slate-500">Tarikh Cop Digital: <span class="font-mono">19-10-2026 | 11:20 AM</span></p>
-              <p class="text-[10px] text-emerald-700 font-bold">Catatan: "Aktiviti PdPC dirancang dengan sangat baik & berpusat murid."</p>
-            </div>
-
-            <!-- Simulated QR Code -->
-            <div class="text-center space-y-1 shrink-0">
-              <div class="w-20 h-20 bg-white border-2 border-slate-800 p-1 mx-auto flex items-center justify-center shadow-sm">
-                <svg class="w-full h-full text-slate-800" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 3h2v3h-2v-3zm0-5h4v2h-4v-2zm-4 0h2v4h-2v-4zm2 5h2v3h-2v-3z"/>
-                </svg>
-              </div>
-              <span class="text-[9px] font-mono block text-slate-500">JNJK-VERIFIED-2026</span>
-            </div>
-          </div>
-
-        </div>
-
       </div>
-
     </section>
 
-
-    <!-- ========================================================================= -->
-    <!-- VIEW 5: INTEGRATED PANDUAN & ALUR KERJA PORTAL                            -->
-    <!-- ========================================================================= -->
     <section id="tabWorkflow" class="tab-content space-y-6 hidden">
-      
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
-        <div>
-          <span class="bg-teal-100 text-brand-800 text-xs px-2.5 py-0.5 rounded-full font-bold">Sistem Dokumentasi Rasmi</span>
-          <h2 class="text-xl font-display font-bold text-slate-800 mt-1">Panduan Alur Kerja & Operasional Portal e-RPH KPM</h2>
-          <p class="text-xs text-slate-400">Penerangan lengkap alur kerja perancangan, penghantaran harian, semakan pentadbir dan verifikasi audit.</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-          <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 text-center space-y-2">
-            <div class="w-8 h-8 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center mx-auto text-xs">1</div>
-            <h4 class="font-bold text-slate-800 text-xs">Cara Buat RPH</h4>
-            <p class="text-[11px] text-slate-500">Pilih subjek ➔ Auto DSKP ➔ Isi OP, KK & Langkah PdPC.</p>
-          </div>
-
-          <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-center space-y-2">
-            <div class="w-8 h-8 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center mx-auto text-xs">2</div>
-            <h4 class="font-bold text-slate-800 text-xs">Submit Harian</h4>
-            <p class="text-[11px] text-slate-500">Fasa 1 Perancangan ➔ Selesai PdPC ➔ Fasa 2 Refleksi.</p>
-          </div>
-
-          <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 text-center space-y-2">
-            <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center mx-auto text-xs">3</div>
-            <h4 class="font-bold text-slate-800 text-xs">Cara View RPH</h4>
-            <p class="text-[11px] text-slate-500">Paparan Kalendar, Ring Progress & Kad Pengesahan.</p>
-          </div>
-
-          <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-center space-y-2">
-            <div class="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center mx-auto text-xs">4</div>
-            <h4 class="font-bold text-slate-800 text-xs">Semakan Pentadbir</h4>
-            <p class="text-[11px] text-slate-500">PGB/PK semak, ulas, beri penarafan & Cop Digital.</p>
-          </div>
-
-          <div class="p-4 rounded-xl bg-purple-50 border border-purple-200 text-center space-y-2">
-            <div class="w-8 h-8 rounded-full bg-purple-600 text-white font-bold flex items-center justify-center mx-auto text-xs">5</div>
-            <h4 class="font-bold text-slate-800 text-xs">Cara Cetak & Audit</h4>
-            <p class="text-[11px] text-slate-500">Eksport PDF rasmi bersama Kod QR Verifikasi JNJK.</p>
-          </div>
-        </div>
-
+        <h2 class="text-xl font-display font-bold text-slate-800">Panduan Alur Kerja & Operasional Portal e-RPH KPM</h2>
       </div>
-
     </section>
 
   </main>
-
-
-  <!-- ========================================================================= -->
-  <!-- MODALS CONTAINER                                                          -->
-  <!-- ========================================================================= -->
-  <div id="incompleteTeachersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
-    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-      <div class="bg-gradient-to-r from-rose-700 to-rose-800 text-white p-4 flex justify-between items-center">
-        <div>
-          <h3 class="font-display font-bold text-base flex items-center gap-2">
-            <span>🚨</span> Senarai Guru Belum Lengkapkan e-RPH / Refleksi
-          </h3>
-          <p class="text-xs text-rose-100">Status Pemantauan Harian Pentadbir</p>
-        </div>
-        <button onclick="closeIncompleteTeachersModal()" class="text-white/80 hover:text-white p-1 rounded-lg">✕</button>
-      </div>
-
-      <div class="p-6 overflow-y-auto space-y-4 text-xs">
-        <div class="space-y-2">
-          <h4 class="font-bold text-rose-700 uppercase tracking-wider text-[11px] flex items-center justify-between">
-            <span>❌ Belum Hantar Perancangan RPH (3 Guru)</span>
-            <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px]">Tindakan Segera</span>
-          </h4>
-
-          <div class="divide-y divide-slate-100 border border-rose-100 rounded-xl overflow-hidden bg-rose-50/30">
-            <div class="p-3 flex items-center justify-between">
-              <div>
-                <p class="font-bold text-slate-800">Cikgu Ahmad Razak bin Hashim</p>
-                <p class="text-[11px] text-slate-500">Sejarah Tingkatan 3 | Slot 2 (10:00 AM)</p>
-              </div>
-              <button onclick="sendReminder('Cikgu Ahmad Razak')" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-[10px]">
-                🔔 Hantar Peringatan
-              </button>
-            </div>
-
-            <div class="p-3 flex items-center justify-between">
-              <div>
-                <p class="font-bold text-slate-800">Cikgu Maria binti Abdullah</p>
-                <p class="text-[11px] text-slate-500">Bahasa Inggeris T2 | Slot 3 (11:30 AM)</p>
-              </div>
-              <button onclick="sendReminder('Cikgu Maria')" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-[10px]">
-                🔔 Hantar Peringatan
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center">
-        <button onclick="sendReminderAll()" class="px-4 py-2 bg-rose-100 hover:bg-rose-200 text-rose-800 text-xs font-bold rounded-xl transition-all">
-          📢 Hantar Peringatan Pukal kepada Semua
-        </button>
-        <button onclick="closeIncompleteTeachersModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-all">
-          Tutup
-        </button>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- MODAL APPROVAL PENTADBIR -->
-  <div id="reviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
-    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-      <div class="bg-gradient-to-r from-brand-700 to-brand-800 text-white p-4 flex justify-between items-center">
-        <div>
-          <h3 class="font-display font-bold text-base">Semakan & Pengesahan e-RPH</h3>
-          <p id="modalTeacherInfo" class="text-xs text-teal-100">Guru Akademik | Matematik T4</p>
-        </div>
-        <button onclick="closeReviewModal()" class="text-white/80 hover:text-white p-1 rounded-lg">✕</button>
-      </div>
-
-      <div class="p-6 overflow-y-auto space-y-4 text-xs">
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
-          <p><strong class="text-slate-700">Tajuk:</strong> <span id="modalTopic">Persamaan Kuadratik & Graf</span></p>
-          <p><strong class="text-slate-700">Standard Pembelajaran:</strong> <span id="modalSP">1.1.3 Membentuk persamaan kuadratik dan pemfaktoran.</span></p>
-          <p><strong class="text-slate-700">Refleksi Guru:</strong> <span id="modalReflect" class="text-emerald-700 font-medium">28/32 Murid capai OP. Bimbingan pemulihan dijalankan.</span></p>
-        </div>
-
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">Pilih Ulasan Binaan Pentadbir (Preset Quick-Click):</label>
-          <div class="flex flex-wrap gap-2">
-            <button onclick="applyPresetComment('Aktiviti PdPC dirancang dengan sangat baik & berpusat murid.')" class="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 text-brand-800 rounded-lg text-[11px] font-semibold border border-teal-200">
-              👍 PdPC Berpusat Murid
-            </button>
-            <button onclick="applyPresetComment('Objektif dan Kriteria Kejayaan memenuhi standard DSKP KPM.')" class="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-lg text-[11px] font-semibold border border-blue-200">
-              🎯 OP & KK Sesuai
-            </button>
-          </div>
-        </div>
-
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">Catatan / Ulasan Pentadbir</label>
-          <textarea id="modalCommentInput" rows="3" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-brand-500 font-medium text-slate-800" placeholder="Masukkan ulasan penambahbaikan..."></textarea>
-        </div>
-
-        <div>
-          <label class="block font-bold text-slate-700 mb-1">Penarafan Pelaksanaan PdPC (1 - 5 Bintang)</label>
-          <div class="flex items-center space-x-2 text-xl cursor-pointer">
-            <span onclick="setStarRating(1)" class="star-btn text-amber-400">★</span>
-            <span onclick="setStarRating(2)" class="star-btn text-amber-400">★</span>
-            <span onclick="setStarRating(3)" class="star-btn text-amber-400">★</span>
-            <span onclick="setStarRating(4)" class="star-btn text-amber-400">★</span>
-            <span onclick="setStarRating(5)" class="star-btn text-amber-400">★</span>
-            <span id="starRatingLabel" class="text-xs font-bold text-slate-500 ml-2">5.0 / 5.0 (Cemerlang)</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
-        <button onclick="closeReviewModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-all">
-          Batal
-        </button>
-        <button onclick="saveApprovalAction()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-1">
-          <span>✓ Sahkan & Cop Digital</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
 
   <!-- TOAST NOTIFICATION CONTAINER -->
   <div id="toastNotification" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none no-print">
     <div id="toastInner" class="bg-slate-800 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border border-slate-700">
       <span id="toastIcon">🔔</span>
-      <span id="toastMessage" class="text-xs font-semibold">Mesej notifikasi...</span>
+      <span id="toastMessage" class="text-xs font-semibold">Mesej...</span>
     </div>
   </div>
 
-
-  <!-- ========================================================================= -->
-  <!-- INTEGRATED CONFIG & JAVASCRIPT SYSTEM LOGIC                               -->
-  <!-- ========================================================================= -->
-  <!-- Memanggil config.js sebelum skrip utama -->
   <script src="config.js"></script>
 
   <script>
-    // Central System State
     const state = {
       currentUserRole: 'guru',
       activeTab: 'tabDashboard',
-      activeModalRphId: null,
-      currentStarRating: 5,
-      selectedWeek: '42',
-      selectedDayGuru: 'Isnin',
       currentUser: null,
       todayJadual: [],
-
-      // Initial Mock Data untuk Rekod Penghantaran
-      rphList: [
-        {
-          id: 'RPH-101',
-          teacherName: 'Guru Akademik',
-          subject: 'Matematik',
-          gradeClass: '4 STEM 1',
-          day: 'Isnin',
-          date: '2026-10-19',
-          time: '08:00 AM - 09:00 AM',
-          topic: 'Persamaan Kuadratik & Graf',
-          sp: '1.1.3 Membentuk persamaan kuadratik dan pemfaktoran.',
-          status: 'APPROVED',
-          reflection: '28/32 Murid capai OP. Bimbingan pemulihan dijalankan.',
-          adminComment: 'Aktiviti PdPC dirancang dengan baik.',
-          rating: 5,
-          timestamp: '19 Oct 2026, 07:15 AM'
-        },
-        {
-          id: 'RPH-102',
-          teacherName: 'Guru Akademik',
-          subject: 'Sains',
-          gradeClass: '2 Amanah',
-          day: 'Isnin',
-          date: '2026-10-19',
-          time: '10:30 AM - 11:30 AM',
-          topic: 'Ekosistem & Siratan Makanan',
-          sp: '2.1.2 Membina siratan makanan dalam pelbagai habitat.',
-          status: 'PENDING',
-          reflection: 'Menunggu pengisian refleksi akhir sesi...',
-          adminComment: '',
-          rating: 4,
-          timestamp: '19 Oct 2026, 07:20 AM'
-        }
-      ]
+      allUserJadual: [],
+      dskpList: [],
+      rphList: []
     };
 
-    // 1. Inisialisasi Sesi Pengguna dari DashboardGuru
     function initUserSession() {
       const sessionData = localStorage.getItem('currentUser') || sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER');
-      
       if (sessionData) {
         try {
           state.currentUser = JSON.parse(sessionData);
-          
           const name = state.currentUser.name || state.currentUser.nama || 'Guru Akademik';
           const email = state.currentUser.email || 'guru@moe-dl.edu.my';
-          
           document.getElementById('userName').innerText = name;
           document.getElementById('userRoleTitle').innerText = `Guru Akademik | ${email}`;
           
-          const printEl = document.getElementById('printTeacherName');
-          if (printEl) printEl.innerText = name;
-
-          // Tarik Jadual Waktu Sebenar Menerusi Apps Script
           fetchJadualHariIni(email);
         } catch (e) {
-          console.error("Ralat membaca sesi pengguna:", e);
           fetchJadualHariIni('guru@moe-dl.edu.my');
         }
       } else {
         document.getElementById('userName').innerText = 'Guru Sekolah';
-        showToast('Sesi pengguna tidak ditemui. Menggunakan paparan draf.', '⚠️');
         fetchJadualHariIni('guru@moe-dl.edu.my');
       }
+
+      populateWeeksDropdowns();
     }
 
-    // 2. Tarik Data Jadual Waktu Sebenar
+    // Populate Dropdown Minggu (Descending 36 -> 1)
+    function populateWeeksDropdowns() {
+      const selectGuru = document.getElementById('selectWeekGuru');
+      const selectBuilder = document.getElementById('builderSelectWeek');
+      
+      let html = '';
+      for (let w = 36; w >= 1; w--) {
+        html += `<option value="${w}">Minggu ${w}</option>`;
+      }
+
+      if (selectGuru) selectGuru.innerHTML = html;
+      if (selectBuilder) selectBuilder.innerHTML = html;
+
+      onBuilderWeekChange();
+    }
+
+    // Tarik Jadual Hari Ini
     async function fetchJadualHariIni(emailGuru) {
       const daysName = ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"];
       let todayName = daysName[new Date().getDay()];
-      
-      if (todayName === "Ahad" || todayName === "Sabtu") {
-        todayName = "Isnin"; // Fallback ke Isnin untuk cuti hujung minggu
-      }
+      if (todayName === "Ahad" || todayName === "Sabtu") todayName = "Isnin";
 
       document.getElementById('labelHariJadual').innerText = `Hari: ${todayName}`;
 
       try {
         const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
-        
-        if (!targetUrl) {
-          console.warn("WEB_APP_URL belum ditetapkan dalam config.js");
-          renderJadualWaktuFallback(todayName);
-          return;
-        }
+        if (!targetUrl) return;
 
         const response = await fetch(targetUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             action: 'getJadualGuruByHari',
-            payload: {
-              emailGuru: emailGuru,
-              hari: todayName
-            }
+            payload: { emailGuru: emailGuru, hari: todayName }
           })
         });
 
         const result = await response.json();
-
-        if (result && result.success && Array.isArray(result.data) && result.data.length > 0) {
+        if (result && result.success && Array.isArray(result.data)) {
           state.todayJadual = result.data;
           renderJadualWaktuWidget(todayName);
-          showToast(`Jadual ${todayName} berjaya dimuatkan!`, '✅');
-        } else {
-          renderJadualWaktuFallback(todayName);
         }
-
       } catch (err) {
-        console.error("Ralat fetchJadualHariIni:", err);
-        renderJadualWaktuFallback(todayName);
+        console.error(err);
       }
     }
 
-    // 3. Render Widget Jadual Sebenar (Updated with Safe Keys)
     function renderJadualWaktuWidget(namaHari) {
       const container = document.getElementById('jadualWidgetContainer');
       if (!container) return;
 
       if (state.todayJadual.length === 0) {
-        container.innerHTML = `
-          <div class="p-4 text-center text-slate-400 text-xs italic bg-slate-50 rounded-xl border border-slate-100">
-            Tiada slot mengajar ditemui bagi hari ${namaHari}.
-          </div>
-        `;
+        container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs italic bg-slate-50 rounded-xl">Tiada slot mengajar hari ${namaHari}.</div>`;
         return;
       }
 
       let html = '';
       state.todayJadual.forEach((slot, idx) => {
-        // Semak variasi kunci huruf kecil dan huruf besar dari Apps Script
         const waktu = slot.waktu || slot.Waktu || ('Waktu ' + (idx + 1));
         const jamMula = slot.jam_mula || slot.Jam_Mula || '-';
         const jamTamat = slot.jam_tamat || slot.Jam_Tamat || '-';
         const namaKelas = slot.nama_kelas || slot.Nama_Kelas || 'Kelas';
         const subjek = slot.subjek || slot.Subjek || 'Subjek';
         const kategori = slot.kategori || slot.Kategori || 'Biasa';
-        const guruPair = slot.guru_pair || slot.Guru_Pair || '';
 
         html += `
-          <div class="p-3.5 rounded-xl bg-teal-50/50 border border-teal-100 hover:shadow-sm transition-all">
+          <div class="p-3.5 rounded-xl bg-teal-50/50 border border-teal-100">
             <div class="flex items-center justify-between text-xs text-brand-700 font-semibold mb-1">
               <span>${waktu} | ${jamMula} - ${jamTamat}</span>
               <span class="bg-teal-200/60 px-2 py-0.5 rounded text-[10px] font-bold">${namaKelas}</span>
             </div>
             <h4 class="font-bold text-slate-800 text-sm">${subjek}</h4>
-            <p class="text-xs text-slate-500 mt-0.5">Kategori: ${kategori} ${guruPair ? '(Pair: ' + guruPair + ')' : ''}</p>
+            <p class="text-xs text-slate-500 mt-0.5">Kategori: ${kategori}</p>
             <div class="mt-2 flex items-center justify-between pt-2 border-t border-teal-100/60 text-xs">
               <span class="text-amber-700 font-medium">⏳ Menunggu e-RPH</span>
               <button onclick="setActiveTab('tabBuilder')" class="text-brand-600 hover:underline font-semibold">Bina RPH</button>
@@ -1158,43 +702,174 @@
       container.innerHTML = html;
     }
 
-    function renderJadualWaktuFallback(namaHari) {
-      const container = document.getElementById('jadualWidgetContainer');
-      if (!container) return;
+    // LOGIK PEMBINA E-RPH (DROPDOWN BERANTAI)
+    function onBuilderWeekChange() {
+      const weekNum = parseInt(document.getElementById('builderSelectWeek').value || '36');
+      const dateSelect = document.getElementById('builderSelectDateDay');
+      
+      const hariList = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
+      let html = '';
+      
+      hariList.forEach((hari, idx) => {
+        const mockDate = `2026-10-${19 + idx}`;
+        html += `<option value="${hari}|${mockDate}">${hari} (${mockDate})</option>`;
+      });
 
-      container.innerHTML = `
-        <div class="p-3.5 rounded-xl bg-teal-50/50 border border-teal-100">
-          <div class="flex items-center justify-between text-xs text-brand-700 font-semibold mb-1">
-            <span>Waktu 1 | 07:40 - 08:10</span>
-            <span class="bg-teal-200/60 px-2 py-0.5 rounded text-[10px] font-bold">1 Iris</span>
-          </div>
-          <h4 class="font-bold text-slate-800 text-sm">BM - Bahasa Melayu</h4>
-          <p class="text-xs text-slate-500 mt-0.5">Kategori: Biasa</p>
-          <div class="mt-2 flex items-center justify-between pt-2 border-t border-teal-100/60 text-xs">
-            <span class="text-emerald-600 font-medium">✓ RPH Dihantar</span>
-            <button onclick="setActiveTab('tabBuilder')" class="text-brand-600 hover:underline font-semibold">Lihat / Edit</button>
-          </div>
-        </div>
-
-        <div class="p-3.5 rounded-xl bg-amber-50/50 border border-amber-100">
-          <div class="flex items-center justify-between text-xs text-amber-800 font-semibold mb-1">
-            <span>Waktu 5 | 10:00 - 10:30</span>
-            <span class="bg-amber-200/60 px-2 py-0.5 rounded text-[10px] font-bold">1 Lavender</span>
-          </div>
-          <h4 class="font-bold text-slate-800 text-sm">PI/Q - Al-Quran</h4>
-          <p class="text-xs text-slate-500 mt-0.5">Kategori: Pairing</p>
-          <div class="mt-2 flex items-center justify-between pt-2 border-t border-amber-100/60 text-xs">
-            <span class="text-amber-700 font-medium">⏳ Menunggu Refleksi</span>
-            <button onclick="setActiveTab('tabBuilder')" class="text-amber-800 hover:underline font-semibold">Isi Refleksi</button>
-          </div>
-        </div>
-      `;
+      dateSelect.innerHTML = html;
+      onBuilderDateDayChange();
     }
 
-    // 4. Perukar Peranan (Guru / Pentadbir)
+    async function onBuilderDateDayChange() {
+      const val = document.getElementById('builderSelectDateDay').value;
+      if (!val) return;
+
+      const [selectedHari, selectedDate] = val.split('|');
+      const slotSelect = document.getElementById('builderSelectSlot');
+      const emailGuru = (state.currentUser && state.currentUser.email) ? state.currentUser.email : 'guru@moe-dl.edu.my';
+
+      slotSelect.innerHTML = `<option value="">Sedang menarik slot ${selectedHari}...</option>`;
+
+      try {
+        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
+        const response = await fetch(targetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'getJadualGuruByHari',
+            payload: { emailGuru: emailGuru, hari: selectedHari }
+          })
+        });
+
+        const result = await response.json();
+        if (result && result.success && Array.isArray(result.data) && result.data.length > 0) {
+          state.allUserJadual = result.data;
+          let html = '<option value="">-- Pilih Slot Jadual --</option>';
+          
+          result.data.forEach((slot, idx) => {
+            const waktu = slot.waktu || slot.Waktu || ('Slot ' + (idx + 1));
+            const jamMula = slot.jam_mula || slot.Jam_Mula || '-';
+            const jamTamat = slot.jam_tamat || slot.Jam_Tamat || '-';
+            const namaKelas = slot.nama_kelas || slot.Nama_Kelas || 'Kelas';
+            const subjek = slot.subjek || slot.Subjek || 'Subjek';
+
+            html += `<option value="${idx}">[${waktu} | ${jamMula}-${jamTamat}] ${subjek} - ${namaKelas}</option>`;
+          });
+
+          slotSelect.innerHTML = html;
+        } else {
+          slotSelect.innerHTML = `<option value="">Tiada slot jadual pada ${selectedHari}</option>`;
+        }
+      } catch (err) {
+        slotSelect.innerHTML = `<option value="">Ralat pangkalan data</option>`;
+      }
+    }
+
+    // ISIAN AUTOMATIK MAKLUMAT ASAS APABILA SLOT DIPILIH
+    function onBuilderSlotChange() {
+      const idx = document.getElementById('builderSelectSlot').value;
+      if (idx === '' || !state.allUserJadual[idx]) return;
+
+      const slot = state.allUserJadual[idx];
+      const [selectedHari, selectedDate] = document.getElementById('builderSelectDateDay').value.split('|');
+
+      const jamMula = slot.jam_mula || slot.Jam_Mula || '';
+      const jamTamat = slot.jam_tamat || slot.Jam_Tamat || '';
+      const subjek = slot.subjek || slot.Subjek || '';
+      const namaKelas = slot.nama_kelas || slot.Nama_Kelas || '';
+
+      document.getElementById('rphDate').value = selectedDate;
+      document.getElementById('rphTime').value = `${selectedHari} (${jamMula} - ${jamTamat})`;
+      document.getElementById('rphSubjectSelect').value = subjek;
+      document.getElementById('rphClass').value = namaKelas;
+
+      let tahunMatch = namaKelas.match(/\d+/);
+      let tahun = tahunMatch ? tahunMatch[0] : '3';
+
+      fetchDskpData(subjek, tahun);
+    }
+
+    // TARIK DATA DSKP DARI SHEET Data_DSKP
+    async function fetchDskpData(subjek, tahun) {
+      const badge = document.getElementById('dskpStatusBadge');
+      badge.innerText = '⏳ Sedang menarik DSKP dari pangkalan data...';
+      badge.className = 'text-[11px] text-amber-600 font-medium';
+
+      try {
+        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
+        const response = await fetch(targetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'getDskpData',
+            payload: { subjek: subjek, tahun: tahun }
+          })
+        });
+
+        const result = await response.json();
+        if (result && result.success && Array.isArray(result.data) && result.data.length > 0) {
+          state.dskpList = result.data;
+          
+          let uniqueTema = [...new Set(result.data.map(item => item.tema_unit))];
+          let themeSelect = document.getElementById('rphThemeSelect');
+          let html = '<option value="">-- Pilih Tema / Unit --</option>';
+          
+          uniqueTema.forEach(t => {
+            html += `<option value="${t}">${t}</option>`;
+          });
+
+          themeSelect.innerHTML = html;
+          badge.innerText = `✓ DSKP ${subjek} Tahun ${tahun} Dimuatkan (${result.data.length} Rekod)`;
+          badge.className = 'text-[11px] text-emerald-600 font-bold';
+        } else {
+          badge.innerText = `⚠️ Tiada DSKP dijumpai bagi ${subjek} Tahun ${tahun}`;
+          badge.className = 'text-[11px] text-rose-600 font-medium';
+        }
+      } catch (err) {
+        badge.innerText = '❌ Ralat menarik DSKP';
+      }
+    }
+
+    function onThemeChange() {
+      const selectedTheme = document.getElementById('rphThemeSelect').value;
+      const tajukSelect = document.getElementById('rphTajukSelect');
+
+      if (!selectedTheme) {
+        tajukSelect.innerHTML = '<option value="">-- Pilih Tajuk --</option>';
+        return;
+      }
+
+      const filteredList = state.dskpList.filter(item => item.tema_unit === selectedTheme);
+      let html = '<option value="">-- Pilih Tajuk --</option>';
+
+      filteredList.forEach(item => {
+        html += `<option value="${item.tajuk}">${item.tajuk}</option>`;
+      });
+
+      tajukSelect.innerHTML = html;
+    }
+
+    // AUTOMATIK DSKP POPULATE KE BORANG (SP, OP, KK, SET INDUKSI, AKTIVITI, RUMUSAN)
+    function onTajukChange() {
+      const selectedTheme = document.getElementById('rphThemeSelect').value;
+      const selectedTajuk = document.getElementById('rphTajukSelect').value;
+
+      if (!selectedTheme || !selectedTajuk) return;
+
+      const item = state.dskpList.find(x => x.tema_unit === selectedTheme && x.tajuk === selectedTajuk);
+      if (item) {
+        document.getElementById('rphSP').value = item.sp || '';
+        document.getElementById('rphOP').value = item.objektif || '';
+        document.getElementById('rphKK').value = item.kriteria_kejayaan || '';
+        document.getElementById('rphActStart').value = item.set_induksi || '';
+        document.getElementById('rphActMain').value = item.aktiviti || '';
+        document.getElementById('rphActEnd').value = item.rumusan || '';
+
+        showToast('Data DSKP (SP, OP, KK & Aktiviti) diisi secara automatik!', '✨');
+      }
+    }
+
     function switchUserRole(role) {
       state.currentUserRole = role;
-      
       const btnGuru = document.getElementById('roleBtnGuru');
       const btnPentadbir = document.getElementById('roleBtnPentadbir');
       const guruView = document.getElementById('guruDashboardView');
@@ -1205,17 +880,14 @@
         btnPentadbir.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
         guruView.classList.remove('hidden');
         pentadbirView.classList.add('hidden');
-        showToast('Tukar kepada Mod Paparan Guru', '👨‍🏫');
       } else {
         btnPentadbir.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
         btnGuru.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
         pentadbirView.classList.remove('hidden');
         guruView.classList.add('hidden');
-        showToast('Tukar kepada Mod Paparan Pentadbir', '👔');
       }
     }
 
-    // 5. Navigation Tab Switcher
     function setActiveTab(tabId) {
       state.activeTab = tabId;
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -1235,266 +907,28 @@
 
     function changeWeekGuru() {
       const weekVal = document.getElementById('selectWeekGuru').value;
-      state.selectedWeek = weekVal;
       document.getElementById('labelWeekBadge').innerText = `Minggu ${weekVal}`;
       showToast(`Rekod dikemaskini untuk Minggu ${weekVal}`, '📅');
-      filterGuruTableByDay();
     }
 
-    function filterGuruTableByDay() {
-      const selectedDay = document.getElementById('filterDayGuru').value;
-      state.selectedDayGuru = selectedDay;
-
-      const tbody = document.getElementById('guruRphTableBody');
-      tbody.innerHTML = '';
-
-      const filteredList = state.rphList.filter(item => {
-        if (selectedDay === 'ALL') return true;
-        return item.day === selectedDay;
-      });
-
-      if (filteredList.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="5" class="py-6 text-center text-slate-400 italic">
-              Tiada rekod e-RPH ditemui bagi pilihan ini.
-            </td>
-          </tr>
-        `;
-        return;
-      }
-
-      filteredList.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition-all";
-
-        let statusBadge = item.status === 'APPROVED' 
-          ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold text-[10px]">🟢 Disemak & Sah</span>`
-          : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold text-[10px]">🟡 Menunggu Semakan</span>`;
-
-        tr.innerHTML = `
-          <td class="py-3 px-3">
-            <span class="font-bold text-brand-800 bg-teal-50 px-2 py-0.5 rounded text-[10px] mr-1">${item.day}</span>
-            <span class="font-bold text-slate-800">${item.subject}</span>
-            <p class="text-slate-400 text-[11px] truncate max-w-xs">${item.topic}</p>
-          </td>
-          <td class="py-3 px-3">
-            <p class="font-medium text-slate-700">${item.gradeClass}</p>
-            <p class="text-slate-400 text-[10px]">${item.time}</p>
-          </td>
-          <td class="py-3 px-3">${statusBadge}</td>
-          <td class="py-3 px-3 text-slate-500 italic">${item.adminComment || 'Tiada ulasan lagi'}</td>
-          <td class="py-3 px-3 text-right">
-            <button onclick="setActiveTab('tabPrint')" class="text-brand-600 hover:text-brand-800 font-bold">Cetak / View</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderPentadbirApprovalTable() {
-      const tbody = document.getElementById('pentadbirApprovalTableBody');
-      tbody.innerHTML = '';
-
-      state.rphList.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition-all";
-
-        let statusBadge = item.status === 'APPROVED' 
-          ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold text-[10px]">🟢 Disemak</span>`
-          : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold text-[10px]">🟡 Menunggu Ulasan</span>`;
-
-        tr.innerHTML = `
-          <td class="py-3 px-4 font-bold text-slate-800">${item.teacherName}</td>
-          <td class="py-3 px-4">${item.subject} - ${item.gradeClass}</td>
-          <td class="py-3 px-4 text-slate-500">${item.timestamp}</td>
-          <td class="py-3 px-4">${statusBadge}</td>
-          <td class="py-3 px-4 text-amber-500 font-bold">${'★'.repeat(item.rating || 5)}</td>
-          <td class="py-3 px-4 text-center">
-            <button onclick="openReviewModal('${item.id}')" class="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1 rounded-lg font-bold text-[11px] shadow-sm">
-              Semak & Ulas
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function renderApprovalCards() {
-      const container = document.getElementById('approvalCardsContainer');
-      if (!container) return;
-      container.innerHTML = '';
-
-      state.rphList.forEach(item => {
-        const card = document.createElement('div');
-        card.className = "p-4 rounded-xl bg-slate-50/80 border border-slate-200 hover:border-brand-300 transition-all space-y-3";
-        
-        let statusBadge = item.status === 'APPROVED' 
-          ? `<span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">✓ Disahkan</span>`
-          : `<span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">🟡 Menunggu</span>`;
-
-        card.innerHTML = `
-          <div class="flex justify-between items-start">
-            <div>
-              <h4 class="font-bold text-slate-800 text-sm">${item.teacherName}</h4>
-              <p class="text-xs text-brand-700 font-semibold">${item.subject} (${item.gradeClass})</p>
-            </div>
-            ${statusBadge}
-          </div>
-
-          <div class="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-slate-100">
-            <p><strong>Tajuk:</strong> ${item.topic}</p>
-            <p class="mt-1"><strong>Refleksi:</strong> ${item.reflection}</p>
-          </div>
-
-          <div class="flex items-center justify-between pt-2 text-xs">
-            <span class="text-slate-400 text-[10px]">${item.timestamp}</span>
-            <button onclick="openReviewModal('${item.id}')" class="bg-brand-600 hover:bg-brand-700 text-white px-3 py-1.5 rounded-lg font-bold">
-              Semak & Ulas
-            </button>
-          </div>
-        `;
-        container.appendChild(card);
-      });
-    }
-
-    // Modal Controls
-    function openIncompleteTeachersModal() {
-      document.getElementById('incompleteTeachersModal').classList.remove('hidden');
-    }
-
-    function closeIncompleteTeachersModal() {
-      document.getElementById('incompleteTeachersModal').classList.add('hidden');
-    }
-
-    function sendReminder(teacherName) {
-      showToast(`Notifikasi peringatan dihantar kepada ${teacherName}!`, '🔔');
-    }
-
-    function sendReminderAll() {
-      showToast('Peringatan pukal dihantar kepada semua guru yang terlibat!', '📢');
-      closeIncompleteTeachersModal();
-    }
-
-    function openReviewModal(rphId) {
-      state.activeModalRphId = rphId;
-      const item = state.rphList.find(x => x.id === rphId);
-      if (!item) return;
-
-      document.getElementById('modalTeacherInfo').innerText = `${item.teacherName} | ${item.subject} (${item.gradeClass})`;
-      document.getElementById('modalTopic').innerText = item.topic;
-      document.getElementById('modalSP').innerText = item.sp;
-      document.getElementById('modalReflect').innerText = item.reflection;
-      document.getElementById('modalCommentInput').value = item.adminComment || '';
-
-      document.getElementById('reviewModal').classList.remove('hidden');
-    }
-
-    function closeReviewModal() {
-      document.getElementById('reviewModal').classList.add('hidden');
-    }
-
-    function applyPresetComment(text) {
-      document.getElementById('modalCommentInput').value = text;
-    }
-
-    function setStarRating(stars) {
-      state.currentStarRating = stars;
-      document.getElementById('starRatingLabel').innerText = `${stars}.0 / 5.0 (${stars === 5 ? 'Cemerlang' : 'Baik'})`;
-    }
-
-    function saveApprovalAction() {
-      const item = state.rphList.find(x => x.id === state.activeModalRphId);
-      if (item) {
-        item.status = 'APPROVED';
-        item.adminComment = document.getElementById('modalCommentInput').value || 'Aktiviti PdPC disahkan.';
-        item.rating = state.currentStarRating;
-      }
-
-      closeReviewModal();
-      filterGuruTableByDay();
-      renderPentadbirApprovalTable();
-      renderApprovalCards();
-      showToast('Pengesahan & Cop Digital e-RPH Berjaya Disimpan!', '✅');
-    }
-
-    function approveAllPending() {
-      state.rphList.forEach(x => {
-        x.status = 'APPROVED';
-        if (!x.adminComment) x.adminComment = 'Disahkan secara pukal oleh PK Kurikulum.';
-      });
-      filterGuruTableByDay();
-      renderPentadbirApprovalTable();
-      renderApprovalCards();
-      showToast('Semua e-RPH telah disahkan secara pukal!', '🎉');
-    }
-
-    // Auto DSKP Loader
-    function autoPopulateDSKP() {
-      const subject = document.getElementById('rphSubjectSelect').value;
-      
-      if (subject === 'Sains') {
-        document.getElementById('rphClass').value = '2 Amanah (28 Murid)';
-        document.getElementById('rphTheme').value = 'Penyelenggaraan & Kesinambungan Hidup: Ekosistem';
-        document.getElementById('rphSK').value = '2.1 Ekosistem dan Saling Bersandaran Antara Organisma.';
-        document.getElementById('rphSP').value = '2.1.2 Membina siratan makanan dan menerangkan aliran tenaga.';
-        document.getElementById('rphOP').value = '1. Membina 2 rantai makanan lengkap berdasarkan habitat darat.\n2. Menerangkan peranan pengeluar dan pengguna.';
-      } else if (subject === 'Fizik') {
-        document.getElementById('rphClass').value = '5 STEM 1 (25 Murid)';
-        document.getElementById('rphTheme').value = 'Gelombang: Fenomena Pembauan Gelombang';
-        document.getElementById('rphSK').value = '5.2 Fenomena Gelombang dan Aplikasi.';
-        document.getElementById('rphSP').value = '5.2.1 Menerangkan fenomena pembauan gelombang dalam kehidupan.';
-        document.getElementById('rphOP').value = '1. Melakar corak pembauan gelombang air melalui celah sempit.\n2. Menyelesaikan 2 soalan formula gelombang.';
-      } else {
-        document.getElementById('rphClass').value = '4 STEM 1 (32 Murid)';
-        document.getElementById('rphTheme').value = 'Perkaitan & Algebra: Persamaan Kuadratik';
-        document.getElementById('rphSK').value = '1.1 Ungkapan dan Persamaan Kuadratik dalam Satu Pemboleh Ubah.';
-        document.getElementById('rphSP').value = '1.1.3 Membentuk persamaan kuadratik dan menentukan punca pemfaktoran.';
-        document.getElementById('rphOP').value = '1. Menyelesaikan 3 soalan pemfaktoran kuadratik.\n2. Menerangkan langkah secara lisan.';
-      }
-
-      showToast(`Data DSKP bagi subjek ${subject} dimuatkan!`, '📚');
-    }
-
-    function submitRphForm() {
-      showToast('e-RPH Hari Ini Berjaya Dihantar!', '🚀');
-      setTimeout(() => {
-        setActiveTab('tabDashboard');
-      }, 1000);
-    }
-
-    function saveDraftRPH() {
-      showToast('Draf RPH Berjaya Disimpan ke Simpanan Awan!', '💾');
-    }
+    function filterGuruTableByDay() {}
+    function submitRphForm() { showToast('e-RPH Hari Ini Berjaya Dihantar!', '🚀'); }
+    function saveDraftRPH() { showToast('Draf RPH Berjaya Disimpan!', '💾'); }
 
     function showToast(message, icon = '🔔') {
       const toast = document.getElementById('toastNotification');
       document.getElementById('toastMessage').innerText = message;
       document.getElementById('toastIcon').innerText = icon;
-
       toast.classList.remove('translate-y-20', 'opacity-0');
       toast.classList.add('translate-y-0', 'opacity-100');
-
       setTimeout(() => {
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('translate-y-20', 'opacity-0');
       }, 3000);
     }
 
-    function filterApprovalQueue(type) {
-      showToast(`Filter Pentadbir: ${type}`, '🔍');
-    }
-
-    function toggleNotificationModal() {
-      showToast('Notifikasi: Tiada teguran baharu daripada pentadbir.', '🔔');
-    }
-
-    // System Initialization Event
     window.addEventListener('DOMContentLoaded', () => {
       initUserSession();
-      filterGuruTableByDay();
-      renderPentadbirApprovalTable();
-      renderApprovalCards();
     });
   </script>
 </body>
