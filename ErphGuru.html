@@ -179,7 +179,7 @@
     <!-- ========================================================================= -->
     <section id="tabDashboard" class="tab-content space-y-6">
 
-      <!-- PERINGATAN PENGHANTARAN E-RPH (PINDAAN 1: HANYA DI DASHBOARD UTAMA) -->
+      <!-- PERINGATAN PENGHANTARAN E-RPH (HANYA DI DASHBOARD UTAMA) -->
       <div id="statusAlertBanner" class="bg-gradient-to-r from-teal-500 to-cyan-600 text-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
         <div class="flex items-center space-x-3">
           <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm shrink-0">
@@ -331,7 +331,7 @@
 
 
     <!-- ========================================================================= -->
-    <!-- VIEW 2: PEMBINA e-RPH (PINDAAN 2, 3, 4, 5, 6, 7, 8)                       -->
+    <!-- VIEW 2: PEMBINA e-RPH                                                     -->
     <!-- ========================================================================= -->
     <section id="tabBuilder" class="tab-content space-y-6 hidden">
       
@@ -347,7 +347,7 @@
             <p class="text-xs text-slate-400 mt-1">Pilih Minggu, Tarikh & Slot Jadual untuk pengisian automatik dari DSKP.</p>
           </div>
 
-          <!-- PINDAAN 3 & 4 & 6: CONTROLS MINGGU (LATEST FIRST 36->1) + HARI/TARIKH + SLOT JADUAL -->
+          <!-- CONTROLS MINGGU (36->1) + HARI/TARIKH + SLOT JADUAL -->
           <div class="flex flex-wrap items-center gap-2 text-xs w-full lg:w-auto">
             <div class="flex items-center space-x-1">
               <label class="font-bold text-slate-700">Minggu:</label>
@@ -402,7 +402,7 @@
             </div>
           </div>
 
-          <!-- SEKSYEN 2: KURIKULUM (PINDAAN 7 & 8: TEMA/UNIT & TAJUK DROPDOWN DEPENDENT DSKP) -->
+          <!-- SEKSYEN 2: KURIKULUM (TEMA/UNIT & TAJUK DROPDOWN DEPENDENT DSKP) -->
           <div class="space-y-4">
             <div class="flex justify-between items-center">
               <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-brand-700">2. Kurikulum (DSKP Auto-Isi dari Tab Data_DSKP)</h3>
@@ -539,8 +539,6 @@
 
     </section>
 
-
-    <!-- VIEW 3, 4, 5 KEKAL SEPERTI ASAL -->
     <section id="tabApproval" class="tab-content space-y-6 hidden">
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4">
@@ -586,6 +584,22 @@
   <script src="config.js"></script>
 
   <script>
+    // 1. KAMUS PEMETAAN KOD SUBJEK JADUAL -> NAMA PENUH DATA_DSKP
+    const SUBJECT_MAP = {
+      'BM': 'Bahasa Melayu',
+      'BI': 'Bahasa Inggeris',
+      'MT': 'Matematik',
+      'SN': 'Sains',
+      'BA': 'Bahasa Arab',
+      'PMZ': 'Pendidikan Muzik',
+      'PSV': 'Pendidikan Seni Visual',
+      'PI/Q': 'Pendidikan Islam',
+      'PI/U': 'Pendidikan Islam',
+      'RBT': 'Reka Bentuk dan Teknologi',
+      'PJ': 'Pendidikan Jasmani',
+      'PK': 'Pendidikan Kesihatan'
+    };
+
     const state = {
       currentUserRole: 'guru',
       activeTab: 'tabDashboard',
@@ -702,6 +716,39 @@
       container.innerHTML = html;
     }
 
+    // 2. FUNGSI MENGGABUNGKAN SLOT SUBJEK & KELAS YANG SAMA SECARA BERTURUTAN
+    function combineConsecutiveSlots(slots) {
+      if (!slots || slots.length === 0) return [];
+
+      const combined = [];
+
+      slots.forEach(slot => {
+        const last = combined[combined.length - 1];
+        const subjekCurrent = (slot.subjek || slot.Subjek || '').trim();
+        const kelasCurrent = (slot.nama_kelas || slot.Nama_Kelas || '').trim();
+
+        const subjekLast = last ? (last.subjek || last.Subjek || '').trim() : '';
+        const kelasLast = last ? (last.nama_kelas || last.Nama_Kelas || '').trim() : '';
+
+        if (last && subjekCurrent === subjekLast && kelasCurrent === kelasLast) {
+          last.jam_tamat = slot.jam_tamat || slot.Jam_Tamat;
+          last.waktu_label = `${last.waktu_awal} - ${slot.waktu || slot.Waktu}`;
+        } else {
+          combined.push({
+            ...slot,
+            waktu_awal: slot.waktu || slot.Waktu,
+            waktu_label: slot.waktu || slot.Waktu,
+            jam_mula: slot.jam_mula || slot.Jam_Mula,
+            jam_tamat: slot.jam_tamat || slot.Jam_Tamat,
+            subjek: subjekCurrent,
+            nama_kelas: kelasCurrent
+          });
+        }
+      });
+
+      return combined;
+    }
+
     // LOGIK PEMBINA E-RPH (DROPDOWN BERANTAI)
     function onBuilderWeekChange() {
       const weekNum = parseInt(document.getElementById('builderSelectWeek').value || '36');
@@ -719,6 +766,7 @@
       onBuilderDateDayChange();
     }
 
+    // 3. KEMASKINI ONBUILDERDATEDAYCHANGE MENGGUNAKAN COMBINECONSECUTIVESLOTS & SUBJECT_MAP
     async function onBuilderDateDayChange() {
       const val = document.getElementById('builderSelectDateDay').value;
       if (!val) return;
@@ -742,17 +790,23 @@
 
         const result = await response.json();
         if (result && result.success && Array.isArray(result.data) && result.data.length > 0) {
-          state.allUserJadual = result.data;
+          
+          // GABUNGKAN SLOT BERTURUTAN UNTUK SUBJEK SAMA
+          const combinedSlots = combineConsecutiveSlots(result.data);
+          state.allUserJadual = combinedSlots;
+
           let html = '<option value="">-- Pilih Slot Jadual --</option>';
           
-          result.data.forEach((slot, idx) => {
-            const waktu = slot.waktu || slot.Waktu || ('Slot ' + (idx + 1));
-            const jamMula = slot.jam_mula || slot.Jam_Mula || '-';
-            const jamTamat = slot.jam_tamat || slot.Jam_Tamat || '-';
-            const namaKelas = slot.nama_kelas || slot.Nama_Kelas || 'Kelas';
-            const subjek = slot.subjek || slot.Subjek || 'Subjek';
+          combinedSlots.forEach((slot, idx) => {
+            const waktuLabel = slot.waktu_label;
+            const jamMula = slot.jam_mula;
+            const jamTamat = slot.jam_tamat;
+            const namaKelas = slot.nama_kelas;
+            const subjekKode = slot.subjek;
 
-            html += `<option value="${idx}">[${waktu} | ${jamMula}-${jamTamat}] ${subjek} - ${namaKelas}</option>`;
+            const subjekPenuh = SUBJECT_MAP[subjekKode] || subjekKode;
+
+            html += `<option value="${idx}">[${waktuLabel} | ${jamMula}-${jamTamat}] ${subjekPenuh} (${subjekKode}) - ${namaKelas}</option>`;
           });
 
           slotSelect.innerHTML = html;
@@ -764,7 +818,7 @@
       }
     }
 
-    // ISIAN AUTOMATIK MAKLUMAT ASAS APABILA SLOT DIPILIH
+    // 4. KEMASKINI ONBUILDERSLOTCHANGE UNTUK TUKAR KOD SUBJEK KEPADA NAMA PENUH DSKP
     function onBuilderSlotChange() {
       const idx = document.getElementById('builderSelectSlot').value;
       if (idx === '' || !state.allUserJadual[idx]) return;
@@ -772,20 +826,22 @@
       const slot = state.allUserJadual[idx];
       const [selectedHari, selectedDate] = document.getElementById('builderSelectDateDay').value.split('|');
 
-      const jamMula = slot.jam_mula || slot.Jam_Mula || '';
-      const jamTamat = slot.jam_tamat || slot.Jam_Tamat || '';
-      const subjek = slot.subjek || slot.Subjek || '';
-      const namaKelas = slot.nama_kelas || slot.Nama_Kelas || '';
+      const jamMula = slot.jam_mula || '';
+      const jamTamat = slot.jam_tamat || '';
+      const subjekKode = slot.subjek || '';
+      const namaKelas = slot.nama_kelas || '';
+
+      const subjekPenuh = SUBJECT_MAP[subjekKode] || subjekKode;
 
       document.getElementById('rphDate').value = selectedDate;
       document.getElementById('rphTime').value = `${selectedHari} (${jamMula} - ${jamTamat})`;
-      document.getElementById('rphSubjectSelect').value = subjek;
+      document.getElementById('rphSubjectSelect').value = subjekPenuh;
       document.getElementById('rphClass').value = namaKelas;
 
       let tahunMatch = namaKelas.match(/\d+/);
       let tahun = tahunMatch ? tahunMatch[0] : '3';
 
-      fetchDskpData(subjek, tahun);
+      fetchDskpData(subjekPenuh, tahun);
     }
 
     // TARIK DATA DSKP DARI SHEET Data_DSKP
