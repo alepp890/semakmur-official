@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL: js/app-core.js (Diperkemaskan Paparan Masa Mula-Tamat Dalam Dashboard)
+ * FAIL: js/app-core.js
  * ==============================================================================
  */
 
@@ -174,7 +174,7 @@ function changeWeekGuru() { loadGuruDashboardData(); }
 function filterGuruTableByDay() { loadGuruDashboardData(); }
 
 /**
- * TARIK JADUAL WAKTU HARI INI
+ * TARIK JADUAL WAKTU HARI INI & TAMBAH BUTANG "+ BINA RPH"
  */
 function fetchJadualHariIni(emailGuru) {
   const container = document.getElementById('jadualWidgetContainer');
@@ -186,6 +186,7 @@ function fetchJadualHariIni(emailGuru) {
   fetchBackendApi('getJadualGuruByHari', { emailGuru: emailGuru, hari: todayName })
     .then(res => {
       const dataList = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
+      state.todayJadual = dataList;
 
       if (Array.isArray(dataList) && dataList.length > 0) {
         container.innerHTML = '';
@@ -197,11 +198,16 @@ function fetchJadualHariIni(emailGuru) {
           const masaRange = (mula && tamat) ? `${mula} - ${tamat}` : 'Masa Jadual';
 
           const div = document.createElement('div');
-          div.className = 'p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1';
+          div.className = 'p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2';
           div.innerHTML = `
             <div class="flex justify-between items-center text-xs font-bold text-slate-800">
               <span>${subjek} (${kelas})</span>
               <span class="text-brand-600">${masaRange}</span>
+            </div>
+            <div class="flex justify-end pt-1 border-t border-slate-100">
+              <button onclick="binaRphDariJadualDirect('${todayName}', '${subjek}', '${kelas}')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-[11px] font-bold shadow-sm transition-all flex items-center gap-1">
+                <span>+ Bina RPH</span>
+              </button>
             </div>
           `;
           container.appendChild(div);
@@ -234,12 +240,17 @@ function loadGuruDashboardData() {
     .then(res => {
       if (res && res.success && Array.isArray(res.data)) {
         let list = res.data;
+        state.rphList = list;
+        window.currentGuruRphList = list;
+
         if (filterDay && filterDay !== 'ALL') {
           list = list.filter(item => String(item.hari).toLowerCase() === filterDay.toLowerCase());
         }
         renderGuruRphTable(list);
         updateGuruStats(res.data);
       } else {
+        state.rphList = [];
+        window.currentGuruRphList = [];
         renderGuruRphTable([]);
         updateGuruStats([]);
       }
@@ -251,7 +262,7 @@ function loadGuruDashboardData() {
 }
 
 /**
- * PERATURAN 1: Paparan Masa Lengkap Masa Mula - Masa Tamat (Kelas)
+ * PAPARAN JADUAL DASHBOARD GURU DENGAN BUTANG EDIT/LANJUT
  */
 function renderGuruRphTable(list) {
   const tbody = document.getElementById('guruRphTableBody');
@@ -292,7 +303,7 @@ function renderGuruRphTable(list) {
       <td class="py-2.5 px-3">${statusBadge}</td>
       <td class="py-2.5 px-3 text-slate-500">${item.ulasanPenyemak || '-'}</td>
       <td class="py-2.5 px-3 text-right">
-        <button onclick="setActiveTab('tabBuilder')" class="px-2.5 py-1 bg-brand-600 text-white rounded text-[11px] font-bold">Edit/Lanjut</button>
+        <button onclick="editRphRecord('${item.idRph}')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded text-[11px] font-bold transition-all">Edit/Lanjut</button>
       </td>
     `;
     tbody.appendChild(tr);
