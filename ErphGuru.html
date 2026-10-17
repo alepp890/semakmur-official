@@ -565,22 +565,61 @@
             </div>
           </div>
 
-          <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200/80 space-y-3 text-xs">
+          <!-- BAHAGIAN 4: REFLEKSI & CATATAN IMPAK (KEMAS KINI) -->
+          <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200/80 space-y-4 text-xs">
             <div class="flex justify-between items-center">
               <h3 class="font-bold text-amber-900 uppercase tracking-wider">4. Refleksi & Catatan Impak</h3>
               <span class="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded">Fasa 2 Refleksi</span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <!-- 3 KOTAK INPUT NOMBOR -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3 rounded-xl border border-amber-200">
               <div>
-                <label class="block text-slate-700 font-semibold mb-1">Bil. Murid Mencapai OP</label>
-                <input type="text" id="rphReflectCount" value="" placeholder="Contoh: 28 / 32 Murid" class="w-full bg-white border border-amber-200 rounded-lg p-2 font-semibold text-emerald-700">
+                <label class="block text-slate-700 font-bold mb-1">Jumlah Murid Kelas</label>
+                <input type="number" id="rphTotalStudents" min="0" value="35" oninput="calculateRefleksi()" placeholder="35" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-brand-800">
+                <span class="text-[10px] text-slate-400 block mt-0.5">*Auto dari jadual / diedit</span>
               </div>
-              <div class="md:col-span-2">
-                <label class="block text-slate-700 font-semibold mb-1">Catatan Impak & Tindakan Susulan</label>
-                <input type="text" id="rphReflectNote" value="" placeholder="Masukkan catatan impak atau bimbingan pemulihan..." class="w-full bg-white border border-amber-200 rounded-lg p-2">
+
+              <div>
+                <label class="block text-slate-700 font-bold mb-1">Murid Tidak Hadir</label>
+                <input type="number" id="rphAbsentCount" min="0" value="0" oninput="calculateRefleksi()" placeholder="0" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-rose-600">
+                <span class="text-[10px] text-slate-400 block mt-0.5">Kehadiran: <span id="lblKehadiran" class="font-bold text-slate-600">0 / 35</span></span>
+              </div>
+
+              <div>
+                <label class="block text-slate-700 font-bold mb-1">Murid Capai Objektif</label>
+                <input type="number" id="rphCapaiCount" min="0" value="0" oninput="calculateRefleksi()" placeholder="0" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-emerald-600">
+                <span class="text-[10px] text-slate-400 block mt-0.5">Menguasai pembelajaran</span>
               </div>
             </div>
+
+            <!-- DYNAMIC STATEMENT PREVIEW -->
+            <div id="refleksiStatementsContainer" class="bg-white p-3 rounded-xl border border-amber-200 space-y-1 text-slate-800 font-medium">
+              <p>• <span id="txtCapaiOp" class="font-bold text-emerald-700">0 / 35</span> orang murid dapat mencapai objektif pembelajaran yang ditetapkan.</p>
+              <p>• <span id="txtBimbingan" class="font-bold text-amber-700">0 / 35</span> orang murid dapat mencapai objektif pembelajaran dengan bimbingan.</p>
+              <p>• <span id="txtTidakCapai" class="font-bold text-rose-700">0 / 35</span> orang murid tidak berjaya mencapai objektif pembelajaran.</p>
+            </div>
+
+            <!-- CHECKBOX & SEBAB PDPC TIDAK DIJALANKAN -->
+            <div class="pt-2 border-t border-amber-200/80 space-y-2">
+              <label class="flex items-start space-x-2 font-bold text-amber-900 cursor-pointer">
+                <input type="checkbox" id="chkPdpcPostponed" onchange="togglePdpcReason()" class="mt-0.5 rounded text-amber-600 focus:ring-amber-500">
+                <span>Pengajaran dan pembelajaran (PdPC) tidak dapat dijalankan pada hari ini dan akan diteruskan pada sesi pembelajaran seterusnya.</span>
+              </label>
+
+              <div id="pdpcReasonBox" class="hidden pl-6">
+                <label class="block text-slate-700 font-semibold mb-1">Sebab / Kerana:</label>
+                <input type="text" id="rphPdpcReason" oninput="calculateRefleksi()" placeholder="Contoh: Program Sekolah / Cuti Peristiwa / Mesyuarat / Kursus..." class="w-full bg-white border border-amber-300 rounded-lg p-2 text-slate-800">
+              </div>
+            </div>
+
+            <!-- CATATAN TAMBAHAN & INPUT TERSEMBUNYI -->
+            <div>
+              <label class="block text-slate-700 font-semibold mb-1">Catatan Impak & Tindakan Susulan (Opsional)</label>
+              <input type="text" id="rphReflectNote" placeholder="Masukkan catatan impak atau bimbingan pemulihan..." class="w-full bg-white border border-amber-200 rounded-lg p-2">
+            </div>
+
+            <input type="hidden" id="rphReflectCount" value="">
           </div>
 
           <div class="flex items-center justify-between pt-4 border-t border-slate-100">
@@ -704,8 +743,12 @@
 
           <div class="border border-slate-400 p-3 bg-slate-50">
             <span class="font-bold underline block mb-1">Refleksi & Impak Pembelajaran:</span>
-            <p><strong>Pencapaian OP:</strong> <span id="printReflectCount">28 / 32 Murid</span></p>
-            <p><strong>Tindakan Susulan:</strong> <span id="printReflectNote">4 murid yang belum mencapai OP diberikan bimbingan terbeza semasa aktiviti kumpulan.</span></p>
+            <div id="printReflectCount" class="whitespace-pre-line font-medium text-slate-800">
+              32 / 35 orang murid dapat mencapai objektif pembelajaran yang ditetapkan.
+              0 / 35 orang murid dapat mencapai objektif pembelajaran dengan bimbingan.
+              3 / 35 orang murid tidak berjaya mencapai objektif pembelajaran.
+            </div>
+            <p class="mt-2"><strong>Catatan Impak:</strong> <span id="printReflectNote">Bimbingan pemulihan berterusan dijalankan.</span></p>
           </div>
 
           <div class="border-2 border-dashed border-teal-600 p-4 rounded-xl flex items-center justify-between bg-teal-50/30">
