@@ -338,9 +338,9 @@ function checkPdpcTimeAndFreeze(masaTamatStr) {
 }
 
 /**
- * Tarik Data DSKP dan Populasikan Dropdown Tema / Tajuk
+ * Tarik Data DSKP dan Populasikan Dropdown Tema / Tajuk (Ditambah Sokongan Callback)
  */
-function fetchDskpData(subjek, kelas) {
+function fetchDskpData(subjek, kelas, callback) {
   const badge = document.getElementById('dskpStatusBadge');
   if (badge) badge.textContent = '⏳ Sedang menarik DSKP...';
 
@@ -361,11 +361,14 @@ function fetchDskpData(subjek, kelas) {
           badge.className = 'text-[11px] text-amber-600 font-medium';
         }
         currentDskpList = [];
+        populateDskpDropdowns();
       }
+      if (typeof callback === 'function') callback();
     })
     .catch(err => {
       console.error('Ralat DSKP:', err);
       if (badge) badge.textContent = '❌ Ralat DSKP';
+      if (typeof callback === 'function') callback();
     });
 }
 
@@ -574,7 +577,7 @@ function resetRphFormFields() {
 }
 
 /**
- * FUNGSI BAHARU 1: EDIT / LANJUT RPH DRAF DARIPADA DASHBOARD GURU
+ * EDIT / LANJUT RPH DRAF DARIPADA DASHBOARD GURU (KEMAS KINI PEMILIHAN DROPDOWN TEMA & TAJUK)
  */
 function editRphRecord(idRph) {
   if (!idRph) return;
@@ -607,33 +610,60 @@ function editRphRecord(idRph) {
   document.getElementById('rphSubjectSelect').value = item.subjek || '';
   document.getElementById('rphClass').value = item.kelas || '';
 
-  // 4. Isi Kurikulum & DSKP
-  const themeSelect = document.getElementById('rphThemeSelect');
-  const tajukSelect = document.getElementById('rphTajukSelect');
-  
-  if (themeSelect) {
-    themeSelect.innerHTML = `<option value="${item.temaUnit || item.tajukBidang || ''}">${item.temaUnit || item.tajukBidang || '-- Tema / Unit --'}</option>`;
-  }
-  if (tajukSelect) {
-    tajukSelect.innerHTML = `<option value="${item.tajuk || ''}">${item.tajuk || '-- Tajuk --'}</option>`;
-  }
+  // 4. Tarik DSKP Dahulu Sebelum Menetapkan Nilai Dropdown Tema/Unit & Tajuk
+  fetchDskpData(item.subjek, item.kelas, () => {
+    const themeSelect = document.getElementById('rphThemeSelect');
+    const tajukSelect = document.getElementById('rphTajukSelect');
 
+    const targetTema = item.temaUnit || '';
+    const targetTajuk = item.tajuk || item.tajukBidang || '';
+
+    // Tetapkan Tema/Unit
+    if (themeSelect) {
+      if (targetTema) {
+        let themeExists = Array.from(themeSelect.options).some(opt => opt.value === targetTema);
+        if (!themeExists) {
+          let opt = document.createElement('option');
+          opt.value = targetTema;
+          opt.textContent = targetTema;
+          themeSelect.appendChild(opt);
+        }
+        themeSelect.value = targetTema;
+      }
+    }
+
+    // Tetapkan Tajuk secara berasingan
+    if (tajukSelect) {
+      if (targetTajuk) {
+        let tajukExists = Array.from(tajukSelect.options).some(opt => opt.value === targetTajuk);
+        if (!tajukExists) {
+          let opt = document.createElement('option');
+          opt.value = targetTajuk;
+          opt.textContent = targetTajuk;
+          tajukSelect.appendChild(opt);
+        }
+        tajukSelect.value = targetTajuk;
+      }
+    }
+  });
+
+  // 5. Isi Kurikulum SP, OP & KK
   document.getElementById('rphSP').value = item.standardPembelajaran || item.sp || '';
   document.getElementById('rphOP').value = item.objektifPembelajaran || item.op || '';
   document.getElementById('rphKK').value = item.kriteriaKejayaan || item.kk || '';
 
-  // 5. Isi Aktiviti PdPC
+  // 6. Isi Aktiviti PdPC
   document.getElementById('rphActStart').value = item.aktivitiPemula || item.actStart || '';
   document.getElementById('rphActMain').value = item.aktivitiUtama || item.actMain || '';
   document.getElementById('rphActEnd').value = item.aktivitiPenutup || item.actEnd || '';
 
-  // 6. Tandakan Checkbox
+  // 7. Tandakan Checkbox
   setCheckedValuesByName('chkBbm', item.bbm);
   setCheckedValuesByName('chkEmk', item.emk);
   setCheckedValuesByName('chkKbat', item.kbat);
   setCheckedValuesByName('chkPbd', item.pbd);
 
-  // 7. Isi Kehadiran & Refleksi
+  // 8. Isi Kehadiran & Refleksi
   document.getElementById('rphKehadiranDisplay').value = item.kehadiranMurid || '0 / 0 orang murid';
   document.getElementById('rphCapaiCount').value = item.refleksiBilCapai || 0;
   document.getElementById('rphReflectNote').value = item.catatanRefleksi || '';
@@ -659,7 +689,7 @@ function editRphRecord(idRph) {
 }
 
 /**
- * FUNGSI BAHARU 2: BINA RPH DARI JADUAL WAKTU HARIAN (DIRECT)
+ * BINA RPH DARI JADUAL WAKTU HARIAN (DIRECT)
  */
 function binaRphDariJadualDirect(hariTarget, subjekTarget, kelasTarget) {
   if (typeof setActiveTab === 'function') {
