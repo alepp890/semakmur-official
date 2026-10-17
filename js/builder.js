@@ -11,6 +11,7 @@ function populateWeeksDropdowns() {
   if (selectBuilder) selectBuilder.innerHTML = html;
 
   onBuilderWeekChange();
+  calculateRefleksi();
 }
 
 async function fetchJadualHariIni(emailGuru) {
@@ -211,6 +212,11 @@ function onBuilderSlotChange() {
 
   const subjekPenuh = SUBJECT_MAP[subjekKode] || subjekKode;
 
+  // AUTO-PULL BILANGAN MURID DARI SHEET/SLOT
+  const bilMurid = slot.bil_murid || slot.Bil_Murid || slot.bilMurid || slot.jumlah_murid || '35';
+  const totalStudentsEl = document.getElementById('rphTotalStudents');
+  if (totalStudentsEl) totalStudentsEl.value = bilMurid;
+
   if (document.getElementById('rphDate')) document.getElementById('rphDate').value = selectedDate;
   if (document.getElementById('rphTime')) document.getElementById('rphTime').value = `${selectedHari} (${jamMula} - ${jamTamat})`;
   if (document.getElementById('rphSubjectSelect')) document.getElementById('rphSubjectSelect').value = subjekPenuh;
@@ -226,6 +232,7 @@ function onBuilderSlotChange() {
   let tahun = tahunMatch ? tahunMatch[0] : '3';
 
   fetchDskpData(subjekPenuh, tahun);
+  calculateRefleksi();
 }
 
 async function fetchDskpData(subjek, tahun) {
@@ -325,6 +332,77 @@ function onTajukChange() {
   }
 }
 
+// LOGIK PENGIRAAN REFLEKSI & CATATAN IMPAK (PINDAAN TERKINI)
+function calculateRefleksi() {
+  const totalEl = document.getElementById('rphTotalStudents');
+  const absentEl = document.getElementById('rphAbsentCount');
+  const capaiEl = document.getElementById('rphCapaiCount');
+  const chkPdpc = document.getElementById('chkPdpcPostponed');
+  const reasonEl = document.getElementById('rphPdpcReason');
+
+  const total = parseInt(totalEl ? totalEl.value : '0') || 0;
+  const absent = parseInt(absentEl ? absentEl.value : '0') || 0;
+  let capai = parseInt(capaiEl ? capaiEl.value : '0') || 0;
+
+  const present = Math.max(0, total - absent);
+  if (capai > present) {
+    capai = present;
+    if (capaiEl) capaiEl.value = capai;
+  }
+
+  const bimbingan = Math.max(0, present - capai);
+  const tidakCapai = absent + bimbingan;
+
+  const lblKehadiran = document.getElementById('lblKehadiran');
+  if (lblKehadiran) lblKehadiran.innerText = `${absent} / ${total}`;
+
+  const txtCapaiOp = document.getElementById('txtCapaiOp');
+  if (txtCapaiOp) txtCapaiOp.innerText = `${capai} / ${total}`;
+
+  const txtBimbingan = document.getElementById('txtBimbingan');
+  if (txtBimbingan) txtBimbingan.innerText = `${bimbingan} / ${total}`;
+
+  const txtTidakCapai = document.getElementById('txtTidakCapai');
+  if (txtTidakCapai) txtTidakCapai.innerText = `${tidakCapai} / ${total}`;
+
+  let reflectSummary = '';
+  if (chkPdpc && chkPdpc.checked) {
+    const reason = (reasonEl && reasonEl.value.trim() !== '') ? reasonEl.value.trim() : '________________________________';
+    reflectSummary = `Pengajaran dan pembelajaran tidak dapat dijalankan pada hari ini dan akan diteruskan pada sesi pembelajaran seterusnya kerana: ${reason}`;
+  } else {
+    reflectSummary = `${capai} / ${total} orang murid dapat mencapai objektif pembelajaran yang ditetapkan.\n` +
+                     `${bimbingan} / ${total} orang murid dapat mencapai objektif pembelajaran dengan bimbingan.\n` +
+                     `${tidakCapai} / ${total} orang murid tidak berjaya mencapai objektif pembelajaran.`;
+  }
+
+  const reflectCountEl = document.getElementById('rphReflectCount');
+  if (reflectCountEl) reflectCountEl.value = reflectSummary;
+
+  const printReflectCount = document.getElementById('printReflectCount');
+  if (printReflectCount) printReflectCount.innerText = reflectSummary;
+
+  const noteInput = document.getElementById('rphReflectNote');
+  const printNote = document.getElementById('printReflectNote');
+  if (printNote && noteInput) {
+    printNote.innerText = noteInput.value || 'Bimbingan pemulihan berterusan dijalankan.';
+  }
+
+  return reflectSummary;
+}
+
+function togglePdpcReason() {
+  const chkPdpc = document.getElementById('chkPdpcPostponed');
+  const reasonBox = document.getElementById('pdpcReasonBox');
+  if (reasonBox) {
+    if (chkPdpc && chkPdpc.checked) {
+      reasonBox.classList.remove('hidden');
+    } else {
+      reasonBox.classList.add('hidden');
+    }
+  }
+  calculateRefleksi();
+}
+
 async function processRphSaveOrSubmit(statusRph) {
   const subjekEl = document.getElementById('rphSubjectSelect');
   const tarikhEl = document.getElementById('rphDate');
@@ -339,6 +417,8 @@ async function processRphSaveOrSubmit(statusRph) {
 
   const emailGuru = state.currentUser ? (state.currentUser.email || state.currentUser.Email || '') : '';
   const namaGuru = state.currentUser ? (state.currentUser.nama || state.currentUser.Nama_Guru || state.currentUser.name || '') : '';
+
+  calculateRefleksi();
 
   const payload = {
     rphId: state.currentRphId || '',
