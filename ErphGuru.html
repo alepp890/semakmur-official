@@ -272,14 +272,18 @@
               </div>
               
               <div class="flex items-center space-x-2">
-                <label class="text-xs text-slate-500 font-medium hidden sm:inline">Pilih Hari:</label>
+                <!-- LABEL MINGGU & HARI DINAMIK -->
+                <span id="lblMingguHariDashboard" class="text-xs font-bold text-brand-800 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200">
+                  Minggu 36 = Pilih hari (Isnin)
+                </span>
+
                 <select id="filterDayGuru" onchange="filterGuruTableByDay()" class="bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-brand-500 text-brand-800">
-                  <option value="ALL">Semua Hari (Minggu Ini)</option>
                   <option value="Isnin">Isnin</option>
                   <option value="Selasa">Selasa</option>
                   <option value="Rabu">Rabu</option>
                   <option value="Khamis">Khamis</option>
                   <option value="Jumaat">Jumaat</option>
+                  <option value="ALL">Semua Hari (Minggu Ini)</option>
                 </select>
               </div>
             </div>
@@ -531,73 +535,80 @@
             </div>
           </div>
 
+          <!-- SEKSYEN CHECKBOXES T, U, V, W WITH PROPER NAME ATTRIBUTES -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div>
+              <span class="block font-bold text-slate-700 mb-2">Bahan Bantu Mengajar (BBM)</span>
+              <div class="space-y-1">
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkBbm" value="Buku Teks / Modul" checked class="rounded text-brand-600"> <span>Buku Teks / Modul</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkBbm" value="Lembaran Kerja" checked class="rounded text-brand-600"> <span>Lembaran Kerja</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkBbm" value="Slaid LCD / TV" class="rounded text-brand-600"> <span>Slaid LCD / TV</span></label>
+              </div>
+            </div>
+
             <div>
               <span class="block font-bold text-slate-700 mb-2">Elemen EMK</span>
               <div class="space-y-1">
-                <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Sains & Teknologi</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Nilai Murni</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkEmk" value="Sains & Teknologi" checked class="rounded text-brand-600"> <span>Sains & Teknologi</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkEmk" value="Nilai Murni" checked class="rounded text-brand-600"> <span>Nilai Murni</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkEmk" value="Patriotisme" class="rounded text-brand-600"> <span>Patriotisme</span></label>
               </div>
             </div>
 
             <div>
-              <span class="block font-bold text-slate-700 mb-2">Kemahiran KBAT</span>
+              <span class="block font-bold text-slate-700 mb-2">Kemahiran KBAT / i-Think</span>
               <div class="space-y-1">
-                <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Mengaplikasi</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Menganalisis</span></label>
-              </div>
-            </div>
-
-            <div>
-              <span class="block font-bold text-slate-700 mb-2">Bahan Bantu Mengajar</span>
-              <div class="space-y-1">
-                <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Buku Teks / Modul</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Lembaran Kerja</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkKbat" value="Mengaplikasi" checked class="rounded text-brand-600"> <span>Mengaplikasi</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkKbat" value="Menganalisis" checked class="rounded text-brand-600"> <span>Menganalisis</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkKbat" value="Peta Titi" class="rounded text-brand-600"> <span>Peta Titi</span></label>
               </div>
             </div>
 
             <div>
               <span class="block font-bold text-slate-700 mb-2">Pentaksiran (PBD)</span>
               <div class="space-y-1">
-                <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Latihan Bertulis</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" checked class="rounded text-brand-600"> <span>Pemerhatian / Lisan</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkPbd" value="Latihan Bertulis" checked class="rounded text-brand-600"> <span>Latihan Bertulis</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkPbd" value="Pemerhatian / Lisan" checked class="rounded text-brand-600"> <span>Pemerhatian / Lisan</span></label>
+                <label class="flex items-center space-x-2"><input type="checkbox" name="chkPbd" value="Kuiz / Latihan" class="rounded text-brand-600"> <span>Kuiz / Latihan</span></label>
               </div>
             </div>
           </div>
 
-          <!-- BAHAGIAN 4: REFLEKSI & CATATAN IMPAK (KEMAS KINI) -->
+          <!-- BAHAGIAN 4: REFLEKSI & CATATAN IMPAK (KEMAS KINI DENGAN DIKUNCI / FREEZE) -->
           <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200/80 space-y-4 text-xs">
             <div class="flex justify-between items-center">
               <h3 class="font-bold text-amber-900 uppercase tracking-wider">4. Refleksi & Catatan Impak</h3>
-              <span class="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded">Fasa 2 Refleksi</span>
+              <span id="badgeRefleksiStatus" class="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded">Fasa 2 Refleksi</span>
             </div>
 
-            <!-- 3 KOTAK INPUT NOMBOR -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-3 rounded-xl border border-amber-200">
+            <!-- BANNER STATUS MASA PDPC (KAWALAN DIKUNCI / FREEZE) -->
+            <div id="statusPdpcTimeBanner" class="p-3 bg-amber-100 border border-amber-300 rounded-xl flex items-center justify-between text-amber-900 font-semibold text-xs">
+              <span class="flex items-center gap-1.5">
+                <span>⏳</span>
+                <span id="txtPdpcTimeMsg">Status masa PdPC: Sila pilih slot jadual untuk menguji kawalan masa masa tamat PdPC.</span>
+              </span>
+            </div>
+
+            <!-- KOTAK KEHADIRAN (READ ONLY) & INPUT CAPAI OBJEKTIF -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white p-3.5 rounded-xl border border-amber-200">
               <div>
-                <label class="block text-slate-700 font-bold mb-1">Jumlah Murid Kelas</label>
-                <input type="number" id="rphTotalStudents" min="0" value="35" oninput="calculateRefleksi()" placeholder="35" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-brand-800">
-                <span class="text-[10px] text-slate-400 block mt-0.5">*Auto dari jadual / diedit</span>
+                <label class="block text-slate-700 font-bold mb-1">Kehadiran Murid (Auto dari Sheet Kehadiran)</label>
+                <input type="text" id="rphKehadiranDisplay" value="0 / 0" class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 font-bold text-teal-800 cursor-not-allowed" readonly>
+                <span class="text-[10px] text-slate-400 block mt-1">* Ditarik automatik dari pangkalan data Kehadiran</span>
               </div>
 
               <div>
-                <label class="block text-slate-700 font-bold mb-1">Murid Tidak Hadir</label>
-                <input type="number" id="rphAbsentCount" min="0" value="0" oninput="calculateRefleksi()" placeholder="0" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-rose-600">
-                <span class="text-[10px] text-slate-400 block mt-0.5">Kehadiran: <span id="lblKehadiran" class="font-bold text-slate-600">0 / 35</span></span>
-              </div>
-
-              <div>
-                <label class="block text-slate-700 font-bold mb-1">Murid Capai Objektif</label>
-                <input type="number" id="rphCapaiCount" min="0" value="0" oninput="calculateRefleksi()" placeholder="0" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-bold text-emerald-600">
-                <span class="text-[10px] text-slate-400 block mt-0.5">Menguasai pembelajaran</span>
+                <label class="block text-slate-700 font-bold mb-1">Murid Capai Objektif (Hanya medan ini diisi)</label>
+                <input type="number" id="rphCapaiCount" min="0" value="0" oninput="calculateRefleksi()" placeholder="Contoh: 28" class="w-full bg-white border border-amber-300 rounded-lg p-2 font-bold text-emerald-600 focus:ring-2 focus:ring-brand-500">
+                <span class="text-[10px] text-slate-400 block mt-1">* Masukkan bilangan murid yang menguasai PdPC</span>
               </div>
             </div>
 
             <!-- DYNAMIC STATEMENT PREVIEW -->
-            <div id="refleksiStatementsContainer" class="bg-white p-3 rounded-xl border border-amber-200 space-y-1 text-slate-800 font-medium">
-              <p>• <span id="txtCapaiOp" class="font-bold text-emerald-700">0 / 35</span> orang murid dapat mencapai objektif pembelajaran yang ditetapkan.</p>
-              <p>• <span id="txtBimbingan" class="font-bold text-amber-700">0 / 35</span> orang murid dapat mencapai objektif pembelajaran dengan bimbingan.</p>
-              <p>• <span id="txtTidakCapai" class="font-bold text-rose-700">0 / 35</span> orang murid tidak berjaya mencapai objektif pembelajaran.</p>
+            <div id="refleksiStatementsContainer" class="bg-white p-3.5 rounded-xl border border-amber-200 space-y-1 text-slate-800 font-medium">
+              <p>• <span id="txtCapaiOp" class="font-bold text-emerald-700">0 / 0</span> orang murid dapat mencapai objektif pembelajaran yang ditetapkan.</p>
+              <p>• <span id="txtBimbingan" class="font-bold text-amber-700">0 / 0</span> orang murid dapat mencapai objektif pembelajaran dengan bimbingan.</p>
+              <p>• <span id="txtTidakCapai" class="font-bold text-rose-700">0 / 0</span> orang murid tidak berjaya mencapai objektif pembelajaran.</p>
             </div>
 
             <!-- CHECKBOX & SEBAB PDPC TIDAK DIJALANKAN -->
@@ -625,10 +636,10 @@
           <div class="flex items-center justify-between pt-4 border-t border-slate-100">
             <span class="text-xs text-slate-400" id="rphTimestampDisplay">Status: Draf Baru</span>
             <div class="flex items-center space-x-3">
-              <button type="button" onclick="saveDraftRPH()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all">
-                Simpan Draf
+              <button type="button" id="btnSaveDraft" onclick="saveDraftRPH()" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-all">
+                Simpan Draf (Perancangan)
               </button>
-              <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2">
+              <button type="submit" id="btnSubmitRph" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
                 <span>🚀 Hantar RPH Harian</span>
               </button>
             </div>
@@ -644,7 +655,10 @@
     <section id="tabApproval" class="tab-content space-y-6 hidden">
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4">
-          <h2 class="text-xl font-display font-bold text-slate-800">Senarai Semakan RPH Guru Seliaan</h2>
+          <div>
+            <h2 class="text-xl font-display font-bold text-slate-800">Senarai Semakan RPH Guru Seliaan</h2>
+            <p class="text-xs text-slate-400">Pentadbir boleh menyemak perancangan Draf dan mengesahkan RPH yang telah lengkap refleksi.</p>
+          </div>
           <button onclick="approveAllPending()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
             ✓ Sahkan Keseluruhan (Pukal)
           </button>
@@ -913,6 +927,7 @@
 
       <div class="p-6 overflow-y-auto space-y-4 text-xs">
         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1">
+          <p><strong class="text-slate-700">Status RPH Guru:</strong> <span id="modalStatusHantarBadge" class="font-bold text-brand-700">Draf / Dihantar</span></p>
           <p><strong class="text-slate-700">Tajuk:</strong> <span id="modalTopic">Persamaan Kuadratik & Graf</span></p>
           <p><strong class="text-slate-700">Standard Pembelajaran:</strong> <span id="modalSP">1.1.3 Membentuk persamaan kuadratik dan pemfaktoran.</span></p>
           <p><strong class="text-slate-700">Refleksi Guru:</strong> <span id="modalReflect" class="text-emerald-700 font-medium">28/32 Murid capai OP. Bimbingan pemulihan dijalankan.</span></p>
@@ -928,7 +943,7 @@
         <button onclick="closeReviewModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-all">
           Batal
         </button>
-        <button onclick="saveApprovalAction()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-1">
+        <button id="btnModalApprove" onclick="saveApprovalAction()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed">
           <span>✓ Sahkan & Cop Digital</span>
         </button>
       </div>
