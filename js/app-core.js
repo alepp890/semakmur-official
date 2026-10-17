@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL: js/app-core.js (Diperkemaskan denga fetchBackendApi & Logik Dashboard)
+ * FAIL: js/app-core.js (Penambahan Format Masa Clean & Logik Dashboard Utama)
  * ==============================================================================
  */
 
@@ -56,6 +56,27 @@ async function fetchBackendApi(action, payloadData = {}) {
 
   if (!response.ok) throw new Error('Ralat Pelayan HTTP ' + response.status);
   return await response.json();
+}
+
+/**
+ * PEMBANTU FORMAT MASA FRONTEND (PEMBERSIHAN ISO 1899)
+ */
+function cleanTimeFormatFrontend(str) {
+  if (!str) return '';
+  let timeStr = String(str).trim();
+  if (timeStr.includes('1899-12-30') || (timeStr.includes('T') && timeStr.includes('Z'))) {
+    try {
+      let d = new Date(timeStr);
+      if (!isNaN(d.getTime())) {
+        let h = d.getHours();
+        let m = d.getMinutes();
+        let hh = h < 10 ? '0' + h : h;
+        let mm = m < 10 ? '0' + m : m;
+        return hh + ':' + mm;
+      }
+    } catch(e) {}
+  }
+  return timeStr;
 }
 
 /**
@@ -172,12 +193,16 @@ function fetchJadualHariIni(emailGuru) {
       if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
         container.innerHTML = '';
         res.data.forEach(slot => {
+          const masaMulaDisplay = cleanTimeFormatFrontend(slot.masaMula);
+          const masaTamatDisplay = cleanTimeFormatFrontend(slot.masaTamat);
+          const masaRange = (masaMulaDisplay && masaTamatDisplay) ? `${masaMulaDisplay} - ${masaTamatDisplay}` : 'Masa Jadual';
+
           const div = document.createElement('div');
           div.className = 'p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1';
           div.innerHTML = `
             <div class="flex justify-between items-center text-xs font-bold text-slate-800">
-              <span>${slot.subjek} (${slot.kelas})</span>
-              <span class="text-brand-600">${slot.masaMula} - ${slot.masaTamat}</span>
+              <span>${slot.subjek} (${slot.kelas || 'Tiada Kelas'})</span>
+              <span class="text-brand-600">${masaRange}</span>
             </div>
           `;
           container.appendChild(div);
@@ -245,9 +270,12 @@ function renderGuruRphTable(list) {
       ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">📝 Draf</span>`
       : `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">🚀 Dihantar</span>`;
 
+    const masaMulaClean = cleanTimeFormatFrontend(item.masaMula);
+    const masaDisplay = masaMulaClean ? `${masaMulaClean} (${item.kelas || '-'})` : (item.kelas || '-');
+
     tr.innerHTML = `
       <td class="py-2.5 px-3 font-bold text-slate-800">${item.hari} - ${item.subjek}</td>
-      <td class="py-2.5 px-3">${item.masaMula || ''} (${item.kelas})</td>
+      <td class="py-2.5 px-3">${masaDisplay}</td>
       <td class="py-2.5 px-3">${statusBadge}</td>
       <td class="py-2.5 px-3 text-slate-500">${item.ulasanPenyemak || '-'}</td>
       <td class="py-2.5 px-3 text-right">
