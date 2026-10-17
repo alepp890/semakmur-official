@@ -5,34 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal e-RPH KPM - Pengurusan Rekod Mengajar Harian</title>
 
-  <!-- ========================================================================= -->
-  <!-- SEKATAN AKSES TANPA LOG MASUK (AUTH GUARD)                               -->
-  <!-- ========================================================================= -->
-  <script>
-    (function checkSessionGuard() {
-      const sessionData = localStorage.getItem('currentUser') || 
-                          sessionStorage.getItem('CURRENT_USER') || 
-                          localStorage.getItem('SAVED_MOE_USER');
-
-      if (!sessionData) {
-        alert('Akses Ditolak! Sila log masuk terlebih dahulu.');
-        window.location.replace('LoginSession.html');
-        return;
-      }
-
-      try {
-        const user = JSON.parse(sessionData);
-        if (!user || (!user.email && !user.Email && !user.nama && !user.Nama_Guru && !user.name)) {
-          throw new Error('Sesi tidak lengkap');
-        }
-      } catch (e) {
-        alert('Sesi anda tidak sah atau telah tamat tempoh. Sila log masuk semula.');
-        localStorage.removeItem('currentUser');
-        sessionStorage.removeItem('CURRENT_USER');
-        window.location.replace('LoginSession.html');
-      }
-    })();
-  </script>
+  <!-- 1. AUTH GUARD (MEMANGGIL SKRIP TERPISAH DARI FOLDER JS) -->
+  <script src="js/auth-guard.js"></script>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -136,7 +110,7 @@
       </div>
 
       <div class="flex items-center space-x-4">
-        <!-- TOGGLE HANYA DIPAPARKAN KEPADA ADMIN -->
+        <!-- TOGGLE MOD USER (PERANAN ADMIN) -->
         <div id="roleToggleContainer" class="bg-black/20 p-1 rounded-xl flex items-center border border-white/10 text-xs" style="display: none;">
           <span class="px-2 text-teal-100 font-medium hidden sm:inline">Mod User:</span>
           <button id="roleBtnGuru" onclick="switchUserRole('guru')" class="px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm">
@@ -164,7 +138,7 @@
       </div>
     </div>
 
-    <!-- Main Navigation Tab Bar & Global Search -->
+    <!-- TAB NAVIGATION BAR & CARIAN GLOBAL -->
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between space-x-2 overflow-x-auto text-sm font-medium pt-2">
       <div class="flex space-x-1 sm:space-x-2 shrink-0">
         <button onclick="setActiveTab('tabDashboard')" id="navTabDashboard" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f4f7f6] text-brand-700 font-bold">
@@ -194,7 +168,6 @@
         </button>
       </div>
 
-      <!-- CARIAN DSKP, SUBJEK ATAU TARIKH (SEBARIS DENGAN TAB) -->
       <div class="relative hidden md:block w-64 pb-1">
         <input type="text" id="globalSearch" placeholder="Cari DSKP, Subjek atau Tarikh..." class="w-full bg-white/10 text-white placeholder-teal-100/70 text-xs rounded-full pl-8 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-300 border border-white/20">
         <svg class="w-3.5 h-3.5 text-teal-200 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,12 +180,9 @@
   <!-- MAIN CONTAINER -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- ========================================================================= -->
-    <!-- VIEW 1: DASHBOARD UTAMA                                                   -->
-    <!-- ========================================================================= -->
+    <!-- VIEW 1: DASHBOARD UTAMA -->
     <section id="tabDashboard" class="tab-content space-y-6">
 
-      <!-- PERINGATAN PENGHANTARAN E-RPH (HANYA DI DASHBOARD UTAMA) -->
       <div id="statusAlertBanner" class="bg-gradient-to-r from-teal-500 to-cyan-600 text-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
         <div class="flex items-center space-x-3">
           <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm shrink-0">
@@ -230,7 +200,7 @@
         </div>
       </div>
 
-      <!-- GURU SPECIFIC DASHBOARD VIEW -->
+      <!-- GURU DASHBOARD VIEW -->
       <div id="guruDashboardView" class="space-y-6">
         
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -244,7 +214,6 @@
           <div class="flex items-center space-x-2 w-full sm:w-auto">
             <label class="text-xs font-semibold text-slate-600 shrink-0">Pilih Minggu:</label>
             <select id="selectWeekGuru" onchange="changeWeekGuru()" class="bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold px-3 py-2 text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 w-full sm:w-auto">
-              <!-- Autopopulated 36 -> 1 -->
             </select>
           </div>
         </div>
@@ -336,10 +305,9 @@
 
       </div>
 
-      <!-- PENTADBIR SPECIFIC DASHBOARD VIEW -->
+      <!-- PENTADBIR DASHBOARD VIEW -->
       <div id="pentadbirDashboardView" class="space-y-6 hidden">
         
-        <!-- PENTADBIR BANNER TINDAKAN GURU -->
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-r from-slate-50 via-white to-amber-50/30">
           <div class="flex items-center space-x-4">
             <div class="p-3 bg-rose-100 text-rose-700 rounded-2xl shrink-0">
@@ -373,7 +341,6 @@
           </div>
         </div>
 
-        <!-- Pentadbir KPI Ringkasan Kad Ringkas -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
             <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
@@ -403,7 +370,6 @@
           </div>
         </div>
 
-        <!-- Pentadbir Approval Queue Table -->
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
             <div>
@@ -439,15 +405,11 @@
 
     </section>
 
-
-    <!-- ========================================================================= -->
-    <!-- VIEW 2: PEMBINA e-RPH                                                     -->
-    <!-- ========================================================================= -->
+    <!-- VIEW 2: PEMBINA e-RPH -->
     <section id="tabBuilder" class="tab-content space-y-6 hidden">
       
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
         
-        <!-- HEADER PEMBINA: TAJUK + DROPDOWN BERANTAI (MINGGU, HARI/TARIKH, SLOT JADUAL) -->
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 pb-4">
           <div>
             <div class="flex items-center space-x-2">
@@ -457,12 +419,10 @@
             <p class="text-xs text-slate-400 mt-1">Pilih Minggu, Tarikh & Slot Jadual untuk pengisian automatik dari DSKP.</p>
           </div>
 
-          <!-- CONTROLS MINGGU (36->1) + HARI/TARIKH + SLOT JADUAL -->
           <div class="flex flex-wrap items-center gap-2 text-xs w-full lg:w-auto">
             <div class="flex items-center space-x-1">
               <label class="font-bold text-slate-700">Minggu:</label>
               <select id="builderSelectWeek" onchange="onBuilderWeekChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
-                <!-- Auto Populated Descending 36 -> 1 -->
               </select>
             </div>
 
@@ -482,10 +442,8 @@
           </div>
         </div>
 
-        <!-- RPH FORM GRID -->
         <form id="rphForm" onsubmit="event.preventDefault(); submitRphForm();" class="space-y-6">
           
-          <!-- SEKSYEN 1: MAKLUMAT ASAS PENGAJARAN (AUTO-FILLED DARI SLOT JADUAL) -->
           <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-4">
             <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-brand-700">1. Maklumat Asas Pengajaran (Auto-Pilih dari Jadual)</h3>
             
@@ -512,7 +470,6 @@
             </div>
           </div>
 
-          <!-- SEKSYEN 2: KURIKULUM (TEMA/UNIT & TAJUK DROPDOWN DEPENDENT DSKP) -->
           <div class="space-y-4">
             <div class="flex justify-between items-center">
               <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-brand-700">2. Kurikulum (DSKP Auto-Isi dari Tab Data_DSKP)</h3>
@@ -541,7 +498,6 @@
             </div>
           </div>
 
-          <!-- SEKSYEN 3: OP & KK -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div class="bg-teal-50/50 p-4 rounded-xl border border-teal-100">
               <label class="block text-brand-800 font-bold mb-1">Objektif Pembelajaran (OP)</label>
@@ -556,7 +512,6 @@
             </div>
           </div>
 
-          <!-- SEKSYEN 4: AKTIVITI -->
           <div class="space-y-3 text-xs">
             <h3 class="font-bold text-slate-800 uppercase tracking-wider text-brand-700">3. Aktiviti Pengajaran & Pembelajaran (PdPC)</h3>
 
@@ -576,7 +531,6 @@
             </div>
           </div>
 
-          <!-- SEKSYEN 5: ELEMEN SOKONGAN -->
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
             <div>
               <span class="block font-bold text-slate-700 mb-2">Elemen EMK</span>
@@ -611,7 +565,6 @@
             </div>
           </div>
 
-          <!-- SEKSYEN 6: REFLEKSI HARIAN -->
           <div class="bg-amber-50/60 p-4 rounded-xl border border-amber-200/80 space-y-3 text-xs">
             <div class="flex justify-between items-center">
               <h3 class="font-bold text-amber-900 uppercase tracking-wider">4. Refleksi & Catatan Impak</h3>
@@ -630,7 +583,6 @@
             </div>
           </div>
 
-          <!-- BOTTOM ACTION BUTTONS -->
           <div class="flex items-center justify-between pt-4 border-t border-slate-100">
             <span class="text-xs text-slate-400" id="rphTimestampDisplay">Status: Draf Baru</span>
             <div class="flex items-center space-x-3">
@@ -649,9 +601,7 @@
 
     </section>
 
-    <!-- ========================================================================= -->
-    <!-- VIEW 3: SEMAKAN PENTADBIR                                                -->
-    <!-- ========================================================================= -->
+    <!-- VIEW 3: SEMAKAN PENTADBIR -->
     <section id="tabApproval" class="tab-content space-y-6 hidden">
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4">
@@ -664,12 +614,9 @@
       </div>
     </section>
 
-    <!-- ========================================================================= -->
-    <!-- VIEW 4: CETAK & EKSPORT DOKUMEN RASMI                                    -->
-    <!-- ========================================================================= -->
+    <!-- VIEW 4: CETAK & EKSPORT DOKUMEN RASMI -->
     <section id="tabPrint" class="tab-content space-y-6 hidden">
       
-      <!-- KONTROL CETAKAN / FILTER -->
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row justify-between items-center gap-4 no-print">
         <div class="flex items-center space-x-3">
           <div class="p-2.5 bg-teal-50 text-brand-700 rounded-xl">
@@ -689,10 +636,8 @@
         </div>
       </div>
 
-      <!-- OFFICIAL PRINTABLE DOCUMENT PREVIEW FRAME -->
       <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-300 max-w-4xl mx-auto space-y-6 print-card text-black font-sans">
         
-        <!-- Document Header (KPM Style) -->
         <div class="border-b-2 border-black pb-4 text-center relative">
           <div class="flex items-center justify-center space-x-4">
             <div class="w-14 h-14 bg-slate-200 rounded-full flex items-center justify-center font-bold text-xs border border-slate-400">
@@ -706,7 +651,6 @@
           </div>
         </div>
 
-        <!-- RPH Document Body -->
         <div class="space-y-4 text-xs">
           
           <table class="w-full border-collapse border border-slate-400">
@@ -732,14 +676,12 @@
             </tbody>
           </table>
 
-          <!-- DSKP Details Table -->
           <div class="border border-slate-400 p-3 space-y-2">
             <p><span class="font-bold">Tema / Unit:</span> <span id="printTema">Kebersihan Dan Kesihatan</span></p>
             <p><span class="font-bold">Tajuk Utama:</span> <span id="printTajuk">Kebersihan Diri Tanggungjawab Bersama</span></p>
             <p><span class="font-bold">Standard Pembelajaran (SP):</span> <span id="printSP">1.1.1 Membaca dan memahami frasa serta ayat mudah dengan sebutan yang betul.</span></p>
           </div>
 
-          <!-- OP & KK -->
           <div class="grid grid-cols-2 gap-4">
             <div class="border border-slate-400 p-3">
               <span class="font-bold underline block mb-1">Objektif Pembelajaran (OP):</span>
@@ -753,7 +695,6 @@
             </div>
           </div>
 
-          <!-- Activities -->
           <div class="border border-slate-400 p-3 space-y-2">
             <span class="font-bold underline block">Ringkasan Aktiviti PdPC:</span>
             <p><strong>Permulaan (Set Induksi):</strong> <span id="printActStart">Murid menonton tayangan video lagu kebersihan diri dan bersoal jawab dengan guru.</span></p>
@@ -761,14 +702,12 @@
             <p><strong>Penutup (Rumusan):</strong> <span id="printActEnd">Guru membuat rumusan dan memberikan pujian atas penglibatan murid.</span></p>
           </div>
 
-          <!-- Reflection & Impak -->
           <div class="border border-slate-400 p-3 bg-slate-50">
             <span class="font-bold underline block mb-1">Refleksi & Impak Pembelajaran:</span>
             <p><strong>Pencapaian OP:</strong> <span id="printReflectCount">28 / 32 Murid</span></p>
             <p><strong>Tindakan Susulan:</strong> <span id="printReflectNote">4 murid yang belum mencapai OP diberikan bimbingan terbeza semasa aktiviti kumpulan.</span></p>
           </div>
 
-          <!-- Digital Stamp & QR Verification Section -->
           <div class="border-2 border-dashed border-teal-600 p-4 rounded-xl flex items-center justify-between bg-teal-50/30">
             <div class="space-y-1">
               <span class="text-[10px] uppercase tracking-wider font-bold text-slate-500">Pengesahan Digital Pentadbir</span>
@@ -778,7 +717,6 @@
               <p class="text-[10px] text-emerald-700 font-bold">Catatan: "Aktiviti PdPC dirancang dengan sangat baik & berpusat murid."</p>
             </div>
 
-            <!-- Simulated QR Code -->
             <div class="text-center space-y-1 shrink-0">
               <div class="w-20 h-20 bg-white border-2 border-slate-800 p-1 mx-auto flex items-center justify-center shadow-sm">
                 <svg class="w-full h-full text-slate-800" viewBox="0 0 24 24" fill="currentColor">
@@ -795,9 +733,7 @@
 
     </section>
 
-    <!-- ========================================================================= -->
-    <!-- VIEW 5: PANDUAN ALUR KERJA                                                -->
-    <!-- ========================================================================= -->
+    <!-- VIEW 5: PANDUAN ALUR KERJA -->
     <section id="tabWorkflow" class="tab-content space-y-6 hidden">
       
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
@@ -807,7 +743,6 @@
           <p class="text-xs text-slate-400">Penerangan lengkap alur kerja perancangan, penghantaran harian, semakan pentadbir dan verifikasi audit.</p>
         </div>
 
-        <!-- 5 Step Interactive Workflow Map -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
           
           <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 text-center space-y-2">
@@ -864,7 +799,7 @@
 
   </main>
 
-  <!-- MODAL 1: SENARAI GURU TAK LENGKAP (UNTUK PENTADBIR) -->
+  <!-- MODAL 1: SENARAI GURU TAK LENGKAP -->
   <div id="incompleteTeachersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
     <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
       
@@ -966,611 +901,10 @@
     </div>
   </div>
 
+  <!-- 2. MEMUATKAN SKRIP JAVASCRIPT MODULAR TERPISAH -->
   <script src="config.js"></script>
-
-  <script>
-    // 1. KAMUS PEMETAAN KOD SUBJEK JADUAL -> NAMA PENUH DATA_DSKP
-    const SUBJECT_MAP = {
-      'BM': 'Bahasa Melayu',
-      'BI': 'Bahasa Inggeris',
-      'MT': 'Matematik',
-      'SN': 'Sains',
-      'BA': 'Bahasa Arab',
-      'PMZ': 'Pendidikan Muzik',
-      'PSV': 'Pendidikan Seni Visual',
-      'PI/Q': 'Pendidikan Islam',
-      'PI/U': 'Pendidikan Islam',
-      'RBT': 'Reka Bentuk dan Teknologi',
-      'PJ': 'Pendidikan Jasmani',
-      'PK': 'Pendidikan Kesihatan'
-    };
-
-    const state = {
-      currentUserRole: 'guru',
-      activeTab: 'tabDashboard',
-      currentUser: null,
-      currentRphId: null,
-      todayJadual: [],
-      allUserJadual: [],
-      dskpList: [],
-      rphList: [],
-      activeModalRphId: null,
-      currentStarRating: 5
-    };
-
-    function initUserSession() {
-      const sessionData = localStorage.getItem('currentUser') || sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER');
-      if (sessionData) {
-        try {
-          state.currentUser = JSON.parse(sessionData);
-
-          const sistemAkses = (
-            state.currentUser.Sistem_Akses || 
-            state.currentUser.sistem_akses || 
-            state.currentUser.sistemAkses || 
-            state.currentUser.SISTEM_AKSES || 
-            ''
-          ).toString().trim().toLowerCase();
-
-          const name = state.currentUser.nama || state.currentUser.Nama_Guru || state.currentUser.name || 'Guru Akademik';
-          const email = state.currentUser.email || state.currentUser.Email || 'guru@moe-dl.edu.my';
-          const jawatan = state.currentUser.jawatan || state.currentUser.Jawatan || 'Guru Akademik';
-
-          document.getElementById('userName').innerText = name;
-          document.getElementById('userRoleTitle').innerText = `${jawatan} | ${email}`;
-          
-          if (document.getElementById('printGuruName')) {
-            document.getElementById('printGuruName').innerText = name;
-          }
-
-          // KAWALAN PAPARAN TOGGLE ROLE (HANYA MUNCUL JIKA SISTEM_AKSES = ADMIN)
-          const roleToggleContainer = document.getElementById('roleToggleContainer');
-          if (roleToggleContainer) {
-            if (sistemAkses === 'admin') {
-              roleToggleContainer.style.display = 'flex';
-            } else {
-              roleToggleContainer.style.display = 'none';
-            }
-          }
-
-          // PENETAPAN DASHBOARD MENGIKUT JAWATAN
-          const pentadbirJawatanList = ['Guru Besar', 'PK Pentadbiran', 'PK HEM', 'PK Ko Kurikulum', 'PK Kokurikulum'];
-          const isPentadbirRole = pentadbirJawatanList.some(j => j.toLowerCase() === jawatan.toString().trim().toLowerCase());
-
-          if (isPentadbirRole) {
-            switchUserRole('pentadbir');
-          } else {
-            switchUserRole('guru');
-          }
-
-          // PAPARKAN KANDUNGAN HALAMAN SELEPAS SESI DISAHKAN
-          const mainBody = document.getElementById('mainBody');
-          if (mainBody) mainBody.style.display = 'flex';
-
-          fetchJadualHariIni(email);
-        } catch (e) {
-          console.error("Ralat membaca sesi pengguna:", e);
-          window.location.replace('LoginSession.html');
-        }
-      } else {
-        window.location.replace('LoginSession.html');
-      }
-
-      populateWeeksDropdowns();
-    }
-
-    // Populate Dropdown Minggu (Descending 36 -> 1)
-    function populateWeeksDropdowns() {
-      const selectGuru = document.getElementById('selectWeekGuru');
-      const selectBuilder = document.getElementById('builderSelectWeek');
-      
-      let html = '';
-      for (let w = 36; w >= 1; w--) {
-        html += `<option value="${w}">Minggu ${w}</option>`;
-      }
-
-      if (selectGuru) selectGuru.innerHTML = html;
-      if (selectBuilder) selectBuilder.innerHTML = html;
-
-      onBuilderWeekChange();
-    }
-
-    // Tarik Jadual Hari Ini
-    async function fetchJadualHariIni(emailGuru) {
-      const daysName = ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"];
-      let todayName = daysName[new Date().getDay()];
-      if (todayName === "Ahad" || todayName === "Sabtu") todayName = "Isnin";
-
-      document.getElementById('labelHariJadual').innerText = `Hari: ${todayName}`;
-
-      try {
-        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
-        if (!targetUrl) return;
-
-        const response = await fetch(targetUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'getJadualGuruByHari',
-            payload: { emailGuru: emailGuru, hari: todayName }
-          })
-        });
-
-        const result = await response.json();
-        if (result && result.success && Array.isArray(result.data)) {
-          state.todayJadual = result.data;
-          renderJadualWaktuWidget(todayName);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    function renderJadualWaktuWidget(namaHari) {
-      const container = document.getElementById('jadualWidgetContainer');
-      if (!container) return;
-
-      if (state.todayJadual.length === 0) {
-        container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs italic bg-slate-50 rounded-xl">Tiada slot mengajar hari ${namaHari}.</div>`;
-        return;
-      }
-
-      let html = '';
-      state.todayJadual.forEach((slot, idx) => {
-        const waktu = slot.waktu || slot.Waktu || ('Waktu ' + (idx + 1));
-        const jamMula = slot.jam_mula || slot.Jam_Mula || '-';
-        const jamTamat = slot.jam_tamat || slot.Jam_Tamat || '-';
-        const namaKelas = slot.nama_kelas || slot.Nama_Kelas || 'Kelas';
-        const subjek = slot.subjek || slot.Subjek || 'Subjek';
-        const kategori = slot.kategori || slot.Kategori || 'Biasa';
-
-        html += `
-          <div class="p-3.5 rounded-xl bg-teal-50/50 border border-teal-100">
-            <div class="flex items-center justify-between text-xs text-brand-700 font-semibold mb-1">
-              <span>${waktu} | ${jamMula} - ${jamTamat}</span>
-              <span class="bg-teal-200/60 px-2 py-0.5 rounded text-[10px] font-bold">${namaKelas}</span>
-            </div>
-            <h4 class="font-bold text-slate-800 text-sm">${subjek}</h4>
-            <p class="text-xs text-slate-500 mt-0.5">Kategori: ${kategori}</p>
-            <div class="mt-2 flex items-center justify-between pt-2 border-t border-teal-100/60 text-xs">
-              <span class="text-amber-700 font-medium">⏳ Menunggu e-RPH</span>
-              <button onclick="setActiveTab('tabBuilder')" class="text-brand-600 hover:underline font-semibold">Bina RPH</button>
-            </div>
-          </div>
-        `;
-      });
-
-      container.innerHTML = html;
-    }
-
-    // LOGIK GABUNGAN SLOT BERTURUTAN & ABAIKAN SLOT TUNGGAL (1 MASA) APABILA WUJUD SLOT BERTURUTAN
-    function combineConsecutiveSlots(slots) {
-      if (!slots || slots.length === 0) return [];
-
-      const combined = [];
-
-      slots.forEach(slot => {
-        const last = combined[combined.length - 1];
-        const subjekCurrent = (slot.subjek || slot.Subjek || '').trim();
-        const kelasCurrent = (slot.nama_kelas || slot.Nama_Kelas || '').trim();
-
-        const subjekLast = last ? (last.subjek || last.Subjek || '').trim() : '';
-        const kelasLast = last ? (last.nama_kelas || last.Nama_Kelas || '').trim() : '';
-
-        if (last && subjekCurrent === subjekLast && kelasCurrent === kelasLast) {
-          last.jam_tamat = slot.jam_tamat || slot.Jam_Tamat;
-          last.waktu_label = `${last.waktu_awal} - ${slot.waktu || slot.Waktu}`;
-          last.duration_count = (last.duration_count || 1) + 1;
-        } else {
-          combined.push({
-            ...slot,
-            waktu_awal: slot.waktu || slot.Waktu,
-            waktu_label: slot.waktu || slot.Waktu,
-            jam_mula: slot.jam_mula || slot.Jam_Mula,
-            jam_tamat: slot.jam_tamat || slot.Jam_Tamat,
-            subjek: subjekCurrent,
-            nama_kelas: kelasCurrent,
-            duration_count: 1
-          });
-        }
-      });
-
-      // Kenal pasti subjek & kelas yang ada slot berturutan (>1 masa) pada hari tersebut
-      const multiPeriodKeys = new Set();
-      combined.forEach(s => {
-        if (s.duration_count > 1) {
-          multiPeriodKeys.add(`${s.subjek.toLowerCase()}_${s.nama_kelas.toLowerCase()}`);
-        }
-      });
-
-      // Tapis keluar slot tunggal (1 masa) sekiranya wujud slot berturutan
-      return combined.filter(s => {
-        const key = `${s.subjek.toLowerCase()}_${s.nama_kelas.toLowerCase()}`;
-        if (multiPeriodKeys.has(key) && s.duration_count === 1) {
-          return false;
-        }
-        return true;
-      });
-    }
-
-    // LOGIK PEMBINA E-RPH (DROPDOWN BERANTAI)
-    function onBuilderWeekChange() {
-      const weekNum = parseInt(document.getElementById('builderSelectWeek').value || '36');
-      const dateSelect = document.getElementById('builderSelectDateDay');
-      
-      const hariList = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
-      let html = '';
-      
-      hariList.forEach((hari, idx) => {
-        const mockDate = `2026-10-${19 + idx}`;
-        html += `<option value="${hari}|${mockDate}">${hari} (${mockDate})</option>`;
-      });
-
-      dateSelect.innerHTML = html;
-      onBuilderDateDayChange();
-    }
-
-    async function onBuilderDateDayChange() {
-      const val = document.getElementById('builderSelectDateDay').value;
-      if (!val) return;
-
-      const [selectedHari, selectedDate] = val.split('|');
-      const slotSelect = document.getElementById('builderSelectSlot');
-      const emailGuru = (state.currentUser && state.currentUser.email) ? state.currentUser.email : 'guru@moe-dl.edu.my';
-
-      slotSelect.innerHTML = `<option value="">Sedang menarik slot ${selectedHari}...</option>`;
-
-      try {
-        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
-        const response = await fetch(targetUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'getJadualGuruByHari',
-            payload: { emailGuru: emailGuru, hari: selectedHari }
-          })
-        });
-
-        const result = await response.json();
-        if (result && result.success && Array.isArray(result.data) && result.data.length > 0) {
-          
-          const combinedSlots = combineConsecutiveSlots(result.data);
-          state.allUserJadual = combinedSlots;
-
-          let html = '<option value="">-- Pilih Slot Jadual --</option>';
-          
-          // FORMAT DROPDOWN SLOT HANYA MEMAPARKAN SUBJEK DAN KELAS SAHAJA
-          combinedSlots.forEach((slot, idx) => {
-            const namaKelas = slot.nama_kelas;
-            const subjekKode = slot.subjek;
-            const subjekPenuh = SUBJECT_MAP[subjekKode] || subjekKode;
-
-            html += `<option value="${idx}">${subjekPenuh} - ${namaKelas}</option>`;
-          });
-
-          slotSelect.innerHTML = html;
-        } else {
-          slotSelect.innerHTML = `<option value="">Tiada slot jadual pada ${selectedHari}</option>`;
-        }
-      } catch (err) {
-        slotSelect.innerHTML = `<option value="">Ralat pangkalan data</option>`;
-      }
-    }
-
-    function onBuilderSlotChange() {
-      const idx = document.getElementById('builderSelectSlot').value;
-      if (idx === '' || !state.allUserJadual[idx]) return;
-
-      const slot = state.allUserJadual[idx];
-      const [selectedHari, selectedDate] = document.getElementById('builderSelectDateDay').value.split('|');
-      const weekNum = document.getElementById('builderSelectWeek').value || '36';
-
-      const jamMula = slot.jam_mula || '';
-      const jamTamat = slot.jam_tamat || '';
-      const subjekKode = slot.subjek || '';
-      const namaKelas = slot.nama_kelas || '';
-
-      const subjekPenuh = SUBJECT_MAP[subjekKode] || subjekKode;
-
-      document.getElementById('rphDate').value = selectedDate;
-      document.getElementById('rphTime').value = `${selectedHari} (${jamMula} - ${jamTamat})`;
-      document.getElementById('rphSubjectSelect').value = subjekPenuh;
-      document.getElementById('rphClass').value = namaKelas;
-
-      // KEMASKINI PAPARAN PRACETAK AUTO
-      if (document.getElementById('printMinggu')) document.getElementById('printMinggu').innerText = weekNum;
-      if (document.getElementById('printTarikh')) document.getElementById('printTarikh').innerText = selectedDate;
-      if (document.getElementById('printHariMasa')) document.getElementById('printHariMasa').innerText = `${selectedHari} (${jamMula} - ${jamTamat})`;
-      if (document.getElementById('printSubjek')) document.getElementById('printSubjek').innerText = subjekPenuh;
-      if (document.getElementById('printKelas')) document.getElementById('printKelas').innerText = namaKelas;
-
-      let tahunMatch = namaKelas.match(/\d+/);
-      let tahun = tahunMatch ? tahunMatch[0] : '3';
-
-      fetchDskpData(subjekPenuh, tahun);
-    }
-
-    async function fetchDskpData(subjek, tahun) {
-      const badge = document.getElementById('dskpStatusBadge');
-      badge.innerText = '⏳ Sedang menarik DSKP dari pangkalan data...';
-      badge.className = 'text-[11px] text-amber-600 font-medium';
-
-      try {
-        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
-        const response = await fetch(targetUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'getDskpData',
-            payload: { subjek: subjek, tahun: tahun }
-          })
-        });
-
-        const result = await response.json();
-        if (result && result.success && Array.isArray(result.data) && result.data.length > 0) {
-          state.dskpList = result.data;
-          
-          let uniqueTema = [...new Set(result.data.map(item => item.tema_unit))];
-          let themeSelect = document.getElementById('rphThemeSelect');
-          let html = '<option value="">-- Pilih Tema / Unit --</option>';
-          
-          uniqueTema.forEach(t => {
-            html += `<option value="${t}">${t}</option>`;
-          });
-
-          themeSelect.innerHTML = html;
-          badge.innerText = `✓ DSKP ${subjek} Tahun ${tahun} Dimuatkan (${result.data.length} Rekod)`;
-          badge.className = 'text-[11px] text-emerald-600 font-bold';
-        } else {
-          badge.innerText = `⚠️ Tiada DSKP dijumpai bagi ${subjek} Tahun ${tahun}`;
-          badge.className = 'text-[11px] text-rose-600 font-medium';
-        }
-      } catch (err) {
-        badge.innerText = '❌ Ralat menarik DSKP';
-      }
-    }
-
-    function onThemeChange() {
-      const selectedTheme = document.getElementById('rphThemeSelect').value;
-      const tajukSelect = document.getElementById('rphTajukSelect');
-
-      if (!selectedTheme) {
-        tajukSelect.innerHTML = '<option value="">-- Pilih Tajuk --</option>';
-        return;
-      }
-
-      const filteredList = state.dskpList.filter(item => item.tema_unit === selectedTheme);
-      let html = '<option value="">-- Pilih Tajuk --</option>';
-
-      filteredList.forEach(item => {
-        html += `<option value="${item.tajuk}">${item.tajuk}</option>`;
-      });
-
-      tajukSelect.innerHTML = html;
-    }
-
-    function onTajukChange() {
-      const selectedTheme = document.getElementById('rphThemeSelect').value;
-      const selectedTajuk = document.getElementById('rphTajukSelect').value;
-
-      if (!selectedTheme || !selectedTajuk) return;
-
-      const item = state.dskpList.find(x => x.tema_unit === selectedTheme && x.tajuk === selectedTajuk);
-      if (item) {
-        document.getElementById('rphSP').value = item.sp || '';
-        document.getElementById('rphOP').value = item.objektif || '';
-        document.getElementById('rphKK').value = item.kriteria_kejayaan || '';
-        document.getElementById('rphActStart').value = item.set_induksi || '';
-        document.getElementById('rphActMain').value = item.aktiviti || '';
-        document.getElementById('rphActEnd').value = item.rumusan || '';
-
-        // KEMASKINI DOKUMEN CETAKAN
-        if (document.getElementById('printTema')) document.getElementById('printTema').innerText = selectedTheme;
-        if (document.getElementById('printTajuk')) document.getElementById('printTajuk').innerText = selectedTajuk;
-        if (document.getElementById('printSP')) document.getElementById('printSP').innerText = item.sp || '';
-        if (document.getElementById('printOP')) document.getElementById('printOP').innerText = item.objektif || '';
-        if (document.getElementById('printKK')) document.getElementById('printKK').innerText = item.kriteria_kejayaan || '';
-        if (document.getElementById('printActStart')) document.getElementById('printActStart').innerText = item.set_induksi || '';
-        if (document.getElementById('printActMain')) document.getElementById('printActMain').innerText = item.aktiviti || '';
-        if (document.getElementById('printActEnd')) document.getElementById('printActEnd').innerText = item.rumusan || '';
-
-        showToast('Data DSKP (SP, OP, KK & Aktiviti) diisi secara automatik!', '✨');
-      }
-    }
-
-    function switchUserRole(role) {
-      state.currentUserRole = role;
-      const btnGuru = document.getElementById('roleBtnGuru');
-      const btnPentadbir = document.getElementById('roleBtnPentadbir');
-      const guruView = document.getElementById('guruDashboardView');
-      const pentadbirView = document.getElementById('pentadbirDashboardView');
-
-      if (role === 'guru') {
-        if (btnGuru) btnGuru.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
-        if (btnPentadbir) btnPentadbir.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
-        guruView.classList.remove('hidden');
-        pentadbirView.classList.add('hidden');
-      } else {
-        if (btnPentadbir) btnPentadbir.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
-        if (btnGuru) btnGuru.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
-        pentadbirView.classList.remove('hidden');
-        guruView.classList.add('hidden');
-      }
-    }
-
-    function setActiveTab(tabId) {
-      state.activeTab = tabId;
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.getElementById(tabId).classList.remove('hidden');
-
-      const tabs = ['tabDashboard', 'tabBuilder', 'tabApproval', 'tabPrint', 'tabWorkflow'];
-      tabs.forEach(id => {
-        const btnId = 'nav' + id.charAt(0).toUpperCase() + id.slice(1);
-        const btn = document.getElementById(btnId);
-        if (btn) {
-          if (id === tabId) {
-            btn.className = "px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f4f7f6] text-brand-700 font-bold";
-          } else {
-            btn.className = "px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10";
-          }
-        }
-      });
-    }
-
-    function changeWeekGuru() {
-      const weekVal = document.getElementById('selectWeekGuru').value;
-      if (document.getElementById('labelWeekBadge')) {
-        document.getElementById('labelWeekBadge').innerText = `Minggu ${weekVal}`;
-      }
-      showToast(`Rekod dikemaskini untuk Minggu ${weekVal}`, '📅');
-    }
-
-    function filterGuruTableByDay() {}
-
-    // FUNGSI UTAMA UNTUK MENGHANTAR / MENYIMPAN RPH KE GOOGLE SHEETS
-    async function processRphSaveOrSubmit(statusRph) {
-      console.log("Mula proses hantaran RPH:", statusRph);
-
-      const subjekEl = document.getElementById('rphSubjectSelect');
-      const tarikhEl = document.getElementById('rphDate');
-
-      const subjek = subjekEl ? subjekEl.value : '';
-      const tarikh = tarikhEl ? tarikhEl.value : '';
-
-      if (!subjek || !tarikh) {
-        alert('Sila pilih Slot Jadual (Minggu, Hari/Tarikh & Slot) terlebih dahulu sebelum menyimpan!');
-        return;
-      }
-
-      const emailGuru = state.currentUser ? (state.currentUser.email || state.currentUser.Email || '') : '';
-      const namaGuru = state.currentUser ? (state.currentUser.nama || state.currentUser.Nama_Guru || state.currentUser.name || '') : '';
-
-      const payload = {
-        rphId: state.currentRphId || '',
-        emailGuru: emailGuru,
-        namaGuru: namaGuru,
-        minggu: document.getElementById('builderSelectWeek') ? document.getElementById('builderSelectWeek').value : '36',
-        tarikh: tarikh,
-        hariMasa: document.getElementById('rphTime') ? document.getElementById('rphTime').value : '',
-        subjek: subjek,
-        kelas: document.getElementById('rphClass') ? document.getElementById('rphClass').value : '',
-        temaUnit: document.getElementById('rphThemeSelect') ? document.getElementById('rphThemeSelect').value : '',
-        tajuk: document.getElementById('rphTajukSelect') ? document.getElementById('rphTajukSelect').value : '',
-        sp: document.getElementById('rphSP') ? document.getElementById('rphSP').value : '',
-        op: document.getElementById('rphOP') ? document.getElementById('rphOP').value : '',
-        kk: document.getElementById('rphKK') ? document.getElementById('rphKK').value : '',
-        actStart: document.getElementById('rphActStart') ? document.getElementById('rphActStart').value : '',
-        actMain: document.getElementById('rphActMain') ? document.getElementById('rphActMain').value : '',
-        actEnd: document.getElementById('rphActEnd') ? document.getElementById('rphActEnd').value : '',
-        reflectCount: document.getElementById('rphReflectCount') ? document.getElementById('rphReflectCount').value : '',
-        reflectNote: document.getElementById('rphReflectNote') ? document.getElementById('rphReflectNote').value : '',
-        statusRph: statusRph
-      };
-
-      showToast(statusRph === 'Draf' ? 'Sedang menyimpan draf ke Google Sheets...' : 'Sedang menghantar e-RPH...', '⏳');
-
-      try {
-        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
-        if (!targetUrl) {
-          alert('Ralat: URL Web App Google Script tidak dijumpai dalam config.js!');
-          return;
-        }
-
-        const response = await fetch(targetUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'saveRph',
-            payload: payload
-          })
-        });
-
-        const result = await response.json();
-        console.log("Respon Backend Google Script:", result);
-
-        if (result && result.success) {
-          state.currentRphId = result.idRph || result.rphId;
-
-          if (document.getElementById('rphTimestampDisplay')) {
-            document.getElementById('rphTimestampDisplay').innerText = `Status: ${statusRph} (${result.timestamp || ''})`;
-          }
-
-          showToast(result.message || 'Berjaya disimpan!', statusRph === 'Draf' ? '💾' : '🚀');
-        } else {
-          alert('Gagal menyimpan ke Google Sheets: ' + (result.error || result.message || 'Ralat tidak diketahui'));
-        }
-      } catch (err) {
-        console.error("Ralat Fetch RPH:", err);
-        alert('Ralat sambungan ke backend Google Sheets! Sila semak sambungan rangkaian atau URL Web App.');
-      }
-    }
-
-    function saveDraftRPH() {
-      processRphSaveOrSubmit('Draf');
-    }
-
-    function submitRphForm() {
-      processRphSaveOrSubmit('Hantar');
-    }
-
-    // FUNGSI PENTADBIR & MODAL
-    function openIncompleteTeachersModal() {
-      document.getElementById('incompleteTeachersModal').classList.remove('hidden');
-    }
-
-    function closeIncompleteTeachersModal() {
-      document.getElementById('incompleteTeachersModal').classList.add('hidden');
-    }
-
-    function sendReminder(teacherName) {
-      showToast(`Notifikasi peringatan dihantar kepada ${teacherName}!`, '🔔');
-    }
-
-    function sendReminderAll() {
-      showToast('Peringatan pukal dihantar kepada semua guru yang terlibat!', '📢');
-      closeIncompleteTeachersModal();
-    }
-
-    function openReviewModal(rphId) {
-      document.getElementById('reviewModal').classList.remove('hidden');
-    }
-
-    function closeReviewModal() {
-      document.getElementById('reviewModal').classList.add('hidden');
-    }
-
-    function saveApprovalAction() {
-      closeReviewModal();
-      showToast('Pengesahan & Cop Digital e-RPH Berjaya Disimpan!', '✅');
-    }
-
-    function approveAllPending() {
-      showToast('Semua e-RPH telah disahkan secara pukal!', '🎉');
-    }
-
-    function filterApprovalQueue(type) {
-      showToast(`Filter Pentadbir: ${type}`, '🔍');
-    }
-
-    function toggleNotificationModal() {
-      showToast('Notifikasi: Tiada teguran baharu daripada pentadbir.', '🔔');
-    }
-
-    function showToast(message, icon = '🔔') {
-      const toast = document.getElementById('toastNotification');
-      document.getElementById('toastMessage').innerText = message;
-      document.getElementById('toastIcon').innerText = icon;
-      toast.classList.remove('translate-y-20', 'opacity-0');
-      toast.classList.add('translate-y-0', 'opacity-100');
-      setTimeout(() => {
-        toast.classList.remove('translate-y-0', 'opacity-100');
-        toast.classList.add('translate-y-20', 'opacity-0');
-      }, 3000);
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      initUserSession();
-    });
-  </script>
+  <script src="js/app-core.js"></script>
+  <script src="js/builder.js"></script>
+  <script src="js/approval.js"></script>
 </body>
 </html>
