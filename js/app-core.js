@@ -1,3 +1,10 @@
+/**
+ * ==============================================================================
+ * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
+ * FAIL: js/app-core.js
+ * ==============================================================================
+ */
+
 const SUBJECT_MAP = {
   'BM': 'Bahasa Melayu',
   'BI': 'Bahasa Inggeris',
@@ -27,10 +34,17 @@ const state = {
 };
 
 function initUserSession() {
-  const sessionData = localStorage.getItem('currentUser') || sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER');
+  // Semak pelbagai variasi nama kekunci penyimpanan sesi log masuk
+  const sessionData = localStorage.getItem('currentUser') || 
+                      sessionStorage.getItem('CURRENT_USER') || 
+                      localStorage.getItem('SAVED_MOE_USER') ||
+                      localStorage.getItem('user') ||
+                      sessionStorage.getItem('user');
+
   if (sessionData) {
     try {
       state.currentUser = JSON.parse(sessionData);
+      window.currentUser = state.currentUser; // Setkan untuk kegunaan builder.js & approval.js
 
       const sistemAkses = (
         state.currentUser.Sistem_Akses || 
@@ -40,8 +54,9 @@ function initUserSession() {
         ''
       ).toString().trim().toLowerCase();
 
-      const name = state.currentUser.nama || state.currentUser.Nama_Guru || state.currentUser.name || 'Guru Akademik';
-      const email = state.currentUser.email || state.currentUser.Email || 'guru@moe-dl.edu.my';
+      // Semak pelbagai variasi kunci Nama & Emel
+      const name = state.currentUser.nama || state.currentUser.Nama_Guru || state.currentUser.name || state.currentUser.Nama || 'Guru Akademik';
+      const email = state.currentUser.email || state.currentUser.Email || state.currentUser.emel || state.currentUser.Emel || 'guru@moe-dl.edu.my';
       const jawatan = state.currentUser.jawatan || state.currentUser.Jawatan || 'Guru Akademik';
 
       const userNameEl = document.getElementById('userName');
@@ -75,16 +90,21 @@ function initUserSession() {
       const mainBody = document.getElementById('mainBody');
       if (mainBody) mainBody.style.display = 'flex';
 
-      fetchJadualHariIni(email);
+      if (typeof fetchJadualHariIni === 'function') {
+        fetchJadualHariIni(email);
+      }
     } catch (e) {
       console.error("Ralat membaca sesi pengguna:", e);
       window.location.replace('LoginSession.html');
     }
   } else {
+    console.warn("Tiada sesi ditemui. Sila log masuk.");
     window.location.replace('LoginSession.html');
   }
 
-  populateWeeksDropdowns();
+  if (typeof populateWeeksDropdowns === 'function') {
+    populateWeeksDropdowns();
+  }
 }
 
 function switchUserRole(role) {
