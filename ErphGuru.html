@@ -100,23 +100,14 @@
         <div>
           <div class="flex items-center space-x-2">
             <h1 class="font-display font-bold text-xl tracking-tight text-white">e-RPH KPM</h1>
-            <span class="bg-teal-400/20 text-teal-100 text-xs px-2 py-0.5 rounded-full border border-teal-300/30 font-medium">v3.5 TS25</span>
           </div>
           <p class="text-xs text-teal-100">Portal Pengurusan Rekod Mengajar Harian Sekolah KPM</p>
         </div>
       </div>
 
-      <div class="flex-1 max-w-xs hidden md:block">
-        <div class="relative">
-          <input type="text" id="globalSearch" placeholder="Cari DSKP, Subjek atau Tarikh..." class="w-full bg-white/10 text-white placeholder-teal-100/70 text-sm rounded-full pl-9 pr-4 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-300 border border-white/20">
-          <svg class="w-4 h-4 text-teal-200 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-        </div>
-      </div>
-
       <div class="flex items-center space-x-4">
-        <div class="bg-black/20 p-1 rounded-xl flex items-center border border-white/10 text-xs">
+        <!-- TOGGLE HANYA DIPAPARKAN KEPADA ADMIN -->
+        <div id="roleToggleContainer" class="bg-black/20 p-1 rounded-xl flex items-center border border-white/10 text-xs" style="display: none;">
           <span class="px-2 text-teal-100 font-medium hidden sm:inline">Mod User:</span>
           <button id="roleBtnGuru" onclick="switchUserRole('guru')" class="px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm">
             👨‍🏫 Guru
@@ -143,33 +134,43 @@
       </div>
     </div>
 
-    <!-- Main Navigation Tab Bar -->
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-2 overflow-x-auto text-sm font-medium pt-2">
-      <button onclick="setActiveTab('tabDashboard')" id="navTabDashboard" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f4f7f6] text-brand-700 font-bold">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-        <span>Dashboard Utama</span>
-      </button>
+    <!-- Main Navigation Tab Bar & Global Search -->
+    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between space-x-2 overflow-x-auto text-sm font-medium pt-2">
+      <div class="flex space-x-1 sm:space-x-2 shrink-0">
+        <button onclick="setActiveTab('tabDashboard')" id="navTabDashboard" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f4f7f6] text-brand-700 font-bold">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+          <span>Dashboard Utama</span>
+        </button>
 
-      <button onclick="setActiveTab('tabBuilder')" id="navTabBuilder" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-        <span>Pembina e-RPH</span>
-      </button>
+        <button onclick="setActiveTab('tabBuilder')" id="navTabBuilder" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+          <span>Pembina e-RPH</span>
+        </button>
 
-      <button onclick="setActiveTab('tabApproval')" id="navTabApproval" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10 relative">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        <span>Semakan Pentadbir</span>
-        <span id="badgePendingCount" class="bg-amber-400 text-slate-900 text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-1">0</span>
-      </button>
+        <button onclick="setActiveTab('tabApproval')" id="navTabApproval" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10 relative">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>Semakan Pentadbir</span>
+          <span id="badgePendingCount" class="bg-amber-400 text-slate-900 text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-1">0</span>
+        </button>
 
-      <button onclick="setActiveTab('tabPrint')" id="navTabPrint" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-        <span>Cetak & Eksport</span>
-      </button>
+        <button onclick="setActiveTab('tabPrint')" id="navTabPrint" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          <span>Cetak & Eksport</span>
+        </button>
 
-      <button onclick="setActiveTab('tabWorkflow')" id="navTabWorkflow" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        <span>Panduan Alur Kerja</span>
-      </button>
+        <button onclick="setActiveTab('tabWorkflow')" id="navTabWorkflow" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>Panduan Alur Kerja</span>
+        </button>
+      </div>
+
+      <!-- CARIAN DSKP, SUBJEK ATAU TARIKH (SEBARIS DENGAN TAB) -->
+      <div class="relative hidden md:block w-64 pb-1">
+        <input type="text" id="globalSearch" placeholder="Cari DSKP, Subjek atau Tarikh..." class="w-full bg-white/10 text-white placeholder-teal-100/70 text-xs rounded-full pl-8 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-300 border border-white/20">
+        <svg class="w-3.5 h-3.5 text-teal-200 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </div>
     </nav>
   </header>
 
@@ -181,7 +182,7 @@
     <!-- ========================================================================= -->
     <section id="tabDashboard" class="tab-content space-y-6">
 
-      <!-- PERINGATAN PENGHANTARAN E-RPH (HANYA DI DASHBOARD UTAMA) -->
+      <!-- PERINGATAN PENGHANTARAN E-RPH -->
       <div id="statusAlertBanner" class="bg-gradient-to-r from-teal-500 to-cyan-600 text-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
         <div class="flex items-center space-x-3">
           <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm shrink-0">
@@ -305,7 +306,7 @@
 
       </div>
 
-      <!-- PENTADBIR SPECIFIC DASHBOARD VIEW (DESIGN DARIPADA CONTOH_4) -->
+      <!-- PENTADBIR SPECIFIC DASHBOARD VIEW -->
       <div id="pentadbirDashboardView" class="space-y-6 hidden">
         
         <!-- PENTADBIR BANNER TINDAKAN GURU -->
@@ -420,7 +421,7 @@
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 pb-4">
           <div>
             <div class="flex items-center space-x-2">
-              <span class="bg-teal-100 text-brand-800 text-xs px-2.5 py-0.5 rounded-full font-bold">Standard TS25 KPM</span>
+              <span class="bg-teal-100 text-brand-800 text-xs px-2.5 py-0.5 rounded-full font-bold">Standard KPM</span>
               <h2 class="text-xl font-display font-bold text-slate-800">Modul Pembina e-RPH Harian</h2>
             </div>
             <p class="text-xs text-slate-400 mt-1">Pilih Minggu, Tarikh & Slot Jadual untuk pengisian automatik dari DSKP.</p>
@@ -510,7 +511,7 @@
             </div>
           </div>
 
-          <!-- SEKSYEN 3: OP & KK (AUTO-FILLED FROM DSKP) -->
+          <!-- SEKSYEN 3: OP & KK -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div class="bg-teal-50/50 p-4 rounded-xl border border-teal-100">
               <label class="block text-brand-800 font-bold mb-1">Objektif Pembelajaran (OP)</label>
@@ -525,7 +526,7 @@
             </div>
           </div>
 
-          <!-- SEKSYEN 4: AKTIVITI (AUTO-FILLED FROM DSKP) -->
+          <!-- SEKSYEN 4: AKTIVITI -->
           <div class="space-y-3 text-xs">
             <h3 class="font-bold text-slate-800 uppercase tracking-wider text-brand-700">3. Aktiviti Pengajaran & Pembelajaran (PdPC)</h3>
 
@@ -634,7 +635,7 @@
     </section>
 
     <!-- ========================================================================= -->
-    <!-- VIEW 4: CETAK & EKSPORT DOKUMEN RASMI (DESIGN DARIPADA CONTOH_4)          -->
+    <!-- VIEW 4: CETAK & EKSPORT DOKUMEN RASMI                                    -->
     <!-- ========================================================================= -->
     <section id="tabPrint" class="tab-content space-y-6 hidden">
       
@@ -670,7 +671,7 @@
             <div>
               <h1 class="text-base font-bold uppercase tracking-wide">Kementerian Pendidikan Malaysia</h1>
               <h2 class="text-sm font-bold text-slate-800">SEKOLAH KEBANGSAAN SEMAKMUR</h2>
-              <p class="text-[11px] text-slate-600">REKOD PENGAJARAN DAN PEMBELAJARAN HARIAN (e-RPH TS25)</p>
+              <p class="text-[11px] text-slate-600">REKOD PENGAJARAN DAN PEMBELAJARAN HARIAN (e-RPH)</p>
             </div>
           </div>
         </div>
@@ -765,7 +766,7 @@
     </section>
 
     <!-- ========================================================================= -->
-    <!-- VIEW 5: PANDUAN ALUR KERJA (DESIGN DARIPADA CONTOH_4)                    -->
+    <!-- VIEW 5: PANDUAN ALUR KERJA                                                -->
     <!-- ========================================================================= -->
     <section id="tabWorkflow" class="tab-content space-y-6 hidden">
       
@@ -971,13 +972,36 @@
       if (sessionData) {
         try {
           state.currentUser = JSON.parse(sessionData);
-          const name = state.currentUser.name || state.currentUser.nama || 'Guru Akademik';
+          const name = state.currentUser.nama || state.currentUser.name || 'Guru Akademik';
           const email = state.currentUser.email || 'guru@moe-dl.edu.my';
+          const jawatan = state.currentUser.jawatan || state.currentUser.Jawatan || 'Guru Akademik';
+          const sistemAkses = state.currentUser.sistemAkses || state.currentUser.Sistem_Akses || '';
+
           document.getElementById('userName').innerText = name;
-          document.getElementById('userRoleTitle').innerText = `Guru Akademik | ${email}`;
+          document.getElementById('userRoleTitle').innerText = `${jawatan} | ${email}`;
           
           if (document.getElementById('printGuruName')) {
             document.getElementById('printGuruName').innerText = name;
+          }
+
+          // 1. PINDAAN: KAWALAN PAPARAN TOGGLE ROLE (HANYA UNTUK SISTEM_AKSES = ADMIN)
+          const roleToggleContainer = document.getElementById('roleToggleContainer');
+          if (roleToggleContainer) {
+            if (sistemAkses.toString().trim().toLowerCase() === 'admin') {
+              roleToggleContainer.style.display = 'flex';
+            } else {
+              roleToggleContainer.style.display = 'none';
+            }
+          }
+
+          // 2. PINDAAN: PENETAPAN DASHBOARD MENGIKUT JAWATAN
+          const pentadbirJawatanList = ['Guru Besar', 'PK Pentadbiran', 'PK HEM', 'PK Ko Kurikulum', 'PK Kokurikulum'];
+          const isPentadbirRole = pentadbirJawatanList.some(j => j.toLowerCase() === jawatan.toString().trim().toLowerCase());
+
+          if (isPentadbirRole) {
+            switchUserRole('pentadbir');
+          } else {
+            switchUserRole('guru');
           }
 
           fetchJadualHariIni(email);
@@ -1076,7 +1100,7 @@
       container.innerHTML = html;
     }
 
-    // 2. FUNGSI MENGGABUNGKAN SLOT SUBJEK & KELAS YANG SAMA SECARA BERTURUTAN
+    // 6. PINDAAN: LOGIK GABUNGAN SLOT BERTURUTAN & ABAIKAN SLOT TUNGGAL (1 MASA) APABILA WUJUD SLOT BERTURUTAN
     function combineConsecutiveSlots(slots) {
       if (!slots || slots.length === 0) return [];
 
@@ -1093,6 +1117,7 @@
         if (last && subjekCurrent === subjekLast && kelasCurrent === kelasLast) {
           last.jam_tamat = slot.jam_tamat || slot.Jam_Tamat;
           last.waktu_label = `${last.waktu_awal} - ${slot.waktu || slot.Waktu}`;
+          last.duration_count = (last.duration_count || 1) + 1;
         } else {
           combined.push({
             ...slot,
@@ -1101,12 +1126,30 @@
             jam_mula: slot.jam_mula || slot.Jam_Mula,
             jam_tamat: slot.jam_tamat || slot.Jam_Tamat,
             subjek: subjekCurrent,
-            nama_kelas: kelasCurrent
+            nama_kelas: kelasCurrent,
+            duration_count: 1
           });
         }
       });
 
-      return combined;
+      // Kenal pasti subjek & kelas yang ada slot berturutan (>1 masa) pada hari tersebut
+      const multiPeriodKeys = new Set();
+      combined.forEach(s => {
+        if (s.duration_count > 1) {
+          multiPeriodKeys.add(`${s.subjek.toLowerCase()}_${s.nama_kelas.toLowerCase()}`);
+        }
+      });
+
+      // Tapis keluar slot tunggal (1 masa) sekiranya wujud slot berturutan untuk subjek & kelas yang sama
+      const filtered = combined.filter(s => {
+        const key = `${s.subjek.toLowerCase()}_${s.nama_kelas.toLowerCase()}`;
+        if (multiPeriodKeys.has(key) && s.duration_count === 1) {
+          return false; // Abaikan slot 1 masa
+        }
+        return true;
+      });
+
+      return filtered;
     }
 
     // LOGIK PEMBINA E-RPH (DROPDOWN BERANTAI)
@@ -1155,16 +1198,13 @@
 
           let html = '<option value="">-- Pilih Slot Jadual --</option>';
           
+          // 5. PINDAAN: DROPDOWN SLOT HANYA MEMAPARKAN SUBJEK DAN KELAS SAHAJA
           combinedSlots.forEach((slot, idx) => {
-            const waktuLabel = slot.waktu_label;
-            const jamMula = slot.jam_mula;
-            const jamTamat = slot.jam_tamat;
             const namaKelas = slot.nama_kelas;
             const subjekKode = slot.subjek;
-
             const subjekPenuh = SUBJECT_MAP[subjekKode] || subjekKode;
 
-            html += `<option value="${idx}">[${waktuLabel} | ${jamMula}-${jamTamat}] ${subjekPenuh} (${subjekKode}) - ${namaKelas}</option>`;
+            html += `<option value="${idx}">${subjekPenuh} - ${namaKelas}</option>`;
           });
 
           slotSelect.innerHTML = html;
@@ -1305,13 +1345,13 @@
       const pentadbirView = document.getElementById('pentadbirDashboardView');
 
       if (role === 'guru') {
-        btnGuru.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
-        btnPentadbir.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
+        if (btnGuru) btnGuru.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
+        if (btnPentadbir) btnPentadbir.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
         guruView.classList.remove('hidden');
         pentadbirView.classList.add('hidden');
       } else {
-        btnPentadbir.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
-        btnGuru.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
+        if (btnPentadbir) btnPentadbir.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
+        if (btnGuru) btnGuru.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
         pentadbirView.classList.remove('hidden');
         guruView.classList.add('hidden');
       }
@@ -1326,17 +1366,21 @@
       tabs.forEach(id => {
         const btnId = 'nav' + id.charAt(0).toUpperCase() + id.slice(1);
         const btn = document.getElementById(btnId);
-        if (id === tabId) {
-          btn.className = "px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f4f7f6] text-brand-700 font-bold";
-        } else {
-          btn.className = "px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10";
+        if (btn) {
+          if (id === tabId) {
+            btn.className = "px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f4f7f6] text-brand-700 font-bold";
+          } else {
+            btn.className = "px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10";
+          }
         }
       });
     }
 
     function changeWeekGuru() {
       const weekVal = document.getElementById('selectWeekGuru').value;
-      document.getElementById('labelWeekBadge').innerText = `Minggu ${weekVal}`;
+      if (document.getElementById('labelWeekBadge')) {
+        document.getElementById('labelWeekBadge').innerText = `Minggu ${weekVal}`;
+      }
       showToast(`Rekod dikemaskini untuk Minggu ${weekVal}`, '📅');
     }
 
