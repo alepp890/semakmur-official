@@ -4,6 +4,36 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal e-RPH KPM - Pengurusan Rekod Mengajar Harian</title>
+
+  <!-- ========================================================================= -->
+  <!-- SEKATAN AKSES TANPA LOG MASUK (AUTH GUARD)                               -->
+  <!-- ========================================================================= -->
+  <script>
+    (function checkSessionGuard() {
+      const sessionData = localStorage.getItem('currentUser') || 
+                          sessionStorage.getItem('CURRENT_USER') || 
+                          localStorage.getItem('SAVED_MOE_USER');
+
+      if (!sessionData) {
+        alert('Akses Ditolak! Sila log masuk terlebih dahulu.');
+        window.location.replace('LoginSession.html');
+        return;
+      }
+
+      try {
+        const user = JSON.parse(sessionData);
+        if (!user || (!user.email && !user.Email && !user.nama && !user.Nama_Guru && !user.name)) {
+          throw new Error('Sesi tidak lengkap');
+        }
+      } catch (e) {
+        alert('Sesi anda tidak sah atau telah tamat tempoh. Sila log masuk semula.');
+        localStorage.removeItem('currentUser');
+        sessionStorage.removeItem('CURRENT_USER');
+        window.location.replace('LoginSession.html');
+      }
+    })();
+  </script>
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Inter & Outfit -->
@@ -85,7 +115,7 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased">
+<body id="mainBody" class="min-h-screen flex flex-col antialiased" style="display: none;">
 
   <!-- TOP HEADER / NAVBAR -->
   <header class="bg-gradient-to-r from-brand-700 via-brand-600 to-brand-800 text-white shadow-md sticky top-0 z-40 no-print">
@@ -182,7 +212,7 @@
     <!-- ========================================================================= -->
     <section id="tabDashboard" class="tab-content space-y-6">
 
-      <!-- PERINGATAN PENGHANTARAN E-RPH -->
+      <!-- PERINGATAN PENGHANTARAN E-RPH (HANYA DI DASHBOARD UTAMA) -->
       <div id="statusAlertBanner" class="bg-gradient-to-r from-teal-500 to-cyan-600 text-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
         <div class="flex items-center space-x-3">
           <div class="p-2 bg-white/20 rounded-lg backdrop-blur-sm shrink-0">
@@ -959,6 +989,7 @@
       currentUserRole: 'guru',
       activeTab: 'tabDashboard',
       currentUser: null,
+      currentRphId: null,
       todayJadual: [],
       allUserJadual: [],
       dskpList: [],
@@ -972,10 +1003,18 @@
       if (sessionData) {
         try {
           state.currentUser = JSON.parse(sessionData);
-          const name = state.currentUser.nama || state.currentUser.name || 'Guru Akademik';
-          const email = state.currentUser.email || 'guru@moe-dl.edu.my';
+
+          const sistemAkses = (
+            state.currentUser.Sistem_Akses || 
+            state.currentUser.sistem_akses || 
+            state.currentUser.sistemAkses || 
+            state.currentUser.SISTEM_AKSES || 
+            ''
+          ).toString().trim().toLowerCase();
+
+          const name = state.currentUser.nama || state.currentUser.Nama_Guru || state.currentUser.name || 'Guru Akademik';
+          const email = state.currentUser.email || state.currentUser.Email || 'guru@moe-dl.edu.my';
           const jawatan = state.currentUser.jawatan || state.currentUser.Jawatan || 'Guru Akademik';
-          const sistemAkses = state.currentUser.sistemAkses || state.currentUser.Sistem_Akses || '';
 
           document.getElementById('userName').innerText = name;
           document.getElementById('userRoleTitle').innerText = `${jawatan} | ${email}`;
@@ -984,17 +1023,17 @@
             document.getElementById('printGuruName').innerText = name;
           }
 
-          // 1. PINDAAN: KAWALAN PAPARAN TOGGLE ROLE (HANYA UNTUK SISTEM_AKSES = ADMIN)
+          // KAWALAN PAPARAN TOGGLE ROLE (HANYA MUNCUL JIKA SISTEM_AKSES = ADMIN)
           const roleToggleContainer = document.getElementById('roleToggleContainer');
           if (roleToggleContainer) {
-            if (sistemAkses.toString().trim().toLowerCase() === 'admin') {
+            if (sistemAkses === 'admin') {
               roleToggleContainer.style.display = 'flex';
             } else {
               roleToggleContainer.style.display = 'none';
             }
           }
 
-          // 2. PINDAAN: PENETAPAN DASHBOARD MENGIKUT JAWATAN
+          // PENETAPAN DASHBOARD MENGIKUT JAWATAN
           const pentadbirJawatanList = ['Guru Besar', 'PK Pentadbiran', 'PK HEM', 'PK Ko Kurikulum', 'PK Kokurikulum'];
           const isPentadbirRole = pentadbirJawatanList.some(j => j.toLowerCase() === jawatan.toString().trim().toLowerCase());
 
@@ -1004,13 +1043,17 @@
             switchUserRole('guru');
           }
 
+          // PAPARKAN KANDUNGAN HALAMAN SELEPAS SESI DISAHKAN
+          const mainBody = document.getElementById('mainBody');
+          if (mainBody) mainBody.style.display = 'flex';
+
           fetchJadualHariIni(email);
         } catch (e) {
-          fetchJadualHariIni('guru@moe-dl.edu.my');
+          console.error("Ralat membaca sesi pengguna:", e);
+          window.location.replace('LoginSession.html');
         }
       } else {
-        document.getElementById('userName').innerText = 'Guru Sekolah';
-        fetchJadualHariIni('guru@moe-dl.edu.my');
+        window.location.replace('LoginSession.html');
       }
 
       populateWeeksDropdowns();
@@ -1100,7 +1143,7 @@
       container.innerHTML = html;
     }
 
-    // 6. PINDAAN: LOGIK GABUNGAN SLOT BERTURUTAN & ABAIKAN SLOT TUNGGAL (1 MASA) APABILA WUJUD SLOT BERTURUTAN
+    // LOGIK GABUNGAN SLOT BERTURUTAN & ABAIKAN SLOT TUNGGAL (1 MASA) APABILA WUJUD SLOT BERTURUTAN
     function combineConsecutiveSlots(slots) {
       if (!slots || slots.length === 0) return [];
 
@@ -1140,16 +1183,14 @@
         }
       });
 
-      // Tapis keluar slot tunggal (1 masa) sekiranya wujud slot berturutan untuk subjek & kelas yang sama
-      const filtered = combined.filter(s => {
+      // Tapis keluar slot tunggal (1 masa) sekiranya wujud slot berturutan
+      return combined.filter(s => {
         const key = `${s.subjek.toLowerCase()}_${s.nama_kelas.toLowerCase()}`;
         if (multiPeriodKeys.has(key) && s.duration_count === 1) {
-          return false; // Abaikan slot 1 masa
+          return false;
         }
         return true;
       });
-
-      return filtered;
     }
 
     // LOGIK PEMBINA E-RPH (DROPDOWN BERANTAI)
@@ -1198,7 +1239,7 @@
 
           let html = '<option value="">-- Pilih Slot Jadual --</option>';
           
-          // 5. PINDAAN: DROPDOWN SLOT HANYA MEMAPARKAN SUBJEK DAN KELAS SAHAJA
+          // FORMAT DROPDOWN SLOT HANYA MEMAPARKAN SUBJEK DAN KELAS SAHAJA
           combinedSlots.forEach((slot, idx) => {
             const namaKelas = slot.nama_kelas;
             const subjekKode = slot.subjek;
@@ -1385,8 +1426,92 @@
     }
 
     function filterGuruTableByDay() {}
-    function submitRphForm() { showToast('e-RPH Hari Ini Berjaya Dihantar!', '🚀'); }
-    function saveDraftRPH() { showToast('Draf RPH Berjaya Disimpan!', '💾'); }
+
+    // FUNGSI UTAMA UNTUK MENGHANTAR / MENYIMPAN RPH KE GOOGLE SHEETS
+    async function processRphSaveOrSubmit(statusRph) {
+      console.log("Mula proses hantaran RPH:", statusRph);
+
+      const subjekEl = document.getElementById('rphSubjectSelect');
+      const tarikhEl = document.getElementById('rphDate');
+
+      const subjek = subjekEl ? subjekEl.value : '';
+      const tarikh = tarikhEl ? tarikhEl.value : '';
+
+      if (!subjek || !tarikh) {
+        alert('Sila pilih Slot Jadual (Minggu, Hari/Tarikh & Slot) terlebih dahulu sebelum menyimpan!');
+        return;
+      }
+
+      const emailGuru = state.currentUser ? (state.currentUser.email || state.currentUser.Email || '') : '';
+      const namaGuru = state.currentUser ? (state.currentUser.nama || state.currentUser.Nama_Guru || state.currentUser.name || '') : '';
+
+      const payload = {
+        rphId: state.currentRphId || '',
+        emailGuru: emailGuru,
+        namaGuru: namaGuru,
+        minggu: document.getElementById('builderSelectWeek') ? document.getElementById('builderSelectWeek').value : '36',
+        tarikh: tarikh,
+        hariMasa: document.getElementById('rphTime') ? document.getElementById('rphTime').value : '',
+        subjek: subjek,
+        kelas: document.getElementById('rphClass') ? document.getElementById('rphClass').value : '',
+        temaUnit: document.getElementById('rphThemeSelect') ? document.getElementById('rphThemeSelect').value : '',
+        tajuk: document.getElementById('rphTajukSelect') ? document.getElementById('rphTajukSelect').value : '',
+        sp: document.getElementById('rphSP') ? document.getElementById('rphSP').value : '',
+        op: document.getElementById('rphOP') ? document.getElementById('rphOP').value : '',
+        kk: document.getElementById('rphKK') ? document.getElementById('rphKK').value : '',
+        actStart: document.getElementById('rphActStart') ? document.getElementById('rphActStart').value : '',
+        actMain: document.getElementById('rphActMain') ? document.getElementById('rphActMain').value : '',
+        actEnd: document.getElementById('rphActEnd') ? document.getElementById('rphActEnd').value : '',
+        reflectCount: document.getElementById('rphReflectCount') ? document.getElementById('rphReflectCount').value : '',
+        reflectNote: document.getElementById('rphReflectNote') ? document.getElementById('rphReflectNote').value : '',
+        statusRph: statusRph
+      };
+
+      showToast(statusRph === 'Draf' ? 'Sedang menyimpan draf ke Google Sheets...' : 'Sedang menghantar e-RPH...', '⏳');
+
+      try {
+        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
+        if (!targetUrl) {
+          alert('Ralat: URL Web App Google Script tidak dijumpai dalam config.js!');
+          return;
+        }
+
+        const response = await fetch(targetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'saveRph',
+            payload: payload
+          })
+        });
+
+        const result = await response.json();
+        console.log("Respon Backend Google Script:", result);
+
+        if (result && result.success) {
+          state.currentRphId = result.idRph || result.rphId;
+
+          if (document.getElementById('rphTimestampDisplay')) {
+            document.getElementById('rphTimestampDisplay').innerText = `Status: ${statusRph} (${result.timestamp || ''})`;
+          }
+
+          showToast(result.message || 'Berjaya disimpan!', statusRph === 'Draf' ? '💾' : '🚀');
+        } else {
+          alert('Gagal menyimpan ke Google Sheets: ' + (result.error || result.message || 'Ralat tidak diketahui'));
+        }
+      } catch (err) {
+        console.error("Ralat Fetch RPH:", err);
+        alert('Ralat sambungan ke backend Google Sheets! Sila semak sambungan rangkaian atau URL Web App.');
+      }
+    }
+
+    function saveDraftRPH() {
+      processRphSaveOrSubmit('Draf');
+    }
+
+    function submitRphForm() {
+      processRphSaveOrSubmit('Hantar');
+    }
 
     // FUNGSI PENTADBIR & MODAL
     function openIncompleteTeachersModal() {
