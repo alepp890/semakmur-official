@@ -82,8 +82,8 @@ function onBuilderDateDayChange() {
   const dateStr = today.toISOString().split('T')[0];
   document.getElementById('rphDate').value = dateStr;
 
-  // Dapatkan Jadual Waktu Backend
-  const emailGuru = window.currentUser ? window.currentUser.email : '';
+  // Dapatkan Emel Guru
+  const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
   
   fetchBackendApi('getJadualGuruByHari', { emailGuru: emailGuru, hari: dayVal })
     .then(res => {
@@ -368,8 +368,8 @@ function submitRphForm() {
  * Fungsi Pengendali Simpan / Hantar Utama Backend
  */
 function saveRphRecordWithStatus(statusTarget) {
-  const emailGuru = window.currentUser ? window.currentUser.email : '';
-  const namaGuru  = window.currentUser ? window.currentUser.name  : '';
+  const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
+  const namaGuru  = window.currentUser ? (window.currentUser.nama || window.currentUser.Nama_Guru || window.currentUser.name || '') : '';
 
   const payload = {
     action: 'saveErph',
