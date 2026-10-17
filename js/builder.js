@@ -1,7 +1,7 @@
 function populateWeeksDropdowns() {
   const selectGuru = document.getElementById('selectWeekGuru');
   const selectBuilder = document.getElementById('builderSelectWeek');
-  
+   
   let html = '';
   for (let w = 36; w >= 1; w--) {
     html += `<option value="${w}">Minggu ${w}</option>`;
