@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL: js/app-core.js (Penambahan Format Masa Clean & Logik Dashboard Utama)
+ * FAIL: js/app-core.js (Diperkemaskan Paparan Masa Mula-Tamat Dalam Dashboard)
  * ==============================================================================
  */
 
@@ -170,13 +170,8 @@ function populateWeeksDropdowns() {
   loadGuruDashboardData();
 }
 
-function changeWeekGuru() {
-  loadGuruDashboardData();
-}
-
-function filterGuruTableByDay() {
-  loadGuruDashboardData();
-}
+function changeWeekGuru() { loadGuruDashboardData(); }
+function filterGuruTableByDay() { loadGuruDashboardData(); }
 
 /**
  * TARIK JADUAL WAKTU HARI INI
@@ -190,18 +185,22 @@ function fetchJadualHariIni(emailGuru) {
 
   fetchBackendApi('getJadualGuruByHari', { emailGuru: emailGuru, hari: todayName })
     .then(res => {
-      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+      const dataList = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
+
+      if (Array.isArray(dataList) && dataList.length > 0) {
         container.innerHTML = '';
-        res.data.forEach(slot => {
-          const masaMulaDisplay = cleanTimeFormatFrontend(slot.masaMula);
-          const masaTamatDisplay = cleanTimeFormatFrontend(slot.masaTamat);
-          const masaRange = (masaMulaDisplay && masaTamatDisplay) ? `${masaMulaDisplay} - ${masaTamatDisplay}` : 'Masa Jadual';
+        dataList.forEach(slot => {
+          const mula  = cleanTimeFormatFrontend(slot.jam_mula || slot.masaMula);
+          const tamat = cleanTimeFormatFrontend(slot.jam_tamat || slot.masaTamat);
+          const kelas = slot.nama_kelas || slot.kelas || 'Tiada Kelas';
+          const subjek = slot.subjek || 'Subjek';
+          const masaRange = (mula && tamat) ? `${mula} - ${tamat}` : 'Masa Jadual';
 
           const div = document.createElement('div');
           div.className = 'p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1';
           div.innerHTML = `
             <div class="flex justify-between items-center text-xs font-bold text-slate-800">
-              <span>${slot.subjek} (${slot.kelas || 'Tiada Kelas'})</span>
+              <span>${subjek} (${kelas})</span>
               <span class="text-brand-600">${masaRange}</span>
             </div>
           `;
@@ -251,6 +250,9 @@ function loadGuruDashboardData() {
     });
 }
 
+/**
+ * PERATURAN 1: Paparan Masa Lengkap Masa Mula - Masa Tamat (Kelas)
+ */
 function renderGuruRphTable(list) {
   const tbody = document.getElementById('guruRphTableBody');
   if (!tbody) return;
@@ -270,8 +272,19 @@ function renderGuruRphTable(list) {
       ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">📝 Draf</span>`
       : `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">🚀 Dihantar</span>`;
 
-    const masaMulaClean = cleanTimeFormatFrontend(item.masaMula);
-    const masaDisplay = masaMulaClean ? `${masaMulaClean} (${item.kelas || '-'})` : (item.kelas || '-');
+    const mulaClean  = cleanTimeFormatFrontend(item.masaMula);
+    const tamatClean = cleanTimeFormatFrontend(item.masaTamat);
+    
+    let masaRange = '';
+    if (mulaClean && tamatClean) {
+      masaRange = `${mulaClean} - ${tamatClean}`;
+    } else if (mulaClean) {
+      masaRange = mulaClean;
+    }
+
+    const masaDisplay = masaRange 
+      ? `${masaRange} (${item.kelas || '-'})` 
+      : (item.kelas || '-');
 
     tr.innerHTML = `
       <td class="py-2.5 px-3 font-bold text-slate-800">${item.hari} - ${item.subjek}</td>
