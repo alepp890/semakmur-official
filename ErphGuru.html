@@ -110,7 +110,7 @@
       </div>
 
       <div class="flex items-center space-x-4">
-        <!-- TOGGLE MOD USER (PERANAN ADMIN) -->
+        <!-- TOGGLE MOD USER (PERANAN ADMIN / PENTADBIR) -->
         <div id="roleToggleContainer" class="bg-black/20 p-1 rounded-xl flex items-center border border-white/10 text-xs" style="display: none;">
           <span class="px-2 text-teal-100 font-medium hidden sm:inline">Mod User:</span>
           <button id="roleBtnGuru" onclick="switchUserRole('guru')" class="px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm">
@@ -151,7 +151,8 @@
           <span>Pembina e-RPH</span>
         </button>
 
-        <button onclick="setActiveTab('tabApproval')" id="navTabApproval" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10 relative">
+        <!-- TAB SEMAKAN PENTADBIR (DIKAWAL OLEH JAWATAN PENTADBIR) -->
+        <button onclick="setActiveTab('tabApproval')" id="navTabApproval" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10 relative" style="display: none;">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           <span>Semakan Pentadbir</span>
           <span id="badgePendingCount" class="bg-amber-400 text-slate-900 text-[10px] font-bold px-1.5 py-0.2 rounded-full ml-1">0</span>
@@ -308,7 +309,7 @@
 
       </div>
 
-      <!-- PENTADBIR DASHBOARD VIEW -->
+      <!-- PENTADBIR DASHBOARD VIEW (DENGAN REAL-DATA & BUTANG NAVIGASI) -->
       <div id="pentadbirDashboardView" class="space-y-6 hidden">
         
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-r from-slate-50 via-white to-amber-50/30">
@@ -326,19 +327,8 @@
           </div>
 
           <div class="flex items-center space-x-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-3 md:pt-0 border-slate-200">
-            <div class="flex items-center space-x-4 text-xs">
-              <div class="text-center px-3 py-1 bg-rose-50 border border-rose-100 rounded-xl">
-                <span class="text-[10px] text-rose-700 font-bold block">Tak Buat RPH</span>
-                <span class="text-base font-extrabold text-rose-600">3 Guru</span>
-              </div>
-              <div class="text-center px-3 py-1 bg-amber-50 border border-amber-100 rounded-xl">
-                <span class="text-[10px] text-amber-800 font-bold block">Tak Buat Refleksi</span>
-                <span class="text-base font-extrabold text-amber-600">4 Guru</span>
-              </div>
-            </div>
-
-            <button onclick="openIncompleteTeachersModal()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center space-x-1.5 shrink-0">
-              <span>Lihat Lebih Lanjut</span>
+            <button onclick="navigateToApprovalTabFromBanner()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold shadow-sm transition-all flex items-center space-x-1.5 shrink-0">
+              <span>Lihat Lebih Lanjut (Semakan Pentadbir)</span>
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
             </button>
           </div>
@@ -350,8 +340,8 @@
               <span>Dihantar Hari Ini</span>
               <span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[10px] font-bold">Lengkap</span>
             </div>
-            <h3 class="text-2xl font-bold text-slate-800">42 / 48 Guru</h3>
-            <p class="text-xs text-slate-500 mt-1">87.5% pematuhan harian</p>
+            <h3 id="statDihantarHariIni" class="text-2xl font-bold text-slate-800">0 / 0 Guru</h3>
+            <p class="text-xs text-slate-500 mt-1">Status pematuhan harian guru seliaan</p>
           </div>
 
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
@@ -359,7 +349,7 @@
               <span>Menunggu Semakan Pentadbir</span>
               <span id="statPendingBadge" class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-bold">Tugasan Anda</span>
             </div>
-            <h3 id="statPendingCount" class="text-2xl font-bold text-amber-600">6 RPH</h3>
+            <h3 id="statPendingCount" class="text-2xl font-bold text-amber-600">0 RPH</h3>
             <p class="text-xs text-slate-500 mt-1">Perlu ulasan & pengesahan cop digital</p>
           </div>
 
@@ -368,39 +358,8 @@
               <span>Disahkan Minggu Ini</span>
               <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-bold">Terurus</span>
             </div>
-            <h3 class="text-2xl font-bold text-brand-600">184 RPH</h3>
+            <h3 id="statApprovedCount" class="text-2xl font-bold text-brand-600">0 RPH</h3>
             <p class="text-xs text-slate-500 mt-1">Rekod dikemaskini dalam pangkalan data</p>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-            <div>
-              <h3 class="font-display font-bold text-slate-800 text-lg">Modul Semakan & Pengesahan Pentadbir (PGB / PK)</h3>
-              <p class="text-xs text-slate-400">Senarai e-RPH guru seliaan yang memerlukan semakan dan pengesahan digital</p>
-            </div>
-            <div class="flex items-center space-x-2">
-              <button onclick="filterApprovalQueue('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Semua</button>
-              <button onclick="filterApprovalQueue('PENDING')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200">Perlu Semakan (6)</button>
-              <button onclick="filterApprovalQueue('APPROVED')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200">Disah / Disemak</button>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-600">
-              <thead class="bg-slate-50 text-slate-500 font-semibold uppercase border-b border-slate-100">
-                <tr>
-                  <th class="py-3 px-4">Nama Guru</th>
-                  <th class="py-3 px-4">Subjek & Kelas</th>
-                  <th class="py-3 px-4">Tarikh & Masa Hantar</th>
-                  <th class="py-3 px-4">Status Semakan</th>
-                  <th class="py-3 px-4">Penarafan / Refleksi</th>
-                  <th class="py-3 px-4 text-center">Tindakan</th>
-                </tr>
-              </thead>
-              <tbody id="pentadbirApprovalTableBody" class="divide-y divide-slate-100">
-              </tbody>
-            </table>
           </div>
         </div>
 
@@ -756,18 +715,68 @@
 
     </section>
 
-    <!-- VIEW 3: SEMAKAN PENTADBIR -->
+    <!-- VIEW 3: SEMAKAN PENTADBIR (DENGAN DROPDOWN GURU SELIAAN & STATUS MINGGU) -->
     <section id="tabApproval" class="tab-content space-y-6 hidden">
       <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
-        <div class="flex justify-between items-center border-b border-slate-100 pb-4">
+        
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 pb-4">
           <div>
             <h2 class="text-xl font-display font-bold text-slate-800">Senarai Semakan RPH Guru Seliaan</h2>
-            <p class="text-xs text-slate-400">Pentadbir boleh menyemak perancangan Draf dan mengesahkan RPH yang telah lengkap refleksi.</p>
+            <p class="text-xs text-slate-400">Pilih guru seliaan dan minggu persekolahan untuk menyemak jadual, perancangan draf, serta mengesahkan RPH.</p>
           </div>
-          <button onclick="approveAllPending()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
-            ✓ Sahkan Keseluruhan (Pukal)
-          </button>
+
+          <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+            <!-- DROPDOWN 1: GURU SELIAAN -->
+            <div class="flex items-center space-x-1 text-xs">
+              <label class="font-bold text-slate-700 shrink-0">Guru Seliaan:</label>
+              <select id="selectGuruSeliaan" onchange="onGuruSeliaanChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                <option value="">Sedang memuatkan...</option>
+              </select>
+            </div>
+
+            <!-- DROPDOWN 2: MINGGU SEMAKAN -->
+            <div class="flex items-center space-x-1 text-xs">
+              <label class="font-bold text-slate-700 shrink-0">Minggu:</label>
+              <select id="selectWeekApproval" onchange="onGuruSeliaanChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                <option value="36" selected>Minggu 36</option>
+                <option value="35">Minggu 35</option>
+                <option value="34">Minggu 34</option>
+                <option value="33">Minggu 33</option>
+              </select>
+            </div>
+
+            <button onclick="approveAllPending()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
+              ✓ Sahkan Keseluruhan (Pukal)
+            </button>
+          </div>
         </div>
+
+        <!-- BEKAS LENCANA STATUS MINGGU TERDAHULU GURU SELIAAN -->
+        <div id="containerGuruWeeklyBadges" class="pt-1"></div>
+
+        <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
+          <button onclick="filterApprovalQueue('ALL')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Semua</button>
+          <button onclick="filterApprovalQueue('PENDING')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200">Perlu Semakan</button>
+          <button onclick="filterApprovalQueue('APPROVED')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200">Disah / Disemak</button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600">
+            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase border-b border-slate-100">
+              <tr>
+                <th class="py-3 px-4">Nama Guru</th>
+                <th class="py-3 px-4">Subjek & Kelas</th>
+                <th class="py-3 px-4">Tarikh & Masa Hantar</th>
+                <th class="py-3 px-4">Status Semakan</th>
+                <th class="py-3 px-4">Penarafan / Refleksi</th>
+                <th class="py-3 px-4 text-center">Tindakan</th>
+              </tr>
+            </thead>
+            <tbody id="pentadbirApprovalTableBody" class="divide-y divide-slate-100">
+            </tbody>
+          </table>
+        </div>
+
         <div id="approvalCardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
       </div>
     </section>
@@ -961,7 +970,7 @@
 
   </main>
 
-  <!-- MODAL 1: SENARAI GURU TAK LENGKAP -->
+  <!-- MODAL 1: SENARAI GURU TAK LENGKAP & HANTAR PERINGATAN -->
   <div id="incompleteTeachersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
     <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
       
@@ -978,7 +987,7 @@
       <div class="p-6 overflow-y-auto space-y-4 text-xs">
         <div class="space-y-2">
           <h4 class="font-bold text-rose-700 uppercase tracking-wider text-[11px] flex items-center justify-between">
-            <span>❌ Belum Hantar Perancangan RPH (3 Guru)</span>
+            <span>❌ Belum Hantar Perancangan / Refleksi RPH</span>
             <span class="bg-rose-100 text-rose-800 px-2 py-0.5 rounded text-[10px]">Tindakan Segera</span>
           </h4>
 
@@ -988,7 +997,7 @@
                 <p class="font-bold text-slate-800">Cikgu Ahmad Razak bin Hashim</p>
                 <p class="text-[11px] text-slate-500">Sejarah Tingkatan 3 | Slot 2 (10:00 AM)</p>
               </div>
-              <button onclick="sendReminder('Cikgu Ahmad Razak')" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-[10px]">
+              <button onclick="sendReminder('Cikgu Ahmad Razak', 'ahmad.razak@moe-dl.edu.my')" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-[10px]">
                 🔔 Hantar Peringatan
               </button>
             </div>
@@ -998,7 +1007,7 @@
                 <p class="font-bold text-slate-800">Cikgu Maria binti Abdullah</p>
                 <p class="text-[11px] text-slate-500">Bahasa Inggeris T2 | Slot 3 (11:30 AM)</p>
               </div>
-              <button onclick="sendReminder('Cikgu Maria')" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-[10px]">
+              <button onclick="sendReminder('Cikgu Maria', 'maria.abdullah@moe-dl.edu.my')" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold text-[10px]">
                 🔔 Hantar Peringatan
               </button>
             </div>
