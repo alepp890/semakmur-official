@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND MODULE
- * FAIL: js/builder.js (Logik Pembina e-RPH, Penukaran Kod Subjek & Filter Slot Waktu)
+ * FAIL: js/builder.js (Logik Pembina e-RPH, Penukaran Kod Subjek & Kawalan Refleksi)
  * ==============================================================================
  */
 
@@ -72,7 +72,7 @@ function initBuilderWeekDropdown() {
 }
 
 /**
- * Peristiwa Perubahan Minggu - Penjanaan Hari & Tarikh Sebenar (Contoh: Isnin (19/10/2026))
+ * Peristiwa Perubahan Minggu - Penjanaan Hari & Tarikh Sebenar
  */
 function onBuilderWeekChange() {
   const weekVal = parseInt(document.getElementById('builderSelectWeek').value, 10) || 36;
@@ -81,7 +81,6 @@ function onBuilderWeekChange() {
 
   selectDateDay.innerHTML = '<option value="">-- Pilih Hari / Tarikh --</option>';
 
-  // Rujukan Minggu 36 Isnin (19/10/2026)
   const refWeek = 36;
   const refMonday = new Date(2026, 9, 19);
 
@@ -126,7 +125,6 @@ function onBuilderDateDayChange(callback) {
     return;
   }
 
-  // Set Tarikh Auto mengikut pilihan
   const selectedOpt = selectDateDay.options[selectDateDay.selectedIndex];
   if (selectedOpt && selectedOpt.dataset.isoDate) {
     document.getElementById('rphDate').value = selectedOpt.dataset.isoDate;
@@ -218,7 +216,7 @@ function onBuilderDateDayChange(callback) {
 }
 
 /**
- * Peristiwa Perubahan Slot Jadual -> Auto-fill Maklumat Asas & Penukaran Nama Subjek
+ * Peristiwa Perubahan Slot Jadual -> Auto-fill Maklumat Asas
  */
 function onBuilderSlotChange() {
   const slotIdx = document.getElementById('builderSelectSlot').value;
@@ -244,7 +242,7 @@ function onBuilderSlotChange() {
   const tarikhVal = document.getElementById('rphDate').value;
   fetchKehadiranData(tarikhVal, kelas);
 
-  // 3. Semak Kawalan Masa PdPC & Sorokkan Refleksi jika belum tamat
+  // 3. Semak Kawalan Masa PdPC & Status Refleksi
   checkPdpcTimeAndFreeze(tamat);
 
   // 4. Dapatkan DSKP bagi Subjek Penuh & Kelas
@@ -285,6 +283,47 @@ function fetchKehadiranData(tarikh, kelas) {
 }
 
 /**
+ * FUNGSI SEMAKAN STATUS BUTANG HANTAR (DYNAMIC VALIDATION)
+ */
+function validateSubmitButtonState() {
+  const btnSubmit = document.getElementById('btnSubmitRph');
+  if (!btnSubmit) return;
+
+  const sectionRefleksi = document.getElementById('sectionRefleksiWrapper');
+  const isHidden = sectionRefleksi && sectionRefleksi.classList.contains('hidden');
+
+  // Jika Seksyen Refleksi disorokkan (Waktu PdPC belum tamat) -> Disables Butang Hantar
+  if (isHidden) {
+    btnSubmit.disabled = true;
+    btnSubmit.title = "Butang Hantar dikunci kerana waktu PdPC belum tamat untuk melengkapkan refleksi.";
+    return;
+  }
+
+  const chkPdpc = document.getElementById('chkPdpcPostponed');
+  const isPostponed = chkPdpc ? chkPdpc.checked : false;
+  const capaiVal = parseInt(document.getElementById('rphCapaiCount').value, 10) || 0;
+
+  if (isPostponed) {
+    const reason = (document.getElementById('rphPdpcReason').value || '').trim();
+    if (reason === '') {
+      btnSubmit.disabled = true;
+      btnSubmit.title = "Sila isi sebab PdPC tidak dapat dijalankan.";
+    } else {
+      btnSubmit.disabled = false;
+      btnSubmit.title = "";
+    }
+  } else {
+    if (capaiVal <= 0) {
+      btnSubmit.disabled = true;
+      btnSubmit.title = "Sila isi bilangan murid yang mencapai objektif (> 0) untuk hantar RPH.";
+    } else {
+      btnSubmit.disabled = false;
+      btnSubmit.title = "";
+    }
+  }
+}
+
+/**
  * Kawalan Menyebab/Menyorokkan Refleksi Mengikut Masa Tamat PdPC
  */
 function checkPdpcTimeAndFreeze(masaTamatStr) {
@@ -295,6 +334,7 @@ function checkPdpcTimeAndFreeze(masaTamatStr) {
 
   if (!masaTamatStr) {
     if (sectionRefleksi) sectionRefleksi.classList.remove('hidden');
+    validateSubmitButtonState();
     return;
   }
 
@@ -306,6 +346,7 @@ function checkPdpcTimeAndFreeze(masaTamatStr) {
   const timeParts = masaTamatStr.replace(/[^0-9:]/g, '').split(':');
   if (timeParts.length < 2) {
     if (sectionRefleksi) sectionRefleksi.classList.remove('hidden');
+    validateSubmitButtonState();
     return;
   }
 
@@ -319,14 +360,14 @@ function checkPdpcTimeAndFreeze(masaTamatStr) {
 
   if (currentTimeInMinutes < endTimeInMinutes) {
     if (banner) banner.className = 'p-3 bg-amber-100 border border-amber-300 rounded-xl flex items-center justify-between text-amber-900 font-semibold text-xs';
-    if (msgTxt) msgTxt.innerHTML = '🔒 Masa PdPC slot ini (' + masaTamatStr + ') belum tamat. Seksyen Refleksi disorokkan sehingga PdPC selesai. Anda masih boleh menyimpan Draf atau menghantar perancangan.';
+    if (msgTxt) msgTxt.innerHTML = '🔒 Masa PdPC slot ini (' + masaTamatStr + ') belum tamat. Seksyen Refleksi disorokkan. Anda hanya boleh menyimpan Draf.';
     
     // MENYOROKKAN SEKSYEN REFLEKSI
     if (sectionRefleksi) sectionRefleksi.classList.add('hidden');
     if (capaiInput) capaiInput.disabled = true;
   } else {
     if (banner) banner.className = 'p-3 bg-emerald-100 border border-emerald-300 rounded-xl flex items-center justify-between text-emerald-900 font-semibold text-xs';
-    if (msgTxt) msgTxt.innerHTML = '🔓 Waktu PdPC telah tamat (' + masaTamatStr + '). Sila lengkapkan bilangan murid capai objektif untuk hantar RPH.';
+    if (msgTxt) msgTxt.innerHTML = '🔓 Waktu PdPC telah tamat (' + masaTamatStr + '). Sila lengkapkan refleksi untuk menghantar RPH.';
     
     // MEMAPARKAN SEKSYEN REFLEKSI
     if (sectionRefleksi) sectionRefleksi.classList.remove('hidden');
@@ -335,10 +376,12 @@ function checkPdpcTimeAndFreeze(masaTamatStr) {
       capaiInput.classList.remove('bg-slate-100', 'cursor-not-allowed');
     }
   }
+
+  validateSubmitButtonState();
 }
 
 /**
- * Tarik Data DSKP dan Populasikan Dropdown Tema / Tajuk (Ditambah Sokongan Callback)
+ * Tarik Data DSKP dan Populasikan Dropdown Tema / Tajuk
  */
 function fetchDskpData(subjek, kelas, callback) {
   const badge = document.getElementById('dskpStatusBadge');
@@ -434,6 +477,7 @@ function calculateRefleksi() {
     if (txtBimbingan) txtBimbingan.textContent = '0 / ' + totalStudents;
     if (txtTidakCapai) txtTidakCapai.textContent = '0 / ' + totalStudents;
     document.getElementById('rphReflectCount').value = 'PdPC tidak dapat dijalankan kerana ' + reason + '.';
+    validateSubmitButtonState();
     return;
   }
 
@@ -445,6 +489,8 @@ function calculateRefleksi() {
   if (txtTidakCapai) txtTidakCapai.textContent = tidakCapai + ' / ' + totalStudents;
 
   document.getElementById('rphReflectCount').value = capai + ' / ' + totalStudents + ' orang murid capai objektif.';
+  
+  validateSubmitButtonState();
 }
 
 function togglePdpcReason() {
@@ -490,6 +536,32 @@ function saveDraftRPH() { saveRphRecordWithStatus('Draf'); }
 function submitRphForm() { saveRphRecordWithStatus('Hantar'); }
 
 function saveRphRecordWithStatus(statusTarget) {
+  // SEMAKAN MANDATORI SEBELUM MENGHANTAR RPH
+  if (statusTarget === 'Hantar') {
+    const sectionRefleksi = document.getElementById('sectionRefleksiWrapper');
+    if (sectionRefleksi && sectionRefleksi.classList.contains('hidden')) {
+      showToast('Gagal Hantar: Waktu PdPC belum tamat untuk melengkapkan refleksi!', '⚠️');
+      return;
+    }
+
+    const chkPdpc = document.getElementById('chkPdpcPostponed');
+    const isPostponed = chkPdpc ? chkPdpc.checked : false;
+    const capaiVal = parseInt(document.getElementById('rphCapaiCount').value, 10) || 0;
+
+    if (isPostponed) {
+      const reason = (document.getElementById('rphPdpcReason').value || '').trim();
+      if (!reason) {
+        showToast('Gagal Hantar: Sila nyatakan sebab PdPC ditangguhkan!', '⚠️');
+        return;
+      }
+    } else {
+      if (capaiVal <= 0) {
+        showToast('Gagal Hantar: Sila isi bilangan murid yang mencapai objektif (> 0)!', '⚠️');
+        return;
+      }
+    }
+  }
+
   const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
   const namaGuru  = window.currentUser ? (window.currentUser.nama || window.currentUser.Nama_Guru || window.currentUser.name || '') : '';
   const existingIdRph = document.getElementById('rphIdHidden') ? document.getElementById('rphIdHidden').value : '';
@@ -577,7 +649,7 @@ function resetRphFormFields() {
 }
 
 /**
- * EDIT / LANJUT RPH DRAF DARIPADA DASHBOARD GURU (KEMAS KINI PEMILIHAN DROPDOWN TEMA & TAJUK)
+ * EDIT / LANJUT RPH DRAF DARIPADA DASHBOARD GURU
  */
 function editRphRecord(idRph) {
   if (!idRph) return;
@@ -590,16 +662,13 @@ function editRphRecord(idRph) {
     return;
   }
 
-  // 1. Tukar ke Tab Builder
   if (typeof setActiveTab === 'function') {
     setActiveTab('tabBuilder');
   }
 
-  // 2. Simpan ID RPH dalam Hidden Input
   const hiddenIdEl = document.getElementById('rphIdHidden');
   if (hiddenIdEl) hiddenIdEl.value = item.idRph;
 
-  // 3. Isi Maklumat Asas
   document.getElementById('rphDate').value = item.tarikh || '';
   
   let masaMulaClean = cleanTimeFormatFrontend(item.masaMula);
@@ -610,7 +679,6 @@ function editRphRecord(idRph) {
   document.getElementById('rphSubjectSelect').value = item.subjek || '';
   document.getElementById('rphClass').value = item.kelas || '';
 
-  // 4. Tarik DSKP Dahulu Sebelum Menetapkan Nilai Dropdown Tema/Unit & Tajuk
   fetchDskpData(item.subjek, item.kelas, () => {
     const themeSelect = document.getElementById('rphThemeSelect');
     const tajukSelect = document.getElementById('rphTajukSelect');
@@ -618,52 +686,42 @@ function editRphRecord(idRph) {
     const targetTema = item.temaUnit || '';
     const targetTajuk = item.tajuk || item.tajukBidang || '';
 
-    // Tetapkan Tema/Unit
-    if (themeSelect) {
-      if (targetTema) {
-        let themeExists = Array.from(themeSelect.options).some(opt => opt.value === targetTema);
-        if (!themeExists) {
-          let opt = document.createElement('option');
-          opt.value = targetTema;
-          opt.textContent = targetTema;
-          themeSelect.appendChild(opt);
-        }
-        themeSelect.value = targetTema;
+    if (themeSelect && targetTema) {
+      let themeExists = Array.from(themeSelect.options).some(opt => opt.value === targetTema);
+      if (!themeExists) {
+        let opt = document.createElement('option');
+        opt.value = targetTema;
+        opt.textContent = targetTema;
+        themeSelect.appendChild(opt);
       }
+      themeSelect.value = targetTema;
     }
 
-    // Tetapkan Tajuk secara berasingan
-    if (tajukSelect) {
-      if (targetTajuk) {
-        let tajukExists = Array.from(tajukSelect.options).some(opt => opt.value === targetTajuk);
-        if (!tajukExists) {
-          let opt = document.createElement('option');
-          opt.value = targetTajuk;
-          opt.textContent = targetTajuk;
-          tajukSelect.appendChild(opt);
-        }
-        tajukSelect.value = targetTajuk;
+    if (tajukSelect && targetTajuk) {
+      let tajukExists = Array.from(tajukSelect.options).some(opt => opt.value === targetTajuk);
+      if (!tajukExists) {
+        let opt = document.createElement('option');
+        opt.value = targetTajuk;
+        opt.textContent = targetTajuk;
+        tajukSelect.appendChild(opt);
       }
+      tajukSelect.value = targetTajuk;
     }
   });
 
-  // 5. Isi Kurikulum SP, OP & KK
   document.getElementById('rphSP').value = item.standardPembelajaran || item.sp || '';
   document.getElementById('rphOP').value = item.objektifPembelajaran || item.op || '';
   document.getElementById('rphKK').value = item.kriteriaKejayaan || item.kk || '';
 
-  // 6. Isi Aktiviti PdPC
   document.getElementById('rphActStart').value = item.aktivitiPemula || item.actStart || '';
   document.getElementById('rphActMain').value = item.aktivitiUtama || item.actMain || '';
   document.getElementById('rphActEnd').value = item.aktivitiPenutup || item.actEnd || '';
 
-  // 7. Tandakan Checkbox
   setCheckedValuesByName('chkBbm', item.bbm);
   setCheckedValuesByName('chkEmk', item.emk);
   setCheckedValuesByName('chkKbat', item.kbat);
   setCheckedValuesByName('chkPbd', item.pbd);
 
-  // 8. Isi Kehadiran & Refleksi
   document.getElementById('rphKehadiranDisplay').value = item.kehadiranMurid || '0 / 0 orang murid';
   document.getElementById('rphCapaiCount').value = item.refleksiBilCapai || 0;
   document.getElementById('rphReflectNote').value = item.catatanRefleksi || '';
@@ -676,7 +734,6 @@ function editRphRecord(idRph) {
     }
   }
 
-  // Semak kawalan masa PdPC & Kemaskini Kenyataan Refleksi
   checkPdpcTimeAndFreeze(item.masaTamat);
   calculateRefleksi();
 
