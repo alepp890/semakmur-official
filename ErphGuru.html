@@ -68,6 +68,10 @@
         margin: 0 !important;
         width: 100% !important;
       }
+      .print-wrapper {
+        display: block !important;
+        width: 100% !important;
+      }
     }
     .print-only {
       display: none;
@@ -110,7 +114,7 @@
       </div>
 
       <div class="flex items-center space-x-4">
-        <!-- TOGGLE MOD USER (PERANAN ADMIN / PENTADBIR) -->
+        <!-- TOGGLE MOD USER -->
         <div id="roleToggleContainer" class="bg-black/20 p-1 rounded-xl flex items-center border border-white/10 text-xs" style="display: none;">
           <span class="px-2 text-teal-100 font-medium hidden sm:inline">Mod User:</span>
           <button id="roleBtnGuru" onclick="switchUserRole('guru')" class="px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm">
@@ -138,7 +142,7 @@
       </div>
     </div>
 
-    <!-- TAB NAVIGATION BAR & CARIAN GLOBAL -->
+    <!-- TAB NAVIGATION BAR -->
     <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between space-x-2 overflow-x-auto text-sm font-medium pt-2">
       <div class="flex space-x-1 sm:space-x-2 shrink-0">
         <button onclick="setActiveTab('tabDashboard')" id="navTabDashboard" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f4f7f6] text-brand-700 font-bold">
@@ -151,7 +155,6 @@
           <span>Pembina e-RPH</span>
         </button>
 
-        <!-- TAB SEMAKAN PENTADBIR (HANYA MUNCUL BAGI PENTADBIR) -->
         <button onclick="setActiveTab('tabApproval')" id="navTabApproval" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10 relative" style="display: none;">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           <span>Semakan Pentadbir</span>
@@ -181,7 +184,7 @@
   <!-- MAIN CONTAINER -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- VIEW 1: DASHBOARD UTAMA (GURU & PENTADBIR BERSAMA) -->
+    <!-- VIEW 1: DASHBOARD UTAMA -->
     <section id="tabDashboard" class="tab-content space-y-6">
 
       <div id="statusAlertBanner" class="bg-gradient-to-r from-teal-500 to-cyan-600 text-white p-4 rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
@@ -201,7 +204,7 @@
         </div>
       </div>
 
-      <!-- KAD KAWALAN PENTADBIR (TAMBAHAN PADA ATAS DASHBOARD UNTUK PENTADBIR) -->
+      <!-- KAD KAWALAN PENTADBIR -->
       <div id="pentadbirDashboardView" class="space-y-6 hidden">
         <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-gradient-to-r from-slate-50 via-white to-amber-50/30">
           <div class="flex items-center space-x-4">
@@ -255,7 +258,7 @@
         </div>
       </div>
 
-      <!-- DASHBOARD GURU / KELAS INDIVIDU -->
+      <!-- DASHBOARD GURU -->
       <div id="guruDashboardView" class="space-y-6">
         
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -275,7 +278,6 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           
-          <!-- LAJUR KIRI: STATISTIK PERIBADI & JADUAL WAKTU -->
           <div class="space-y-6 lg:col-span-1">
             <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
               <div class="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -383,8 +385,6 @@
           </div>
 
           <div class="flex flex-col items-start lg:items-end gap-2 text-xs w-full lg:w-auto">
-            
-            <!-- DROPDOWN MINGGU, HARI/TARIKH & SLOT JADUAL -->
             <div class="flex flex-wrap items-center gap-2">
               <div class="flex items-center space-x-1">
                 <label class="font-bold text-slate-700">Minggu:</label>
@@ -407,7 +407,6 @@
               </div>
             </div>
 
-            <!-- SUIS MOD CUTI -->
             <div class="flex items-center space-x-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg w-full sm:w-auto justify-between sm:justify-start">
               <label for="chkModCuti" class="font-bold text-amber-900 cursor-pointer flex items-center space-x-2">
                 <input type="checkbox" id="chkModCuti" onchange="toggleModCutiView()" class="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500">
@@ -683,7 +682,6 @@
 
           </div>
 
-          <!-- PERMINTAAN 4: GAYA BUTANG DRAF BAHARU TERAS & JELAS -->
           <div class="flex items-center justify-between pt-4 border-t border-slate-100">
             <span class="text-xs text-slate-400" id="rphTimestampDisplay">Status: Draf Baru</span>
             <div class="flex items-center space-x-3">
@@ -765,7 +763,7 @@
       </div>
     </section>
 
-    <!-- VIEW 4: CETAK & EKSPORT DOKUMEN RASMI -->
+    <!-- VIEW 4: CETAK & EKSPORT DOKUMEN RASMI (SUSUN ATUR 35% vs 65%) -->
     <section id="tabPrint" class="tab-content space-y-6 hidden">
       
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row justify-between items-center gap-4 no-print">
@@ -780,108 +778,132 @@
         </div>
 
         <div class="flex items-center space-x-3 w-full sm:w-auto justify-end">
-          <button onclick="window.print()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2">
+          <button onclick="window.print()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-1.5">
+            <span>📥 Muat Turun PDF (Ke PC)</span>
+          </button>
+          <button onclick="window.print()" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            <span>Cetak / Simpan PDF</span>
+            <span>🖨️ Cetak / Simpan PDF</span>
           </button>
         </div>
       </div>
 
-      <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-300 max-w-4xl mx-auto space-y-6 print-card text-black font-sans">
+      <!-- BEKAS GRID PEMBAHAGIAN TETINGKAP 35% vs 65% -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        <div class="border-b-2 border-black pb-4 text-center relative">
-          <div class="flex items-center justify-center space-x-4">
-            <div class="w-14 h-14 bg-slate-200 rounded-full flex items-center justify-center font-bold text-xs border border-slate-400">
-              KPM
-            </div>
-            <div>
-              <h1 class="text-base font-bold uppercase tracking-wide">Kementerian Pendidikan Malaysia</h1>
-              <h2 class="text-sm font-bold text-slate-800">SEKOLAH KEBANGSAAN SEMAKMUR</h2>
-              <p class="text-[11px] text-slate-600">REKOD PENGAJARAN DAN PEMBELAJARAN HARIAN (e-RPH)</p>
-            </div>
+        <!-- TETINGKAP KIRI (35% WIDTH) - TEXT-ONLY FOLDER EXPLORER -->
+        <div class="lg:col-span-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3 no-print">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider flex items-center gap-1.5">
+              <span>📁</span> Penjelajah Rekod RPH
+            </h3>
+            <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded">Folder Tree</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Klik pada mana-mana slot RPH di bawah untuk melihat pra-tonton dokumen cetakan di sebelah kanan.</p>
+          
+          <div id="printFolderTreeContainer" class="p-3 bg-slate-50 rounded-xl border border-slate-200 max-h-[700px] overflow-y-auto space-y-2 text-xs">
+            <div class="p-4 text-xs text-slate-400 italic text-center">Sedang memuatkan senarai rekod RPH...</div>
           </div>
         </div>
 
-        <div class="space-y-4 text-xs">
-          
-          <table class="w-full border-collapse border border-slate-400">
-            <tbody>
-              <tr class="bg-slate-100">
-                <td class="border border-slate-400 p-2 font-bold w-1/4">Nama Guru</td>
-                <td class="border border-slate-400 p-2 w-1/4" id="printGuruName">Guru Akademik</td>
-                <td class="border border-slate-400 p-2 font-bold w-1/4">Tarikh / Hari</td>
-                <td class="border border-slate-400 p-2 w-1/4" id="printHariMasa">Isnin (08:10 - 08:40)</td>
-              </tr>
-              <tr>
-                <td class="border border-slate-400 p-2 font-bold">Mata Pelajaran</td>
-                <td class="border border-slate-400 p-2 font-semibold text-brand-800" id="printSubjek">Bahasa Melayu</td>
-                <td class="border border-slate-400 p-2 font-bold">Minggu / Masa PdPC</td>
-                <td class="border border-slate-400 p-2">Minggu <span id="printMinggu">1</span> (<span id="printTarikh">--/--/----</span>)</td>
-              </tr>
-              <tr class="bg-slate-100">
-                <td class="border border-slate-400 p-2 font-bold">Kelas / Bil. Murid</td>
-                <td class="border border-slate-400 p-2" id="printKelas">1 Iris</td>
-                <td class="border border-slate-400 p-2 font-bold">Kod DSKP / Modul</td>
-                <td class="border border-slate-400 p-2">DSKP KPM Terkini</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="border border-slate-400 p-3 space-y-2">
-            <p><span class="font-bold">Tema / Unit:</span> <span id="printTema">Kebersihan Dan Kesihatan</span></p>
-            <p><span class="font-bold">Tajuk Utama:</span> <span id="printTajuk">Kebersihan Diri Tanggungjawab Bersama</span></p>
-            <p><span class="font-bold">Standard Pembelajaran (SP):</span> <span id="printSP">1.1.1 Membaca dan memahami frasa serta ayat mudah dengan sebutan yang betul.</span></p>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div class="border border-slate-400 p-3">
-              <span class="font-bold underline block mb-1">Objektif Pembelajaran (OP):</span>
-              <p>Pada akhir pembelajaran murid dapat:</p>
-              <p class="pt-1 whitespace-pre-line" id="printOP">Pada akhir PdPC, murid dapat membaca sekurang-kurangnya 3 frasa tentang kebersihan diri dengan betul.</p>
-            </div>
-            <div class="border border-slate-400 p-3">
-              <span class="font-bold underline block mb-1">Kriteria Kejayaan (KK):</span>
-              <p>Murid dianggap berjaya sekiranya:</p>
-              <p class="pt-1 whitespace-pre-line" id="printKK">Murid dianggap berjaya sekiranya dapat menyebut 3 frasa dan memadankan gambar dengan tepat.</p>
-            </div>
-          </div>
-
-          <div class="border border-slate-400 p-3 space-y-2">
-            <span class="font-bold underline block">Ringkasan Aktiviti PdPC:</span>
-            <p><strong>Permulaan (Set Induksi):</strong> <span id="printActStart">Murid menonton tayangan video lagu kebersihan diri dan bersoal jawab dengan guru.</span></p>
-            <p><strong>Utama (P&P):</strong> <span id="printActMain">Murid membaca frasa dalam kumpulan, melakukan aktiviti suai padan kad frasa, dan melengkapkan lembaran kerja terbeza.</span></p>
-            <p><strong>Penutup (Rumusan):</strong> <span id="printActEnd">Guru membuat rumusan dan memberikan pujian atas penglibatan murid.</span></p>
-          </div>
-
-          <div class="border border-slate-400 p-3 bg-slate-50">
-            <span class="font-bold underline block mb-1">Refleksi & Impak Pembelajaran:</span>
-            <div id="printReflectCount" class="whitespace-pre-line font-medium text-slate-800">
-              32 / 35 orang murid dapat mencapai objektif pembelajaran yang ditetapkan.
-              0 / 35 orang murid dapat mencapai objektif pembelajaran dengan bimbingan.
-              3 / 35 orang murid tidak berjaya mencapai objektif pembelajaran.
-            </div>
-            <p class="mt-2"><strong>Catatan Impak:</strong> <span id="printReflectNote">Bimbingan pemulihan berterusan dijalankan.</span></p>
-          </div>
-
-          <div class="border-2 border-dashed border-teal-600 p-4 rounded-xl flex items-center justify-between bg-teal-50/30">
-            <div class="space-y-1">
-              <span class="text-[10px] uppercase tracking-wider font-bold text-slate-500">Pengesahan Digital Pentadbir</span>
-              <p class="font-bold text-sm text-brand-800">DISEMAK & DISAHKAN OLEH:</p>
-              <p class="font-semibold text-slate-800">Guru Besar / PK Kurikulum</p>
-              <p class="text-[11px] text-slate-500">Tarikh Cop Digital: <span class="font-mono">Pengesahan Automatik</span></p>
-              <p class="text-[10px] text-emerald-700 font-bold">Catatan: "Aktiviti PdPC dirancang dengan sangat baik & berpusat murid."</p>
-            </div>
-
-            <div class="text-center space-y-1 shrink-0">
-              <div class="w-20 h-20 bg-white border-2 border-slate-800 p-1 mx-auto flex items-center justify-center shadow-sm">
-                <svg class="w-full h-full text-slate-800" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 3h2v3h-2v-3zm0-5h4v2h-4v-2zm-4 0h2v4h-2v-4zm2 5h2v3h-2v-3z"/>
-                </svg>
+        <!-- TETINGKAP KANAN (65% WIDTH) - LIVE PRINT PREVIEW -->
+        <div class="lg:col-span-8 print-wrapper">
+          <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-300 print-card text-black font-sans space-y-6">
+            
+            <div class="border-b-2 border-black pb-4 text-center relative">
+              <div class="flex items-center justify-center space-x-4">
+                <div class="w-14 h-14 bg-slate-200 rounded-full flex items-center justify-center font-bold text-xs border border-slate-400">
+                  KPM
+                </div>
+                <div>
+                  <h1 class="text-base font-bold uppercase tracking-wide">Kementerian Pendidikan Malaysia</h1>
+                  <h2 class="text-sm font-bold text-slate-800">SEKOLAH KEBANGSAAN SEMAKMUR</h2>
+                  <p class="text-[11px] text-slate-600">REKOD PENGAJARAN DAN PEMBELAJARAN HARIAN (e-RPH)</p>
+                </div>
               </div>
-              <span class="text-[9px] font-mono block text-slate-500">JNJK-VERIFIED-2026</span>
             </div>
-          </div>
 
+            <div class="space-y-4 text-xs">
+              
+              <table class="w-full border-collapse border border-slate-400">
+                <tbody>
+                  <tr class="bg-slate-100">
+                    <td class="border border-slate-400 p-2 font-bold w-1/4">Nama Guru</td>
+                    <td class="border border-slate-400 p-2 w-1/4" id="printGuruName">Guru Akademik</td>
+                    <td class="border border-slate-400 p-2 font-bold w-1/4">Tarikh / Hari</td>
+                    <td class="border border-slate-400 p-2 w-1/4" id="printHariMasa">Isnin (08:10 - 08:40)</td>
+                  </tr>
+                  <tr>
+                    <td class="border border-slate-400 p-2 font-bold">Mata Pelajaran</td>
+                    <td class="border border-slate-400 p-2 font-semibold text-brand-800" id="printSubjek">Bahasa Melayu</td>
+                    <td class="border border-slate-400 p-2 font-bold">Minggu / Masa PdPC</td>
+                    <td class="border border-slate-400 p-2">Minggu <span id="printMinggu">1</span> (<span id="printTarikh">--/--/----</span>)</td>
+                  </tr>
+                  <tr class="bg-slate-100">
+                    <td class="border border-slate-400 p-2 font-bold">Kelas / Bil. Murid</td>
+                    <td class="border border-slate-400 p-2" id="printKelas">1 Iris</td>
+                    <td class="border border-slate-400 p-2 font-bold">Kod DSKP / Modul</td>
+                    <td class="border border-slate-400 p-2">DSKP KPM Terkini</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div class="border border-slate-400 p-3 space-y-2">
+                <p><span class="font-bold">Tema / Unit:</span> <span id="printTema">Kebersihan Dan Kesihatan</span></p>
+                <p><span class="font-bold">Tajuk Utama:</span> <span id="printTajuk">Kebersihan Diri Tanggungjawab Bersama</span></p>
+                <p><span class="font-bold">Standard Pembelajaran (SP):</span> <span id="printSP">1.1.1 Membaca dan memahami frasa serta ayat mudah dengan sebutan yang betul.</span></p>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="border border-slate-400 p-3">
+                  <span class="font-bold underline block mb-1">Objektif Pembelajaran (OP):</span>
+                  <p>Pada akhir pembelajaran murid dapat:</p>
+                  <p class="pt-1 whitespace-pre-line" id="printOP">Pada akhir PdPC, murid dapat membaca sekurang-kurangnya 3 frasa tentang kebersihan diri dengan betul.</p>
+                </div>
+                <div class="border border-slate-400 p-3">
+                  <span class="font-bold underline block mb-1">Kriteria Kejayaan (KK):</span>
+                  <p>Murid dianggap berjaya sekiranya:</p>
+                  <p class="pt-1 whitespace-pre-line" id="printKK">Murid dianggap berjaya sekiranya dapat menyebut 3 frasa dan memadankan gambar dengan tepat.</p>
+                </div>
+              </div>
+
+              <div class="border border-slate-400 p-3 space-y-2">
+                <span class="font-bold underline block">Ringkasan Aktiviti PdPC:</span>
+                <p><strong>Permulaan (Set Induksi):</strong> <span id="printActStart">Murid menonton tayangan video lagu kebersihan diri dan bersoal jawab dengan guru.</span></p>
+                <p><strong>Utama (P&P):</strong> <span id="printActMain">Murid membaca frasa dalam kumpulan, melakukan aktiviti suai padan kad frasa, dan melengkapkan lembaran kerja terbeza.</span></p>
+                <p><strong>Penutup (Rumusan):</strong> <span id="printActEnd">Guru membuat rumusan dan memberikan pujian atas penglibatan murid.</span></p>
+              </div>
+
+              <div class="border border-slate-400 p-3 bg-slate-50">
+                <span class="font-bold underline block mb-1">Refleksi & Impak Pembelajaran:</span>
+                <div id="printReflectCount" class="whitespace-pre-line font-medium text-slate-800">
+                  32 / 35 orang murid dapat mencapai objektif pembelajaran yang ditetapkan.
+                </div>
+                <p class="mt-2"><strong>Catatan Impak:</strong> <span id="printReflectNote">Bimbingan pemulihan berterusan dijalankan.</span></p>
+              </div>
+
+              <div class="border-2 border-dashed border-teal-600 p-4 rounded-xl flex items-center justify-between bg-teal-50/30">
+                <div class="space-y-1">
+                  <span class="text-[10px] uppercase tracking-wider font-bold text-slate-500">Pengesahan Digital Pentadbir</span>
+                  <p class="font-bold text-sm text-brand-800">DISEMAK & DISAHKAN OLEH:</p>
+                  <p class="font-semibold text-slate-800">Guru Besar / PK Kurikulum</p>
+                  <p class="text-[11px] text-slate-500">Tarikh Cop Digital: <span class="font-mono">Pengesahan Automatik</span></p>
+                  <p class="text-[10px] text-emerald-700 font-bold">Catatan: "Aktiviti PdPC dirancang dengan sangat baik & berpusat murid."</p>
+                </div>
+
+                <div class="text-center space-y-1 shrink-0">
+                  <div class="w-20 h-20 bg-white border-2 border-slate-800 p-1 mx-auto flex items-center justify-center shadow-sm">
+                    <svg class="w-full h-full text-slate-800" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm10-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm14 3h2v3h-2v-3zm0-5h4v2h-4v-2zm-4 0h2v4h-2v-4zm2 5h2v3h-2v-3z"/>
+                    </svg>
+                  </div>
+                  <span class="text-[9px] font-mono block text-slate-500">JNJK-VERIFIED-2026</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
         </div>
 
       </div>
@@ -899,7 +921,6 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-          
           <div class="p-4 rounded-xl bg-teal-50 border border-teal-200 text-center space-y-2">
             <div class="w-8 h-8 rounded-full bg-brand-600 text-white font-bold flex items-center justify-center mx-auto text-xs">1</div>
             <h4 class="font-bold text-slate-800 text-xs">Cara Buat RPH</h4>
@@ -929,7 +950,6 @@
             <h4 class="font-bold text-slate-800 text-xs">Cara Cetak & Audit</h4>
             <p class="text-[11px] text-slate-500">Eksport PDF rasmi bersama Kod QR Verifikasi JNJK.</p>
           </div>
-
         </div>
 
         <div class="bg-slate-50 rounded-xl p-5 border border-slate-200 space-y-3 text-xs">
@@ -954,7 +974,7 @@
 
   </main>
 
-  <!-- MODAL 1: SENARAI GURU TAK LENGKAP & HANTAR PERINGATAN -->
+  <!-- MODAL 1: SENARAI GURU TAK LENGKAP -->
   <div id="incompleteTeachersModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
     <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
       
@@ -1057,7 +1077,7 @@
     </div>
   </div>
 
-  <!-- 2. MEMUATKAN SKRIP JAVASCRIPT MODULAR TERPISAH -->
+  <!-- MEMUATKAN SKRIP JAVASCRIPT MODULAR TERPISAH -->
   <script src="config.js"></script>
   <script src="js/app-core.js"></script>
   <script src="js/builder.js"></script>
