@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL: js/app-core.js
+ * FAIL: js/app-core.js (Logik Teras, Sesi Pengguna & Kawalan Akses Jawatan)
  * ==============================================================================
  */
 
@@ -80,7 +80,7 @@ function cleanTimeFormatFrontend(str) {
 }
 
 /**
- * INISIALISASI SESI PENGGUNA
+ * INISIALISASI SESI PENGGUNA & KAWALAN HAK AKSES JAWATAN PENTADBIR
  */
 function initUserSession() {
   const sessionData = localStorage.getItem('currentUser') || 
@@ -103,7 +103,7 @@ function initUserSession() {
 
       const name = state.currentUser.nama || state.currentUser.Nama_Guru || state.currentUser.name || state.currentUser.Nama || 'Guru Akademik';
       const email = state.currentUser.email || state.currentUser.Email || state.currentUser.emel || state.currentUser.Emel || 'guru@moe-dl.edu.my';
-      const jawatan = state.currentUser.jawatan || state.currentUser.Jawatan || 'Guru Akademik';
+      const jawatan = (state.currentUser.jawatan || state.currentUser.Jawatan || 'Guru Akademik').toString().trim();
 
       const userNameEl = document.getElementById('userName');
       if (userNameEl) userNameEl.innerText = name;
@@ -115,17 +115,38 @@ function initUserSession() {
         document.getElementById('printGuruName').innerText = name;
       }
 
+      // KAWALAN HAK AKSES TAB SEMAKAN PENTADBIR (HANYA GURU BESAR, PK PENTADBIRAN, PK HEM, PK KO KURIKULUM)
+      const pentadbirJawatanList = [
+        'guru besar',
+        'pk pentadbiran',
+        'penolong kanan pentadbiran',
+        'pk 1',
+        'pk hem',
+        'penolong kanan hem',
+        'pk ko kurikulum',
+        'pk kokurikulum',
+        'penolong kanan kokurikulum'
+      ];
+      
+      const isPentadbirRole = pentadbirJawatanList.some(j => jawatan.toLowerCase().includes(j));
+
       const roleToggleContainer = document.getElementById('roleToggleContainer');
       if (roleToggleContainer) {
-        if (sistemAkses === 'admin') {
+        if (sistemAkses === 'admin' || isPentadbirRole) {
           roleToggleContainer.style.display = 'flex';
         } else {
           roleToggleContainer.style.display = 'none';
         }
       }
 
-      const pentadbirJawatanList = ['Guru Besar', 'PK Pentadbiran', 'PK HEM', 'PK Ko Kurikulum', 'PK Kokurikulum'];
-      const isPentadbirRole = pentadbirJawatanList.some(j => j.toLowerCase() === jawatan.toString().trim().toLowerCase());
+      const navApproval = document.getElementById('navTabApproval');
+      if (navApproval) {
+        if (isPentadbirRole || sistemAkses === 'admin') {
+          navApproval.style.display = 'flex';
+        } else {
+          navApproval.style.display = 'none';
+        }
+      }
 
       if (isPentadbirRole) {
         switchUserRole('pentadbir');
