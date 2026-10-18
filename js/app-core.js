@@ -110,6 +110,34 @@ function cleanTimeFormatFrontend(str) {
 }
 
 /**
+ * PEMBANTU PENUKARAN TEKS MASA KE MINIT (UNTUK SUSUNAN KRONOLOGI TEPAT)
+ */
+function timeToMinutes(timeStr) {
+  if (!timeStr) return 0;
+  let clean = String(timeStr).trim().toLowerCase();
+  
+  let isPM = clean.includes('pm');
+  let isAM = clean.includes('am');
+  clean = clean.replace(/am|pm/g, '').trim();
+
+  let parts = clean.split(':');
+  if (parts.length < 2) return 0;
+
+  let h = parseInt(parts[0], 10) || 0;
+  let m = parseInt(parts[1], 10) || 0;
+
+  if (isPM && h < 12) h += 12;
+  if (isAM && h === 12) h = 0;
+
+  // Sokongan waktu petang sekolah tanpa label PM (cth: 1:00 hingga 6:00)
+  if (!isAM && !isPM && h >= 1 && h <= 6) {
+    h += 12;
+  }
+
+  return (h * 60) + m;
+}
+
+/**
  * PEMBANTU NYAHTAFSIR TARIKH TAKWIM (SOKONGAN US MM/DD/YYYY & ISO)
  */
 function parseTakwimDateHelper(dateStr) {
@@ -378,32 +406,40 @@ function changeWeekGuru() {
 function filterGuruTableByDay() { loadGuruDashboardData(); }
 
 /**
- * LOGIK PEMBANTU: GABUNG SLOT BERTURUT-TURUT & TAPIS BM 1 WAKTU TERPISAH
+ * LOGIK PEMBANTU: SUSUN SECARA KRONOLOGI, GABUNG SLOT BERTURUT-TURUT & TAPIS BM 1 WAKTU TERPISAH
  */
 function processAndMergeJadual(dataList) {
   if (!Array.isArray(dataList) || dataList.length === 0) return [];
 
-  // 1. Pembersihan & Susun mengikut waktu mula
+  // 1. Pembersihan & Pemetaan Nilai Minit
   let slots = dataList.map(s => {
+    const mula = cleanTimeFormatFrontend(s.jam_mula || s.masaMula);
+    const tamat = cleanTimeFormatFrontend(s.jam_tamat || s.masaTamat);
     return {
       subjek: (s.subjek || 'Subjek').trim(),
       kelas: (s.nama_kelas || s.kelas || 'Tiada Kelas').trim(),
-      jam_mula: cleanTimeFormatFrontend(s.jam_mula || s.masaMula),
-      jam_tamat: cleanTimeFormatFrontend(s.jam_tamat || s.masaTamat),
+      jam_mula: mula,
+      jam_tamat: tamat,
+      mula_min: timeToMinutes(mula),
+      tamat_min: timeToMinutes(tamat),
       raw: s
     };
-  }).sort((a, b) => a.jam_mula.localeCompare(b.jam_mula));
+  });
 
-  // 2. Gabungkan slot berturut-turut (Subjek + Kelas sama & Masa Tamat A === Masa Mula B)
+  // 2. Susun secara KRONOLOGI mengikut minit masa mula (Awal -> Akhir)
+  slots.sort((a, b) => a.mula_min - b.mula_min);
+
+  // 3. Gabungkan slot berturut-turut (Subjek + Kelas sama & Masa Tamat A === Masa Mula B)
   let merged = [];
   for (let slot of slots) {
     if (merged.length > 0) {
       let prev = merged[merged.length - 1];
       if (prev.subjek.toLowerCase() === slot.subjek.toLowerCase() &&
           prev.kelas.toLowerCase() === slot.kelas.toLowerCase() &&
-          prev.jam_tamat === slot.jam_mula) {
+          (prev.jam_tamat === slot.jam_mula || prev.tamat_min === slot.mula_min)) {
         
         prev.jam_tamat = slot.jam_tamat;
+        prev.tamat_min = slot.tamat_min;
         prev.waktuCount = (prev.waktuCount || 1) + 1;
         continue;
       }
@@ -412,7 +448,7 @@ function processAndMergeJadual(dataList) {
     merged.push(slot);
   }
 
-  // 3. Tapis subjek BM: Jika ada BM 2 waktu bersama (waktuCount >= 2), abaikan BM 1 waktu terpisah
+  // 4. Tapis subjek BM: Jika ada BM 2 waktu bersama (waktuCount >= 2), abaikan BM 1 waktu terpisah
   const isBM = (subj) => {
     let str = subj.toLowerCase();
     return str === 'bm' || str === 'bahasa melayu';
@@ -447,7 +483,7 @@ function fetchJadualHariIni(emailGuru) {
     .then(res => {
       const rawDataList = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
       
-      // Proses penggabungan slot & penapisan BM 1 waktu
+      // Proses susunan kronologi, penggabungan slot & penapisan BM 1 waktu
       const processedList = processAndMergeJadual(rawDataList);
       state.todayJadual = processedList;
 
