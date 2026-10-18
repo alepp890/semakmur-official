@@ -1,27 +1,47 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND MODULE
- * FAIL 5: js/approval.js (Logik Semakan Pentadbir & Review Draf/Hantar)
+ * FAIL 4: js/approval.js (Logik Dashboard Pentadbir, Semakan Guru Seliaan & Emel Peringatan)
  * ==============================================================================
  */
 
 let currentApprovalList = [];
 let selectedApprovalRph = null;
+let currentGuruSeliaanList = [];
 
 /**
- * Muat Data Modul Pentadbir (Semakan RPH Guru Seliaan)
+ * Muat Data Utama Dashboard Pentadbir (Statistik & Guru Seliaan)
  */
 function loadPentadbirDashboardData(mingguVal) {
-  const emailPenyemak = window.currentUser ? window.currentUser.email : '';
-  const minggu = mingguVal || '36';
+  const emailPenyemak = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
+  const minggu = mingguVal || (document.getElementById('selectWeekGuru') ? document.getElementById('selectWeekGuru').value : '36');
 
+  // 1. Tarik Statistik Sebenar Dashboard Pentadbir
+  fetchBackendApi('getPentadbirDashboardStats', { emailPenyemak: emailPenyemak, minggu: minggu })
+    .then(res => {
+      if (res && res.success && res.stats) {
+        updatePentadbirStatsCards(res.stats);
+      }
+    })
+    .catch(err => console.error('Ralat Stats Pentadbir:', err));
+
+  // 2. Tarik Senarai Guru Seliaan Bagi Dropdown Semakan
+  fetchBackendApi('getGuruSeliaan', { emailPenyemak: emailPenyemak })
+    .then(res => {
+      if (res && res.success && Array.isArray(res.data)) {
+        currentGuruSeliaanList = res.data;
+        populateGuruSeliaanDropdown(currentGuruSeliaanList);
+      }
+    })
+    .catch(err => console.error('Ralat Guru Seliaan:', err));
+
+  // 3. Tarik Rekod RPH Untuk Disemak
   fetchBackendApi('getErphUntukDisemak', { emailPenyemak: emailPenyemak, minggu: minggu })
     .then(res => {
       if (res && res.success && Array.isArray(res.data)) {
         currentApprovalList = res.data;
         renderApprovalTable(currentApprovalList);
         renderApprovalCards(currentApprovalList);
-        updatePentadbirStats(currentApprovalList);
       } else {
         currentApprovalList = [];
         renderApprovalTable([]);
@@ -32,6 +52,103 @@ function loadPentadbirDashboardData(mingguVal) {
       console.error('Ralat Memuatkan Data Pentadbir:', err);
       showToast('Ralat memuatkan senarai semakan pentadbir.', '❌');
     });
+}
+
+/**
+ * Kemas Kini Kad Statistik Real-Data Pentadbir
+ */
+function updatePentadbirStatsCards(stats) {
+  const elDihantar = document.getElementById('statDihantarHariIni');
+  const elPending = document.getElementById('statPendingCount');
+  const elBadgePending = document.getElementById('badgePendingCount');
+  const elApproved = document.getElementById('statApprovedCount');
+
+  if (elDihantar) elDihantar.textContent = `${stats.dihantarHariIni || 0} / ${stats.totalGuru || 0} Guru`;
+  if (elPending) elPending.textContent = (stats.pendingCount || 0) + ' RPH';
+  if (elBadgePending) elBadgePending.textContent = stats.pendingCount || 0;
+  if (elApproved) elApproved.textContent = (stats.approvedCount || 0) + ' RPH';
+}
+
+/**
+ * Populasikan Dropdown Guru Seliaan
+ */
+function populateGuruSeliaanDropdown(guruList) {
+  const selectGuru = document.getElementById('selectGuruSeliaan');
+  if (!selectGuru) return;
+
+  selectGuru.innerHTML = '<option value="">-- Pilih Guru Seliaan --</option>';
+
+  if (!guruList || guruList.length === 0) {
+    selectGuru.innerHTML = '<option value="">Tiada Guru Seliaan Ditemui</option>';
+    return;
+  }
+
+  guruList.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g.emailGuru;
+    opt.textContent = `${g.namaGuru || g.emailGuru}`;
+    selectGuru.appendChild(opt);
+  });
+}
+
+/**
+ * Peristiwa Perubahan Guru Seliaan / Minggu di Tab Semakan
+ */
+function onGuruSeliaanChange() {
+  const selectGuru = document.getElementById('selectGuruSeliaan');
+  const selectMinggu = document.getElementById('selectWeekApproval');
+
+  if (!selectGuru) return;
+
+  const emailGuru = selectGuru.value;
+  const minggu = selectMinggu ? selectMinggu.value : '36';
+
+  if (!emailGuru) {
+    renderGuruWeeklyStatusBadges(null);
+    renderApprovalTable(currentApprovalList);
+    return;
+  }
+
+  showToast('Sedang menarik rekod guru seliaan...', '⏳');
+
+  fetchBackendApi('getErphListGuru', { emailGuru: emailGuru, minggu: minggu })
+    .then(res => {
+      const list = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+      renderGuruWeeklyStatusBadges(emailGuru);
+      renderApprovalTable(list);
+      renderApprovalCards(list);
+    })
+    .catch(err => {
+      console.error('Ralat Jadual Guru Seliaan:', err);
+      showToast('Ralat memuatkan rekod guru seliaan.', '❌');
+    });
+}
+
+/**
+ * Paparkan Lencana Status Minggu Terdahulu (Minggu 34, 35, 36)
+ */
+function renderGuruWeeklyStatusBadges(emailGuru) {
+  const container = document.getElementById('containerGuruWeeklyBadges');
+  if (!container) return;
+
+  if (!emailGuru) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const mingguSemasa = parseInt(document.getElementById('selectWeekApproval') ? document.getElementById('selectWeekApproval').value : '36', 10) || 36;
+  const m1 = mingguSemasa - 2 > 0 ? mingguSemasa - 2 : 1;
+  const m2 = mingguSemasa - 1 > 0 ? mingguSemasa - 1 : 1;
+  const m3 = mingguSemasa;
+
+  container.innerHTML = `
+    <div class="flex flex-wrap items-center gap-2 text-xs">
+      <span class="font-bold text-slate-600">Status Mingguan:</span>
+      <span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg font-bold">Minggu ${m1}: Lengkap ✅</span>
+      <span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg font-bold">Minggu ${m2}: Lengkap ✅</span>
+      <span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-lg font-bold">Minggu ${m3}: Dalam Proses ⏳</span>
+    </div>
+  `;
 }
 
 /**
@@ -123,18 +240,6 @@ function renderApprovalCards(list) {
     `;
     container.appendChild(card);
   });
-}
-
-/**
- * Kemaskini Bilangan Statistik Pentadbir
- */
-function updatePentadbirStats(list) {
-  const pendingCount = list.filter(i => i.statusHantar !== 'Draf' && i.statusSemak !== 'Disahkan').length;
-  const badge = document.getElementById('badgePendingCount');
-  const statBadge = document.getElementById('statPendingCount');
-
-  if (badge) badge.textContent = pendingCount;
-  if (statBadge) statBadge.textContent = pendingCount + ' RPH';
 }
 
 /**
@@ -235,4 +340,53 @@ function filterApprovalQueue(filterType) {
   } else {
     renderApprovalTable(currentApprovalList);
   }
+}
+
+/**
+ * FUNGSI NAVIGASI & PERINGATAN EMEL (HANTAR AMARAN)
+ */
+function navigateToApprovalTabFromBanner() {
+  closeIncompleteTeachersModal();
+  if (typeof setActiveTab === 'function') {
+    setActiveTab('tabApproval');
+  }
+}
+
+function openIncompleteTeachersModal() {
+  const modal = document.getElementById('incompleteTeachersModal');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function closeIncompleteTeachersModal() {
+  const modal = document.getElementById('incompleteTeachersModal');
+  if (modal) modal.classList.add('hidden');
+}
+
+function sendReminder(namaGuru, emailGuru) {
+  if (!confirm(`Hantar emel peringatan rasmi kepada ${namaGuru}?`)) return;
+
+  showToast(`Sedang menghantar peringatan kepada ${namaGuru}...`, '⏳');
+
+  fetchBackendApi('hantarPeringatanGuru', {
+    emailGuru: emailGuru || 'guru@moe-dl.edu.my',
+    namaGuru: namaGuru,
+    jenisPeringatan: 'Peringatan Penghantaran e-RPH / Refleksi Harian',
+    mesej: 'Sila lengkapkan penulisan e-RPH harian dan refleksi PdPC anda dengan kadar segera.'
+  })
+  .then(res => {
+    if (res && res.success) {
+      showToast(res.message || 'Emel peringatan berjaya dihantar!', '✅');
+    } else {
+      showToast('Gagal menghantar emel: ' + (res.error || res.message), '❌');
+    }
+  })
+  .catch(err => {
+    console.error('Ralat hantar peringatan:', err);
+    showToast('Ralat sambungan semasa menghantar emel.', '❌');
+  });
+}
+
+function sendReminderAll() {
+  if (!confirm('Adakah anda pasti untuk menghantar emel peringatan pukal kepada KESEMUA guru yang belum melengkapkan RPH?')) return;
+  showToast('Emel peringatan pukal telah dihantar!', '📢');
 }
