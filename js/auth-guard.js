@@ -7,7 +7,7 @@
 (function checkSessionGuard() {
   console.log("🔒 Auth Guard: Memulakan semakan sesi & token pelancaran e-RPH...");
 
-  // 1. Senarai kekunci penyimpanan sesi pengguna
+  // 1. Cari data sesi pengguna dari storan
   const possibleKeys = [
     'currentUser', 'CURRENT_USER', 'SAVED_MOE_USER', 
     'user', 'USER', 'userData', 'userProfile', 'loggedUser'
@@ -24,7 +24,6 @@
     }
   }
 
-  // Jika tiada sesi langsung dalam storage
   if (!rawData) {
     console.warn("❌ Auth Guard: Tiada sesi pengguna ditemui.");
     alert('Akses Ditolak! Sila log masuk ke Portal terlebih dahulu.');
@@ -52,46 +51,49 @@
     return;
   }
 
-  // 2. Semakan Token Pelancaran Unik dari URL
+  // 2. Semak parameter URL
   const urlParams = new URLSearchParams(window.location.search);
   const launchToken = urlParams.get('launchToken');
   const usrBase64   = urlParams.get('usr');
 
-  // Semak penanda sesi tab aktif e-RPH
-  const isErphTabActive = sessionStorage.getItem('ERPH_TAB_SESSION_ACTIVE') === 'true';
+  const isErphTabActive = sessionStorage.getItem('ERPH_TAB_SESSION_ACTIVE') === 'true' || localStorage.getItem('ERPH_TAB_SESSION_ACTIVE') === 'true';
 
-  // KES A: Pelancaran baru menggunakan URL ber-token
+  // KES A: Pelancaran baharu menggunakan URL ber-token
   if (launchToken && usrBase64) {
     let urlEmail = '';
     try {
-      urlEmail = atob(usrBase64).trim().toLowerCase();
+      // Nyahtafsir URL-Safe Base64 secara selamat
+      let base64 = usrBase64.replace(/-/g, '+').replace(/_/g, '/');
+      while (base64.length % 4) { base64 += '='; }
+      urlEmail = decodeURIComponent(atob(base64)).trim().toLowerCase();
     } catch(e) {
-      console.error("❌ Auth Guard: Gagal dekod emel dari URL.");
+      console.error("❌ Auth Guard: Gagal dekod emel dari URL:", e);
     }
 
-    // A1. Pengesahan Emel Dua Hala (URL vs Storage)
+    // A1. Pengesahan Emel Dua Hala
     if (!urlEmail || urlEmail !== userEmail) {
-      console.warn("❌ Auth Guard: Emel URL tidak sepadan dengan emel pengguna aktif.");
-      alert('Akses Ditolak! Token pelancaran ini tidak terhad atau tidak sepadan dengan akaun anda.');
+      console.warn(`❌ Auth Guard: Emel URL [${urlEmail}] tidak sepadan dengan emel pengguna [${userEmail}].`);
+      alert('Akses Ditolak! Token pelancaran ini tidak sepadan dengan akaun anda.');
       window.location.replace('LoginSession.html');
       return;
     }
 
-    // A2. Pengesahan Masa & Ketepatan Token
-    const savedTokenDataRaw = sessionStorage.getItem('ERPH_LAUNCH_TOKEN_DATA') || localStorage.getItem('ERPH_LAUNCH_TOKEN_DATA');
+    // A2. Pengesahan Masa & Ketepatan Token (30 Saat)
     let isTokenValid = false;
+    const savedTokenDataRaw = localStorage.getItem('ERPH_LAUNCH_TOKEN_DATA') || sessionStorage.getItem('ERPH_LAUNCH_TOKEN_DATA');
 
     if (savedTokenDataRaw) {
       try {
         const savedTokenData = JSON.parse(savedTokenDataRaw);
         const now = Date.now();
-        // Token mesti padan dan berusia tidak lebih daripada 30 saat (30000ms)
         if (savedTokenData.token === launchToken && (now - savedTokenData.timestamp) <= 30000) {
           isTokenValid = true;
         }
       } catch(e) {}
-    } else {
-      // Fallback: Nyahtafsir timestamp yang tertanam dalam token (format: ERPH_TOK_{timestamp}_{rand})
+    }
+
+    // Fallback semakan timestamp terpasang pada string token
+    if (!isTokenValid && launchToken.startsWith('ERPH_TOK_')) {
       const parts = launchToken.split('_');
       if (parts.length >= 3) {
         const tokenTime = parseInt(parts[2], 10);
@@ -102,18 +104,19 @@
     }
 
     if (!isTokenValid) {
-      console.warn("❌ Auth Guard: Launch token telah luput atau tidak sah.");
-      alert('Akses Ditolak: Token pelancaran telah luput (sah 30 saat sahaja) atau ditaip secara terus. Sila buka melalui Dashboard Utama.');
+      console.warn("❌ Auth Guard: Token pelancaran telah luput atau tidak sah.");
+      alert('Akses Ditolak: Token pelancaran telah luput (sah 30 saat) atau ditaip secara terus. Sila buka melalui Dashboard Utama.');
       window.location.replace('LoginSession.html');
       return;
     }
 
-    // A3. Token Sah! Setkan penanda tab aktif & padamkan token terguna (consumed)
+    // A3. Token Sah! Setkan penanda tab aktif & bersihkan token terguna
     sessionStorage.setItem('ERPH_TAB_SESSION_ACTIVE', 'true');
-    sessionStorage.removeItem('ERPH_LAUNCH_TOKEN_DATA');
+    localStorage.setItem('ERPH_TAB_SESSION_ACTIVE', 'true');
     localStorage.removeItem('ERPH_LAUNCH_TOKEN_DATA');
+    sessionStorage.removeItem('ERPH_LAUNCH_TOKEN_DATA');
 
-    // Bersihkan URL bar alamat (hapuskan query string ?launchToken=...&usr=...)
+    // Bersihkan URL bar alamat
     const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
     window.history.replaceState({ path: cleanUrl }, document.title, cleanUrl);
 
@@ -130,5 +133,14 @@
   // 3. Penyelarasan Global Objek Sesi
   window.currentUser = user;
   localStorage.setItem('currentUser', JSON.stringify(user));
+
+  // Fallback memastikan elemen body dibuka walaupun pemuatan DOM lambat
+  document.addEventListener('DOMContentLoaded', () => {
+    const mainBody = document.getElementById('mainBody');
+    if (mainBody && mainBody.style.display === 'none') {
+      mainBody.style.display = 'flex';
+    }
+  });
+
   console.log(`✅ Auth Guard: Sesi tab e-RPH aktif bagi [${userName}].`);
 })();
