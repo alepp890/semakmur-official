@@ -51,7 +51,7 @@ function loadPentadbirDashboardData() {
 }
 
 /**
- * POPULASIKAN DROPDOWN MINGGU SEMAKAN PENTADBIR (DESENDING & AUTO-SELECT MINGGU SEMASA)
+ * POPULASIKAN DROPDOWN MINGGU SEMAKAN PENTADBIR (TANPA PAPARAN TARIKH)
  */
 function initApprovalWeekDropdown() {
   const selectWeek = document.getElementById('selectWeekApproval');
@@ -71,15 +71,15 @@ function initApprovalWeekDropdown() {
     sortedTakwim.forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.mingguKe;
-      let labelDate = (t.tarikhMula && t.tarikhTamat) ? ` (${t.tarikhMula} - ${t.tarikhTamat})` : '';
-      opt.textContent = `Minggu ${t.mingguKe}${labelDate}`;
+      // MEMBUANG TARIKH - Hanya paparkan Minggu X
+      opt.textContent = `Minggu ${t.mingguKe}`;
       selectWeek.appendChild(opt);
 
       let dMula = parseTakwimDateHelperApproval(t.tarikhMula);
       let dTamat = parseTakwimDateHelperApproval(t.tarikhTamat);
       if (dMula && dTamat) {
         dMula.setHours(0, 0, 0, 0);
-        dTamat.setDate(dTamat.getDate() + 2); // Tambah penimbal 2 hari untuk Sabtu & Ahad
+        dTamat.setDate(dTamat.getDate() + 2);
         dTamat.setHours(23, 59, 59, 999);
         if (today >= dMula && today <= dTamat) {
           matchedCurrentWeek = String(t.mingguKe);
