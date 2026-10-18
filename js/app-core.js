@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL 1: js/app-core.js (Logik Teras, Sesi Pengguna, Takwim & Kawalan Akses Jawatan)
+ * FAIL 1: js/app-core.js (Logik Teras, Sesi Pengguna, Takwim, Kawalan Akses & Penjelajah Cetakan)
  * ==============================================================================
  */
 
@@ -93,18 +93,16 @@ function parseTakwimDateHelper(dateStr) {
     let p1 = parseInt(parts[1], 10);
     let p2 = parseInt(parts[2], 10);
 
-    // Format YYYY-MM-DD
     if (parts[0].length === 4) {
       return new Date(p0, p1 - 1, p2);
     }
-    // Format MM/DD/YYYY atau DD/MM/YYYY
     if (parts[2].length === 4) {
       if (p0 <= 12 && p1 > 12) {
-        return new Date(p2, p0 - 1, p1); // MM/DD/YYYY
+        return new Date(p2, p0 - 1, p1);
       } else if (p0 > 12 && p1 <= 12) {
-        return new Date(p2, p1 - 1, p0); // DD/MM/YYYY
+        return new Date(p2, p1 - 1, p0);
       } else {
-        return new Date(p2, p0 - 1, p1); // Lalai MM/DD/YYYY mengikut pangkalan Google Sheet
+        return new Date(p2, p0 - 1, p1);
       }
     }
   }
@@ -149,7 +147,6 @@ function initUserSession() {
         document.getElementById('printGuruName').innerText = name;
       }
 
-      // KAWALAN JAWATAN PENTADBIR (SENARAI HANYA DARI LAJUR JAWATAN)
       const pentadbirJawatanList = [
         'guru besar',
         'pk pentadbiran',
@@ -164,7 +161,6 @@ function initUserSession() {
       
       const isPentadbirRole = pentadbirJawatanList.some(j => jawatan.toLowerCase().includes(j));
 
-      // 1. SUIS MOD USER (TOGGLE CONTAINER) HANYA MUNCUL JIKA SISTEM_AKSES == 'ADMIN'
       const roleToggleContainer = document.getElementById('roleToggleContainer');
       if (roleToggleContainer) {
         if (sistemAkses === 'admin') {
@@ -174,7 +170,6 @@ function initUserSession() {
         }
       }
 
-      // 2. TAB SEMAKAN PENTADBIR HANYA MUNCUL UNTUK LAJUR JAWATAN PENTADBIR
       const navApproval = document.getElementById('navTabApproval');
       if (navApproval) {
         if (isPentadbirRole) {
@@ -184,7 +179,6 @@ function initUserSession() {
         }
       }
 
-      // TETAPKAN MOD AWALAN PENGGUNA
       if (isPentadbirRole) {
         switchUserRole('pentadbir');
       } else {
@@ -229,7 +223,7 @@ function loadTakwimAndInitDropdowns() {
 }
 
 /**
- * POPULASI DROPDOWN MINGGU SECARA MENURUN (TANPA PAAPARAN TARIKH)
+ * POPULASI DROPDOWN MINGGU SECARA MENURUN
  */
 function populateWeeksDropdowns() {
   const selectGuru = document.getElementById('selectWeekGuru');
@@ -242,13 +236,11 @@ function populateWeeksDropdowns() {
   let matchedCurrentWeek = null;
 
   if (state.takwimList && state.takwimList.length > 0) {
-    // Susun secara MENURUN
     let sortedTakwim = [...state.takwimList].sort((a, b) => (parseInt(b.mingguKe, 10) || 0) - (parseInt(a.mingguKe, 10) || 0));
 
     sortedTakwim.forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.mingguKe;
-      // MEMBUANG TARIKH - Hanya paparkan Minggu X
       opt.textContent = `Minggu ${t.mingguKe}`;
       selectGuru.appendChild(opt);
 
@@ -291,7 +283,6 @@ function populateWeeksDropdowns() {
     initApprovalWeekDropdown();
   }
 
-  // Kemas kini dropdown hari dengan tarikh
   updateDashboardDayDropdown();
   loadGuruDashboardData();
 }
@@ -429,11 +420,18 @@ function loadGuruDashboardData() {
         }
         renderGuruRphTable(list);
         updateGuruStats(res.data);
+
+        if (state.activeTab === 'tabPrint') {
+          initPrintFolderExplorer();
+        }
       } else {
         state.rphList = [];
         window.currentGuruRphList = [];
         renderGuruRphTable([]);
         updateGuruStats([]);
+        if (state.activeTab === 'tabPrint') {
+          initPrintFolderExplorer();
+        }
       }
     })
     .catch(err => {
@@ -443,7 +441,7 @@ function loadGuruDashboardData() {
 }
 
 /**
- * PAPARAN JADUAL DASHBOARD GURU DENGAN BUTANG EDIT/LANJUT ATAU KUNCI PENTADBIR
+ * PAPARAN JADUAL DASHBOARD GURU DENGAN BUTANG EDIT/LANJUT DAN BUTANG 🖨️ CETAK
  */
 function renderGuruRphTable(list) {
   const tbody = document.getElementById('guruRphTableBody');
@@ -482,9 +480,15 @@ function renderGuruRphTable(list) {
 
     let actionBtn = '';
     if (isApproved) {
-      actionBtn = `<span class="px-2.5 py-1 bg-slate-100 text-slate-500 rounded text-[11px] font-bold border border-slate-200 cursor-not-allowed" title="RPH telah disemak & disahkan oleh Pentadbir">🔒 Disemak & Dikunci</span>`;
+      actionBtn = `
+        <span class="px-2 py-1 bg-slate-100 text-slate-500 rounded text-[11px] font-bold border border-slate-200 cursor-not-allowed" title="RPH telah disemak & disahkan oleh Pentadbir">🔒 Dikunci</span>
+        <button onclick="cetakRphRecord('${item.idRph}')" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded text-[11px] font-bold transition-all shadow-sm ml-1">🖨️ Cetak</button>
+      `;
     } else {
-      actionBtn = `<button onclick="editRphRecord('${item.idRph}')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded text-[11px] font-bold transition-all shadow-sm">Edit/Lanjut</button>`;
+      actionBtn = `
+        <button onclick="editRphRecord('${item.idRph}')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded text-[11px] font-bold transition-all shadow-sm">Edit/Lanjut</button>
+        <button onclick="cetakRphRecord('${item.idRph}')" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded text-[11px] font-bold transition-all shadow-sm ml-1">🖨️ Cetak</button>
+      `;
     }
 
     tr.innerHTML = `
@@ -526,7 +530,6 @@ function switchUserRole(role) {
     if (btnGuru) btnGuru.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
     if (btnPentadbir) btnPentadbir.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
     if (pentadbirView) pentadbirView.classList.add('hidden');
-    // Jika peranan Admin menukar ke peranan Guru untuk tujuan ujian visual
     if (navApproval && state.currentUser) {
       const jawatan = (state.currentUser.jawatan || state.currentUser.Jawatan || '').toString().trim().toLowerCase();
       const isPentadbirRole = ['guru besar', 'pk pentadbiran', 'penolong kanan pentadbiran', 'pk 1', 'pk hem', 'penolong kanan hem', 'pk ko kurikulum', 'pk kokurikulum', 'penolong kanan kokurikulum'].some(j => jawatan.includes(j));
@@ -561,6 +564,184 @@ function setActiveTab(tabId) {
       }
     }
   });
+
+  if (tabId === 'tabPrint') {
+    initPrintFolderExplorer();
+  }
+}
+
+/**
+ * ==============================================================================
+ * MODUL PENJELAJAH FAIL CETAKAN 35% & SUNTIKAN DATA PREVIEW 65%
+ * ==============================================================================
+ */
+
+function cetakRphRecord(idRph) {
+  if (!idRph) return;
+
+  const list = window.currentGuruRphList || state.rphList || [];
+  const item = list.find(r => String(r.idRph) === String(idRph));
+
+  if (!item) {
+    showToast('Rekod RPH tidak dijumpai.', '⚠️');
+    return;
+  }
+
+  setActiveTab('tabPrint');
+  populatePrintPreview(item);
+  
+  setTimeout(() => {
+    const elTreeItem = document.getElementById(`tree-item-${item.idRph}`);
+    if (elTreeItem) {
+      document.querySelectorAll('.tree-file-node').forEach(n => n.classList.remove('bg-teal-100', 'font-bold', 'text-brand-800'));
+      elTreeItem.classList.add('bg-teal-100', 'font-bold', 'text-brand-800');
+    }
+  }, 300);
+
+  showToast('RPH dimuatkan ke paparan cetakan!', '🖨️');
+}
+
+function initPrintFolderExplorer() {
+  const container = document.getElementById('printFolderTreeContainer');
+  if (!container) return;
+
+  const list = window.currentGuruRphList || state.rphList || [];
+  container.innerHTML = '';
+
+  if (!list || list.length === 0) {
+    container.innerHTML = `<div class="p-4 text-xs text-slate-400 italic">Tiada rekod RPH dijumpai bagi minggu ini.</div>`;
+    return;
+  }
+
+  // Kumpulan mengikut Minggu -> Hari -> Slot
+  const groupedByWeek = {};
+
+  list.forEach(item => {
+    const m = item.minggu || '1';
+    const h = item.hari || 'Isnin';
+
+    if (!groupedByWeek[m]) groupedByWeek[m] = {};
+    if (!groupedByWeek[m][h]) groupedByWeek[m][h] = [];
+
+    groupedByWeek[m][h].push(item);
+  });
+
+  Object.keys(groupedByWeek).forEach(mVal => {
+    const weekDiv = document.createElement('div');
+    weekDiv.className = 'space-y-1 mb-2';
+
+    let weekHtml = `
+      <div class="font-bold text-xs text-slate-800 bg-slate-100 p-2 rounded-lg flex items-center justify-between cursor-pointer hover:bg-slate-200" onclick="toggleTreeNode('week-${mVal}')">
+        <span>📁 Minggu ${mVal}</span>
+        <span class="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-600">${Object.keys(groupedByWeek[mVal]).length} Hari</span>
+      </div>
+      <div id="week-${mVal}" class="pl-3 space-y-1">
+    `;
+
+    Object.keys(groupedByWeek[mVal]).forEach(hVal => {
+      const itemsInDay = groupedByWeek[mVal][hVal];
+      const tarikhDisplay = itemsInDay[0] ? (itemsInDay[0].tarikh || '') : '';
+
+      weekHtml += `
+        <div class="space-y-0.5">
+          <div class="font-semibold text-[11px] text-slate-700 p-1.5 rounded flex items-center justify-between cursor-pointer hover:bg-slate-50" onclick="toggleTreeNode('day-${mVal}-${hVal}')">
+            <span>📂 ${hVal} ${tarikhDisplay ? '(' + tarikhDisplay + ')' : ''}</span>
+            <span class="text-[9px] text-slate-400">${itemsInDay.length} Slot</span>
+          </div>
+          <div id="day-${mVal}-${hVal}" class="pl-3 space-y-0.5">
+      `;
+
+      itemsInDay.forEach(r => {
+        const mulaClean  = cleanTimeFormatFrontend(r.masaMula);
+        const tamatClean = cleanTimeFormatFrontend(r.masaTamat);
+        const masaStr = (mulaClean && tamatClean) ? `${mulaClean}-${tamatClean}` : (r.kelas || '');
+
+        weekHtml += `
+          <div id="tree-item-${r.idRph}" onclick="selectRphForPrintFromTree('${r.idRph}')" class="tree-file-node p-1.5 rounded text-xs text-slate-600 cursor-pointer hover:bg-teal-50 hover:text-brand-800 transition-all flex items-center space-x-1.5">
+            <span>📝</span>
+            <span class="truncate">${r.subjek} - ${r.kelas} (${masaStr})</span>
+          </div>
+        `;
+      });
+
+      weekHtml += `</div></div>`;
+    });
+
+    weekHtml += `</div>`;
+    weekDiv.innerHTML = weekHtml;
+    container.appendChild(weekDiv);
+  });
+
+  if (list.length > 0) {
+    populatePrintPreview(list[0]);
+    setTimeout(() => {
+      const firstTreeItem = document.getElementById(`tree-item-${list[0].idRph}`);
+      if (firstTreeItem) {
+        firstTreeItem.classList.add('bg-teal-100', 'font-bold', 'text-brand-800');
+      }
+    }, 100);
+  }
+}
+
+function toggleTreeNode(nodeId) {
+  const el = document.getElementById(nodeId);
+  if (el) {
+    el.classList.toggle('hidden');
+  }
+}
+
+function selectRphForPrintFromTree(idRph) {
+  const list = window.currentGuruRphList || state.rphList || [];
+  const item = list.find(r => String(r.idRph) === String(idRph));
+
+  if (!item) return;
+
+  document.querySelectorAll('.tree-file-node').forEach(n => n.classList.remove('bg-teal-100', 'font-bold', 'text-brand-800'));
+  const elTreeItem = document.getElementById(`tree-item-${idRph}`);
+  if (elTreeItem) {
+    elTreeItem.classList.add('bg-teal-100', 'font-bold', 'text-brand-800');
+  }
+
+  populatePrintPreview(item);
+}
+
+function populatePrintPreview(item) {
+  if (!item) return;
+
+  const name = window.currentUser ? (window.currentUser.nama || window.currentUser.Nama_Guru || window.currentUser.name || 'Guru Akademik') : 'Guru Akademik';
+  
+  if (document.getElementById('printGuruName')) document.getElementById('printGuruName').innerText = name;
+  
+  let mulaClean  = cleanTimeFormatFrontend(item.masaMula);
+  let tamatClean = cleanTimeFormatFrontend(item.masaTamat);
+  let masaStr = (mulaClean && tamatClean) ? `${mulaClean} - ${tamatClean}` : '';
+  
+  if (document.getElementById('printHariMasa')) {
+    document.getElementById('printHariMasa').innerText = `${item.hari || ''} (${masaStr || item.hariMasa || '-'})`;
+  }
+  
+  if (document.getElementById('printSubjek')) document.getElementById('printSubjek').innerText = item.subjek || '-';
+  if (document.getElementById('printMinggu')) document.getElementById('printMinggu').innerText = item.minggu || '1';
+  if (document.getElementById('printTarikh')) document.getElementById('printTarikh').innerText = item.tarikh || '--/--/----';
+  if (document.getElementById('printKelas')) document.getElementById('printKelas').innerText = `${item.kelas || '-'} (${item.kehadiranMurid || '0/0'})`;
+  
+  if (document.getElementById('printTema')) document.getElementById('printTema').innerText = item.temaUnit || '-';
+  if (document.getElementById('printTajuk')) document.getElementById('printTajuk').innerText = item.tajuk || item.tajukBidang || '-';
+  if (document.getElementById('printSP')) document.getElementById('printSP').innerText = item.standardPembelajaran || item.sp || '-';
+  if (document.getElementById('printOP')) document.getElementById('printOP').innerText = item.objektifPembelajaran || item.op || '-';
+  if (document.getElementById('printKK')) document.getElementById('printKK').innerText = item.kriteriaKejayaan || item.kk || '-';
+  
+  if (document.getElementById('printActStart')) document.getElementById('printActStart').innerText = item.aktivitiPemula || item.actStart || '-';
+  if (document.getElementById('printActMain')) document.getElementById('printActMain').innerText = item.aktivitiUtama || item.actMain || '-';
+  if (document.getElementById('printActEnd')) document.getElementById('printActEnd').innerText = item.aktivitiPenutup || item.actEnd || '-';
+  
+  if (document.getElementById('printReflectCount')) {
+    let capai = item.refleksiBilCapai || 0;
+    let note = item.catatanRefleksi || '';
+    document.getElementById('printReflectCount').innerText = `${capai} orang murid mencapai objektif. ${note}`;
+  }
+  
+  if (document.getElementById('printReflectNote')) document.getElementById('printReflectNote').innerText = item.catatanRefleksi || '-';
 }
 
 function showToast(message, icon = '🔔') {
