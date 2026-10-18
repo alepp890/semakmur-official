@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL 3: js/app-core.js (Logik Teras, Sesi Pengguna, Takwim & Kawalan Akses Jawatan)
+ * FAIL 1: js/app-core.js (Logik Teras, Sesi Pengguna, Takwim & Kawalan Akses Jawatan)
  * ==============================================================================
  */
 
@@ -89,19 +89,23 @@ function parseTakwimDateHelper(dateStr) {
   let parts = str.split(/[\/\-]/);
 
   if (parts.length === 3) {
-    if (parts[0].length === 4) {
-      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-    }
     let p0 = parseInt(parts[0], 10);
     let p1 = parseInt(parts[1], 10);
     let p2 = parseInt(parts[2], 10);
 
-    if (p0 > 12) {
-      return new Date(p2, p1 - 1, p0);
-    } else if (p1 > 12) {
-      return new Date(p2, p0 - 1, p1);
-    } else {
-      return new Date(p2, p0 - 1, p1);
+    // Format YYYY-MM-DD
+    if (parts[0].length === 4) {
+      return new Date(p0, p1 - 1, p2);
+    }
+    // Format MM/DD/YYYY atau DD/MM/YYYY
+    if (parts[2].length === 4) {
+      if (p0 <= 12 && p1 > 12) {
+        return new Date(p2, p0 - 1, p1); // MM/DD/YYYY
+      } else if (p0 > 12 && p1 <= 12) {
+        return new Date(p2, p1 - 1, p0); // DD/MM/YYYY
+      } else {
+        return new Date(p2, p0 - 1, p1); // Lalai MM/DD/YYYY mengikut pangkalan Google Sheet
+      }
     }
   }
 
@@ -145,7 +149,7 @@ function initUserSession() {
         document.getElementById('printGuruName').innerText = name;
       }
 
-      // KAWALAN HAK AKSES TAB SEMAKAN PENTADBIR (GURU BESAR, PK PENTADBIRAN, PK HEM, PK KO KURIKULUM)
+      // KAWALAN JAWATAN PENTADBIR (SENARAI HANYA DARI LAJUR JAWATAN)
       const pentadbirJawatanList = [
         'guru besar',
         'pk pentadbiran',
@@ -160,7 +164,7 @@ function initUserSession() {
       
       const isPentadbirRole = pentadbirJawatanList.some(j => jawatan.toLowerCase().includes(j));
 
-      // HANYA AKAN DIPAPARKAN UNTUK PENGGUNA STATUS ADMIN DALAM SISTEM_AKSES
+      // 1. SUIS MOD USER (TOGGLE CONTAINER) HANYA MUNCUL JIKA SISTEM_AKSES == 'ADMIN'
       const roleToggleContainer = document.getElementById('roleToggleContainer');
       if (roleToggleContainer) {
         if (sistemAkses === 'admin') {
@@ -170,17 +174,18 @@ function initUserSession() {
         }
       }
 
-      // AKSEBILITI TAB SEMAKAN PENTADBIR
+      // 2. TAB SEMAKAN PENTADBIR HANYA MUNCUL UNTUK LAJUR JAWATAN PENTADBIR
       const navApproval = document.getElementById('navTabApproval');
       if (navApproval) {
-        if (isPentadbirRole || sistemAkses === 'admin') {
+        if (isPentadbirRole) {
           navApproval.style.display = 'flex';
         } else {
           navApproval.style.display = 'none';
         }
       }
 
-      if (isPentadbirRole || sistemAkses === 'admin') {
+      // TETAPKAN MOD AWALAN PENGGUNA
+      if (isPentadbirRole) {
         switchUserRole('pentadbir');
       } else {
         switchUserRole('guru');
@@ -224,7 +229,7 @@ function loadTakwimAndInitDropdowns() {
 }
 
 /**
- * POPULASI DROPDOWN MINGGU SECARA MENURUN & PILIH MINGGU SEMASA AUTOMATIK
+ * POPULASI DROPDOWN MINGGU SECARA MENURUN & AUTOMATIK PILIH MINGGU SEMASA
  */
 function populateWeeksDropdowns() {
   const selectGuru = document.getElementById('selectWeekGuru');
@@ -237,7 +242,7 @@ function populateWeeksDropdowns() {
   let matchedCurrentWeek = null;
 
   if (state.takwimList && state.takwimList.length > 0) {
-    // Susun minggu secara MENURUN (Descending order)
+    // Susun secara MENURUN (Descending order)
     let sortedTakwim = [...state.takwimList].sort((a, b) => (parseInt(b.mingguKe, 10) || 0) - (parseInt(a.mingguKe, 10) || 0));
 
     sortedTakwim.forEach(t => {
@@ -247,14 +252,17 @@ function populateWeeksDropdowns() {
       opt.textContent = `Minggu ${t.mingguKe}${labelDate}`;
       selectGuru.appendChild(opt);
 
-      // Semak jika hari ini jatuh dalam julat Tarikh_Mula dan Tarikh_Tamat
+      // Semak jika hari ini jatuh dalam julat Isnin hingga Ahad minggu berkenaan
       let dMula = parseTakwimDateHelper(t.tarikhMula);
       let dTamat = parseTakwimDateHelper(t.tarikhTamat);
       if (dMula && dTamat) {
         dMula.setHours(0, 0, 0, 0);
+        // Tambah penimbal 2 hari pada Tarikh Tamat supaya hari Sabtu & Ahad turut dikira dalam minggu semasa
+        dTamat.setDate(dTamat.getDate() + 2);
         dTamat.setHours(23, 59, 59, 999);
+
         if (today >= dMula && today <= dTamat) {
-          matchedCurrentWeek = t.mingguKe;
+          matchedCurrentWeek = String(t.mingguKe);
         }
       }
     });
@@ -265,7 +273,6 @@ function populateWeeksDropdowns() {
       selectGuru.selectedIndex = 0;
     }
   } else {
-    // Fallback secara menurun (42 ke 1)
     for (let i = 42; i >= 1; i--) {
       const opt = document.createElement('option');
       opt.value = i;
@@ -278,6 +285,14 @@ function populateWeeksDropdowns() {
   const currentWeekVal = selectGuru.value || '1';
   const lbl = document.getElementById('lblMingguHariDashboard');
   if (lbl) lbl.textContent = `Minggu ${currentWeekVal} (Semasa)`;
+
+  // Segerakkan dropdown minggu di modul Builder dan Approval sekiranya fungsi wujud
+  if (typeof initBuilderWeekDropdown === 'function') {
+    initBuilderWeekDropdown();
+  }
+  if (typeof initApprovalWeekDropdown === 'function') {
+    initApprovalWeekDropdown();
+  }
 
   loadGuruDashboardData();
 }
@@ -419,7 +434,6 @@ function renderGuruRphTable(list) {
       ? `${masaRange} (${item.kelas || '-'})` 
       : (item.kelas || '-');
 
-    // KUNCI BUTANG EDIT JIKA TELAH DISEMMAKAN OLEH PENTADBIR
     let actionBtn = '';
     if (isApproved) {
       actionBtn = `<span class="px-2.5 py-1 bg-slate-100 text-slate-500 rounded text-[11px] font-bold border border-slate-200 cursor-not-allowed" title="RPH telah disemak & disahkan oleh Pentadbir">🔒 Disemak & Dikunci</span>`;
@@ -458,6 +472,7 @@ function switchUserRole(role) {
   const btnPentadbir = document.getElementById('roleBtnPentadbir');
   const guruView = document.getElementById('guruDashboardView');
   const pentadbirView = document.getElementById('pentadbirDashboardView');
+  const navApproval = document.getElementById('navTabApproval');
 
   if (guruView) guruView.classList.remove('hidden');
 
@@ -465,10 +480,17 @@ function switchUserRole(role) {
     if (btnGuru) btnGuru.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
     if (btnPentadbir) btnPentadbir.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
     if (pentadbirView) pentadbirView.classList.add('hidden');
+    // Jika peranan Admin menukar ke peranan Guru untuk tujuan ujian visual
+    if (navApproval && state.currentUser) {
+      const jawatan = (state.currentUser.jawatan || state.currentUser.Jawatan || '').toString().trim().toLowerCase();
+      const isPentadbirRole = ['guru besar', 'pk pentadbiran', 'penolong kanan pentadbiran', 'pk 1', 'pk hem', 'penolong kanan hem', 'pk ko kurikulum', 'pk kokurikulum', 'penolong kanan kokurikulum'].some(j => jawatan.includes(j));
+      if (!isPentadbirRole) navApproval.style.display = 'none';
+    }
   } else {
     if (btnPentadbir) btnPentadbir.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
     if (btnGuru) btnGuru.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
     if (pentadbirView) pentadbirView.classList.remove('hidden');
+    if (navApproval) navApproval.style.display = 'flex';
     if (typeof loadPentadbirDashboardData === 'function') {
       loadPentadbirDashboardData();
     }
