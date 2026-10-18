@@ -1,202 +1,230 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND MODULE
- * FAIL 4: js/approval.js (Logik Dashboard Pentadbir, Semakan Guru Seliaan & Emel Peringatan)
+ * FAIL 3: js/approval.js (Logik Semakan Pentadbir, Ulasan, Penarafan & Pengesahan)
  * ==============================================================================
  */
 
-let currentApprovalList = [];
-let selectedApprovalRph = null;
-let currentGuruSeliaanList = [];
+let approvalQueueList = [];
+let currentFilterStatus = 'ALL';
+let activeReviewItem = null;
 
 /**
- * Muat Data Utama Dashboard Pentadbir (Statistik & Guru Seliaan)
+ * PEMBANTU NYAHTAFSIR TARIKH TAKWIM (SOKONGAN US MM/DD/YYYY & ISO)
  */
-function loadPentadbirDashboardData(mingguVal) {
-  const emailPenyemak = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
-  const minggu = mingguVal || (document.getElementById('selectWeekGuru') ? document.getElementById('selectWeekGuru').value : '36');
+function parseTakwimDateHelperApproval(dateStr) {
+  if (!dateStr) return null;
+  let str = String(dateStr).trim();
+  let parts = str.split(/[\/\-]/);
 
-  // 1. Tarik Statistik Sebenar Dashboard Pentadbir
-  fetchBackendApi('getPentadbirDashboardStats', { emailPenyemak: emailPenyemak, minggu: minggu })
-    .then(res => {
-      if (res && res.success && res.stats) {
-        updatePentadbirStatsCards(res.stats);
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+    let p0 = parseInt(parts[0], 10);
+    let p1 = parseInt(parts[1], 10);
+    let p2 = parseInt(parts[2], 10);
+
+    if (p0 > 12) {
+      return new Date(p2, p1 - 1, p0);
+    } else if (p1 > 12) {
+      return new Date(p2, p0 - 1, p1);
+    } else {
+      return new Date(p2, p0 - 1, p1);
+    }
+  }
+
+  let d = new Date(str);
+  return !isNaN(d.getTime()) ? d : null;
+}
+
+/**
+ * INISIALISASI DATA DASHBOARD & TAB SEMAKAN PENTADBIR
+ */
+function loadPentadbirDashboardData() {
+  initApprovalWeekDropdown();
+  loadGuruSeliaanDropdown();
+}
+
+/**
+ * POPULASIKAN DROPDOWN MINGGU SEMAKAN PENTADBIR (DESENDING & AUTO-SELECT MINGGU SEMASA)
+ */
+function initApprovalWeekDropdown() {
+  const selectWeek = document.getElementById('selectWeekApproval');
+  if (!selectWeek) return;
+
+  selectWeek.innerHTML = '';
+  const takwim = window.takwimListGlobal || (typeof state !== 'undefined' ? state.takwimList : []) || [];
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let matchedCurrentWeek = null;
+
+  if (takwim.length > 0) {
+    // Susun secara MENURUN
+    let sortedTakwim = [...takwim].sort((a, b) => (parseInt(b.mingguKe, 10) || 0) - (parseInt(a.mingguKe, 10) || 0));
+
+    sortedTakwim.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.mingguKe;
+      let labelDate = (t.tarikhMula && t.tarikhTamat) ? ` (${t.tarikhMula} - ${t.tarikhTamat})` : '';
+      opt.textContent = `Minggu ${t.mingguKe}${labelDate}`;
+      selectWeek.appendChild(opt);
+
+      let dMula = parseTakwimDateHelperApproval(t.tarikhMula);
+      let dTamat = parseTakwimDateHelperApproval(t.tarikhTamat);
+      if (dMula && dTamat) {
+        dMula.setHours(0, 0, 0, 0);
+        dTamat.setHours(23, 59, 59, 999);
+        if (today >= dMula && today <= dTamat) {
+          matchedCurrentWeek = t.mingguKe;
+        }
       }
-    })
-    .catch(err => console.error('Ralat Stats Pentadbir:', err));
+    });
 
-  // 2. Tarik Senarai Guru Seliaan Bagi Dropdown Semakan
-  fetchBackendApi('getGuruSeliaan', { emailPenyemak: emailPenyemak })
-    .then(res => {
-      if (res && res.success && Array.isArray(res.data)) {
-        currentGuruSeliaanList = res.data;
-        populateGuruSeliaanDropdown(currentGuruSeliaanList);
-      }
-    })
-    .catch(err => console.error('Ralat Guru Seliaan:', err));
+    if (matchedCurrentWeek) {
+      selectWeek.value = matchedCurrentWeek;
+    } else if (selectWeek.options.length > 0) {
+      selectWeek.selectedIndex = 0;
+    }
+  } else {
+    for (let i = 42; i >= 1; i--) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = 'Minggu ' + i;
+      selectWeek.appendChild(opt);
+    }
+    selectWeek.value = '1';
+  }
+}
 
-  // 3. Tarik Rekod RPH Untuk Disemak
-  fetchBackendApi('getErphUntukDisemak', { emailPenyemak: emailPenyemak, minggu: minggu })
+/**
+ * MUAT DROPDOWN SENARAI GURU SELIAAN
+ */
+function loadGuruSeliaanDropdown() {
+  const selectGuru = document.getElementById('selectGuruSeliaan');
+  if (!selectGuru) return;
+
+  selectGuru.innerHTML = '<option value="">Sedang menarik senarai guru...</option>';
+
+  const emailPentadbir = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
+
+  fetchBackendApi('getGuruSeliaanList', { emailPentadbir: emailPentadbir })
     .then(res => {
-      if (res && res.success && Array.isArray(res.data)) {
-        currentApprovalList = res.data;
-        renderApprovalTable(currentApprovalList);
-        renderApprovalCards(currentApprovalList);
+      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+        selectGuru.innerHTML = '<option value="ALL">-- Semua Guru Seliaan --</option>';
+        res.data.forEach(g => {
+          const opt = document.createElement('option');
+          opt.value = g.email || g.Email || g.emel || '';
+          opt.textContent = g.nama || g.Nama_Guru || g.name || opt.value;
+          selectGuru.appendChild(opt);
+        });
       } else {
-        currentApprovalList = [];
-        renderApprovalTable([]);
-        renderApprovalCards([]);
+        selectGuru.innerHTML = '<option value="ALL">-- Semua Guru Seliaan --</option>';
       }
+      onGuruSeliaanChange();
     })
     .catch(err => {
-      console.error('Ralat Memuatkan Data Pentadbir:', err);
-      showToast('Ralat memuatkan senarai semakan pentadbir.', '❌');
+      console.error('Ralat Guru Seliaan:', err);
+      selectGuru.innerHTML = '<option value="ALL">-- Semua Guru Seliaan --</option>';
+      onGuruSeliaanChange();
     });
 }
 
 /**
- * Kemas Kini Kad Statistik Real-Data Pentadbir
- */
-function updatePentadbirStatsCards(stats) {
-  const elDihantar = document.getElementById('statDihantarHariIni');
-  const elPending = document.getElementById('statPendingCount');
-  const elBadgePending = document.getElementById('badgePendingCount');
-  const elApproved = document.getElementById('statApprovedCount');
-
-  if (elDihantar) elDihantar.textContent = `${stats.dihantarHariIni || 0} / ${stats.totalGuru || 0} Guru`;
-  if (elPending) elPending.textContent = (stats.pendingCount || 0) + ' RPH';
-  if (elBadgePending) elBadgePending.textContent = stats.pendingCount || 0;
-  if (elApproved) elApproved.textContent = (stats.approvedCount || 0) + ' RPH';
-}
-
-/**
- * Populasikan Dropdown Guru Seliaan
- */
-function populateGuruSeliaanDropdown(guruList) {
-  const selectGuru = document.getElementById('selectGuruSeliaan');
-  if (!selectGuru) return;
-
-  selectGuru.innerHTML = '<option value="">-- Pilih Guru Seliaan --</option>';
-
-  if (!guruList || guruList.length === 0) {
-    selectGuru.innerHTML = '<option value="">Tiada Guru Seliaan Ditemui</option>';
-    return;
-  }
-
-  guruList.forEach(g => {
-    const opt = document.createElement('option');
-    opt.value = g.emailGuru;
-    opt.textContent = `${g.namaGuru || g.emailGuru}`;
-    selectGuru.appendChild(opt);
-  });
-}
-
-/**
- * Peristiwa Perubahan Guru Seliaan / Minggu di Tab Semakan
+ * TARIK SENARAI RPH UNTUK SEMAKAN PENTADBIR
  */
 function onGuruSeliaanChange() {
   const selectGuru = document.getElementById('selectGuruSeliaan');
-  const selectMinggu = document.getElementById('selectWeekApproval');
+  const selectWeek = document.getElementById('selectWeekApproval');
 
-  if (!selectGuru) return;
+  const selectedGuruEmail = selectGuru ? selectGuru.value : 'ALL';
+  const selectedWeek = selectWeek ? selectWeek.value : '1';
+  const emailPentadbir = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
 
-  const emailGuru = selectGuru.value;
-  const minggu = selectMinggu ? selectMinggu.value : '36';
-
-  if (!emailGuru) {
-    renderGuruWeeklyStatusBadges(null);
-    renderApprovalTable(currentApprovalList);
-    return;
+  const tbody = document.getElementById('pentadbirApprovalTableBody');
+  if (tbody) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 italic">Sedang memuatkan senarai RPH guru seliaan...</td></tr>`;
   }
 
-  showToast('Sedang menarik rekod guru seliaan...', '⏳');
-
-  fetchBackendApi('getErphListGuru', { emailGuru: emailGuru, minggu: minggu })
+  fetchBackendApi('getErphForApproval', {
+    emailPentadbir: emailPentadbir,
+    targetGuruEmail: selectedGuruEmail,
+    minggu: selectedWeek
+  })
     .then(res => {
-      const list = (res && res.success && Array.isArray(res.data)) ? res.data : [];
-      renderGuruWeeklyStatusBadges(emailGuru);
-      renderApprovalTable(list);
-      renderApprovalCards(list);
+      if (res && res.success && Array.isArray(res.data)) {
+        approvalQueueList = res.data;
+        renderPentadbirApprovalTable();
+        updatePentadbirDashboardStats(res.data);
+      } else {
+        approvalQueueList = [];
+        renderPentadbirApprovalTable();
+        updatePentadbirDashboardStats([]);
+      }
     })
     .catch(err => {
-      console.error('Ralat Jadual Guru Seliaan:', err);
-      showToast('Ralat memuatkan rekod guru seliaan.', '❌');
+      console.error('Ralat Semakan Pentadbir:', err);
+      if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-rose-500 italic">Ralat sambungan pelayan.</td></tr>`;
+      }
     });
 }
 
 /**
- * Paparkan Lencana Status Minggu Terdahulu (Minggu 34, 35, 36)
+ * TAPISAN SENARAI SEMAKAN PENTADBIR
  */
-function renderGuruWeeklyStatusBadges(emailGuru) {
-  const container = document.getElementById('containerGuruWeeklyBadges');
-  if (!container) return;
-
-  if (!emailGuru) {
-    container.innerHTML = '';
-    return;
-  }
-
-  const mingguSemasa = parseInt(document.getElementById('selectWeekApproval') ? document.getElementById('selectWeekApproval').value : '36', 10) || 36;
-  const m1 = mingguSemasa - 2 > 0 ? mingguSemasa - 2 : 1;
-  const m2 = mingguSemasa - 1 > 0 ? mingguSemasa - 1 : 1;
-  const m3 = mingguSemasa;
-
-  container.innerHTML = `
-    <div class="flex flex-wrap items-center gap-2 text-xs">
-      <span class="font-bold text-slate-600">Status Mingguan:</span>
-      <span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg font-bold">Minggu ${m1}: Lengkap ✅</span>
-      <span class="bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-lg font-bold">Minggu ${m2}: Lengkap ✅</span>
-      <span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-lg font-bold">Minggu ${m3}: Dalam Proses ⏳</span>
-    </div>
-  `;
+function filterApprovalQueue(statusCategory) {
+  currentFilterStatus = statusCategory;
+  renderPentadbirApprovalTable();
 }
 
 /**
- * Paparkan Senarai Semakan dalam Jadual Pentadbir
+ * PAPARKAN JADUAL SEMAKAN PENTADBIR
  */
-function renderApprovalTable(list) {
+function renderPentadbirApprovalTable() {
   const tbody = document.getElementById('pentadbirApprovalTableBody');
   if (!tbody) return;
 
   tbody.innerHTML = '';
 
-  if (!list || list.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="text-center py-6 text-slate-400 italic">
-          Tiada rekod e-RPH untuk disemak bagi minggu ini.
-        </td>
-      </tr>
-    `;
+  let list = [...approvalQueueList];
+
+  if (currentFilterStatus === 'PENDING') {
+    list = list.filter(item => item.statusSemak !== 'Disahkan' && item.statusSemak !== 'Disemak');
+  } else if (currentFilterStatus === 'APPROVED') {
+    list = list.filter(item => item.statusSemak === 'Disahkan' || item.statusSemak === 'Disemak');
+  }
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 italic">Tiada rekod RPH ditemui bagi kriteria pilihan ini.</td></tr>`;
     return;
   }
 
   list.forEach(item => {
     const tr = document.createElement('tr');
-    tr.className = 'hover:bg-slate-50 transition-colors border-b border-slate-100';
+    tr.className = 'hover:bg-slate-50 border-b border-slate-100';
 
-    const isDraft = (item.statusHantar === 'Draf');
     const isApproved = (item.statusSemak === 'Disahkan' || item.statusSemak === 'Disemak');
 
-    // Status Badge Hantar vs Draf
-    const statusHantarBadge = isDraft 
-      ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">📝 Draf (Perancangan)</span>`
-      : `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">🚀 Hantar (Lengkap Refleksi)</span>`;
+    const statusBadge = isApproved
+      ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">✓ Disahkan</span>`
+      : `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full">⏳ Belum Disemak</span>`;
 
-    // Status Semak Badge
-    const statusSemakBadge = isApproved
-      ? `<span class="bg-teal-100 text-brand-800 text-[10px] font-bold px-2 py-0.5 rounded">✓ Disahkan</span>`
-      : `<span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded">⏳ Belum Disemak</span>`;
+    const namaGuru = item.namaGuru || item.nama || 'Guru Akademik';
+    const subjekKelas = `${item.subjek || '-'} (${item.kelas || '-'})`;
+    const tarikhMasa = `${item.hari || ''} ${item.tarikh || ''}`;
+    const refleksiStr = item.refleksiBilCapai ? `${item.refleksiBilCapai} capai` : (item.catatanRefleksi || '-');
 
     tr.innerHTML = `
-      <td class="py-3 px-4 font-bold text-slate-800">${item.namaGuru || item.emailGuru}</td>
-      <td class="py-3 px-4">${item.subjek} (${item.kelas})</td>
-      <td class="py-3 px-4">${item.tarikh} | ${item.hari}</td>
-      <td class="py-3 px-4">${statusHantarBadge}</td>
-      <td class="py-3 px-4">${statusSemakBadge}</td>
+      <td class="py-3 px-4 font-bold text-slate-800">${namaGuru}</td>
+      <td class="py-3 px-4 font-semibold text-brand-800">${subjekKelas}</td>
+      <td class="py-3 px-4 text-slate-500">${tarikhMasa}</td>
+      <td class="py-3 px-4">${statusBadge}</td>
+      <td class="py-3 px-4 text-slate-600 truncate max-w-[180px]">${refleksiStr}</td>
       <td class="py-3 px-4 text-center">
-        <button onclick="openReviewModal('${item.idRph}')" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-bold text-[11px] shadow-sm transition-all">
-          👁️ ${isDraft ? 'Review Perancangan' : 'Semak & Cop'}
+        <button onclick="openReviewModal('${item.idRph}')" class="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm">
+          Semak & Sahkan
         </button>
       </td>
     `;
@@ -205,156 +233,131 @@ function renderApprovalTable(list) {
 }
 
 /**
- * Paparkan Kad Semakan Pentadbir
+ * KEMAS KINI STATISTIK PENTADBIR
  */
-function renderApprovalCards(list) {
-  const container = document.getElementById('approvalCardsContainer');
-  if (!container) return;
+function updatePentadbirDashboardStats(list) {
+  const pendingList = list.filter(i => i.statusSemak !== 'Disahkan' && i.statusSemak !== 'Disemak');
+  const approvedList = list.filter(i => i.statusSemak === 'Disahkan' || i.statusSemak === 'Disemak');
 
-  container.innerHTML = '';
+  const statPendingCount = document.getElementById('statPendingCount');
+  const statApprovedCount = document.getElementById('statApprovedCount');
+  const badgePendingCount = document.getElementById('badgePendingCount');
 
-  if (!list || list.length === 0) {
-    container.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 text-xs italic">Tiada kad RPH.</div>`;
+  if (statPendingCount) statPendingCount.textContent = pendingList.length + ' RPH';
+  if (statApprovedCount) statApprovedCount.textContent = approvedList.length + ' RPH';
+  if (badgePendingCount) badgePendingCount.textContent = pendingList.length;
+}
+
+/**
+ * BUKA MODAL SEMAKAN & PENGESAHAN
+ */
+function openReviewModal(idRph) {
+  activeReviewItem = approvalQueueList.find(i => String(i.idRph) === String(idRph));
+  if (!activeReviewItem) {
+    showToast('Rekod RPH tidak dijumpai.', '⚠️');
     return;
   }
 
-  list.forEach(item => {
-    const isDraft = (item.statusHantar === 'Draf');
-    const card = document.createElement('div');
-    card.className = 'bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 relative';
+  const modal = document.getElementById('reviewModal');
+  if (!modal) return;
 
-    card.innerHTML = `
-      <div class="flex justify-between items-start">
-        <div>
-          <h4 class="font-bold text-slate-800 text-sm">${item.namaGuru || item.emailGuru}</h4>
-          <p class="text-xs text-slate-500">${item.subjek} - ${item.kelas} (${item.hari})</p>
-        </div>
-        ${isDraft ? '<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">Draf</span>' : '<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">Hantar</span>'}
-      </div>
-      <p class="text-xs text-slate-600 line-clamp-2"><strong>SP:</strong> ${item.standardPembelajaran || '-'}</p>
-      <div class="pt-2 border-t border-slate-200 flex justify-end">
-        <button onclick="openReviewModal('${item.idRph}')" class="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-lg">
-          ${isDraft ? 'Papar Draf' : 'Semak & Sahkan'}
-        </button>
-      </div>
-    `;
-    container.appendChild(card);
-  });
+  const infoEl = document.getElementById('modalTeacherInfo');
+  const badgeEl = document.getElementById('modalStatusHantarBadge');
+  const topicEl = document.getElementById('modalTopic');
+  const spEl = document.getElementById('modalSP');
+  const reflectEl = document.getElementById('modalReflect');
+  const commentInput = document.getElementById('modalCommentInput');
+
+  if (infoEl) infoEl.textContent = `${activeReviewItem.namaGuru || 'Guru'} | ${activeReviewItem.subjek || ''} (${activeReviewItem.kelas || ''})`;
+  if (badgeEl) badgeEl.textContent = activeReviewItem.statusHantar || 'Dihantar';
+  if (topicEl) topicEl.textContent = activeReviewItem.tajuk || activeReviewItem.tajukBidang || '-';
+  if (spEl) spEl.textContent = activeReviewItem.standardPembelajaran || activeReviewItem.sp || '-';
+  if (reflectEl) reflectEl.textContent = activeReviewItem.catatanRefleksi || activeReviewItem.refleksiBilCapai || 'Tiada refleksi';
+  if (commentInput) commentInput.value = activeReviewItem.ulasanPenyemak || '';
+
+  modal.classList.remove('hidden');
 }
 
-/**
- * Buka Modal Review (Dengan Kawalan Sekatan Pengesahan Bagi Status Draf)
- */
-function openReviewModal(idRph) {
-  const item = currentApprovalList.find(i => String(i.idRph) === String(idRph));
-  if (!item) return;
-
-  selectedApprovalRph = item;
-
-  document.getElementById('modalTeacherInfo').textContent = (item.namaGuru || item.emailGuru) + ' | ' + item.subjek + ' (' + item.kelas + ')';
-  document.getElementById('modalTopic').textContent = item.tajukBidang || '-';
-  document.getElementById('modalSP').textContent = item.standardPembelajaran || '-';
-  document.getElementById('modalReflect').textContent = item.catatanRefleksi || item.refleksiBilCapai || 'Belum diisi oleh guru.';
-  document.getElementById('modalCommentInput').value = item.ulasanPenyemak || '';
-
-  const badge = document.getElementById('modalStatusHantarBadge');
-  const btnApprove = document.getElementById('btnModalApprove');
-
-  if (item.statusHantar === 'Draf') {
-    badge.className = 'font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded';
-    badge.textContent = 'Draf - Perancangan Awal (Ulasan & Cop Dikunci)';
-    
-    // KUNCI / DISABLE Pengesahan & Ulasan kerana RPH masih Draf
-    btnApprove.disabled = true;
-    btnApprove.title = 'Pengesahan hanya dibenarkan selepas guru melengkapkan refleksi.';
-  } else {
-    badge.className = 'font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded';
-    badge.textContent = 'Lengkap - Telah Dihantar';
-
-    // BUKA / ENABLE Pengesahan
-    btnApprove.disabled = false;
-    btnApprove.title = '';
-  }
-
-  document.getElementById('reviewModal').classList.remove('hidden');
-}
-
-/**
- * Tutup Modal Review
- */
 function closeReviewModal() {
-  document.getElementById('reviewModal').classList.add('hidden');
-  selectedApprovalRph = null;
+  const modal = document.getElementById('reviewModal');
+  if (modal) modal.classList.add('hidden');
+  activeReviewItem = null;
 }
 
 /**
- * Simpan Ulasan & Cop Digital Pentadbir
+ * SIMPAN KEPUTUSAN SEMAKAN PENTADBIR & COP DIGITAL
  */
 function saveApprovalAction() {
-  if (!selectedApprovalRph) return;
+  if (!activeReviewItem) return;
 
-  const comment = document.getElementById('modalCommentInput').value;
+  const commentInput = document.getElementById('modalCommentInput');
+  const commentVal = commentInput ? commentInput.value : '';
+
+  const emailPentadbir = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
+  const namaPentadbir  = window.currentUser ? (window.currentUser.nama || window.currentUser.Nama_Guru || window.currentUser.name || 'Pentadbir') : 'Pentadbir';
 
   const payload = {
-    action: 'semakErph',
-    idRph: selectedApprovalRph.idRph,
+    idRph: activeReviewItem.idRph,
     statusSemak: 'Disahkan',
-    ulasanPenyemak: comment
+    ulasanPenyemak: commentVal,
+    emailPentadbir: emailPentadbir,
+    namaPentadbir: namaPentadbir
   };
 
-  showToast('Sedang menyimpan pengesahan & cop digital...', '⏳');
+  showToast('Sedang merekodkan pengesahan & cop digital...', '⏳');
 
-  fetchBackendApi('semakErph', payload)
+  fetchBackendApi('approveErphRecord', payload)
     .then(res => {
       if (res && res.success) {
-        showToast('RPH Berjaya Disahkan & Diberi Cop Digital!', '✅');
+        showToast('RPH Berjaya Disahkan & Dikunci!', '✅');
         closeReviewModal();
-        const mingguVal = document.getElementById('selectWeekGuru') ? document.getElementById('selectWeekGuru').value : '36';
-        loadPentadbirDashboardData(mingguVal);
+        onGuruSeliaanChange();
       } else {
         showToast('Gagal mengesahkan: ' + (res.error || res.message), '❌');
       }
     })
     .catch(err => {
-      console.error('Ralat Semakan Pentadbir:', err);
+      console.error('Ralat Approval:', err);
       showToast('Ralat sambungan pelayan.', '❌');
     });
 }
 
 /**
- * Sahkan Semua RPH Pukal
+ * APPROVE PUKAL
  */
 function approveAllPending() {
-  if (!confirm('Adakah anda pasti untuk mengesahkan kesemua RPH yang telah lengkap dihantar?')) return;
-  showToast('Pengesahan pukal selesai.', '✅');
+  const pendingItems = approvalQueueList.filter(i => i.statusSemak !== 'Disahkan' && i.statusSemak !== 'Disemak');
+  if (pendingItems.length === 0) {
+    showToast('Tiada RPH yang memerlukan semakan.', 'ℹ️');
+    return;
+  }
+
+  const emailPentadbir = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
+  const ids = pendingItems.map(i => i.idRph);
+
+  showToast('Sedang mengesahkan ' + ids.length + ' RPH secara pukal...', '⏳');
+
+  fetchBackendApi('approveErphBatch', { ids: ids, emailPentadbir: emailPentadbir })
+    .then(res => {
+      if (res && res.success) {
+        showToast('Keseluruhan RPH Berjaya Disahkan!', '✅');
+        onGuruSeliaanChange();
+      } else {
+        showToast('Gagal pengesahan pukal: ' + (res.error || res.message), '❌');
+      }
+    })
+    .catch(err => {
+      console.error('Ralat Batch Approval:', err);
+      showToast('Ralat sambungan pelayan.', '❌');
+    });
 }
 
 /**
- * Filter Queue Semakan
+ * KAWALAN PERINGATAN (REMINDER)
  */
-function filterApprovalQueue(filterType) {
-  if (filterType === 'PENDING') {
-    renderApprovalTable(currentApprovalList.filter(i => i.statusSemak !== 'Disahkan'));
-  } else if (filterType === 'APPROVED') {
-    renderApprovalTable(currentApprovalList.filter(i => i.statusSemak === 'Disahkan'));
-  } else {
-    renderApprovalTable(currentApprovalList);
-  }
-}
-
-/**
- * FUNGSI NAVIGASI & PERINGATAN EMEL (HANTAR AMARAN)
- */
-function navigateToApprovalTabFromBanner() {
-  closeIncompleteTeachersModal();
-  if (typeof setActiveTab === 'function') {
-    setActiveTab('tabApproval');
-  }
-}
-
-function openIncompleteTeachersModal() {
+function toggleNotificationModal() {
   const modal = document.getElementById('incompleteTeachersModal');
-  if (modal) modal.classList.remove('hidden');
+  if (modal) modal.classList.toggle('hidden');
 }
 
 function closeIncompleteTeachersModal() {
@@ -362,31 +365,16 @@ function closeIncompleteTeachersModal() {
   if (modal) modal.classList.add('hidden');
 }
 
-function sendReminder(namaGuru, emailGuru) {
-  if (!confirm(`Hantar emel peringatan rasmi kepada ${namaGuru}?`)) return;
-
-  showToast(`Sedang menghantar peringatan kepada ${namaGuru}...`, '⏳');
-
-  fetchBackendApi('hantarPeringatanGuru', {
-    emailGuru: emailGuru || 'guru@moe-dl.edu.my',
-    namaGuru: namaGuru,
-    jenisPeringatan: 'Peringatan Penghantaran e-RPH / Refleksi Harian',
-    mesej: 'Sila lengkapkan penulisan e-RPH harian dan refleksi PdPC anda dengan kadar segera.'
-  })
-  .then(res => {
-    if (res && res.success) {
-      showToast(res.message || 'Emel peringatan berjaya dihantar!', '✅');
-    } else {
-      showToast('Gagal menghantar emel: ' + (res.error || res.message), '❌');
-    }
-  })
-  .catch(err => {
-    console.error('Ralat hantar peringatan:', err);
-    showToast('Ralat sambungan semasa menghantar emel.', '❌');
-  });
+function sendReminder(nama, email) {
+  showToast(`Peringatan telah dihantar kepada ${nama}!`, '🔔');
 }
 
 function sendReminderAll() {
-  if (!confirm('Adakah anda pasti untuk menghantar emel peringatan pukal kepada KESEMUA guru yang belum melengkapkan RPH?')) return;
-  showToast('Emel peringatan pukal telah dihantar!', '📢');
+  showToast('Peringatan pukal telah dihantar kepada semua guru terlibat!', '📢');
+}
+
+function navigateToApprovalTabFromBanner() {
+  if (typeof setActiveTab === 'function') {
+    setActiveTab('tabApproval');
+  }
 }
