@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND MODULE
- * FAIL: js/builder.js (Logik Pembina e-RPH, Dropdown Berkait DSKP & Kawalan Refleksi)
+ * FAIL: js/builder.js (Logik Pembina e-RPH, Dropdown Berkait DSKP, Kawalan Refleksi & Mod Cuti)
  * ==============================================================================
  */
 
@@ -10,6 +10,10 @@ let currentJadualList = [];
 let currentDskpList = [];
 let selectedSlotData = null;
 let attendanceDataGlobal = { bilHadir: '0/0', total: 0, hadir: 0 };
+
+// Pembolehubah Global Poster Cuti
+let posterBase64Data = '';
+let posterFileNameStr = '';
 
 /**
  * Pemetaan Kod Ringkas Subjek kepada Nama Penuh (Untuk carian Data_DSKP)
@@ -105,6 +109,12 @@ function onBuilderWeekChange() {
 
   document.getElementById('builderSelectSlot').innerHTML = '<option value="">-- Pilih Slot Jadual --</option>';
   resetRphFormFields();
+
+  // Jika Mod Cuti Aktif, Kemaskini Pengiraan Hari
+  const chkModCuti = document.getElementById('chkModCuti');
+  if (chkModCuti && chkModCuti.checked) {
+    updateCutiSummaryCount();
+  }
 }
 
 /**
@@ -216,6 +226,220 @@ function onBuilderDateDayChange(callback) {
 }
 
 /**
+ * ==============================================================================
+ * LOGIK & KAWALAN MOD CUTI (MULTI-DAY HOLIDAY DECLARATION)
+ * ==============================================================================
+ */
+
+/**
+ * Peristiwa Tukar Mod Cuti / Standard RPH
+ */
+function toggleModCutiView() {
+  const isCuti = document.getElementById('chkModCuti').checked;
+  const secModCuti = document.getElementById('sectionModCutiWrapper');
+  const secStandard = document.getElementById('sectionStandardRphContent');
+  const cntDate = document.getElementById('containerDateSelect');
+  const cntSlot = document.getElementById('containerSlotSelect');
+  const btnSaveDraft = document.getElementById('btnSaveDraft');
+  const btnSubmit = document.getElementById('btnSubmitRph');
+  const lblSubmit = document.getElementById('txtBtnSubmitLabel');
+
+  if (isCuti) {
+    if (secModCuti) secModCuti.classList.remove('hidden');
+    if (secStandard) secStandard.classList.add('hidden');
+    if (cntDate) cntDate.classList.add('hidden');
+    if (cntSlot) cntSlot.classList.add('hidden');
+    if (btnSaveDraft) btnSaveDraft.classList.add('hidden');
+
+    if (lblSubmit) lblSubmit.textContent = '🚀 Hantar Rekod Cuti Pukal';
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.title = '';
+    }
+
+    updateCutiSummaryCount();
+  } else {
+    if (secModCuti) secModCuti.classList.add('hidden');
+    if (secStandard) secStandard.classList.remove('hidden');
+    if (cntDate) cntDate.classList.remove('hidden');
+    if (cntSlot) cntSlot.classList.remove('hidden');
+    if (btnSaveDraft) btnSaveDraft.classList.remove('hidden');
+
+    if (lblSubmit) lblSubmit.textContent = '🚀 Hantar RPH Harian';
+    validateSubmitButtonState();
+  }
+}
+
+/**
+ * Pra-tonton Gambar Poster Cuti
+ */
+function previewPosterCutiImage(event) {
+  const file = event.target.files[0];
+  const container = document.getElementById('containerPosterPreview');
+  const imgPreview = document.getElementById('imgPosterPreview');
+  const txtFileName = document.getElementById('txtPosterFileName');
+
+  if (file) {
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Saiz gambar melebihi 5MB. Sila pilih gambar yang lebih kecil.', '⚠️');
+      event.target.value = '';
+      posterBase64Data = '';
+      posterFileNameStr = '';
+      if (container) container.classList.add('hidden');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      posterBase64Data = e.target.result;
+      posterFileNameStr = file.name;
+      if (imgPreview) imgPreview.src = posterBase64Data;
+      if (txtFileName) txtFileName.textContent = file.name;
+      if (container) container.classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+  } else {
+    posterBase64Data = '';
+    posterFileNameStr = '';
+    if (container) container.classList.add('hidden');
+  }
+}
+
+/**
+ * Kemas Kini Ringkas Pengiraan Hari & Slot Cuti Terlibat
+ */
+function updateCutiSummaryCount() {
+  const checkboxes = document.querySelectorAll('input[name="chkCutiHari"]:checked');
+  const selectedDays = Array.from(checkboxes).map(cb => cb.value);
+
+  const txtSummary = document.getElementById('txtCutiDaysSummary');
+  const txtSlotsCount = document.getElementById('txtCutiSlotsCount');
+
+  if (selectedDays.length === 0) {
+    if (txtSummary) txtSummary.textContent = 'Tiada hari dipilih';
+    if (txtSlotsCount) txtSlotsCount.textContent = '0 Slot PdPC Terlibat';
+    return;
+  }
+
+  if (txtSummary) txtSummary.textContent = selectedDays.join(', ');
+
+  // Anggaran kasar slot atau pengiraan automatik
+  const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
+  const weekVal = parseInt(document.getElementById('builderSelectWeek').value, 10) || 36;
+
+  if (txtSlotsCount) txtSlotsCount.textContent = `Sedang mengira slot (${selectedDays.length} Hari)...`;
+
+  // Semak slot dari jadual bagi hari yang dipilih
+  let fetchPromises = selectedDays.map(hari => fetchBackendApi('getJadualGuruByHari', { emailGuru: emailGuru, hari: hari }));
+
+  Promise.all(fetchPromises)
+    .then(results => {
+      let totalSlots = 0;
+      results.forEach(res => {
+        let slots = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
+        totalSlots += (slots.length > 0 ? slots.length : 1);
+      });
+      if (txtSlotsCount) txtSlotsCount.textContent = `${totalSlots} Slot PdPC Terlibat`;
+    })
+    .catch(err => {
+      console.error('Ralat Mengira Slot Cuti:', err);
+      if (txtSlotsCount) txtSlotsCount.textContent = `${selectedDays.length} Hari Cuti Dipilih`;
+    });
+}
+
+/**
+ * Hantar Rekod Cuti Pukal Ke Backend
+ */
+function submitCutiFormBatch() {
+  const checkboxes = document.querySelectorAll('input[name="chkCutiHari"]:checked');
+  const selectedDays = Array.from(checkboxes).map(cb => cb.value);
+
+  if (selectedDays.length === 0) {
+    showToast('Sila pilih sekurang-kurangnya SATU hari cuti!', '⚠️');
+    return;
+  }
+
+  const sebabCuti = (document.getElementById('rphSebabCuti').value || '').trim();
+  if (!sebabCuti) {
+    showToast('Sila isi sebab / nama cuti terperinci!', '⚠️');
+    return;
+  }
+
+  if (!posterBase64Data) {
+    showToast('Sila muat naik poster cuti terlebih dahulu!', '⚠️');
+    return;
+  }
+
+  const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
+  const namaGuru  = window.currentUser ? (window.currentUser.nama || window.currentUser.Nama_Guru || window.currentUser.name || '') : '';
+  const mingguVal = document.getElementById('builderSelectWeek').value;
+
+  // Sediakan tarikh sebenar bagi setiap hari yang dipilih
+  const refWeek = 36;
+  const refMonday = new Date(2026, 9, 19);
+  const daysOrder = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
+
+  const senaraiHariData = selectedDays.map(dayStr => {
+    let dayIdx = daysOrder.indexOf(dayStr);
+    if (dayIdx === -1) dayIdx = 0;
+
+    let dayDate = new Date(refMonday);
+    let weekDiff = (parseInt(mingguVal, 10) || 36) - refWeek;
+    dayDate.setDate(refMonday.getDate() + (weekDiff * 7) + dayIdx);
+
+    let yyyy = dayDate.getFullYear();
+    let mm = String(dayDate.getMonth() + 1).padStart(2, '0');
+    let dd = String(dayDate.getDate()).padStart(2, '0');
+
+    return {
+      hari: dayStr,
+      tarikh: `${yyyy}-${mm}-${dd}`
+    };
+  });
+
+  const payload = {
+    emailGuru: emailGuru,
+    namaGuru: namaGuru,
+    minggu: mingguVal,
+    jenisCuti: document.getElementById('rphJenisCuti').value,
+    sebabCuti: sebabCuti,
+    posterBase64: posterBase64Data,
+    posterFileName: posterFileNameStr,
+    senaraiHariData: senaraiHariData
+  };
+
+  showToast('Sedang memuat naik poster & merekodkan cuti pukal...', '⏳');
+
+  fetchBackendApi('saveErphCutiBatch', payload)
+    .then(res => {
+      if (res && res.success) {
+        showToast(res.message || 'Rekod Cuti Berjaya Dihantar!', '✅');
+        
+        // Reset Borang Cuti
+        document.getElementById('rphSebabCuti').value = '';
+        document.getElementById('rphPosterFile').value = '';
+        posterBase64Data = '';
+        posterFileNameStr = '';
+        if (document.getElementById('containerPosterPreview')) {
+          document.getElementById('containerPosterPreview').classList.add('hidden');
+        }
+        checkboxes.forEach(cb => cb.checked = false);
+        updateCutiSummaryCount();
+
+        if (typeof loadGuruDashboardData === 'function') {
+          loadGuruDashboardData();
+        }
+      } else {
+        showToast('Gagal menyimpan cuti: ' + (res.error || res.message), '❌');
+      }
+    })
+    .catch(err => {
+      console.error('Ralat Simpan Cuti Batch:', err);
+      showToast('Ralat sambungan pelayan.', '❌');
+    });
+}
+
+/**
  * Peristiwa Perubahan Slot Jadual -> Auto-fill Maklumat Asas
  */
 function onBuilderSlotChange() {
@@ -288,6 +512,14 @@ function fetchKehadiranData(tarikh, kelas) {
 function validateSubmitButtonState() {
   const btnSubmit = document.getElementById('btnSubmitRph');
   if (!btnSubmit) return;
+
+  // Jika Mod Cuti Aktif, Abaikan Semakan Masa PdPC Standard
+  const chkModCuti = document.getElementById('chkModCuti');
+  if (chkModCuti && chkModCuti.checked) {
+    btnSubmit.disabled = false;
+    btnSubmit.title = '';
+    return;
+  }
 
   const sectionRefleksi = document.getElementById('sectionRefleksiWrapper');
   const isHidden = sectionRefleksi && sectionRefleksi.classList.contains('hidden');
@@ -412,9 +644,6 @@ function fetchDskpData(subjek, kelas, callback) {
     });
 }
 
-/**
- * Populasikan Dropdown Tema/Unit Sahaja Dahulu
- */
 function populateDskpDropdowns() {
   const themeSelect = document.getElementById('rphThemeSelect');
   const tajukSelect = document.getElementById('rphTajukSelect');
@@ -431,9 +660,6 @@ function populateDskpDropdowns() {
   });
 }
 
-/**
- * Kemas Kini Pilihan Dropdown Tajuk Berdasarkan Tema/Unit yang Dipilih (DROPDOWN BERKAIT)
- */
 function updateTajukDropdown(selectedTheme) {
   const tajukSelect = document.getElementById('rphTajukSelect');
   if (!tajukSelect) return;
@@ -442,7 +668,6 @@ function updateTajukDropdown(selectedTheme) {
 
   if (!selectedTheme) return;
 
-  // Tapis DSKP untuk mendapatkan Tajuk-Tajuk di bawah Tema/Unit ini sahaja
   const filteredDskp = currentDskpList.filter(item => item.tema_unit === selectedTheme);
   const tajuks = [...new Set(filteredDskp.map(item => item.tajuk).filter(Boolean))];
 
@@ -454,20 +679,12 @@ function updateTajukDropdown(selectedTheme) {
   });
 }
 
-/**
- * Peristiwa Penukaran Tema/Unit -> Populasikan Tajuk Berkaitan & Kosongkan Medan Borang
- */
 function onThemeChange() {
   const selectedTheme = document.getElementById('rphThemeSelect').value;
   updateTajukDropdown(selectedTheme);
-  
-  // Kosongkan medan DSKP sehingga Tajuk dipilih
   clearDskpFormFields();
 }
 
-/**
- * Peristiwa Penukaran Tajuk -> Lakukan Auto-fill
- */
 function onTajukChange() {
   autoFillDskpContent();
 }
@@ -481,20 +698,15 @@ function clearDskpFormFields() {
   document.getElementById('rphActEnd').value = '';
 }
 
-/**
- * Auto-fill Medan DSKP Hanya Apabila KEDUA-DUA Tema DAN Tajuk Dipilih
- */
 function autoFillDskpContent() {
   const selectedTheme = document.getElementById('rphThemeSelect').value;
   const selectedTajuk = document.getElementById('rphTajukSelect').value;
 
-  // KETAT: Mesti memilih KEDUA-DUA Tema dan Tajuk
   if (!selectedTheme || !selectedTajuk) {
     clearDskpFormFields();
     return;
   }
 
-  // Cari rekod DSKP yang sepadan secara tepat dengan Tema DAN Tajuk
   const matched = currentDskpList.find(item => 
     item.tema_unit === selectedTheme && item.tajuk === selectedTajuk
   );
@@ -580,10 +792,18 @@ function setCheckedValuesByName(name, valData) {
 }
 
 /**
- * SIMPAN DRAF ATAU HANTAR REKOD RPH
+ * SIMPAN DRAF ATAU HANTAR REKOD RPH / CUTI
  */
 function saveDraftRPH() { saveRphRecordWithStatus('Draf'); }
-function submitRphForm() { saveRphRecordWithStatus('Hantar'); }
+
+function submitRphForm() {
+  const isCuti = document.getElementById('chkModCuti') ? document.getElementById('chkModCuti').checked : false;
+  if (isCuti) {
+    submitCutiFormBatch();
+  } else {
+    saveRphRecordWithStatus('Hantar');
+  }
+}
 
 function saveRphRecordWithStatus(statusTarget) {
   if (statusTarget === 'Hantar') {
@@ -710,6 +930,13 @@ function editRphRecord(idRph) {
     setActiveTab('tabBuilder');
   }
 
+  // Pastikan Mod Cuti Dinyahaktifkan
+  const chkModCuti = document.getElementById('chkModCuti');
+  if (chkModCuti) {
+    chkModCuti.checked = false;
+    toggleModCutiView();
+  }
+
   const hiddenIdEl = document.getElementById('rphIdHidden');
   if (hiddenIdEl) hiddenIdEl.value = item.idRph;
 
@@ -723,7 +950,6 @@ function editRphRecord(idRph) {
   document.getElementById('rphSubjectSelect').value = item.subjek || '';
   document.getElementById('rphClass').value = item.kelas || '';
 
-  // Tarik DSKP Dahulu Sebelum Menetapkan Nilai Dropdown Tema/Unit & Tajuk Berkait
   fetchDskpData(item.subjek, item.kelas, () => {
     const themeSelect = document.getElementById('rphThemeSelect');
     const tajukSelect = document.getElementById('rphTajukSelect');
@@ -731,7 +957,6 @@ function editRphRecord(idRph) {
     const targetTema = item.temaUnit || '';
     const targetTajuk = item.tajuk || item.tajukBidang || '';
 
-    // 1. Tetapkan Tema/Unit
     if (themeSelect && targetTema) {
       let themeExists = Array.from(themeSelect.options).some(opt => opt.value === targetTema);
       if (!themeExists) {
@@ -743,10 +968,8 @@ function editRphRecord(idRph) {
       themeSelect.value = targetTema;
     }
 
-    // 2. Kemaskini Dropdown Tajuk Mengikut Tema Ini
     updateTajukDropdown(targetTema);
 
-    // 3. Tetapkan Tajuk
     if (tajukSelect && targetTajuk) {
       let tajukExists = Array.from(tajukSelect.options).some(opt => opt.value === targetTajuk);
       if (!tajukExists) {
@@ -801,6 +1024,12 @@ function editRphRecord(idRph) {
 function binaRphDariJadualDirect(hariTarget, subjekTarget, kelasTarget) {
   if (typeof setActiveTab === 'function') {
     setActiveTab('tabBuilder');
+  }
+
+  const chkModCuti = document.getElementById('chkModCuti');
+  if (chkModCuti) {
+    chkModCuti.checked = false;
+    toggleModCutiView();
   }
 
   resetRphFormFields();
