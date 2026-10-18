@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND MODULE
- * FAIL 4: js/builder.js (Logik Pembina e-RPH, Dropdown Berkait DSKP, Takwim, Kawalan Refleksi & Mod Cuti)
+ * FAIL 2: js/builder.js (Logik Pembina e-RPH, Dropdown Berkait DSKP, Takwim, Kawalan Refleksi & Mod Cuti)
  * ==============================================================================
  */
 
@@ -58,19 +58,23 @@ function parseTakwimDateHelperBuilder(dateStr) {
   let parts = str.split(/[\/\-]/);
 
   if (parts.length === 3) {
-    if (parts[0].length === 4) {
-      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-    }
     let p0 = parseInt(parts[0], 10);
     let p1 = parseInt(parts[1], 10);
     let p2 = parseInt(parts[2], 10);
 
-    if (p0 > 12) {
-      return new Date(p2, p1 - 1, p0);
-    } else if (p1 > 12) {
-      return new Date(p2, p0 - 1, p1);
-    } else {
-      return new Date(p2, p0 - 1, p1);
+    // Format YYYY-MM-DD
+    if (parts[0].length === 4) {
+      return new Date(p0, p1 - 1, p2);
+    }
+    // Format MM/DD/YYYY atau DD/MM/YYYY
+    if (parts[2].length === 4) {
+      if (p0 <= 12 && p1 > 12) {
+        return new Date(p2, p0 - 1, p1); // MM/DD/YYYY
+      } else if (p0 > 12 && p1 <= 12) {
+        return new Date(p2, p1 - 1, p0); // DD/MM/YYYY
+      } else {
+        return new Date(p2, p0 - 1, p1); // Lalai MM/DD/YYYY
+      }
     }
   }
 
@@ -86,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Populasikan Dropdown Minggu daripada Takwim Mingguan (Susunan Menurun)
+ * Populasikan Dropdown Minggu daripada Takwim Mingguan (Susunan Menurun & Auto Select Minggu Semasa)
  */
 function initBuilderWeekDropdown() {
   const selectWeek = document.getElementById('builderSelectWeek');
@@ -114,9 +118,10 @@ function initBuilderWeekDropdown() {
       let dTamat = parseTakwimDateHelperBuilder(t.tarikhTamat);
       if (dMula && dTamat) {
         dMula.setHours(0, 0, 0, 0);
+        dTamat.setDate(dTamat.getDate() + 2); // Tambah penimbal 2 hari untuk Sabtu & Ahad
         dTamat.setHours(23, 59, 59, 999);
         if (today >= dMula && today <= dTamat) {
-          matchedCurrentWeek = t.mingguKe;
+          matchedCurrentWeek = String(t.mingguKe);
         }
       }
     });
