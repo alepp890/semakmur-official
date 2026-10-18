@@ -1,13 +1,33 @@
 /**
  * ==============================================================================
- * SEMAKMUR OFFICIAL & E-RPH DIGITAL - AUTH GUARD (TOKEN-BASED & DIRECT-LINK PROTECTED)
+ * SEMAKMUR OFFICIAL & E-RPH DIGITAL - AUTH GUARD (PENAMBAHBAIKAN BEBAS RALAT)
  * FAIL: js/auth-guard.js
  * ==============================================================================
  */
 (function checkSessionGuard() {
   console.log("🔒 Auth Guard: Memulakan semakan sesi & token pelancaran e-RPH...");
 
-  // 1. Cari data sesi pengguna dari storan
+  // Fungsi selamat untuk memaparkan semula laman web jika disorok
+  function unhidePage() {
+    const showTarget = () => {
+      const mainBody = document.getElementById('mainBody');
+      if (mainBody) {
+        mainBody.style.display = 'flex';
+        mainBody.classList.remove('hidden');
+      }
+      if (document.body) {
+        document.body.style.display = 'block';
+        document.body.classList.remove('hidden');
+      }
+    };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', showTarget);
+    } else {
+      showTarget();
+    }
+  }
+
+  // 1. Cari data sesi pengguna daripada LocalStorage / SessionStorage
   const possibleKeys = [
     'currentUser', 'CURRENT_USER', 'SAVED_MOE_USER', 
     'user', 'USER', 'userData', 'userProfile', 'loggedUser'
@@ -51,34 +71,43 @@
     return;
   }
 
-  // 2. Semak parameter URL
+  // 2. Semak Parameter URL (launchToken & usr / email)
   const urlParams = new URLSearchParams(window.location.search);
   const launchToken = urlParams.get('launchToken');
-  const usrBase64   = urlParams.get('usr');
+  const usrParam    = urlParams.get('usr') || urlParams.get('email');
 
-  const isErphTabActive = sessionStorage.getItem('ERPH_TAB_SESSION_ACTIVE') === 'true' || localStorage.getItem('ERPH_TAB_SESSION_ACTIVE') === 'true';
+  const isErphTabActive = sessionStorage.getItem('ERPH_TAB_SESSION_ACTIVE') === 'true';
 
   // KES A: Pelancaran baharu menggunakan URL ber-token
-  if (launchToken && usrBase64) {
+  if (launchToken) {
     let urlEmail = '';
-    try {
-      // Nyahtafsir URL-Safe Base64 secara selamat
-      let base64 = usrBase64.replace(/-/g, '+').replace(/_/g, '/');
-      while (base64.length % 4) { base64 += '='; }
-      urlEmail = decodeURIComponent(atob(base64)).trim().toLowerCase();
-    } catch(e) {
-      console.error("❌ Auth Guard: Gagal dekod emel dari URL:", e);
+    if (usrParam) {
+      try {
+        // Nyahtafsir URL parameter secara selamat (Sokong Plain / Encoded / Base64)
+        let decoded = decodeURIComponent(usrParam).trim();
+        if (decoded.includes('@')) {
+          urlEmail = decoded.toLowerCase();
+        } else {
+          // Cubaan Base64 jika bukan emel terus
+          let b64 = decoded.replace(/-/g, '+').replace(/_/g, '/');
+          while (b64.length % 4) { b64 += '='; }
+          urlEmail = decodeURIComponent(atob(b64)).trim().toLowerCase();
+        }
+      } catch(e) {
+        console.warn("⚠️ Auth Guard: Penyahkodan emel fallback ke carian langsung.");
+        urlEmail = usrParam.trim().toLowerCase();
+      }
     }
 
-    // A1. Pengesahan Emel Dua Hala
-    if (!urlEmail || urlEmail !== userEmail) {
-      console.warn(`❌ Auth Guard: Emel URL [${urlEmail}] tidak sepadan dengan emel pengguna [${userEmail}].`);
+    // A1. Pengesahan Emel Dua Hala (URL vs Storage)
+    if (urlEmail && urlEmail !== userEmail) {
+      console.warn(`❌ Auth Guard: Emel URL [${urlEmail}] tidak sepadan dengan emel akaun [${userEmail}].`);
       alert('Akses Ditolak! Token pelancaran ini tidak sepadan dengan akaun anda.');
       window.location.replace('LoginSession.html');
       return;
     }
 
-    // A2. Pengesahan Masa & Ketepatan Token (30 Saat)
+    // A2. Pengesahan Masa Token (30 Saat)
     let isTokenValid = false;
     const savedTokenDataRaw = localStorage.getItem('ERPH_LAUNCH_TOKEN_DATA') || sessionStorage.getItem('ERPH_LAUNCH_TOKEN_DATA');
 
@@ -92,7 +121,7 @@
       } catch(e) {}
     }
 
-    // Fallback semakan timestamp terpasang pada string token
+    // Fallback semakan timestamp terpasang pada string token (Format: ERPH_TOK_{timestamp}_{rand})
     if (!isTokenValid && launchToken.startsWith('ERPH_TOK_')) {
       const parts = launchToken.split('_');
       if (parts.length >= 3) {
@@ -110,15 +139,16 @@
       return;
     }
 
-    // A3. Token Sah! Setkan penanda tab aktif & bersihkan token terguna
+    // A3. Token Sah! Aktifkan sesi tab & bersihkan token terguna
     sessionStorage.setItem('ERPH_TAB_SESSION_ACTIVE', 'true');
-    localStorage.setItem('ERPH_TAB_SESSION_ACTIVE', 'true');
     localStorage.removeItem('ERPH_LAUNCH_TOKEN_DATA');
     sessionStorage.removeItem('ERPH_LAUNCH_TOKEN_DATA');
 
-    // Bersihkan URL bar alamat
-    const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-    window.history.replaceState({ path: cleanUrl }, document.title, cleanUrl);
+    // Bersihkan URL bar alamat secara selamat
+    try {
+      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: cleanUrl }, document.title, cleanUrl);
+    } catch(e) {}
 
     console.log(`✅ Auth Guard: Token pelancaran disahkan untuk [${userName}]. URL dibersihkan.`);
 
@@ -130,17 +160,12 @@
     return;
   }
 
-  // 3. Penyelarasan Global Objek Sesi
+  // 3. Penyelarasan Global Objek Sesi & Paparkan Laman
   window.currentUser = user;
   localStorage.setItem('currentUser', JSON.stringify(user));
 
-  // Fallback memastikan elemen body dibuka walaupun pemuatan DOM lambat
-  document.addEventListener('DOMContentLoaded', () => {
-    const mainBody = document.getElementById('mainBody');
-    if (mainBody && mainBody.style.display === 'none') {
-      mainBody.style.display = 'flex';
-    }
-  });
+  // Buka paparan elemen body / mainBody serta-merta
+  unhidePage();
 
   console.log(`✅ Auth Guard: Sesi tab e-RPH aktif bagi [${userName}].`);
 })();
