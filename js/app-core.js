@@ -229,7 +229,7 @@ function loadTakwimAndInitDropdowns() {
 }
 
 /**
- * POPULASI DROPDOWN MINGGU SECARA MENURUN & AUTOMATIK PILIH MINGGU SEMASA
+ * POPULASI DROPDOWN MINGGU SECARA MENURUN (TANPA PAAPARAN TARIKH)
  */
 function populateWeeksDropdowns() {
   const selectGuru = document.getElementById('selectWeekGuru');
@@ -242,22 +242,20 @@ function populateWeeksDropdowns() {
   let matchedCurrentWeek = null;
 
   if (state.takwimList && state.takwimList.length > 0) {
-    // Susun secara MENURUN (Descending order)
+    // Susun secara MENURUN
     let sortedTakwim = [...state.takwimList].sort((a, b) => (parseInt(b.mingguKe, 10) || 0) - (parseInt(a.mingguKe, 10) || 0));
 
     sortedTakwim.forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.mingguKe;
-      let labelDate = (t.tarikhMula && t.tarikhTamat) ? ` (${t.tarikhMula} - ${t.tarikhTamat})` : '';
-      opt.textContent = `Minggu ${t.mingguKe}${labelDate}`;
+      // MEMBUANG TARIKH - Hanya paparkan Minggu X
+      opt.textContent = `Minggu ${t.mingguKe}`;
       selectGuru.appendChild(opt);
 
-      // Semak jika hari ini jatuh dalam julat Isnin hingga Ahad minggu berkenaan
       let dMula = parseTakwimDateHelper(t.tarikhMula);
       let dTamat = parseTakwimDateHelper(t.tarikhTamat);
       if (dMula && dTamat) {
         dMula.setHours(0, 0, 0, 0);
-        // Tambah penimbal 2 hari pada Tarikh Tamat supaya hari Sabtu & Ahad turut dikira dalam minggu semasa
         dTamat.setDate(dTamat.getDate() + 2);
         dTamat.setHours(23, 59, 59, 999);
 
@@ -286,7 +284,6 @@ function populateWeeksDropdowns() {
   const lbl = document.getElementById('lblMingguHariDashboard');
   if (lbl) lbl.textContent = `Minggu ${currentWeekVal} (Semasa)`;
 
-  // Segerakkan dropdown minggu di modul Builder dan Approval sekiranya fungsi wujud
   if (typeof initBuilderWeekDropdown === 'function') {
     initBuilderWeekDropdown();
   }
@@ -294,7 +291,55 @@ function populateWeeksDropdowns() {
     initApprovalWeekDropdown();
   }
 
+  // Kemas kini dropdown hari dengan tarikh
+  updateDashboardDayDropdown();
   loadGuruDashboardData();
+}
+
+/**
+ * KEMAS KINI DROPDOWN HARI DI DASHBOARD DENGAN FORMAT "ISNIN (DD/MM/YYYY)"
+ */
+function updateDashboardDayDropdown() {
+  const selectWeek = document.getElementById('selectWeekGuru');
+  const selectDay = document.getElementById('filterDayGuru');
+  if (!selectDay || !selectWeek) return;
+
+  const weekVal = selectWeek.value;
+  const takwim = state.takwimList || window.takwimListGlobal || [];
+  const currentTakwim = takwim.find(t => String(t.mingguKe) === String(weekVal));
+
+  let refMonday = null;
+  if (currentTakwim && currentTakwim.tarikhMula) {
+    refMonday = parseTakwimDateHelper(currentTakwim.tarikhMula);
+  }
+
+  if (!refMonday || isNaN(refMonday.getTime())) {
+    refMonday = new Date(2026, 0, 12);
+    let weekDiff = (parseInt(weekVal, 10) || 1) - 1;
+    refMonday.setDate(refMonday.getDate() + (weekDiff * 7));
+  }
+
+  const days = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
+  const currentVal = selectDay.value;
+
+  selectDay.innerHTML = '<option value="ALL">Semua Hari</option>';
+
+  days.forEach((day, idx) => {
+    let dayDate = new Date(refMonday);
+    dayDate.setDate(refMonday.getDate() + idx);
+
+    let dd = String(dayDate.getDate()).padStart(2, '0');
+    let mm = String(dayDate.getMonth() + 1).padStart(2, '0');
+    let yyyy = dayDate.getFullYear();
+    let formattedDate = `${dd}/${mm}/${yyyy}`;
+
+    const opt = document.createElement('option');
+    opt.value = day;
+    opt.textContent = `${day} (${formattedDate})`;
+    selectDay.appendChild(opt);
+  });
+
+  if (currentVal) selectDay.value = currentVal;
 }
 
 function changeWeekGuru() {
@@ -303,6 +348,7 @@ function changeWeekGuru() {
   const lbl = document.getElementById('lblMingguHariDashboard');
   if (lbl) lbl.textContent = `Minggu ${currentWeekVal}`;
 
+  updateDashboardDayDropdown();
   loadGuruDashboardData(); 
 }
 
