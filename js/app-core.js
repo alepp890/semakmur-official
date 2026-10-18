@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL 1: js/app-core.js (Logik Teras, Sesi Pengguna, Takwim, Kawalan Akses & Rekod RPH Direktori)
+ * FAIL 1: js/app-core.js (Logik Teras, Sesi Pengguna, Takwim, Kawalan Akses, Rekod RPH Direktori & Pemasa Idle 5 Minit)
  * ==============================================================================
  */
 
@@ -378,6 +378,62 @@ function changeWeekGuru() {
 function filterGuruTableByDay() { loadGuruDashboardData(); }
 
 /**
+ * LOGIK PEMBANTU: GABUNG SLOT BERTURUT-TURUT & TAPIS BM 1 WAKTU TERPISAH
+ */
+function processAndMergeJadual(dataList) {
+  if (!Array.isArray(dataList) || dataList.length === 0) return [];
+
+  // 1. Pembersihan & Susun mengikut waktu mula
+  let slots = dataList.map(s => {
+    return {
+      subjek: (s.subjek || 'Subjek').trim(),
+      kelas: (s.nama_kelas || s.kelas || 'Tiada Kelas').trim(),
+      jam_mula: cleanTimeFormatFrontend(s.jam_mula || s.masaMula),
+      jam_tamat: cleanTimeFormatFrontend(s.jam_tamat || s.masaTamat),
+      raw: s
+    };
+  }).sort((a, b) => a.jam_mula.localeCompare(b.jam_mula));
+
+  // 2. Gabungkan slot berturut-turut (Subjek + Kelas sama & Masa Tamat A === Masa Mula B)
+  let merged = [];
+  for (let slot of slots) {
+    if (merged.length > 0) {
+      let prev = merged[merged.length - 1];
+      if (prev.subjek.toLowerCase() === slot.subjek.toLowerCase() &&
+          prev.kelas.toLowerCase() === slot.kelas.toLowerCase() &&
+          prev.jam_tamat === slot.jam_mula) {
+        
+        prev.jam_tamat = slot.jam_tamat;
+        prev.waktuCount = (prev.waktuCount || 1) + 1;
+        continue;
+      }
+    }
+    slot.waktuCount = 1;
+    merged.push(slot);
+  }
+
+  // 3. Tapis subjek BM: Jika ada BM 2 waktu bersama (waktuCount >= 2), abaikan BM 1 waktu terpisah
+  const isBM = (subj) => {
+    let str = subj.toLowerCase();
+    return str === 'bm' || str === 'bahasa melayu';
+  };
+
+  const hasBmDoublePeriod = merged.some(s => isBM(s.subjek) && s.waktuCount >= 2);
+
+  if (hasBmDoublePeriod) {
+    merged = merged.filter(s => {
+      if (isBM(s.subjek) && s.waktuCount === 1) {
+        console.log("ℹ️ Abaikan 1 waktu terpisah BM sebab wujud 2 waktu bersama pada hari ini.");
+        return false;
+      }
+      return true;
+    });
+  }
+
+  return merged;
+}
+
+/**
  * TARIK JADUAL WAKTU HARI INI & TAMBAH BUTANG "+ BINA RPH"
  */
 function fetchJadualHariIni(emailGuru) {
@@ -389,16 +445,19 @@ function fetchJadualHariIni(emailGuru) {
 
   fetchBackendApi('getJadualGuruByHari', { emailGuru: emailGuru, hari: todayName })
     .then(res => {
-      const dataList = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
-      state.todayJadual = dataList;
+      const rawDataList = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
+      
+      // Proses penggabungan slot & penapisan BM 1 waktu
+      const processedList = processAndMergeJadual(rawDataList);
+      state.todayJadual = processedList;
 
-      if (Array.isArray(dataList) && dataList.length > 0) {
+      if (Array.isArray(processedList) && processedList.length > 0) {
         container.innerHTML = '';
-        dataList.forEach(slot => {
-          const mula  = cleanTimeFormatFrontend(slot.jam_mula || slot.masaMula);
-          const tamat = cleanTimeFormatFrontend(slot.jam_tamat || slot.masaTamat);
-          const kelas = slot.nama_kelas || slot.kelas || 'Tiada Kelas';
-          const subjek = slot.subjek || 'Subjek';
+        processedList.forEach(slot => {
+          const mula  = slot.jam_mula;
+          const tamat = slot.jam_tamat;
+          const kelas = slot.kelas;
+          const subjek = slot.subjek;
           const masaRange = (mula && tamat) ? `${mula} - ${tamat}` : 'Masa Jadual';
 
           const div = document.createElement('div');
