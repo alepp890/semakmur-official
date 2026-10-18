@@ -422,33 +422,39 @@
             <p class="text-xs text-slate-400 mt-1">Pilih Minggu, Tarikh & Slot Jadual untuk pengisian automatik dari DSKP.</p>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2 text-xs w-full lg:w-auto">
+          <div class="flex flex-col items-start lg:items-end gap-2 text-xs w-full lg:w-auto">
             
-            <!-- SUIS MOD CUTI -->
-            <div class="flex items-center space-x-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
-              <input type="checkbox" id="chkModCuti" onchange="toggleModCutiView()" class="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500">
-              <label for="chkModCuti" class="font-bold text-amber-900 cursor-pointer">🌴 Mod Cuti / Cuti Peristiwa</label>
+            <!-- BARIS 1: DROPDOWN MINGGU, HARI/TARIKH & SLOT JADUAL -->
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex items-center space-x-1">
+                <label class="font-bold text-slate-700">Minggu:</label>
+                <select id="builderSelectWeek" onchange="onBuilderWeekChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                </select>
+              </div>
+
+              <div id="containerDateSelect" class="flex items-center space-x-1">
+                <label class="font-bold text-slate-700">Hari/Tarikh:</label>
+                <select id="builderSelectDateDay" onchange="onBuilderDateDayChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                  <option value="">Pilih Hari...</option>
+                </select>
+              </div>
+
+              <div id="containerSlotSelect" class="flex items-center space-x-1">
+                <label class="font-bold text-slate-700">Slot Jadual:</label>
+                <select id="builderSelectSlot" onchange="onBuilderSlotChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                  <option value="">Pilih Slot...</option>
+                </select>
+              </div>
             </div>
 
-            <div class="flex items-center space-x-1">
-              <label class="font-bold text-slate-700">Minggu:</label>
-              <select id="builderSelectWeek" onchange="onBuilderWeekChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
-              </select>
+            <!-- BARIS 2: SUIS MOD CUTI (DILETAKKAN DI BAHAGIAN BAWAH DROPDOWN) -->
+            <div class="flex items-center space-x-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg w-full sm:w-auto justify-between sm:justify-start">
+              <label for="chkModCuti" class="font-bold text-amber-900 cursor-pointer flex items-center space-x-2">
+                <input type="checkbox" id="chkModCuti" onchange="toggleModCutiView()" class="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500">
+                <span>🌴 Mod Cuti / Cuti Peristiwa</span>
+              </label>
             </div>
 
-            <div id="containerDateSelect" class="flex items-center space-x-1">
-              <label class="font-bold text-slate-700">Hari/Tarikh:</label>
-              <select id="builderSelectDateDay" onchange="onBuilderDateDayChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
-                <option value="">Pilih Hari...</option>
-              </select>
-            </div>
-
-            <div id="containerSlotSelect" class="flex items-center space-x-1">
-              <label class="font-bold text-slate-700">Slot Jadual:</label>
-              <select id="builderSelectSlot" onchange="onBuilderSlotChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
-                <option value="">Pilih Slot...</option>
-              </select>
-            </div>
           </div>
         </div>
 
