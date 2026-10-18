@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND MODULE
- * FAIL: js/builder.js (Logik Pembina e-RPH, Penukaran Kod Subjek & Kawalan Refleksi)
+ * FAIL: js/builder.js (Logik Pembina e-RPH, Dropdown Berkait DSKP & Kawalan Refleksi)
  * ==============================================================================
  */
 
@@ -292,7 +292,6 @@ function validateSubmitButtonState() {
   const sectionRefleksi = document.getElementById('sectionRefleksiWrapper');
   const isHidden = sectionRefleksi && sectionRefleksi.classList.contains('hidden');
 
-  // Jika Seksyen Refleksi disorokkan (Waktu PdPC belum tamat) -> Disables Butang Hantar
   if (isHidden) {
     btnSubmit.disabled = true;
     btnSubmit.title = "Butang Hantar dikunci kerana waktu PdPC belum tamat untuk melengkapkan refleksi.";
@@ -362,14 +361,12 @@ function checkPdpcTimeAndFreeze(masaTamatStr) {
     if (banner) banner.className = 'p-3 bg-amber-100 border border-amber-300 rounded-xl flex items-center justify-between text-amber-900 font-semibold text-xs';
     if (msgTxt) msgTxt.innerHTML = '🔒 Masa PdPC slot ini (' + masaTamatStr + ') belum tamat. Seksyen Refleksi disorokkan. Anda hanya boleh menyimpan Draf.';
     
-    // MENYOROKKAN SEKSYEN REFLEKSI
     if (sectionRefleksi) sectionRefleksi.classList.add('hidden');
     if (capaiInput) capaiInput.disabled = true;
   } else {
     if (banner) banner.className = 'p-3 bg-emerald-100 border border-emerald-300 rounded-xl flex items-center justify-between text-emerald-900 font-semibold text-xs';
     if (msgTxt) msgTxt.innerHTML = '🔓 Waktu PdPC telah tamat (' + masaTamatStr + '). Sila lengkapkan refleksi untuk menghantar RPH.';
     
-    // MEMAPARKAN SEKSYEN REFLEKSI
     if (sectionRefleksi) sectionRefleksi.classList.remove('hidden');
     if (capaiInput) {
       capaiInput.disabled = false;
@@ -381,7 +378,7 @@ function checkPdpcTimeAndFreeze(masaTamatStr) {
 }
 
 /**
- * Tarik Data DSKP dan Populasikan Dropdown Tema / Tajuk
+ * Tarik Data DSKP dan Populasikan Dropdown Tema
  */
 function fetchDskpData(subjek, kelas, callback) {
   const badge = document.getElementById('dskpStatusBadge');
@@ -415,6 +412,9 @@ function fetchDskpData(subjek, kelas, callback) {
     });
 }
 
+/**
+ * Populasikan Dropdown Tema/Unit Sahaja Dahulu
+ */
 function populateDskpDropdowns() {
   const themeSelect = document.getElementById('rphThemeSelect');
   const tajukSelect = document.getElementById('rphTajukSelect');
@@ -429,26 +429,74 @@ function populateDskpDropdowns() {
     opt.textContent = t;
     if (themeSelect) themeSelect.appendChild(opt);
   });
+}
 
-  const tajuks = [...new Set(currentDskpList.map(item => item.tajuk).filter(Boolean))];
+/**
+ * Kemas Kini Pilihan Dropdown Tajuk Berdasarkan Tema/Unit yang Dipilih (DROPDOWN BERKAIT)
+ */
+function updateTajukDropdown(selectedTheme) {
+  const tajukSelect = document.getElementById('rphTajukSelect');
+  if (!tajukSelect) return;
+
+  tajukSelect.innerHTML = '<option value="">-- Pilih Tajuk --</option>';
+
+  if (!selectedTheme) return;
+
+  // Tapis DSKP untuk mendapatkan Tajuk-Tajuk di bawah Tema/Unit ini sahaja
+  const filteredDskp = currentDskpList.filter(item => item.tema_unit === selectedTheme);
+  const tajuks = [...new Set(filteredDskp.map(item => item.tajuk).filter(Boolean))];
+
   tajuks.forEach(t => {
     const opt = document.createElement('option');
     opt.value = t;
     opt.textContent = t;
-    if (tajukSelect) tajukSelect.appendChild(opt);
+    tajukSelect.appendChild(opt);
   });
 }
 
-function onThemeChange() { autoFillDskpContent(); }
-function onTajukChange() { autoFillDskpContent(); }
+/**
+ * Peristiwa Penukaran Tema/Unit -> Populasikan Tajuk Berkaitan & Kosongkan Medan Borang
+ */
+function onThemeChange() {
+  const selectedTheme = document.getElementById('rphThemeSelect').value;
+  updateTajukDropdown(selectedTheme);
+  
+  // Kosongkan medan DSKP sehingga Tajuk dipilih
+  clearDskpFormFields();
+}
 
+/**
+ * Peristiwa Penukaran Tajuk -> Lakukan Auto-fill
+ */
+function onTajukChange() {
+  autoFillDskpContent();
+}
+
+function clearDskpFormFields() {
+  document.getElementById('rphSP').value = '';
+  document.getElementById('rphOP').value = '';
+  document.getElementById('rphKK').value = '';
+  document.getElementById('rphActStart').value = '';
+  document.getElementById('rphActMain').value = '';
+  document.getElementById('rphActEnd').value = '';
+}
+
+/**
+ * Auto-fill Medan DSKP Hanya Apabila KEDUA-DUA Tema DAN Tajuk Dipilih
+ */
 function autoFillDskpContent() {
   const selectedTheme = document.getElementById('rphThemeSelect').value;
   const selectedTajuk = document.getElementById('rphTajukSelect').value;
 
+  // KETAT: Mesti memilih KEDUA-DUA Tema dan Tajuk
+  if (!selectedTheme || !selectedTajuk) {
+    clearDskpFormFields();
+    return;
+  }
+
+  // Cari rekod DSKP yang sepadan secara tepat dengan Tema DAN Tajuk
   const matched = currentDskpList.find(item => 
-    (!selectedTheme || item.tema_unit === selectedTheme) &&
-    (!selectedTajuk || item.tajuk === selectedTajuk)
+    item.tema_unit === selectedTheme && item.tajuk === selectedTajuk
   );
 
   if (matched) {
@@ -458,6 +506,8 @@ function autoFillDskpContent() {
     document.getElementById('rphActStart').value = matched.set_induksi || '';
     document.getElementById('rphActMain').value  = matched.aktiviti || '';
     document.getElementById('rphActEnd').value   = matched.rumusan || '';
+  } else {
+    clearDskpFormFields();
   }
 }
 
@@ -536,7 +586,6 @@ function saveDraftRPH() { saveRphRecordWithStatus('Draf'); }
 function submitRphForm() { saveRphRecordWithStatus('Hantar'); }
 
 function saveRphRecordWithStatus(statusTarget) {
-  // SEMAKAN MANDATORI SEBELUM MENGHANTAR RPH
   if (statusTarget === 'Hantar') {
     const sectionRefleksi = document.getElementById('sectionRefleksiWrapper');
     if (sectionRefleksi && sectionRefleksi.classList.contains('hidden')) {
@@ -632,12 +681,7 @@ function resetRphFormFields() {
   document.getElementById('rphClass').value = '';
   document.getElementById('rphThemeSelect').innerHTML = '<option value="">-- Pilih Tema / Unit --</option>';
   document.getElementById('rphTajukSelect').innerHTML = '<option value="">-- Pilih Tajuk --</option>';
-  document.getElementById('rphSP').value = '';
-  document.getElementById('rphOP').value = '';
-  document.getElementById('rphKK').value = '';
-  document.getElementById('rphActStart').value = '';
-  document.getElementById('rphActMain').value = '';
-  document.getElementById('rphActEnd').value = '';
+  clearDskpFormFields();
   document.getElementById('rphKehadiranDisplay').value = '0 / 0 orang murid';
   document.getElementById('rphCapaiCount').value = '0';
   document.getElementById('rphReflectNote').value = '';
@@ -679,6 +723,7 @@ function editRphRecord(idRph) {
   document.getElementById('rphSubjectSelect').value = item.subjek || '';
   document.getElementById('rphClass').value = item.kelas || '';
 
+  // Tarik DSKP Dahulu Sebelum Menetapkan Nilai Dropdown Tema/Unit & Tajuk Berkait
   fetchDskpData(item.subjek, item.kelas, () => {
     const themeSelect = document.getElementById('rphThemeSelect');
     const tajukSelect = document.getElementById('rphTajukSelect');
@@ -686,6 +731,7 @@ function editRphRecord(idRph) {
     const targetTema = item.temaUnit || '';
     const targetTajuk = item.tajuk || item.tajukBidang || '';
 
+    // 1. Tetapkan Tema/Unit
     if (themeSelect && targetTema) {
       let themeExists = Array.from(themeSelect.options).some(opt => opt.value === targetTema);
       if (!themeExists) {
@@ -697,6 +743,10 @@ function editRphRecord(idRph) {
       themeSelect.value = targetTema;
     }
 
+    // 2. Kemaskini Dropdown Tajuk Mengikut Tema Ini
+    updateTajukDropdown(targetTema);
+
+    // 3. Tetapkan Tajuk
     if (tajukSelect && targetTajuk) {
       let tajukExists = Array.from(tajukSelect.options).some(opt => opt.value === targetTajuk);
       if (!tajukExists) {
