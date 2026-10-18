@@ -1,857 +1,858 @@
-<!DOCTYPE html>
-<html lang="ms" class="h-full">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Guru SeMAKMUR - Portal Rasmi Sekolah</title>
+/**
+ * ==============================================================================
+ * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
+ * FAIL 1: js/app-core.js (Logik Teras, Sesi Pengguna, Takwim, Kawalan Akses & Rekod RPH Direktori)
+ * ==============================================================================
+ */
 
-    <!-- Google Fonts: Inter / Plus Jakarta Sans -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+const SUBJECT_MAP = {
+  'BM': 'Bahasa Melayu',
+  'BI': 'Bahasa Inggeris',
+  'MT': 'Matematik',
+  'SN': 'Sains',
+  'BA': 'Bahasa Arab',
+  'PMZ': 'Pendidikan Muzik',
+  'PSV': 'Pendidikan Seni Visual',
+  'PI/Q': 'Pendidikan Islam',
+  'PI/U': 'Pendidikan Islam',
+  'RBT': 'Reka Bentuk dan Teknologi',
+  'PJ': 'Pendidikan Jasmani',
+  'PK': 'Pendidikan Kesihatan'
+};
 
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+const state = {
+  currentUserRole: 'guru',
+  activeTab: 'tabDashboard',
+  currentUser: null,
+  currentRphId: null,
+  todayJadual: [],
+  allUserJadual: [],
+  dskpList: [],
+  rphList: [],
+  takwimList: [],
+  activeModalRphId: null,
+  currentStarRating: 5
+};
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+/**
+ * ==============================================================================
+ * KAWALAN PEMASA IDLE 5 MINIT TERASING (ISOLATED TAB TIMEOUT)
+ * ==============================================================================
+ */
+let idleTimer = null;
+const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 Minit (300,000 ms)
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { 
-                        tealTheme: '#1f7a9c',
-                        tealDark: '#175d78',
-                        tealLight: '#2ca2cd',
-                        tealBg: '#eef6f9',
-                        cardBg: '#ffffff',
-                        sidebarBg: '#1a6485'
-                    },
-                    fontFamily: { 
-                        sans: ['Plus Jakarta Sans', 'sans-serif'] 
-                    }
-                }
-            }
-        }
-    </script>
+function resetIdleTimer() {
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(onIdleTimeout, IDLE_TIMEOUT_MS);
+}
 
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            background-color: #EEF6F9;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            color: #2D3748;
-        }
+function onIdleTimeout() {
+  console.warn("⚠️ Pemasa Idle: Tiada aktiviti dikesan selama 5 minit.");
+  sessionStorage.removeItem('ERPH_TAB_SESSION_ACTIVE');
+  alert('Sesi e-RPH telah tamat masa akibat tiada aktiviti selama 5 minit. Sila log masuk semula.');
+  window.location.replace('LoginSession.html');
+}
 
-        .card-coligo {
-            background: #FFFFFF;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
-            border: 1px solid #E2E8F0;
-        }
+function initIdleTimeoutMonitor() {
+  const activityEvents = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+  activityEvents.forEach(evt => {
+    window.addEventListener(evt, resetIdleTimer, { passive: true });
+  });
+  resetIdleTimer();
+  console.log("⏳ Pemasa Idle 5 Minit diaktifkan untuk tab e-RPH.");
+}
 
-        /* Circular Progress Ring Styling */
-        .circle-chart {
-            width: 88px;
-            height: 88px;
-        }
-        .circle-chart__circle {
-            animation: circle-chart-fill 1.2s ease-in-out forwards;
-            transform: rotate(-90deg);
-            transform-origin: center;
-        }
-        @keyframes circle-chart-fill {
-            0% { stroke-dasharray: 0 100; }
-        }
+/**
+ * FUNGSI UTAMA PENGHUBUNG BACKEND API
+ */
+async function fetchBackendApi(action, payloadData = {}) {
+  const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL)
+    ? WEB_APP_URL
+    : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
 
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  const payload = {
+    action: action,
+    data: payloadData,
+    payload: payloadData
+  };
 
-        .loader-ring {
-            display: inline-block;
-            position: relative;
-            width: 44px;
-            height: 44px;
-        }
-        .loader-ring div {
-            box-sizing: border-box;
-            display: block;
-            position: absolute;
-            width: 34px;
-            height: 34px;
-            margin: 5px;
-            border: 3.5px solid #1f7a9c;
-            border-radius: 50%;
-            animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-            border-color: #1f7a9c transparent transparent transparent;
-        }
-        @keyframes loader-ring {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body class="bg-[#eef6f9] text-slate-800 h-full flex overflow-hidden antialiased">
+  const response = await fetch(targetUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload),
+    redirect: 'follow'
+  });
 
-    <!-- GLOBAL LOADER -->
-    <div id="global-loader" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-[9999] flex flex-col items-center justify-center transition-all duration-200">
-        <div class="loader-ring mb-3"><div></div><div></div><div></div></div>
-        <p class="text-white font-bold text-sm tracking-wide" id="loader-text">Memuatkan Dashboard...</p>
-    </div>
+  if (!response.ok) throw new Error('Ralat Pelayan HTTP ' + response.status);
+  return await response.json();
+}
 
-    <!-- 1. SIDEBAR KIRI (GAYA COLIGO TEAL GRADIENT) -->
-    <aside id="sidebar-container" class="w-64 bg-gradient-to-b from-[#1b587a] via-[#1e6f96] to-[#2284b0] text-white flex flex-col justify-between shrink-0 h-full z-30 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-200 shadow-lg">
-        <div>
-            <!-- LOGO HEADER COLIGO STYLE -->
-            <div class="h-20 flex items-center px-6 border-b border-white/10 gap-3">
-                <div class="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center font-extrabold text-xl text-white border border-white/20 shadow-xs">
-                    🎓
-                </div>
-                <div>
-                    <h1 class="font-extrabold text-xl text-white tracking-tight leading-none">SeMAKMUR</h1>
-                    <p class="text-[10px] text-teal-100 font-medium tracking-wider uppercase mt-1">Portal Guru v2.0</p>
-                </div>
-            </div>
+/**
+ * PEMBANTU FORMAT MASA FRONTEND (PEMBERSIHAN ISO 1899)
+ */
+function cleanTimeFormatFrontend(str) {
+  if (!str) return '';
+  let timeStr = String(str).trim();
+  if (timeStr.includes('1899-12-30') || (timeStr.includes('T') && timeStr.includes('Z'))) {
+    try {
+      let d = new Date(timeStr);
+      if (!isNaN(d.getTime())) {
+        let h = d.getHours();
+        let m = d.getMinutes();
+        let hh = h < 10 ? '0' + h : h;
+        let mm = m < 10 ? '0' + m : m;
+        return hh + ':' + mm;
+      }
+    } catch(e) {}
+  }
+  return timeStr;
+}
 
-            <!-- PROFIL GURU RINGKAS SIDEBAR -->
-            <div class="p-4 mx-3 my-3 bg-white/10 rounded-xl border border-white/15 backdrop-blur-xs flex items-center gap-3">
-                <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Avatar Guru" class="w-11 h-11 rounded-full object-cover border-2 border-white/80 shadow-xs shrink-0">
-                <div class="overflow-hidden">
-                    <h2 id="user-display-name" class="font-bold text-xs text-white truncate">Nama Guru</h2>
-                    <p id="user-email-display" class="text-[11px] text-teal-100 truncate">guru@moe-dl.edu.my</p>
-                    <span id="class-badge-text" class="inline-block px-1.5 py-0.5 mt-1 text-[10px] bg-amber-400 text-slate-900 font-bold rounded">
-                        1 IRIS
-                    </span>
-                </div>
-            </div>
+/**
+ * PEMBANTU NYAHTAFSIR TARIKH TAKWIM (SOKONGAN US MM/DD/YYYY & ISO)
+ */
+function parseTakwimDateHelper(dateStr) {
+  if (!dateStr) return null;
+  let str = String(dateStr).trim();
+  let parts = str.split(/[\/\-]/);
 
-            <!-- NAVIGASI MENU UTAMA -->
-            <nav class="px-3 space-y-1.5 mt-2">
-                <button onclick="switchMainMenu('laman_utama')" id="nav-laman_utama" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-white text-[#1b6287] shadow-sm">
-                    <svg class="w-5 h-5 text-[#1b6287]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                    <span>Dashboard</span>
-                </button>
+  if (parts.length === 3) {
+    let p0 = parseInt(parts[0], 10);
+    let p1 = parseInt(parts[1], 10);
+    let p2 = parseInt(parts[2], 10);
 
-                <button onclick="switchMainMenu('pengurusan_kelas')" id="nav-pengurusan_kelas" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    <span>Pengurusan Kelas</span>
-                </button>
-
-                <button onclick="switchMainMenu('tugasan_guru')" id="nav-tugasan_guru" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    <span>Jadual & Tugasan</span>
-                </button>
-
-                <button onclick="bukaErphModule()" id="nav-kurikulum" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                    <span>Kurikulum & e-RPH</span>
-                </button>
-
-                <button onclick="switchMainMenu('pentadbiran')" id="nav-pentadbiran" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    <span>Prestasi & Laporan</span>
-                </button>
-
-                <button onclick="switchMainMenu('hem')" id="nav-hem" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5 4.359h1.612l4.223 12.067H9.22l-1.503-4.298H4.622L3.118 16.426H1.5L5.723 4.359z"></path></svg>
-                    <span>Pengumuman & HEM</span>
-                </button>
-            </nav>
-        </div>
-
-        <div class="p-4 border-t border-white/10 flex items-center justify-between text-xs text-teal-100">
-            <span>SK SeMAKMUR © 2026</span>
-            <button onclick="handleLogout()" class="text-white hover:text-red-300 transition font-bold">
-                Log Keluar
-            </button>
-        </div>
-    </aside>
-
-    <!-- 2. AREA KANDUNGAN UTAMA (HEADER + CONTENT) -->
-    <div class="flex-1 flex flex-col h-full overflow-hidden">
-        
-        <!-- HEADER ATAS COLIGO STYLE -->
-        <header class="h-20 bg-white border-b border-slate-200 shrink-0 flex items-center justify-between px-6 z-20">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleMobileSidebar()" class="md:hidden p-2 text-slate-600 hover:text-slate-900">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
-                <h1 class="text-xl sm:text-2xl font-extrabold text-slate-800 tracking-tight" id="header-greeting">
-                    Selamat Datang <span id="header-user-name" class="text-[#1f7a9c]">Cikgu</span>,
-                </h1>
-            </div>
-
-            <!-- CARIAN & BUTANG NOTIFIKASI -->
-            <div class="flex items-center gap-4">
-                <div class="relative hidden sm:block">
-                    <input type="text" placeholder="Carian sistem..." class="w-48 lg:w-64 pl-9 pr-4 py-1.5 text-xs rounded-full bg-slate-100 border border-slate-200 focus:outline-none focus:border-[#1f7a9c] transition">
-                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
-
-                <!-- NOTIFIKASI BELL -->
-                <button class="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition">
-                    <svg class="w-5 h-5 text-[#1f7a9c]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                </button>
-
-                <!-- MESEJ ICON -->
-                <button class="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition">
-                    <svg class="w-5 h-5 text-[#1f7a9c]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                </button>
-
-                <a href="index.html?mode=portal" class="p-1 rounded-full hover:bg-slate-100 border border-slate-200" title="Ke Portal Utama">
-                    <img id="header-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" class="w-8 h-8 rounded-full object-cover">
-                </a>
-            </div>
-        </header>
-
-        <!-- KANDUNGAN DASHBOARD UTAMA (GRID 2 KOLUM: UTAMA + PANEL KANAN) -->
-        <main class="flex-1 overflow-y-auto p-5 space-y-5">
-
-            <!-- LOKASI BREADCRUMB TEKS -->
-            <div class="flex items-center justify-between text-xs font-semibold text-slate-500 pb-1 border-b border-slate-200">
-                <div>
-                    <span>Lokasi: </span>
-                    <span id="breadcrumb-text" class="text-[#1f7a9c] font-bold">Dashboard / Laman Utama</span>
-                </div>
-                <button onclick="toggleRightPanel()" id="btn-toggle-right" class="text-xs text-[#1f7a9c] font-bold hover:underline">
-                    <span id="toggle-right-text">Sorok Panel Kanan</span>
-                </button>
-            </div>
-
-            <!-- SUB-TABS BAR -->
-            <div id="sub-tabs-container" class="card-coligo p-2 bg-white hidden">
-                <div id="sub-tabs-bar" class="flex flex-wrap gap-2 text-xs">
-                    <!-- Sub-tabs janaan JS -->
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                
-                <!-- KOLUM KIRI UTAMA (SPAN 8) -->
-                <div class="lg:col-span-8 space-y-5" id="main-left-column">
-
-                    <!-- KAD PAUTAN E-RPH DIGITAL (BERADA DALAM KOLUM KIRI) -->
-                    <div onclick="bukaErphModule()" class="cursor-pointer bg-gradient-to-r from-teal-700 via-teal-800 to-emerald-800 text-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all group flex flex-col justify-between relative overflow-hidden">
-                        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
-                        <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-11 h-11 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-xl text-teal-100 group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-book-open"></i>
-                                </div>
-                                <span class="px-3 py-1 bg-emerald-400/20 border border-emerald-300/30 text-emerald-200 text-xs font-extrabold rounded-full tracking-wide">Aplikasi Rasmi</span>
-                            </div>
-                            <h3 class="font-extrabold text-white text-lg group-hover:text-teal-200 transition-colors">Modul e-RPH Digital</h3>
-                            <p class="text-xs text-teal-100/80 mt-1 leading-relaxed">Akses pantas bagi penyediaan, penyemakan draf harian, dan rekod Rancangan Pengajaran Harian.</p>
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-white/15 flex items-center justify-between text-xs font-bold text-teal-200">
-                            <span>Buka Modul e-RPH Guru</span>
-                            <i class="fa-solid fa-arrow-right group-hover:translate-x-1.5 transition-transform"></i>
-                        </div>
-                    </div>
-
-                    <!-- CARD 1: KEMAJUAN KELAS / COURSES PROGRESS -->
-                    <div id="courses-progress-card" class="card-coligo p-5">
-                        <div class="flex items-center justify-between mb-1">
-                            <h2 class="font-extrabold text-base text-slate-800">Kemajuan PdPc & e-RPH Kelas</h2>
-                            <div class="flex items-center gap-1 text-slate-400">
-                                <button class="p-1 hover:text-slate-700 transition">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                                </button>
-                                <button class="p-1 hover:text-slate-700 transition">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                </button>
-                            </div>
-                        </div>
-                        <p class="text-xs text-slate-400 font-medium italic mb-5">Analisis peratusan melengkapkan e-RPH & modul subjek mengikut kelas</p>
-
-                        <!-- 4 CIRCULAR GAUGES -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                            <!-- Gauge 1 -->
-                            <div class="flex flex-col items-center">
-                                <div class="relative w-20 h-20 mb-2">
-                                    <svg class="circle-chart" viewBox="0 0 33.83098862 33.83098862">
-                                        <circle stroke="#E2E8F0" stroke-width="3" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                        <circle class="circle-chart__circle" stroke="#1f7a9c" stroke-width="3.2" stroke-dasharray="85,100" stroke-linecap="round" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                    </svg>
-                                    <span class="absolute inset-0 flex items-center justify-center font-extrabold text-sm text-[#1f7a9c]">85%</span>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800">Bahasa Melayu 1I</h3>
-                                <p class="text-[11px] text-slate-400">35 Murid</p>
-                            </div>
-
-                            <!-- Gauge 2 -->
-                            <div class="flex flex-col items-center">
-                                <div class="relative w-20 h-20 mb-2">
-                                    <svg class="circle-chart" viewBox="0 0 33.83098862 33.83098862">
-                                        <circle stroke="#E2E8F0" stroke-width="3" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                        <circle class="circle-chart__circle" stroke="#1f7a9c" stroke-width="3.2" stroke-dasharray="60,100" stroke-linecap="round" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                    </svg>
-                                    <span class="absolute inset-0 flex items-center justify-center font-extrabold text-sm text-[#1f7a9c]">60%</span>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800">Sejarah 2R</h3>
-                                <p class="text-[11px] text-slate-400">32 Murid</p>
-                            </div>
-
-                            <!-- Gauge 3 -->
-                            <div class="flex flex-col items-center">
-                                <div class="relative w-20 h-20 mb-2">
-                                    <svg class="circle-chart" viewBox="0 0 33.83098862 33.83098862">
-                                        <circle stroke="#E2E8F0" stroke-width="3" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                        <circle class="circle-chart__circle" stroke="#1f7a9c" stroke-width="3.2" stroke-dasharray="45,100" stroke-linecap="round" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                    </svg>
-                                    <span class="absolute inset-0 flex items-center justify-center font-extrabold text-sm text-[#1f7a9c]">45%</span>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800">Bahasa Melayu 3D</h3>
-                                <p class="text-[11px] text-slate-400">30 Murid</p>
-                            </div>
-
-                            <!-- Gauge 4 -->
-                            <div class="flex flex-col items-center">
-                                <div class="relative w-20 h-20 mb-2">
-                                    <svg class="circle-chart" viewBox="0 0 33.83098862 33.83098862">
-                                        <circle stroke="#E2E8F0" stroke-width="3" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                        <circle class="circle-chart__circle" stroke="#1f7a9c" stroke-width="3.2" stroke-dasharray="30,100" stroke-linecap="round" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                    </svg>
-                                    <span class="absolute inset-0 flex items-center justify-center font-extrabold text-sm text-[#1f7a9c]">30%</span>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800">Sejarah 4M</h3>
-                                <p class="text-[11px] text-slate-400">28 Murid</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CARD 2: TUGASAN & STATUS PENGHANTARAN -->
-                    <div class="card-coligo p-5">
-                        <div class="flex items-center justify-between mb-1">
-                            <div>
-                                <h2 class="font-extrabold text-base text-slate-800">Semakan Tugasan & e-RPH</h2>
-                                <p class="text-xs text-slate-400 font-medium italic">Status penghantaran buku latihan & rekod mengajar minggu ini</p>
-                            </div>
-                            <select class="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 text-slate-700 font-semibold focus:outline-none">
-                                <option>Semua Kelas</option>
-                                <option>1 IRIS</option>
-                                <option>2 ROS</option>
-                            </select>
-                        </div>
-
-                        <!-- JADUAL TUGASAN STATUS -->
-                        <div class="overflow-x-auto mt-4">
-                            <table class="w-full text-left text-xs">
-                                <thead>
-                                    <tr class="text-slate-400 border-b border-slate-200 uppercase tracking-wider font-semibold">
-                                        <th class="pb-3 font-semibold">Subjek | Topik</th>
-                                        <th class="pb-3 font-semibold">Tarikh Akhir</th>
-                                        <th class="pb-3 font-semibold">Kadar Hantar</th>
-                                        <th class="pb-3 font-semibold">Status</th>
-                                        <th class="pb-3 text-right font-semibold">Tindakan</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 font-medium">
-                                    <tr>
-                                        <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
-                                            <span class="p-1.5 bg-teal-50 text-[#1f7a9c] rounded-md">📋</span>
-                                            Bahasa Melayu 1I | Latihan Karangan Pendek
-                                        </td>
-                                        <td class="py-3.5 text-slate-500">20 Okt 2026</td>
-                                        <td class="py-3.5 font-bold text-slate-800">85 %</td>
-                                        <td class="py-3.5">
-                                            <span class="text-amber-600 italic font-semibold">Menunggu Penghantaran</span>
-                                        </td>
-                                        <td class="py-3.5 text-right text-slate-400">⋮</td>
-                                    </tr>
-
-                                    <tr>
-                                        <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
-                                            <span class="p-1.5 bg-amber-50 text-amber-600 rounded-md">⏳</span>
-                                            Sejarah 2R | Bab 3 Kesultanan Melayu
-                                        </td>
-                                        <td class="py-3.5 text-slate-500">18 Okt 2026</td>
-                                        <td class="py-3.5 font-bold text-slate-800">98 %</td>
-                                        <td class="py-3.5">
-                                            <span class="text-amber-500 italic font-semibold">Sedia untuk disemak</span>
-                                        </td>
-                                        <td class="py-3.5 text-right text-slate-400">⋮</td>
-                                    </tr>
-
-                                    <tr>
-                                        <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
-                                            <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-md">✓</span>
-                                            Bahasa Melayu 3D | E-RPH Minggu 38
-                                        </td>
-                                        <td class="py-3.5 text-slate-500">16 Okt 2026</td>
-                                        <td class="py-3.5 font-bold text-slate-800">100 %</td>
-                                        <td class="py-3.5">
-                                            <span class="text-emerald-600 italic font-semibold">Disahkan Pentadbir!</span>
-                                        </td>
-                                        <td class="py-3.5 text-right text-slate-400">⋮</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- SENARAI MURID VIEW -->
-                    <div id="students-table-view" class="card-coligo p-5 hidden">
-                        <div class="flex items-center justify-between mb-4">
-                            <h2 class="font-extrabold text-base text-slate-800" id="students-card-title">Senarai Murid Kelas</h2>
-                            <button onclick="fetchClassStudentsRealData()" class="px-3 py-1.5 bg-[#1f7a9c] hover:bg-[#175d78] text-white font-bold text-xs rounded-lg transition">
-                                🔄 Kemaskini
-                            </button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                                        <th class="p-3 w-12 text-center">Bil</th>
-                                        <th class="p-3">Nama Murid</th>
-                                        <th class="p-3">ID DELIMa / E-Mel</th>
-                                        <th class="p-3 text-center">Jantina</th>
-                                        <th class="p-3 text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="students-table-body" class="divide-y divide-slate-100 font-medium">
-                                    <tr>
-                                        <td colspan="5" class="p-4 text-center text-slate-400 italic">
-                                            Sedang menarik data murid...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- KOLUM KANAN (SPAN 4) -->
-                <aside class="lg:col-span-4 space-y-5 shrink-0" id="right-panel">
-
-                    <!-- CARD 1: TODAY SCHEDULE -->
-                    <div class="card-coligo p-5">
-                        <div class="mb-4">
-                            <h2 class="font-extrabold text-base text-slate-800">Jadual Hari Ini</h2>
-                            <p class="text-xs text-slate-400 font-medium italic">Sesi waktu mengajar yang dijadualkan</p>
-                        </div>
-
-                        <div class="space-y-4">
-                            <!-- Slot 1 -->
-                            <div class="flex items-start gap-3">
-                                <div class="p-2 bg-teal-50 text-[#1f7a9c] rounded-full shrink-0 mt-0.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </div>
-                                <div class="space-y-0.5">
-                                    <h3 class="font-bold text-xs text-slate-800">Masa 3 | 10:45 AM - 11:30 AM</h3>
-                                    <p class="text-xs text-slate-600"><span class="font-semibold text-[#1f7a9c]">Subjek:</span> Bahasa Melayu</p>
-                                    <p class="text-xs text-slate-600"><span class="font-semibold text-slate-500">Topik:</span> Tatabahasa & Kata Kerja</p>
-                                    <p class="text-[11px] text-slate-400">Tempat: Kelas 1 IRIS</p>
-                                </div>
-                            </div>
-
-                            <hr class="border-slate-100">
-
-                            <!-- Slot 2 -->
-                            <div class="flex items-start gap-3">
-                                <div class="p-2 bg-teal-50 text-[#1f7a9c] rounded-full shrink-0 mt-0.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </div>
-                                <div class="space-y-0.5">
-                                    <h3 class="font-bold text-xs text-slate-800">Masa 5 | 12:00 PM - 12:45 PM</h3>
-                                    <p class="text-xs text-slate-600"><span class="font-semibold text-[#1f7a9c]">Subjek:</span> Sejarah</p>
-                                    <p class="text-xs text-slate-600"><span class="font-semibold text-slate-500">Topik:</span> Bab 3 Kesultanan Melayu</p>
-                                    <p class="text-[11px] text-slate-400">Tempat: Kelas 2 ROS</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 pt-3 border-t border-slate-100 text-center">
-                            <p class="text-xs text-slate-400 font-medium italic">Sesi P&P tamat jam 1:30 PM :) Selamat mengajar!</p>
-                        </div>
-                    </div>
-
-                    <!-- CARD 2: PENGUMUMAN TERKINI -->
-                    <div class="card-coligo p-5">
-                        <div class="flex items-center justify-between mb-3">
-                            <h2 class="font-extrabold text-base text-slate-800">Pengumuman Sekolah</h2>
-                            <button class="text-xs font-bold text-[#1f7a9c] hover:underline">+ Baru</button>
-                        </div>
-
-                        <div class="space-y-3">
-                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                                <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
-                                    <span>PENTADBIRAN</span>
-                                    <span class="text-slate-400 font-normal">15 Okt 2026</span>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800 mb-0.5">Mesyuarat Kurikulum Bil 3/2026</h3>
-                                <p class="text-xs text-slate-600">Jam 2.00 petang di Bilik Gerakan sekolah.</p>
-                            </div>
-
-                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                                <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
-                                    <span>HEM</span>
-                                    <span class="text-slate-400 font-normal">12 Okt 2026</span>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800 mb-0.5">Pengesahan Kehadiran Murid</h3>
-                                <p class="text-xs text-slate-600">Sahkan rekod kehadiran APDM sebelum jam 9.00 pagi.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                </aside>
-
-            </div>
-
-        </main>
-    </div>
-
-    <!-- CONFIG FILE -->
-    <script src="config.js"></script>
-
-    <!-- LOGIK JAVASCRIPT DASHBOARD -->
-    <script>
-    let CURRENT_GURU_USER = null;
-    let ACTIVE_MAIN_MENU = 'laman_utama';
-
-    const MENU_LABELS = {
-        'laman_utama': 'Dashboard / Laman Utama',
-        'pengurusan_kelas': 'Pengurusan Kelas',
-        'tugasan_guru': 'Jadual & Tugasan Guru',
-        'kurikulum': 'Kurikulum & e-RPH',
-        'pentadbiran': 'Pentadbiran & Laporan',
-        'hem': 'Pengumuman & HEM'
-    };
-
-    const MENU_SUBTABS = {
-        'laman_utama': [{ key: 'pengumuman', label: '📢 Laman Utama' }],
-        'pengurusan_kelas': [
-            { key: 'senarai_murid', label: '📋 Senarai Murid' },
-            { key: 'maklumat_kelas', label: 'ℹ️ Maklumat Kelas' }
-        ],
-        'tugasan_guru': [
-            { key: 'senarai_tugasan', label: '📝 Senarai Tugasan' },
-            { key: 'jadual_guru', label: '📅 Jadual Mengajar' }
-        ],
-        'kurikulum': [
-            { key: 'erph', label: '📖 E-RPH' },
-            { key: 'panitia', label: '🏛️ Panitia' }
-        ],
-        'pentadbiran': [
-            { key: 'laporan_mingguan', label: '📄 Laporan Mingguan' }
-        ],
-        'hem': [
-            { key: 'kehadiran', label: '📊 Kehadiran' }
-        ]
-    };
-
-    function showLoader(txt = "Memuatkan...") {
-        const loader = document.getElementById('global-loader');
-        const lTxt = document.getElementById('loader-text');
-        if (lTxt) lTxt.innerText = txt;
-        if (loader) loader.classList.remove('hidden');
+    if (parts[0].length === 4) {
+      return new Date(p0, p1 - 1, p2);
     }
-
-    function hideLoader() {
-        const loader = document.getElementById('global-loader');
-        if (loader) loader.classList.add('hidden');
+    if (parts[2].length === 4) {
+      if (p0 <= 12 && p1 > 12) {
+        return new Date(p2, p0 - 1, p1);
+      } else if (p0 > 12 && p1 <= 12) {
+        return new Date(p2, p1 - 1, p0);
+      } else {
+        return new Date(p2, p0 - 1, p1);
+      }
     }
+  }
 
-    function checkUserSession() {
-        const sessionData = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser');
-        if (!sessionData) {
-            window.location.href = 'LoginSession.html';
-            return;
-        }
+  let d = new Date(str);
+  return !isNaN(d.getTime()) ? d : null;
+}
 
-        try {
-            CURRENT_GURU_USER = JSON.parse(sessionData);
-            
-            // Sync untuk e-RPH
-            localStorage.setItem('currentUser', JSON.stringify(CURRENT_GURU_USER));
+/**
+ * INISIALISASI SESI PENGGUNA & KAWALAN HAK AKSES JAWATAN PENTADBIR
+ */
+function initUserSession() {
+  const sessionData = localStorage.getItem('currentUser') || 
+                      sessionStorage.getItem('CURRENT_USER') || 
+                      localStorage.getItem('SAVED_MOE_USER') ||
+                      localStorage.getItem('user') ||
+                      sessionStorage.getItem('user');
 
-            const name = CURRENT_GURU_USER.name || CURRENT_GURU_USER.nama || 'Guru Sekolah';
-            document.getElementById('user-display-name').innerText = name;
-            document.getElementById('header-user-name').innerText = name;
-            document.getElementById('user-email-display').innerText = CURRENT_GURU_USER.email || '';
+  if (sessionData) {
+    try {
+      state.currentUser = JSON.parse(sessionData);
+      window.currentUser = state.currentUser;
 
-            const className = CURRENT_GURU_USER.guru_kelas || CURRENT_GURU_USER.class_name || CURRENT_GURU_USER.kelas || '';
-            if (className && className !== '-' && className.toLowerCase() !== 'tiada') {
-                document.getElementById('class-badge-text').innerText = className;
-                fetchClassStudentsRealData(className);
-            } else {
-                document.getElementById('class-badge-text').innerText = 'Tiada';
-                hideLoader();
-            }
+      const sistemAkses = (
+        state.currentUser.Sistem_Akses || 
+        state.currentUser.sistem_akses || 
+        state.currentUser.sistemAkses || 
+        ''
+      ).toString().trim().toLowerCase();
 
-            switchMainMenu('laman_utama');
-        } catch (e) {
-            console.error('Session Error:', e);
-            window.location.href = 'LoginSession.html';
-        }
-    }
+      const name = state.currentUser.nama || state.currentUser.Nama_Guru || state.currentUser.name || state.currentUser.Nama || 'Guru Akademik';
+      const email = state.currentUser.email || state.currentUser.Email || state.currentUser.emel || state.currentUser.Emel || 'guru@moe-dl.edu.my';
+      const jawatan = (state.currentUser.jawatan || state.currentUser.Jawatan || 'Guru Akademik').toString().trim();
 
-    function switchMainMenu(menuKey) {
-        ACTIVE_MAIN_MENU = menuKey;
+      const userNameEl = document.getElementById('userName');
+      if (userNameEl) userNameEl.innerText = name;
 
-        // Reset sidebar button styles
-        document.querySelectorAll('.menu-nav-btn').forEach(btn => {
-            btn.className = "menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3";
-            const svg = btn.querySelector('svg');
-            if (svg) svg.classList.remove('text-[#1f7a9c]');
-        });
+      const userRoleTitleEl = document.getElementById('userRoleTitle');
+      if (userRoleTitleEl) userRoleTitleEl.innerText = `${jawatan} | ${email}`;
+      
+      if (document.getElementById('printGuruName')) {
+        document.getElementById('printGuruName').innerText = name;
+      }
 
-        // Set active button style
-        const activeBtn = document.getElementById(`nav-${menuKey}`);
-        if (activeBtn) {
-            activeBtn.className = "menu-nav-btn w-full px-4 py-3 rounded-r-full font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-white text-[#1b6287] shadow-sm";
-            const svg = activeBtn.querySelector('svg');
-            if (svg) svg.classList.add('text-[#1f7a9c]');
-        }
+      const pentadbirJawatanList = [
+        'guru besar',
+        'pk pentadbiran',
+        'penolong kanan pentadbiran',
+        'pk 1',
+        'pk hem',
+        'penolong kanan hem',
+        'pk ko kurikulum',
+        'pk kokurikulum',
+        'penolong kanan kokurikulum'
+      ];
+      
+      const isPentadbirRole = pentadbirJawatanList.some(j => jawatan.toLowerCase().includes(j));
 
-        const breadcrumbEl = document.getElementById('breadcrumb-text');
-        if (breadcrumbEl) breadcrumbEl.innerText = MENU_LABELS[menuKey] || menuKey;
-
-        const subContainer = document.getElementById('sub-tabs-container');
-        const rightPanel = document.getElementById('right-panel');
-        const coursesProgressCard = document.getElementById('courses-progress-card');
-        const studentsTableView = document.getElementById('students-table-view');
-
-        if (menuKey === 'laman_utama') {
-            if (subContainer) subContainer.classList.add('hidden');
-            if (rightPanel) rightPanel.classList.remove('hidden');
-            if (coursesProgressCard) coursesProgressCard.classList.remove('hidden');
-            if (studentsTableView) studentsTableView.classList.add('hidden');
+      const roleToggleContainer = document.getElementById('roleToggleContainer');
+      if (roleToggleContainer) {
+        if (sistemAkses === 'admin') {
+          roleToggleContainer.style.display = 'flex';
         } else {
-            if (subContainer) subContainer.classList.remove('hidden');
-            if (rightPanel) rightPanel.classList.add('hidden');
-            if (coursesProgressCard) coursesProgressCard.classList.add('hidden');
-            
-            if (menuKey === 'pengurusan_kelas') {
-                if (studentsTableView) studentsTableView.classList.remove('hidden');
-            } else {
-                if (studentsTableView) studentsTableView.classList.add('hidden');
-            }
-
-            renderSubTabs(menuKey);
+          roleToggleContainer.style.display = 'none';
         }
-    }
+      }
 
-    function renderSubTabs(menuKey) {
-        const subBar = document.getElementById('sub-tabs-bar');
-        const tabs = MENU_SUBTABS[menuKey] || [];
-
-        if (!tabs || tabs.length === 0) {
-            subBar.innerHTML = `<span class="text-xs text-slate-400 italic p-1">Tiada sub-menu bagi modul ini.</span>`;
-            return;
-        }
-
-        let html = '';
-        tabs.forEach((tab, idx) => {
-            const isActive = idx === 0;
-            const activeClass = isActive 
-                ? 'bg-[#1f7a9c] text-white font-bold' 
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium';
-            
-            html += `
-                <button onclick="switchSubTab('${tab.key}', this)" class="sub-tab-btn flex-1 min-w-[130px] px-3 py-1.5 rounded-md transition text-center ${activeClass}">
-                    ${tab.label}
-                </button>
-            `;
-        });
-
-        subBar.innerHTML = html;
-    }
-
-    function switchSubTab(subKey, btnEl) {
-        document.querySelectorAll('.sub-tab-btn').forEach(b => {
-            b.className = "sub-tab-btn flex-1 min-w-[130px] px-3 py-1.5 rounded-md transition text-center bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium";
-        });
-        if (btnEl) {
-            btnEl.className = "sub-tab-btn flex-1 min-w-[130px] px-3 py-1.5 rounded-md transition text-center bg-[#1f7a9c] text-white font-bold";
-        }
-    }
-
-    function toggleRightPanel() {
-        const panel = document.getElementById('right-panel');
-        const btnText = document.getElementById('toggle-right-text');
-
-        if (panel.classList.contains('hidden')) {
-            panel.classList.remove('hidden');
-            btnText.innerText = 'Sorok Panel Kanan';
+      const navApproval = document.getElementById('navTabApproval');
+      if (navApproval) {
+        if (isPentadbirRole) {
+          navApproval.style.display = 'flex';
         } else {
-            panel.classList.add('hidden');
-            btnText.innerText = 'Buka Panel Kanan';
+          navApproval.style.display = 'none';
         }
+      }
+
+      if (isPentadbirRole) {
+        switchUserRole('pentadbir');
+      } else {
+        switchUserRole('guru');
+      }
+
+      const mainBody = document.getElementById('mainBody');
+      if (mainBody) mainBody.style.display = 'flex';
+
+      // Aktifkan Pemasa Idle 5 Minit
+      initIdleTimeoutMonitor();
+
+      fetchJadualHariIni(email);
+      loadTakwimAndInitDropdowns();
+    } catch (e) {
+      console.error("Ralat membaca sesi pengguna:", e);
+      window.location.replace('LoginSession.html');
     }
+  } else {
+    window.location.replace('LoginSession.html');
+  }
+}
 
-    async function postToBackend(payload) {
-        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
-            ? WEB_APP_URL 
-            : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
-
-        const response = await fetch(targetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload),
-            redirect: 'follow'
-        });
-
-        if (!response.ok) throw new Error('HTTP Error ' + response.status);
-        return await response.json();
-    }
-
-    async function fetchClassStudentsRealData(overrideClassName = null) {
-        const className = overrideClassName || (CURRENT_GURU_USER ? (CURRENT_GURU_USER.guru_kelas || CURRENT_GURU_USER.class_name) : '');
-        if (!className) return;
-
-        showLoader(`Menarik data murid kelas ${className}...`);
-
-        try {
-            const res = await postToBackend({
-                action: 'getClassStudents',
-                data: { className: className }
-            });
-            hideLoader();
-
-            if (res && res.success && Array.isArray(res.students)) {
-                renderStudentTable(res.students);
-            } else {
-                fallbackFetchPortalData(className);
-            }
-        } catch (err) {
-            console.warn('Backend getClassStudents error, fallback:', err);
-            fallbackFetchPortalData(className);
-        }
-    }
-
-    async function fallbackFetchPortalData(className) {
-        try {
-            const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
-            const res = await fetch(`${targetUrl}?action=getPortalData`).then(r => r.json());
-            hideLoader();
-
-            if (res && res.students) {
-                const filtered = res.students.filter(s => String(s.kelas || s.Nama_Kelas || '').toLowerCase().trim() === className.toLowerCase().trim());
-                renderStudentTable(filtered);
-            } else {
-                renderStudentTable([]);
-            }
-        } catch (e) {
-            hideLoader();
-            renderStudentTable([]);
-        }
-    }
-
-    function renderStudentTable(students) {
-        const tbody = document.getElementById('students-table-body');
-        const titleEl = document.getElementById('students-card-title');
-        const className = (CURRENT_GURU_USER ? (CURRENT_GURU_USER.guru_kelas || CURRENT_GURU_USER.class_name) : '') || '1 IRIS';
-        
-        if (titleEl) titleEl.innerText = `Senarai Murid Kelas ${className} (${students.length} Orang)`;
-
-        if (!students || students.length === 0) {
-            tbody.innerHTML = `
-                <tr><td colspan="5" class="p-4 text-center text-slate-400 italic">
-                    Tiada data murid dijumpai bagi kelas ini dalam Profil_Murid.
-                </td></tr>`;
-            return;
-        }
-
-        let html = '';
-        students.forEach((st, idx) => {
-            const emailDelima = st.id_delima || st.ID_Delima || st.email || st.email_delima || '-';
-            const jantina = st.jantina || st.Jantina || '-';
-            const name = st.nama || st.Nama_Murid || st.Nama || 'Murid ' + (idx + 1);
-
-            html += `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-3 text-center text-slate-500 font-bold">${idx + 1}</td>
-                    <td class="p-3 font-bold text-slate-800">${name}</td>
-                    <td class="p-3 font-mono text-[#1f7a9c] text-xs font-semibold">${emailDelima}</td>
-                    <td class="p-3 text-center text-slate-600">${jantina}</td>
-                    <td class="p-3 text-center"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold">✓ Aktif</span></td>
-                </tr>
-            `;
-        });
-
-        tbody.innerHTML = html;
-    }
-
-    function toggleMobileSidebar() {
-        const sidebar = document.getElementById('sidebar-container');
-        sidebar.classList.toggle('-translate-x-full');
-    }
-
-    function handleLogout() {
-        sessionStorage.clear();
-        localStorage.removeItem('SAVED_MOE_USER');
-        localStorage.removeItem('currentUser');
-        window.location.href = 'LoginSession.html';
-    }
-
-    // FUNGSI SEMAK SESI, JANA LAUNCH TOKEN & BUKA TAB BAHARU e-RPH
-    function bukaErphModule() {
-        const storedUser = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser') || localStorage.getItem('userSession');
-        
-        if (!storedUser) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Sesi Luput',
-                    text: 'Sila log masuk semula ke Portal Guru.',
-                    confirmButtonColor: '#1f7a9c'
-                }).then(() => {
-                    window.location.href = 'LoginSession.html';
-                });
-            } else {
-                alert('Sesi Luput. Sila log masuk semula.');
-                window.location.href = 'LoginSession.html';
-            }
-            return;
-        }
-
-        try {
-            const parsed = JSON.parse(storedUser);
-            localStorage.setItem('currentUser', JSON.stringify(parsed));
-
-            const userEmail = (parsed.email || parsed.Email || parsed.emel || parsed.Emel || parsed.username || '').toString().trim().toLowerCase();
-            if (!userEmail) {
-                alert('Ralat: Emel pengguna tidak ditemui.');
-                return;
-            }
-
-            // 1. Tukar emel ke format Base64
-            const usrBase64 = btoa(userEmail);
-            
-            // 2. Bina Launch Token Unik (TTL: 30 saat)
-            const timestamp = Date.now();
-            const randStr = Math.random().toString(36).substring(2, 7).toUpperCase();
-            const launchToken = `ERPH_TOK_${timestamp}_${randStr}`;
-
-            const tokenData = {
-                token: launchToken,
-                timestamp: timestamp
-            };
-
-            // 3. Simpan data token sementara
-            sessionStorage.setItem('ERPH_LAUNCH_TOKEN_DATA', JSON.stringify(tokenData));
-            localStorage.setItem('ERPH_LAUNCH_TOKEN_DATA', JSON.stringify(tokenData));
-
-            // 4. Buka tab baharu dengan parameter URL
-            window.open(`ErphGuru.html?launchToken=${launchToken}&usr=${encodeURIComponent(usrBase64)}`, '_blank');
-        } catch(e) {
-            console.error("Ralat melancarkan e-RPH:", e);
-            window.open('ErphGuru.html', '_blank');
-        }
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        checkUserSession();
+/**
+ * MUAT DATA TAKWIM MINGGUAN SEBENAR DARI BACKEND
+ */
+function loadTakwimAndInitDropdowns() {
+  fetchBackendApi('getTakwimData')
+    .then(res => {
+      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+        state.takwimList = res.data;
+        window.takwimListGlobal = res.data;
+      } else {
+        state.takwimList = [];
+        window.takwimListGlobal = [];
+      }
+      populateWeeksDropdowns();
+    })
+    .catch(err => {
+      console.error('Ralat muat Takwim:', err);
+      state.takwimList = [];
+      window.takwimListGlobal = [];
+      populateWeeksDropdowns();
     });
-    </script>
-</body>
-</html>
+}
+
+/**
+ * POPULASI DROPDOWN MINGGU SECARA MENURUN
+ */
+function populateWeeksDropdowns() {
+  const selectGuru = document.getElementById('selectWeekGuru');
+  if (!selectGuru) return;
+  selectGuru.innerHTML = '';
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let matchedCurrentWeek = null;
+
+  if (state.takwimList && state.takwimList.length > 0) {
+    let sortedTakwim = [...state.takwimList].sort((a, b) => (parseInt(b.mingguKe, 10) || 0) - (parseInt(a.mingguKe, 10) || 0));
+
+    sortedTakwim.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.mingguKe;
+      opt.textContent = `Minggu ${t.mingguKe}`;
+      selectGuru.appendChild(opt);
+
+      let dMula = parseTakwimDateHelper(t.tarikhMula);
+      let dTamat = parseTakwimDateHelper(t.tarikhTamat);
+      if (dMula && dTamat) {
+        dMula.setHours(0, 0, 0, 0);
+        dTamat.setDate(dTamat.getDate() + 2);
+        dTamat.setHours(23, 59, 59, 999);
+
+        if (today >= dMula && today <= dTamat) {
+          matchedCurrentWeek = String(t.mingguKe);
+        }
+      }
+    });
+
+    if (matchedCurrentWeek) {
+      selectGuru.value = matchedCurrentWeek;
+    } else if (selectGuru.options.length > 0) {
+      selectGuru.selectedIndex = 0;
+    }
+  } else {
+    for (let i = 42; i >= 1; i--) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = 'Minggu ' + i;
+      selectGuru.appendChild(opt);
+    }
+    selectGuru.value = '1';
+  }
+  
+  const currentWeekVal = selectGuru.value || '1';
+  const lbl = document.getElementById('lblMingguHariDashboard');
+  if (lbl) lbl.textContent = `Minggu ${currentWeekVal} (Semasa)`;
+
+  if (typeof initBuilderWeekDropdown === 'function') {
+    initBuilderWeekDropdown();
+  }
+  if (typeof initApprovalWeekDropdown === 'function') {
+    initApprovalWeekDropdown();
+  }
+
+  updateDashboardDayDropdown();
+  loadGuruDashboardData();
+}
+
+/**
+ * KEMAS KINI DROPDOWN HARI DI DASHBOARD DENGAN FORMAT "ISNIN (DD/MM/YYYY)"
+ */
+function updateDashboardDayDropdown() {
+  const selectWeek = document.getElementById('selectWeekGuru');
+  const selectDay = document.getElementById('filterDayGuru');
+  if (!selectDay || !selectWeek) return;
+
+  const weekVal = selectWeek.value;
+  const takwim = state.takwimList || window.takwimListGlobal || [];
+  const currentTakwim = takwim.find(t => String(t.mingguKe) === String(weekVal));
+
+  let refMonday = null;
+  if (currentTakwim && currentTakwim.tarikhMula) {
+    refMonday = parseTakwimDateHelper(currentTakwim.tarikhMula);
+  }
+
+  if (!refMonday || isNaN(refMonday.getTime())) {
+    refMonday = new Date(2026, 0, 12);
+    let weekDiff = (parseInt(weekVal, 10) || 1) - 1;
+    refMonday.setDate(refMonday.getDate() + (weekDiff * 7));
+  }
+
+  const days = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
+  const currentVal = selectDay.value;
+
+  selectDay.innerHTML = '<option value="ALL">Semua Hari</option>';
+
+  days.forEach((day, idx) => {
+    let dayDate = new Date(refMonday);
+    dayDate.setDate(refMonday.getDate() + idx);
+
+    let dd = String(dayDate.getDate()).padStart(2, '0');
+    let mm = String(dayDate.getMonth() + 1).padStart(2, '0');
+    let yyyy = dayDate.getFullYear();
+    let formattedDate = `${dd}/${mm}/${yyyy}`;
+
+    const opt = document.createElement('option');
+    opt.value = day;
+    opt.textContent = `${day} (${formattedDate})`;
+    selectDay.appendChild(opt);
+  });
+
+  if (currentVal) selectDay.value = currentVal;
+}
+
+function changeWeekGuru() {
+  const selectGuru = document.getElementById('selectWeekGuru');
+  const currentWeekVal = selectGuru ? selectGuru.value : '1';
+  const lbl = document.getElementById('lblMingguHariDashboard');
+  if (lbl) lbl.textContent = `Minggu ${currentWeekVal}`;
+
+  updateDashboardDayDropdown();
+  loadGuruDashboardData(); 
+}
+
+function filterGuruTableByDay() { loadGuruDashboardData(); }
+
+/**
+ * TARIK JADUAL WAKTU HARI INI & TAMBAH BUTANG "+ BINA RPH"
+ */
+function fetchJadualHariIni(emailGuru) {
+  const container = document.getElementById('jadualWidgetContainer');
+  if (!container) return;
+
+  const days = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
+  const todayName = days[new Date().getDay()];
+
+  fetchBackendApi('getJadualGuruByHari', { emailGuru: emailGuru, hari: todayName })
+    .then(res => {
+      const dataList = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
+      state.todayJadual = dataList;
+
+      if (Array.isArray(dataList) && dataList.length > 0) {
+        container.innerHTML = '';
+        dataList.forEach(slot => {
+          const mula  = cleanTimeFormatFrontend(slot.jam_mula || slot.masaMula);
+          const tamat = cleanTimeFormatFrontend(slot.jam_tamat || slot.masaTamat);
+          const kelas = slot.nama_kelas || slot.kelas || 'Tiada Kelas';
+          const subjek = slot.subjek || 'Subjek';
+          const masaRange = (mula && tamat) ? `${mula} - ${tamat}` : 'Masa Jadual';
+
+          const div = document.createElement('div');
+          div.className = 'p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2';
+          div.innerHTML = `
+            <div class="flex justify-between items-center text-xs font-bold text-slate-800">
+              <span>${subjek} (${kelas})</span>
+              <span class="text-brand-600">${masaRange}</span>
+            </div>
+            <div class="flex justify-end pt-1 border-t border-slate-100">
+              <button onclick="binaRphDariJadualDirect('${todayName}', '${subjek}', '${kelas}')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-[11px] font-bold shadow-sm transition-all flex items-center gap-1">
+                <span>+ Bina RPH</span>
+              </button>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      } else {
+        container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs italic bg-slate-50 rounded-xl border border-slate-100">Tiada jadual PdPC bagi hari ${todayName}.</div>`;
+      }
+    })
+    .catch(err => {
+      console.error('Ralat Jadual Hari Ini:', err);
+      container.innerHTML = `<div class="p-4 text-center text-rose-500 text-xs italic bg-rose-50 rounded-xl">Ralat memuatkan jadual.</div>`;
+    });
+}
+
+/**
+ * MUAT DATA DASHBOARD RPH GURU
+ */
+function loadGuruDashboardData() {
+  const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
+  const selectWeek = document.getElementById('selectWeekGuru');
+  const minggu = selectWeek ? selectWeek.value : '1';
+  const filterDay = document.getElementById('filterDayGuru') ? document.getElementById('filterDayGuru').value : 'ALL';
+
+  const tbody = document.getElementById('guruRphTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-400 italic">Sedang menarik rekod e-RPH...</td></tr>`;
+
+  fetchBackendApi('getErphListGuru', { emailGuru: emailGuru, minggu: minggu })
+    .then(res => {
+      if (res && res.success && Array.isArray(res.data)) {
+        let list = res.data;
+        state.rphList = list;
+        window.currentGuruRphList = list;
+
+        if (filterDay && filterDay !== 'ALL') {
+          list = list.filter(item => String(item.hari).toLowerCase() === filterDay.toLowerCase());
+        }
+        renderGuruRphTable(list);
+        updateGuruStats(res.data);
+
+        if (state.activeTab === 'tabPrint') {
+          initPrintFolderExplorer();
+        }
+      } else {
+        state.rphList = [];
+        window.currentGuruRphList = [];
+        renderGuruRphTable([]);
+        updateGuruStats([]);
+        if (state.activeTab === 'tabPrint') {
+          initPrintFolderExplorer();
+        }
+      }
+    })
+    .catch(err => {
+      console.error('Ralat loadGuruDashboardData:', err);
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-rose-500 italic">Ralat sambungan pelayan.</td></tr>`;
+    });
+}
+
+/**
+ * PAPARAN JADUAL DASHBOARD GURU DENGAN BUTANG EDIT/LANJUT DAN BUTANG 🖨️ CETAK
+ */
+function renderGuruRphTable(list) {
+  const tbody = document.getElementById('guruRphTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  if (!list || list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400 italic">Tiada rekod e-RPH dijumpai bagi minggu/hari ini.</td></tr>`;
+    return;
+  }
+
+  list.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-50 border-b border-slate-100';
+
+    const isDraft = (item.statusHantar === 'Draf');
+    const isApproved = (item.statusSemak === 'Disahkan' || item.statusSemak === 'Disemak');
+
+    const statusBadge = isDraft 
+      ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">📝 Draf</span>`
+      : `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">🚀 Dihantar</span>`;
+
+    const mulaClean  = cleanTimeFormatFrontend(item.masaMula);
+    const tamatClean = cleanTimeFormatFrontend(item.masaTamat);
+    
+    let masaRange = '';
+    if (mulaClean && tamatClean) {
+      masaRange = `${mulaClean} - ${tamatClean}`;
+    } else if (mulaClean) {
+      masaRange = mulaClean;
+    }
+
+    const masaDisplay = masaRange 
+      ? `${masaRange} (${item.kelas || '-'})` 
+      : (item.kelas || '-');
+
+    let actionBtn = '';
+    if (isApproved) {
+      actionBtn = `
+        <span class="px-2 py-1 bg-slate-100 text-slate-500 rounded text-[11px] font-bold border border-slate-200 cursor-not-allowed" title="RPH telah disemak & disahkan oleh Pentadbir">🔒 Dikunci</span>
+        <button onclick="cetakRphRecord('${item.idRph}')" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded text-[11px] font-bold transition-all shadow-sm ml-1">🖨️ Cetak</button>
+      `;
+    } else {
+      actionBtn = `
+        <button onclick="editRphRecord('${item.idRph}')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded text-[11px] font-bold transition-all shadow-sm">Edit/Lanjut</button>
+        <button onclick="cetakRphRecord('${item.idRph}')" class="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded text-[11px] font-bold transition-all shadow-sm ml-1">🖨️ Cetak</button>
+      `;
+    }
+
+    tr.innerHTML = `
+      <td class="py-2.5 px-3 font-bold text-slate-800">${item.hari} - ${item.subjek}</td>
+      <td class="py-2.5 px-3">${masaDisplay}</td>
+      <td class="py-2.5 px-3">${statusBadge}</td>
+      <td class="py-2.5 px-3 text-slate-500">${item.ulasanPenyemak || '-'}</td>
+      <td class="py-2.5 px-3 text-right">${actionBtn}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateGuruStats(allList) {
+  const noRphCount = allList.filter(i => !i.statusHantar).length;
+  const noReflectCount = allList.filter(i => i.statusHantar === 'Draf').length;
+
+  const elNoRph = document.getElementById('countGuruNoRph');
+  const elNoReflect = document.getElementById('countGuruNoReflect');
+
+  if (elNoRph) elNoRph.textContent = noRphCount + ' Slot';
+  if (elNoReflect) elNoReflect.textContent = noReflectCount + ' Slot';
+}
+
+/**
+ * KAWALAN PAPARAN ROLE
+ */
+function switchUserRole(role) {
+  state.currentUserRole = role;
+  const btnGuru = document.getElementById('roleBtnGuru');
+  const btnPentadbir = document.getElementById('roleBtnPentadbir');
+  const guruView = document.getElementById('guruDashboardView');
+  const pentadbirView = document.getElementById('pentadbirDashboardView');
+  const navApproval = document.getElementById('navTabApproval');
+
+  if (guruView) guruView.classList.remove('hidden');
+
+  if (role === 'guru') {
+    if (btnGuru) btnGuru.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
+    if (btnPentadbir) btnPentadbir.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
+    if (pentadbirView) pentadbirView.classList.add('hidden');
+    if (navApproval && state.currentUser) {
+      const jawatan = (state.currentUser.jawatan || state.currentUser.Jawatan || '').toString().trim().toLowerCase();
+      const isPentadbirRole = ['guru besar', 'pk pentadbiran', 'penolong kanan pentadbiran', 'pk 1', 'pk hem', 'penolong kanan hem', 'pk ko kurikulum', 'pk kokurikulum', 'penolong kanan kokurikulum'].some(j => jawatan.includes(j));
+      if (!isPentadbirRole) navApproval.style.display = 'none';
+    }
+  } else {
+    if (btnPentadbir) btnPentadbir.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
+    if (btnGuru) btnGuru.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
+    if (pentadbirView) pentadbirView.classList.remove('hidden');
+    if (navApproval) navApproval.style.display = 'flex';
+    if (typeof loadPentadbirDashboardData === 'function') {
+      loadPentadbirDashboardData();
+    }
+  }
+}
+
+function setActiveTab(tabId) {
+  state.activeTab = tabId;
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+  const targetEl = document.getElementById(tabId);
+  if (targetEl) targetEl.classList.remove('hidden');
+
+  const tabs = ['tabDashboard', 'tabBuilder', 'tabApproval', 'tabPrint', 'tabWorkflow'];
+  tabs.forEach(id => {
+    const btnId = 'nav' + id.charAt(0).toUpperCase() + id.slice(1);
+    const btn = document.getElementById(btnId);
+    if (btn) {
+      if (id === tabId) {
+        btn.className = "px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f4f7f6] text-brand-700 font-bold";
+      } else {
+        btn.className = "px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-teal-100 hover:text-white hover:bg-white/10";
+      }
+    }
+  });
+
+  if (tabId === 'tabPrint') {
+    initPrintFolderExplorer();
+  }
+}
+
+/**
+ * ==============================================================================
+ * MODUL REKOD RPH DIREKTORI 35% & SUNTIKAN DATA PREVIEW 65%
+ * ==============================================================================
+ */
+
+function cetakRphRecord(idRph) {
+  if (!idRph) return;
+
+  const list = window.allGuruRphList || window.currentGuruRphList || state.rphList || [];
+  const item = list.find(r => String(r.idRph) === String(idRph));
+
+  if (!item) {
+    showToast('Rekod RPH tidak dijumpai.', '⚠️');
+    return;
+  }
+
+  setActiveTab('tabPrint');
+  populatePrintPreview(item);
+  
+  setTimeout(() => {
+    const elTreeItem = document.getElementById(`tree-item-${item.idRph}`);
+    if (elTreeItem) {
+      document.querySelectorAll('.tree-file-node').forEach(n => n.classList.remove('bg-teal-100', 'font-bold', 'text-brand-800'));
+      elTreeItem.classList.add('bg-teal-100', 'font-bold', 'text-brand-800');
+    }
+  }, 300);
+
+  showToast('RPH dimuatkan ke paparan cetakan!', '🖨️');
+}
+
+function initPrintFolderExplorer() {
+  const container = document.getElementById('printFolderTreeContainer');
+  if (!container) return;
+
+  container.innerHTML = `<div class="p-4 text-xs text-slate-400 italic text-center">Sedang memuatkan direktori RPH...</div>`;
+
+  const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
+  
+  // Menarik KESELURUHAN rekod RPH guru (minggu: '') untuk membina direktori penuh
+  fetchBackendApi('getErphListGuru', { emailGuru: emailGuru, minggu: '' })
+    .then(res => {
+      let allList = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+      window.allGuruRphList = allList;
+      renderPrintFolderTree(allList);
+    })
+    .catch(err => {
+      console.error('Ralat direktori RPH:', err);
+      let fallbackList = window.currentGuruRphList || state.rphList || [];
+      renderPrintFolderTree(fallbackList);
+    });
+}
+
+function renderPrintFolderTree(allList) {
+  const container = document.getElementById('printFolderTreeContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Tentukan Minggu Semasa & Minggu Maksimum (Minggu Semasa + 1)
+  const selectWeekGuru = document.getElementById('selectWeekGuru');
+  let currentWeekVal = parseInt(selectWeekGuru ? selectWeekGuru.value : '1', 10) || 1;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const takwim = state.takwimList || window.takwimListGlobal || [];
+  
+  if (takwim && takwim.length > 0) {
+    takwim.forEach(t => {
+      let dMula = parseTakwimDateHelper(t.tarikhMula);
+      let dTamat = parseTakwimDateHelper(t.tarikhTamat);
+      if (dMula && dTamat) {
+        dMula.setHours(0, 0, 0, 0);
+        dTamat.setDate(dTamat.getDate() + 2);
+        dTamat.setHours(23, 59, 59, 999);
+        if (today >= dMula && today <= dTamat) {
+          currentWeekVal = parseInt(t.mingguKe, 10) || currentWeekVal;
+        }
+      }
+    });
+  }
+
+  const maxWeekDisplay = currentWeekVal + 1;
+
+  // Kumpulan mengikut Minggu -> Hari -> Slot
+  const groupedByWeek = {};
+  (allList || []).forEach(item => {
+    const m = parseInt(item.minggu, 10) || 1;
+    if (m <= maxWeekDisplay) {
+      const h = item.hari || 'Isnin';
+      if (!groupedByWeek[m]) groupedByWeek[m] = {};
+      if (!groupedByWeek[m][h]) groupedByWeek[m][h] = [];
+      groupedByWeek[m][h].push(item);
+    }
+  });
+
+  // JANA SENARAI FOLDER DARI MINGGU TERAKHIR (DI ATAS) KE MINGGU 1 (DI BAWAH SEKALI)
+  let weekNumbers = [];
+  for (let w = maxWeekDisplay; w >= 1; w--) {
+    weekNumbers.push(w);
+  }
+
+  if (weekNumbers.length === 0) {
+    container.innerHTML = `<div class="p-4 text-xs text-slate-400 italic text-center">Tiada rekod RPH dijumpai.</div>`;
+    return;
+  }
+
+  weekNumbers.forEach(mVal => {
+    const weekDiv = document.createElement('div');
+    weekDiv.className = 'space-y-1 mb-2';
+
+    const dayGroup = groupedByWeek[mVal] || {};
+    const totalDayKeys = Object.keys(dayGroup).length;
+    let totalSlotsInWeek = 0;
+    Object.keys(dayGroup).forEach(h => { totalSlotsInWeek += dayGroup[h].length; });
+
+    const isCurrentOrFutureLabel = (mVal === currentWeekVal) ? ' (Semasa)' : (mVal === maxWeekDisplay ? ' (Hadapan)' : '');
+
+    let weekHtml = `
+      <div class="font-bold text-xs text-slate-800 bg-slate-100 p-2 rounded-lg flex items-center justify-between cursor-pointer hover:bg-slate-200" onclick="toggleTreeNode('week-${mVal}')">
+        <span>📁 Minggu ${mVal}${isCurrentOrFutureLabel}</span>
+        <span class="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-600">${totalSlotsInWeek} Slot</span>
+      </div>
+      <div id="week-${mVal}" class="pl-3 space-y-1 ${mVal === currentWeekVal ? '' : 'hidden'}">
+    `;
+
+    if (totalDayKeys === 0) {
+      weekHtml += `<div class="p-2 text-[11px] text-slate-400 italic">Tiada rekod RPH bagi minggu ini.</div>`;
+    } else {
+      Object.keys(dayGroup).forEach(hVal => {
+        const itemsInDay = dayGroup[hVal];
+        const tarikhDisplay = itemsInDay[0] ? (itemsInDay[0].tarikh || '') : '';
+
+        weekHtml += `
+          <div class="space-y-0.5">
+            <div class="font-semibold text-[11px] text-slate-700 p-1.5 rounded flex items-center justify-between cursor-pointer hover:bg-slate-50" onclick="toggleTreeNode('day-${mVal}-${hVal}')">
+              <span>📂 ${hVal} ${tarikhDisplay ? '(' + tarikhDisplay + ')' : ''}</span>
+              <span class="text-[9px] text-slate-400">${itemsInDay.length} Slot</span>
+            </div>
+            <div id="day-${mVal}-${hVal}" class="pl-3 space-y-0.5">
+        `;
+
+        itemsInDay.forEach(r => {
+          const mulaClean  = cleanTimeFormatFrontend(r.masaMula);
+          const tamatClean = cleanTimeFormatFrontend(r.masaTamat);
+          const masaStr = (mulaClean && tamatClean) ? `${mulaClean}-${tamatClean}` : (r.kelas || '');
+
+          weekHtml += `
+            <div id="tree-item-${r.idRph}" onclick="selectRphForPrintFromTree('${r.idRph}')" class="tree-file-node p-1.5 rounded text-xs text-slate-600 cursor-pointer hover:bg-teal-50 hover:text-brand-800 transition-all flex items-center space-x-1.5">
+              <span>📝</span>
+              <span class="truncate">${r.subjek} - ${r.kelas} (${masaStr})</span>
+            </div>
+          `;
+        });
+
+        weekHtml += `</div></div>`;
+      });
+    }
+
+    weekHtml += `</div>`;
+    weekDiv.innerHTML = weekHtml;
+    container.appendChild(weekDiv);
+  });
+
+  // Papar pra-tonton item pertama secara automatik jika ada
+  if (allList && allList.length > 0) {
+    populatePrintPreview(allList[0]);
+    setTimeout(() => {
+      const firstTreeItem = document.getElementById(`tree-item-${allList[0].idRph}`);
+      if (firstTreeItem) {
+        firstTreeItem.classList.add('bg-teal-100', 'font-bold', 'text-brand-800');
+      }
+    }, 100);
+  }
+}
+
+function toggleTreeNode(nodeId) {
+  const el = document.getElementById(nodeId);
+  if (el) {
+    el.classList.toggle('hidden');
+  }
+}
+
+function selectRphForPrintFromTree(idRph) {
+  const list = window.allGuruRphList || window.currentGuruRphList || state.rphList || [];
+  const item = list.find(r => String(r.idRph) === String(idRph));
+
+  if (!item) return;
+
+  document.querySelectorAll('.tree-file-node').forEach(n => n.classList.remove('bg-teal-100', 'font-bold', 'text-brand-800'));
+  const elTreeItem = document.getElementById(`tree-item-${idRph}`);
+  if (elTreeItem) {
+    elTreeItem.classList.add('bg-teal-100', 'font-bold', 'text-brand-800');
+  }
+
+  populatePrintPreview(item);
+}
+
+function populatePrintPreview(item) {
+  if (!item) return;
+
+  const name = window.currentUser ? (window.currentUser.nama || window.currentUser.Nama_Guru || window.currentUser.name || 'Guru Akademik') : 'Guru Akademik';
+  
+  if (document.getElementById('printGuruName')) document.getElementById('printGuruName').innerText = name;
+  
+  let mulaClean  = cleanTimeFormatFrontend(item.masaMula);
+  let tamatClean = cleanTimeFormatFrontend(item.masaTamat);
+  let masaStr = (mulaClean && tamatClean) ? `${mulaClean} - ${tamatClean}` : '';
+  
+  if (document.getElementById('printHariMasa')) {
+    document.getElementById('printHariMasa').innerText = `${item.hari || ''} (${masaStr || item.hariMasa || '-'})`;
+  }
+  
+  if (document.getElementById('printSubjek')) document.getElementById('printSubjek').innerText = item.subjek || '-';
+  if (document.getElementById('printMinggu')) document.getElementById('printMinggu').innerText = item.minggu || '1';
+  if (document.getElementById('printTarikh')) document.getElementById('printTarikh').innerText = item.tarikh || '--/--/----';
+  if (document.getElementById('printKelas')) document.getElementById('printKelas').innerText = `${item.kelas || '-'} (${item.kehadiranMurid || '0/0'})`;
+  
+  if (document.getElementById('printTema')) document.getElementById('printTema').innerText = item.temaUnit || '-';
+  if (document.getElementById('printTajuk')) document.getElementById('printTajuk').innerText = item.tajuk || item.tajukBidang || '-';
+  if (document.getElementById('printSP')) document.getElementById('printSP').innerText = item.standardPembelajaran || item.sp || '-';
+  if (document.getElementById('printOP')) document.getElementById('printOP').innerText = item.objektifPembelajaran || item.op || '-';
+  if (document.getElementById('printKK')) document.getElementById('printKK').innerText = item.kriteriaKejayaan || item.kk || '-';
+  
+  if (document.getElementById('printActStart')) document.getElementById('printActStart').innerText = item.aktivitiPemula || item.actStart || '-';
+  if (document.getElementById('printActMain')) document.getElementById('printActMain').innerText = item.aktivitiUtama || item.actMain || '-';
+  if (document.getElementById('printActEnd')) document.getElementById('printActEnd').innerText = item.aktivitiPenutup || item.actEnd || '-';
+  
+  if (document.getElementById('printReflectCount')) {
+    let capai = item.refleksiBilCapai || 0;
+    let note = item.catatanRefleksi || '';
+    document.getElementById('printReflectCount').innerText = `${capai} orang murid mencapai objektif. ${note}`;
+  }
+  
+  if (document.getElementById('printReflectNote')) document.getElementById('printReflectNote').innerText = item.catatanRefleksi || '-';
+}
+
+function showToast(message, icon = '🔔') {
+  const toast = document.getElementById('toastNotification');
+  if (!toast) return;
+  const toastMessage = document.getElementById('toastMessage');
+  const toastIcon = document.getElementById('toastIcon');
+  if (toastMessage) toastMessage.innerText = message;
+  if (toastIcon) toastIcon.innerText = icon;
+  toast.classList.remove('translate-y-20', 'opacity-0');
+  toast.classList.add('translate-y-0', 'opacity-100');
+  setTimeout(() => {
+    toast.classList.remove('translate-y-0', 'opacity-100');
+    toast.classList.add('translate-y-20', 'opacity-0');
+  }, 3000);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initUserSession();
+});
