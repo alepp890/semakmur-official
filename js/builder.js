@@ -50,6 +50,35 @@ function timeToMinutesHelper(tStr) {
 }
 
 /**
+ * PEMBANTU NYAHTAFSIR TARIKH TAKWIM (SOKONGAN US MM/DD/YYYY & ISO)
+ */
+function parseTakwimDateHelperBuilder(dateStr) {
+  if (!dateStr) return null;
+  let str = String(dateStr).trim();
+  let parts = str.split(/[\/\-]/);
+
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+    let p0 = parseInt(parts[0], 10);
+    let p1 = parseInt(parts[1], 10);
+    let p2 = parseInt(parts[2], 10);
+
+    if (p0 > 12) {
+      return new Date(p2, p1 - 1, p0);
+    } else if (p1 > 12) {
+      return new Date(p2, p0 - 1, p1);
+    } else {
+      return new Date(p2, p0 - 1, p1);
+    }
+  }
+
+  let d = new Date(str);
+  return !isNaN(d.getTime()) ? d : null;
+}
+
+/**
  * Inisialisasi Modul Builder semasa Halaman Dimuatkan
  */
 document.addEventListener('DOMContentLoaded', function() {
@@ -57,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Populasikan Dropdown Minggu daripada Takwim Mingguan
+ * Populasikan Dropdown Minggu daripada Takwim Mingguan (Susunan Menurun)
  */
 function initBuilderWeekDropdown() {
   const selectWeek = document.getElementById('builderSelectWeek');
@@ -66,23 +95,45 @@ function initBuilderWeekDropdown() {
   selectWeek.innerHTML = '';
   const takwim = window.takwimListGlobal || (typeof state !== 'undefined' ? state.takwimList : []) || [];
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let matchedCurrentWeek = null;
+
   if (takwim.length > 0) {
-    takwim.forEach(t => {
+    // Susun secara MENURUN
+    let sortedTakwim = [...takwim].sort((a, b) => (parseInt(b.mingguKe, 10) || 0) - (parseInt(a.mingguKe, 10) || 0));
+
+    sortedTakwim.forEach(t => {
       const opt = document.createElement('option');
       opt.value = t.mingguKe;
       let labelDate = (t.tarikhMula && t.tarikhTamat) ? ` (${t.tarikhMula} - ${t.tarikhTamat})` : '';
       opt.textContent = `Minggu ${t.mingguKe}${labelDate}`;
       selectWeek.appendChild(opt);
+
+      let dMula = parseTakwimDateHelperBuilder(t.tarikhMula);
+      let dTamat = parseTakwimDateHelperBuilder(t.tarikhTamat);
+      if (dMula && dTamat) {
+        dMula.setHours(0, 0, 0, 0);
+        dTamat.setHours(23, 59, 59, 999);
+        if (today >= dMula && today <= dTamat) {
+          matchedCurrentWeek = t.mingguKe;
+        }
+      }
     });
-    selectWeek.value = takwim[0].mingguKe;
+
+    if (matchedCurrentWeek) {
+      selectWeek.value = matchedCurrentWeek;
+    } else if (selectWeek.options.length > 0) {
+      selectWeek.selectedIndex = 0;
+    }
   } else {
-    for (let i = 1; i <= 42; i++) {
+    for (let i = 42; i >= 1; i--) {
       const opt = document.createElement('option');
       opt.value = i;
       opt.textContent = 'Minggu ' + i;
-      if (i === 1) opt.selected = true;
       selectWeek.appendChild(opt);
     }
+    selectWeek.value = '1';
   }
   
   onBuilderWeekChange();
@@ -105,14 +156,7 @@ function onBuilderWeekChange() {
 
   let refMonday = null;
   if (currentTakwim && currentTakwim.tarikhMula) {
-    let parts = currentTakwim.tarikhMula.split(/[\/\-]/);
-    if (parts.length === 3) {
-      if (parts[0].length === 4) {
-        refMonday = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-      } else if (parts[2].length === 4) {
-        refMonday = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
-      }
-    }
+    refMonday = parseTakwimDateHelperBuilder(currentTakwim.tarikhMula);
   }
 
   if (!refMonday || isNaN(refMonday.getTime())) {
@@ -396,14 +440,7 @@ function submitCutiFormBatch() {
 
   let refMonday = null;
   if (currentTakwim && currentTakwim.tarikhMula) {
-    let parts = currentTakwim.tarikhMula.split(/[\/\-]/);
-    if (parts.length === 3) {
-      if (parts[0].length === 4) {
-        refMonday = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-      } else if (parts[2].length === 4) {
-        refMonday = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
-      }
-    }
+    refMonday = parseTakwimDateHelperBuilder(currentTakwim.tarikhMula);
   }
 
   if (!refMonday || isNaN(refMonday.getTime())) {
@@ -531,7 +568,7 @@ function fetchKehadiranData(tarikh, kelas) {
 }
 
 /**
- * PERMINTAAN 1: SEMAKAN STATUS BUTANG HANTAR & KAWALAN REFLEKSI
+ * SEMAKAN STATUS BUTANG HANTAR & KAWALAN REFLEKSI
  */
 function validateSubmitButtonState() {
   const btnSubmit = document.getElementById('btnSubmitRph');
@@ -928,7 +965,7 @@ function resetRphFormFields() {
 }
 
 /**
- * EDIT / LANJUT RPH DRAF DARIPADA DASHBOARD GURU (PERMINTAAN 2 & 3 INTEGRASI)
+ * EDIT / LANJUT RPH DRAF DARIPADA DASHBOARD GURU
  */
 function editRphRecord(idRph) {
   if (!idRph) return;
@@ -941,7 +978,7 @@ function editRphRecord(idRph) {
     return;
   }
 
-  // PERMINTAAN 3: Kunci jika pentadbir dah semak / beri cop
+  // KUNCI JIKA PENTADBIR DAH SEMAK / COP
   if (item.statusSemak === 'Disahkan' || item.statusSemak === 'Disemak') {
     showToast('RPH ini telah disemak & disahkan oleh Pentadbir. Pindaan tidak dibenarkan.', '🔒');
     return;
@@ -954,7 +991,7 @@ function editRphRecord(idRph) {
   const hiddenIdEl = document.getElementById('rphIdHidden');
   if (hiddenIdEl) hiddenIdEl.value = item.idRph;
 
-  // PERMINTAAN 2: Jika rekod adalah Cuti, aktifkan Mod Cuti secara automatik
+  // JIKA REKOD ADALAH CUTI, AKTIFKAN MOD CUTI AUTOMATIK
   const isCutiRecord = (
     item.subjek === 'Cuti Sekolah' || 
     (item.temaUnit && item.temaUnit.includes('[CUTI]')) || 
