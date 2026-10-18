@@ -423,20 +423,27 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2 text-xs w-full lg:w-auto">
+            
+            <!-- SUIS MOD CUTI -->
+            <div class="flex items-center space-x-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+              <input type="checkbox" id="chkModCuti" onchange="toggleModCutiView()" class="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500">
+              <label for="chkModCuti" class="font-bold text-amber-900 cursor-pointer">🌴 Mod Cuti / Cuti Peristiwa</label>
+            </div>
+
             <div class="flex items-center space-x-1">
               <label class="font-bold text-slate-700">Minggu:</label>
               <select id="builderSelectWeek" onchange="onBuilderWeekChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
               </select>
             </div>
 
-            <div class="flex items-center space-x-1">
+            <div id="containerDateSelect" class="flex items-center space-x-1">
               <label class="font-bold text-slate-700">Hari/Tarikh:</label>
               <select id="builderSelectDateDay" onchange="onBuilderDateDayChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
                 <option value="">Pilih Hari...</option>
               </select>
             </div>
 
-            <div class="flex items-center space-x-1">
+            <div id="containerSlotSelect" class="flex items-center space-x-1">
               <label class="font-bold text-slate-700">Slot Jadual:</label>
               <select id="builderSelectSlot" onchange="onBuilderSlotChange()" class="bg-slate-50 border border-slate-200 rounded-lg p-2 font-bold text-brand-800 focus:ring-1 focus:ring-brand-500">
                 <option value="">Pilih Slot...</option>
@@ -450,189 +457,279 @@
           <!-- INPUT TERSEMBUNYI UNTUK MENYIMPAN ID RPH SEMASA EDIT DRAF -->
           <input type="hidden" id="rphIdHidden" value="">
 
-          <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-4">
-            <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-brand-700">1. Maklumat Asas Pengajaran (Auto-Pilih dari Jadual)</h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+          <!-- ============================================================================== -->
+          <!-- BEKAS MOD CUTI (HANYA DIPAPARKAN APABILA MOD CUTI DIAKTIFKAN) -->
+          <!-- ============================================================================== -->
+          <div id="sectionModCutiWrapper" class="bg-amber-50/80 p-5 rounded-2xl border border-amber-300 space-y-5 hidden">
+            <div class="flex items-center justify-between border-b border-amber-200 pb-3">
+              <div class="flex items-center space-x-2">
+                <span class="text-xl">🌴</span>
+                <div>
+                  <h3 class="font-bold text-amber-900 text-sm">Pengisytiharan Hari Cuti / Cuti Peristiwa</h3>
+                  <p class="text-xs text-amber-700">Pilih hari-hari yang terlibat dan muat naik poster cuti. Rekod akan direkodkan secara pukal ke pangkalan data.</p>
+                </div>
+              </div>
+              <span class="bg-amber-200 text-amber-900 text-[11px] font-bold px-3 py-1 rounded-full">Pilihan Pukal Multi-Hari</span>
+            </div>
+
+            <!-- 1. PILIHAN HARI CUTI -->
+            <div class="space-y-2">
+              <label class="block font-bold text-amber-900 text-xs">Pilih Hari Cuti Bagi Minggu Ini:</label>
+              <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-amber-200 font-semibold text-slate-800 cursor-pointer hover:bg-amber-100/50">
+                  <input type="checkbox" name="chkCutiHari" value="Isnin" onchange="updateCutiSummaryCount()" class="rounded text-amber-600 focus:ring-amber-500">
+                  <span>Isnin</span>
+                </label>
+                <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-amber-200 font-semibold text-slate-800 cursor-pointer hover:bg-amber-100/50">
+                  <input type="checkbox" name="chkCutiHari" value="Selasa" onchange="updateCutiSummaryCount()" class="rounded text-amber-600 focus:ring-amber-500">
+                  <span>Selasa</span>
+                </label>
+                <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-amber-200 font-semibold text-slate-800 cursor-pointer hover:bg-amber-100/50">
+                  <input type="checkbox" name="chkCutiHari" value="Rabu" onchange="updateCutiSummaryCount()" class="rounded text-amber-600 focus:ring-amber-500">
+                  <span>Rabu</span>
+                </label>
+                <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-amber-200 font-semibold text-slate-800 cursor-pointer hover:bg-amber-100/50">
+                  <input type="checkbox" name="chkCutiHari" value="Khamis" onchange="updateCutiSummaryCount()" class="rounded text-amber-600 focus:ring-amber-500">
+                  <span>Khamis</span>
+                </label>
+                <label class="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-amber-200 font-semibold text-slate-800 cursor-pointer hover:bg-amber-100/50">
+                  <input type="checkbox" name="chkCutiHari" value="Jumaat" onchange="updateCutiSummaryCount()" class="rounded text-amber-600 focus:ring-amber-500">
+                  <span>Jumaat</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 2. MAKLUMAT SEBAB CUTI & UPLOAD POSTER -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
-                <label class="block text-slate-600 font-medium mb-1">Tarikh Pengajaran</label>
-                <input type="date" id="rphDate" value="" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" readonly>
+                <label class="block font-bold text-amber-900 mb-1">Jenis / Kategori Cuti</label>
+                <select id="rphJenisCuti" class="w-full bg-white border border-amber-300 rounded-lg p-2.5 font-semibold text-slate-800 focus:ring-amber-500">
+                  <option value="Cuti Peristiwa">Cuti Peristiwa</option>
+                  <option value="Cuti Umum / Kelepasan Am">Cuti Umum / Kelepasan Am</option>
+                  <option value="Cuti Bencana">Cuti Bencana / Banjir / Bencana Alam</option>
+                  <option value="Cuti Rehat Khas (CRK)">Cuti Rehat Khas (CRK)</option>
+                  <option value="Cuti Penggal / Persekolahan">Cuti Penggal / Persekolahan</option>
+                </select>
               </div>
 
               <div>
-                <label class="block text-slate-600 font-medium mb-1">Hari & Masa</label>
-                <input type="text" id="rphTime" value="" placeholder="Isnin (08:10 - 08:40)" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" readonly>
+                <label class="block font-bold text-amber-900 mb-1">Sebab / Nama Cuti Terperinci</label>
+                <input type="text" id="rphSebabCuti" placeholder="Contoh: Cuti Peristiwa Sambutan Hari Raya / Cuti Bencana Banjir" class="w-full bg-white border border-amber-300 rounded-lg p-2.5 text-slate-800 font-medium">
               </div>
 
-              <div>
-                <label class="block text-slate-600 font-medium mb-1">Subjek</label>
-                <input type="text" id="rphSubjectSelect" value="" placeholder="Subjek" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-bold text-brand-800" readonly>
+              <div class="md:col-span-2 space-y-2">
+                <label class="block font-bold text-amber-900 mb-1">Muat Naik Poster Cuti (PNG / JPG / WEBP)</label>
+                <div class="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-xl border border-dashed border-amber-300">
+                  <input type="file" id="rphPosterFile" accept="image/*" onchange="previewPosterCutiImage(event)" class="text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200">
+                  
+                  <div id="containerPosterPreview" class="hidden flex items-center gap-3 border-l border-amber-200 pl-4">
+                    <img id="imgPosterPreview" src="" alt="Pra-tonton Poster" class="w-20 h-20 object-cover rounded-lg border border-amber-300 shadow-sm">
+                    <div>
+                      <p id="txtPosterFileName" class="font-bold text-slate-800 text-xs truncate max-w-[200px]"></p>
+                      <p class="text-[10px] text-emerald-600 font-bold">✓ Gambar sedia dimuat naik</p>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
 
-              <div>
-                <label class="block text-slate-600 font-medium mb-1">Kelas / Bilik Darjah</label>
-                <input type="text" id="rphClass" value="" placeholder="Nama Kelas" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" readonly>
-              </div>
+            <!-- RINGKASAN SLOT TERLIBAT -->
+            <div id="boxSummaryCutiSlot" class="p-3 bg-amber-100/70 border border-amber-300 rounded-xl text-amber-900 text-xs font-semibold flex items-center justify-between">
+              <span>📌 Status Pilihan: <strong id="txtCutiDaysSummary">Tiada hari dipilih</strong></span>
+              <span id="txtCutiSlotsCount" class="bg-amber-300 text-amber-900 px-2.5 py-0.5 rounded-full font-extrabold">0 Slot PdPC Terlibat</span>
             </div>
           </div>
 
-          <div class="space-y-4">
-            <div class="flex justify-between items-center">
-              <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-brand-700">2. Kurikulum (DSKP Auto-Isi dari Tab Data_DSKP)</h3>
-              <span id="dskpStatusBadge" class="text-[11px] text-amber-600 font-medium">⏳ Sila pilih slot jadual dahulu</span>
+          <!-- ============================================================================== -->
+          <!-- BEKAS BORANG STANDARD e-RPH (DISOROKKAN APABILA MOD CUTI DIAKTIFKAN) -->
+          <!-- ============================================================================== -->
+          <div id="sectionStandardRphContent" class="space-y-6">
+            
+            <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-4">
+              <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-brand-700">1. Maklumat Asas Pengajaran (Auto-Pilih dari Jadual)</h3>
+              
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                <div>
+                  <label class="block text-slate-600 font-medium mb-1">Tarikh Pengajaran</label>
+                  <input type="date" id="rphDate" value="" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" readonly>
+                </div>
+
+                <div>
+                  <label class="block text-slate-600 font-medium mb-1">Hari & Masa</label>
+                  <input type="text" id="rphTime" value="" placeholder="Isnin (08:10 - 08:40)" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" readonly>
+                </div>
+
+                <div>
+                  <label class="block text-slate-600 font-medium mb-1">Subjek</label>
+                  <input type="text" id="rphSubjectSelect" value="" placeholder="Subjek" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-bold text-brand-800" readonly>
+                </div>
+
+                <div>
+                  <label class="block text-slate-600 font-medium mb-1">Kelas / Bilik Darjah</label>
+                  <input type="text" id="rphClass" value="" placeholder="Nama Kelas" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" readonly>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider text-brand-700">2. Kurikulum (DSKP Auto-Isi dari Tab Data_DSKP)</h3>
+                <span id="dskpStatusBadge" class="text-[11px] text-amber-600 font-medium">⏳ Sila pilih slot jadual dahulu</span>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label class="block text-slate-600 font-bold mb-1">Tema / Unit</label>
+                  <select id="rphThemeSelect" onchange="onThemeChange()" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-semibold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                    <option value="">-- Pilih Tema / Unit --</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-slate-600 font-bold mb-1">Tajuk</label>
+                  <select id="rphTajukSelect" onchange="onTajukChange()" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-semibold text-brand-800 focus:ring-1 focus:ring-brand-500">
+                    <option value="">-- Pilih Tajuk --</option>
+                  </select>
+                </div>
+
+                <div class="md:col-span-2">
+                  <label class="block text-slate-600 font-medium mb-1">Standard Pembelajaran (SP)</label>
+                  <textarea id="rphSP" rows="2" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" placeholder="Standard Pembelajaran auto-isi..."></textarea>
+                </div>
+              </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div class="bg-teal-50/50 p-4 rounded-xl border border-teal-100">
+                <label class="block text-brand-800 font-bold mb-1">Objektif Pembelajaran (OP)</label>
+                <p class="text-[11px] text-slate-400 mb-2">Pada akhir pembelajaran, murid akan dapat:</p>
+                <textarea id="rphOP" rows="3" class="w-full bg-white border border-teal-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" placeholder="Objektif pembelajaran auto-isi..."></textarea>
+              </div>
+
+              <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                <label class="block text-blue-900 font-bold mb-1">Kriteria Kejayaan (KK)</label>
+                <p class="text-[11px] text-slate-400 mb-2">Murid dianggap berjaya sekiranya:</p>
+                <textarea id="rphKK" rows="3" class="w-full bg-white border border-blue-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" placeholder="Kriteria kejayaan auto-isi..."></textarea>
+              </div>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <h3 class="font-bold text-slate-800 uppercase tracking-wider text-brand-700">3. Aktiviti Pengajaran & Pembelajaran (PdPC)</h3>
+
               <div>
-                <label class="block text-slate-600 font-bold mb-1">Tema / Unit</label>
-                <select id="rphThemeSelect" onchange="onThemeChange()" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-semibold text-brand-800 focus:ring-1 focus:ring-brand-500">
-                  <option value="">-- Pilih Tema / Unit --</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-slate-600 font-bold mb-1">Tajuk</label>
-                <select id="rphTajukSelect" onchange="onTajukChange()" class="w-full bg-white border border-slate-200 rounded-lg p-2 font-semibold text-brand-800 focus:ring-1 focus:ring-brand-500">
-                  <option value="">-- Pilih Tajuk --</option>
-                </select>
-              </div>
-
-              <div class="md:col-span-2">
-                <label class="block text-slate-600 font-medium mb-1">Standard Pembelajaran (SP)</label>
-                <textarea id="rphSP" rows="2" class="w-full bg-white border border-slate-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" placeholder="Standard Pembelajaran auto-isi..."></textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div class="bg-teal-50/50 p-4 rounded-xl border border-teal-100">
-              <label class="block text-brand-800 font-bold mb-1">Objektif Pembelajaran (OP)</label>
-              <p class="text-[11px] text-slate-400 mb-2">Pada akhir pembelajaran, murid akan dapat:</p>
-              <textarea id="rphOP" rows="3" class="w-full bg-white border border-teal-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" placeholder="Objektif pembelajaran auto-isi..."></textarea>
-            </div>
-
-            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-              <label class="block text-blue-900 font-bold mb-1">Kriteria Kejayaan (KK)</label>
-              <p class="text-[11px] text-slate-400 mb-2">Murid dianggap berjaya sekiranya:</p>
-              <textarea id="rphKK" rows="3" class="w-full bg-white border border-blue-200 rounded-lg p-2 focus:ring-1 focus:ring-brand-500" placeholder="Kriteria kejayaan auto-isi..."></textarea>
-            </div>
-          </div>
-
-          <div class="space-y-3 text-xs">
-            <h3 class="font-bold text-slate-800 uppercase tracking-wider text-brand-700">3. Aktiviti Pengajaran & Pembelajaran (PdPC)</h3>
-
-            <div>
-              <label class="block text-slate-700 font-semibold mb-1">Aktiviti Permulaan (Set Induksi)</label>
-              <input type="text" id="rphActStart" value="" placeholder="Set Induksi auto-isi..." class="w-full bg-white border border-slate-200 rounded-lg p-2">
-            </div>
-
-            <div>
-              <label class="block text-slate-700 font-semibold mb-1">Aktiviti Utama (P&P)</label>
-              <textarea id="rphActMain" rows="3" class="w-full bg-white border border-slate-200 rounded-lg p-2" placeholder="Aktiviti utama auto-isi..."></textarea>
-            </div>
-
-            <div>
-              <label class="block text-slate-700 font-semibold mb-1">Aktiviti Penutup (Rumusan)</label>
-              <input type="text" id="rphActEnd" value="" placeholder="Rumusan penutup auto-isi..." class="w-full bg-white border border-slate-200 rounded-lg p-2">
-            </div>
-          </div>
-
-          <!-- SEKSYEN CHECKBOXES BBM, EMK, KBAT, PBD -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <div>
-              <span class="block font-bold text-slate-700 mb-2">Bahan Bantu Mengajar (BBM)</span>
-              <div class="space-y-1">
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkBbm" value="Buku Teks / Modul" checked class="rounded text-brand-600"> <span>Buku Teks / Modul</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkBbm" value="Lembaran Kerja" checked class="rounded text-brand-600"> <span>Lembaran Kerja</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkBbm" value="Slaid LCD / TV" class="rounded text-brand-600"> <span>Slaid LCD / TV</span></label>
-              </div>
-            </div>
-
-            <div>
-              <span class="block font-bold text-slate-700 mb-2">Elemen EMK</span>
-              <div class="space-y-1">
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkEmk" value="Sains & Teknologi" checked class="rounded text-brand-600"> <span>Sains & Teknologi</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkEmk" value="Nilai Murni" checked class="rounded text-brand-600"> <span>Nilai Murni</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkEmk" value="Patriotisme" class="rounded text-brand-600"> <span>Patriotisme</span></label>
-              </div>
-            </div>
-
-            <div>
-              <span class="block font-bold text-slate-700 mb-2">Kemahiran KBAT / i-Think</span>
-              <div class="space-y-1">
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkKbat" value="Mengaplikasi" checked class="rounded text-brand-600"> <span>Mengaplikasi</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkKbat" value="Menganalisis" checked class="rounded text-brand-600"> <span>Menganalisis</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkKbat" value="Peta Titi" class="rounded text-brand-600"> <span>Peta Titi</span></label>
-              </div>
-            </div>
-
-            <div>
-              <span class="block font-bold text-slate-700 mb-2">Pentaksiran (PBD)</span>
-              <div class="space-y-1">
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkPbd" value="Latihan Bertulis" checked class="rounded text-brand-600"> <span>Latihan Bertulis</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkPbd" value="Pemerhatian / Lisan" checked class="rounded text-brand-600"> <span>Pemerhatian / Lisan</span></label>
-                <label class="flex items-center space-x-2"><input type="checkbox" name="chkPbd" value="Kuiz / Latihan" class="rounded text-brand-600"> <span>Kuiz / Latihan</span></label>
-              </div>
-            </div>
-          </div>
-
-          <!-- BAHAGIAN 4: REFLEKSI & CATATAN IMPAK (DENGAN BEKAS HIDE/SHOW DIKONTROL DARI JS) -->
-          <div id="sectionRefleksiWrapper" class="bg-amber-50/60 p-4 rounded-xl border border-amber-200/80 space-y-4 text-xs">
-            <div class="flex justify-between items-center">
-              <h3 class="font-bold text-amber-900 uppercase tracking-wider">4. Refleksi & Catatan Impak</h3>
-              <span id="badgeRefleksiStatus" class="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded">Fasa 2 Refleksi</span>
-            </div>
-
-            <!-- BANNER STATUS MASA PDPC -->
-            <div id="statusPdpcTimeBanner" class="p-3 bg-amber-100 border border-amber-300 rounded-xl flex items-center justify-between text-amber-900 font-semibold text-xs">
-              <span class="flex items-center gap-1.5">
-                <span>⏳</span>
-                <span id="txtPdpcTimeMsg">Status masa PdPC: Sila pilih slot jadual untuk menguji kawalan masa masa tamat PdPC.</span>
-              </span>
-            </div>
-
-            <!-- KOTAK KEHADIRAN & INPUT CAPAI OBJEKTIF -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white p-3.5 rounded-xl border border-amber-200">
-              <div>
-                <label class="block text-slate-700 font-bold mb-1">Kehadiran Murid (Auto dari Sheet Kehadiran)</label>
-                <input type="text" id="rphKehadiranDisplay" value="0 / 0" class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 font-bold text-teal-800 cursor-not-allowed" readonly>
-                <span class="text-[10px] text-slate-400 block mt-1">* Ditarik automatik dari pangkalan data Kehadiran</span>
+                <label class="block text-slate-700 font-semibold mb-1">Aktiviti Permulaan (Set Induksi)</label>
+                <input type="text" id="rphActStart" value="" placeholder="Set Induksi auto-isi..." class="w-full bg-white border border-slate-200 rounded-lg p-2">
               </div>
 
               <div>
-                <label class="block text-slate-700 font-bold mb-1">Murid Capai Objektif (Hanya medan ini diisi)</label>
-                <input type="number" id="rphCapaiCount" min="0" value="0" oninput="calculateRefleksi()" placeholder="Contoh: 28" class="w-full bg-white border border-amber-300 rounded-lg p-2 font-bold text-emerald-600 focus:ring-2 focus:ring-brand-500">
-                <span class="text-[10px] text-slate-400 block mt-1">* Masukkan bilangan murid yang menguasai PdPC</span>
+                <label class="block text-slate-700 font-semibold mb-1">Aktiviti Utama (P&P)</label>
+                <textarea id="rphActMain" rows="3" class="w-full bg-white border border-slate-200 rounded-lg p-2" placeholder="Aktiviti utama auto-isi..."></textarea>
+              </div>
+
+              <div>
+                <label class="block text-slate-700 font-semibold mb-1">Aktiviti Penutup (Rumusan)</label>
+                <input type="text" id="rphActEnd" value="" placeholder="Rumusan penutup auto-isi..." class="w-full bg-white border border-slate-200 rounded-lg p-2">
               </div>
             </div>
 
-            <!-- DYNAMIC STATEMENT PREVIEW -->
-            <div id="refleksiStatementsContainer" class="bg-white p-3.5 rounded-xl border border-amber-200 space-y-1 text-slate-800 font-medium">
-              <p>• <span id="txtCapaiOp" class="font-bold text-emerald-700">0 / 0</span> orang murid dapat mencapai objektif pembelajaran yang ditetapkan.</p>
-              <p>• <span id="txtBimbingan" class="font-bold text-amber-700">0 / 0</span> orang murid dapat mencapai objektif pembelajaran dengan bimbingan.</p>
-              <p>• <span id="txtTidakCapai" class="font-bold text-rose-700">0 / 0</span> orang murid tidak berjaya mencapai objektif pembelajaran.</p>
-            </div>
+            <!-- SEKSYEN CHECKBOXES BBM, EMK, KBAT, PBD -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div>
+                <span class="block font-bold text-slate-700 mb-2">Bahan Bantu Mengajar (BBM)</span>
+                <div class="space-y-1">
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkBbm" value="Buku Teks / Modul" checked class="rounded text-brand-600"> <span>Buku Teks / Modul</span></label>
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkBbm" value="Lembaran Kerja" checked class="rounded text-brand-600"> <span>Lembaran Kerja</span></label>
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkBbm" value="Slaid LCD / TV" class="rounded text-brand-600"> <span>Slaid LCD / TV</span></label>
+                </div>
+              </div>
 
-            <!-- CHECKBOX & SEBAB PDPC TIDAK DIJALANKAN -->
-            <div class="pt-2 border-t border-amber-200/80 space-y-2">
-              <label class="flex items-start space-x-2 font-bold text-amber-900 cursor-pointer">
-                <input type="checkbox" id="chkPdpcPostponed" onchange="togglePdpcReason()" class="mt-0.5 rounded text-amber-600 focus:ring-amber-500">
-                <span>Pengajaran dan pembelajaran (PdPC) tidak dapat dijalankan pada hari ini dan akan diteruskan pada sesi pembelajaran seterusnya.</span>
-              </label>
+              <div>
+                <span class="block font-bold text-slate-700 mb-2">Elemen EMK</span>
+                <div class="space-y-1">
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkEmk" value="Sains & Teknologi" checked class="rounded text-brand-600"> <span>Sains & Teknologi</span></label>
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkEmk" value="Nilai Murni" checked class="rounded text-brand-600"> <span>Nilai Murni</span></label>
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkEmk" value="Patriotisme" class="rounded text-brand-600"> <span>Patriotisme</span></label>
+                </div>
+              </div>
 
-              <div id="pdpcReasonBox" class="hidden pl-6">
-                <label class="block text-slate-700 font-semibold mb-1">Sebab / Kerana:</label>
-                <input type="text" id="rphPdpcReason" oninput="calculateRefleksi()" placeholder="Contoh: Program Sekolah / Cuti Peristiwa / Mesyuarat / Kursus..." class="w-full bg-white border border-amber-300 rounded-lg p-2 text-slate-800">
+              <div>
+                <span class="block font-bold text-slate-700 mb-2">Kemahiran KBAT / i-Think</span>
+                <div class="space-y-1">
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkKbat" value="Mengaplikasi" checked class="rounded text-brand-600"> <span>Mengaplikasi</span></label>
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkKbat" value="Menganalisis" checked class="rounded text-brand-600"> <span>Menganalisis</span></label>
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkKbat" value="Peta Titi" class="rounded text-brand-600"> <span>Peta Titi</span></label>
+                </div>
+              </div>
+
+              <div>
+                <span class="block font-bold text-slate-700 mb-2">Pentaksiran (PBD)</span>
+                <div class="space-y-1">
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkPbd" value="Latihan Bertulis" checked class="rounded text-brand-600"> <span>Latihan Bertulis</span></label>
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkPbd" value="Pemerhatian / Lisan" checked class="rounded text-brand-600"> <span>Pemerhatian / Lisan</span></label>
+                  <label class="flex items-center space-x-2"><input type="checkbox" name="chkPbd" value="Kuiz / Latihan" class="rounded text-brand-600"> <span>Kuiz / Latihan</span></label>
+                </div>
               </div>
             </div>
 
-            <!-- CATATAN TAMBAHAN & INPUT TERSEMBUNYI -->
-            <div>
-              <label class="block text-slate-700 font-semibold mb-1">Catatan Impak & Tindakan Susulan (Opsional)</label>
-              <input type="text" id="rphReflectNote" placeholder="Masukkan catatan impak atau bimbingan pemulihan..." class="w-full bg-white border border-amber-200 rounded-lg p-2">
+            <!-- BAHAGIAN 4: REFLEKSI & CATATAN IMPAK -->
+            <div id="sectionRefleksiWrapper" class="bg-amber-50/60 p-4 rounded-xl border border-amber-200/80 space-y-4 text-xs">
+              <div class="flex justify-between items-center">
+                <h3 class="font-bold text-amber-900 uppercase tracking-wider">4. Refleksi & Catatan Impak</h3>
+                <span id="badgeRefleksiStatus" class="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded">Fasa 2 Refleksi</span>
+              </div>
+
+              <!-- BANNER STATUS MASA PDPC -->
+              <div id="statusPdpcTimeBanner" class="p-3 bg-amber-100 border border-amber-300 rounded-xl flex items-center justify-between text-amber-900 font-semibold text-xs">
+                <span class="flex items-center gap-1.5">
+                  <span>⏳</span>
+                  <span id="txtPdpcTimeMsg">Status masa PdPC: Sila pilih slot jadual untuk menguji kawalan masa masa tamat PdPC.</span>
+                </span>
+              </div>
+
+              <!-- KOTAK KEHADIRAN & INPUT CAPAI OBJEKTIF -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white p-3.5 rounded-xl border border-amber-200">
+                <div>
+                  <label class="block text-slate-700 font-bold mb-1">Kehadiran Murid (Auto dari Sheet Kehadiran)</label>
+                  <input type="text" id="rphKehadiranDisplay" value="0 / 0" class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 font-bold text-teal-800 cursor-not-allowed" readonly>
+                  <span class="text-[10px] text-slate-400 block mt-1">* Ditarik automatik dari pangkalan data Kehadiran</span>
+                </div>
+
+                <div>
+                  <label class="block text-slate-700 font-bold mb-1">Murid Capai Objektif (Hanya medan ini diisi)</label>
+                  <input type="number" id="rphCapaiCount" min="0" value="0" oninput="calculateRefleksi()" placeholder="Contoh: 28" class="w-full bg-white border border-amber-300 rounded-lg p-2 font-bold text-emerald-600 focus:ring-2 focus:ring-brand-500">
+                  <span class="text-[10px] text-slate-400 block mt-1">* Masukkan bilangan murid yang menguasai PdPC</span>
+                </div>
+              </div>
+
+              <!-- DYNAMIC STATEMENT PREVIEW -->
+              <div id="refleksiStatementsContainer" class="bg-white p-3.5 rounded-xl border border-amber-200 space-y-1 text-slate-800 font-medium">
+                <p>• <span id="txtCapaiOp" class="font-bold text-emerald-700">0 / 0</span> orang murid dapat mencapai objektif pembelajaran yang ditetapkan.</p>
+                <p>• <span id="txtBimbingan" class="font-bold text-amber-700">0 / 0</span> orang murid dapat mencapai objektif pembelajaran dengan bimbingan.</p>
+                <p>• <span id="txtTidakCapai" class="font-bold text-rose-700">0 / 0</span> orang murid tidak berjaya mencapai objektif pembelajaran.</p>
+              </div>
+
+              <!-- CHECKBOX & SEBAB PDPC TIDAK DIJALANKAN -->
+              <div class="pt-2 border-t border-amber-200/80 space-y-2">
+                <label class="flex items-start space-x-2 font-bold text-amber-900 cursor-pointer">
+                  <input type="checkbox" id="chkPdpcPostponed" onchange="togglePdpcReason()" class="mt-0.5 rounded text-amber-600 focus:ring-amber-500">
+                  <span>Pengajaran dan pembelajaran (PdPC) tidak dapat dijalankan pada hari ini dan akan diteruskan pada sesi pembelajaran seterusnya.</span>
+                </label>
+
+                <div id="pdpcReasonBox" class="hidden pl-6">
+                  <label class="block text-slate-700 font-semibold mb-1">Sebab / Kerana:</label>
+                  <input type="text" id="rphPdpcReason" oninput="calculateRefleksi()" placeholder="Contoh: Program Sekolah / Cuti Peristiwa / Mesyuarat / Kursus..." class="w-full bg-white border border-amber-300 rounded-lg p-2 text-slate-800">
+                </div>
+              </div>
+
+              <!-- CATATAN TAMBAHAN & INPUT TERSEMBUNYI -->
+              <div>
+                <label class="block text-slate-700 font-semibold mb-1">Catatan Impak & Tindakan Susulan (Opsional)</label>
+                <input type="text" id="rphReflectNote" placeholder="Masukkan catatan impak atau bimbingan pemulihan..." class="w-full bg-white border border-amber-200 rounded-lg p-2">
+              </div>
+
+              <input type="hidden" id="rphReflectCount" value="">
             </div>
 
-            <input type="hidden" id="rphReflectCount" value="">
           </div>
 
           <div class="flex items-center justify-between pt-4 border-t border-slate-100">
@@ -642,7 +739,7 @@
                 Simpan Draf (Perancangan)
               </button>
               <button type="submit" id="btnSubmitRph" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                <span>🚀 Hantar RPH Harian</span>
+                <span id="txtBtnSubmitLabel">🚀 Hantar RPH Harian</span>
               </button>
             </div>
           </div>
