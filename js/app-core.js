@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL 1: js/app-core.js (Logik Teras, Sesi Pengguna, Takwim, Kawalan Akses & Penjelajah Cetakan)
+ * FAIL 1: js/app-core.js (Logik Teras, Sesi Pengguna, Takwim, Kawalan Akses & Rekod RPH Direktori)
  * ==============================================================================
  */
 
@@ -572,14 +572,14 @@ function setActiveTab(tabId) {
 
 /**
  * ==============================================================================
- * MODUL PENJELAJAH FAIL CETAKAN 35% & SUNTIKAN DATA PREVIEW 65%
+ * MODUL REKOD RPH DIREKTORI 35% & SUNTIKAN DATA PREVIEW 65%
  * ==============================================================================
  */
 
 function cetakRphRecord(idRph) {
   if (!idRph) return;
 
-  const list = window.currentGuruRphList || state.rphList || [];
+  const list = window.allGuruRphList || window.currentGuruRphList || state.rphList || [];
   const item = list.find(r => String(r.idRph) === String(idRph));
 
   if (!item) {
@@ -605,77 +605,139 @@ function initPrintFolderExplorer() {
   const container = document.getElementById('printFolderTreeContainer');
   if (!container) return;
 
-  const list = window.currentGuruRphList || state.rphList || [];
+  container.innerHTML = `<div class="p-4 text-xs text-slate-400 italic text-center">Sedang memuatkan direktori RPH...</div>`;
+
+  const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
+  
+  // Menarik KESELURUHAN rekod RPH guru (minggu: '') untuk membina direktori penuh
+  fetchBackendApi('getErphListGuru', { emailGuru: emailGuru, minggu: '' })
+    .then(res => {
+      let allList = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+      window.allGuruRphList = allList;
+      renderPrintFolderTree(allList);
+    })
+    .catch(err => {
+      console.error('Ralat direktori RPH:', err);
+      let fallbackList = window.currentGuruRphList || state.rphList || [];
+      renderPrintFolderTree(fallbackList);
+    });
+}
+
+function renderPrintFolderTree(allList) {
+  const container = document.getElementById('printFolderTreeContainer');
+  if (!container) return;
   container.innerHTML = '';
 
-  if (!list || list.length === 0) {
-    container.innerHTML = `<div class="p-4 text-xs text-slate-400 italic">Tiada rekod RPH dijumpai bagi minggu ini.</div>`;
-    return;
+  // Tentukan Minggu Semasa & Minggu Maksimum (Minggu Semasa + 1)
+  const selectWeekGuru = document.getElementById('selectWeekGuru');
+  let currentWeekVal = parseInt(selectWeekGuru ? selectWeekGuru.value : '1', 10) || 1;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const takwim = state.takwimList || window.takwimListGlobal || [];
+  
+  if (takwim && takwim.length > 0) {
+    takwim.forEach(t => {
+      let dMula = parseTakwimDateHelper(t.tarikhMula);
+      let dTamat = parseTakwimDateHelper(t.tarikhTamat);
+      if (dMula && dTamat) {
+        dMula.setHours(0, 0, 0, 0);
+        dTamat.setDate(dTamat.getDate() + 2);
+        dTamat.setHours(23, 59, 59, 999);
+        if (today >= dMula && today <= dTamat) {
+          currentWeekVal = parseInt(t.mingguKe, 10) || currentWeekVal;
+        }
+      }
+    });
   }
+
+  const maxWeekDisplay = currentWeekVal + 1;
 
   // Kumpulan mengikut Minggu -> Hari -> Slot
   const groupedByWeek = {};
-
-  list.forEach(item => {
-    const m = item.minggu || '1';
-    const h = item.hari || 'Isnin';
-
-    if (!groupedByWeek[m]) groupedByWeek[m] = {};
-    if (!groupedByWeek[m][h]) groupedByWeek[m][h] = [];
-
-    groupedByWeek[m][h].push(item);
+  (allList || []).forEach(item => {
+    const m = parseInt(item.minggu, 10) || 1;
+    if (m <= maxWeekDisplay) {
+      const h = item.hari || 'Isnin';
+      if (!groupedByWeek[m]) groupedByWeek[m] = {};
+      if (!groupedByWeek[m][h]) groupedByWeek[m][h] = [];
+      groupedByWeek[m][h].push(item);
+    }
   });
 
-  Object.keys(groupedByWeek).forEach(mVal => {
+  // Jana Senarai Folder dari Minggu 1 hingga Minggu (Semasa + 1)
+  let weekNumbers = [];
+  for (let w = 1; w <= maxWeekDisplay; w++) {
+    weekNumbers.push(w);
+  }
+
+  if (weekNumbers.length === 0) {
+    container.innerHTML = `<div class="p-4 text-xs text-slate-400 italic text-center">Tiada rekod RPH dijumpai.</div>`;
+    return;
+  }
+
+  weekNumbers.forEach(mVal => {
     const weekDiv = document.createElement('div');
     weekDiv.className = 'space-y-1 mb-2';
 
+    const dayGroup = groupedByWeek[mVal] || {};
+    const totalDayKeys = Object.keys(dayGroup).length;
+    let totalSlotsInWeek = 0;
+    Object.keys(dayGroup).forEach(h => { totalSlotsInWeek += dayGroup[h].length; });
+
+    const isCurrentOrFutureLabel = (mVal === currentWeekVal) ? ' (Semasa)' : (mVal === maxWeekDisplay ? ' (Hadapan)' : '');
+
     let weekHtml = `
       <div class="font-bold text-xs text-slate-800 bg-slate-100 p-2 rounded-lg flex items-center justify-between cursor-pointer hover:bg-slate-200" onclick="toggleTreeNode('week-${mVal}')">
-        <span>📁 Minggu ${mVal}</span>
-        <span class="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-600">${Object.keys(groupedByWeek[mVal]).length} Hari</span>
+        <span>📁 Minggu ${mVal}${isCurrentOrFutureLabel}</span>
+        <span class="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-600">${totalSlotsInWeek} Slot</span>
       </div>
-      <div id="week-${mVal}" class="pl-3 space-y-1">
+      <div id="week-${mVal}" class="pl-3 space-y-1 ${mVal === currentWeekVal ? '' : 'hidden'}">
     `;
 
-    Object.keys(groupedByWeek[mVal]).forEach(hVal => {
-      const itemsInDay = groupedByWeek[mVal][hVal];
-      const tarikhDisplay = itemsInDay[0] ? (itemsInDay[0].tarikh || '') : '';
-
-      weekHtml += `
-        <div class="space-y-0.5">
-          <div class="font-semibold text-[11px] text-slate-700 p-1.5 rounded flex items-center justify-between cursor-pointer hover:bg-slate-50" onclick="toggleTreeNode('day-${mVal}-${hVal}')">
-            <span>📂 ${hVal} ${tarikhDisplay ? '(' + tarikhDisplay + ')' : ''}</span>
-            <span class="text-[9px] text-slate-400">${itemsInDay.length} Slot</span>
-          </div>
-          <div id="day-${mVal}-${hVal}" class="pl-3 space-y-0.5">
-      `;
-
-      itemsInDay.forEach(r => {
-        const mulaClean  = cleanTimeFormatFrontend(r.masaMula);
-        const tamatClean = cleanTimeFormatFrontend(r.masaTamat);
-        const masaStr = (mulaClean && tamatClean) ? `${mulaClean}-${tamatClean}` : (r.kelas || '');
+    if (totalDayKeys === 0) {
+      weekHtml += `<div class="p-2 text-[11px] text-slate-400 italic">Tiada rekod RPH bagi minggu ini.</div>`;
+    } else {
+      Object.keys(dayGroup).forEach(hVal => {
+        const itemsInDay = dayGroup[hVal];
+        const tarikhDisplay = itemsInDay[0] ? (itemsInDay[0].tarikh || '') : '';
 
         weekHtml += `
-          <div id="tree-item-${r.idRph}" onclick="selectRphForPrintFromTree('${r.idRph}')" class="tree-file-node p-1.5 rounded text-xs text-slate-600 cursor-pointer hover:bg-teal-50 hover:text-brand-800 transition-all flex items-center space-x-1.5">
-            <span>📝</span>
-            <span class="truncate">${r.subjek} - ${r.kelas} (${masaStr})</span>
-          </div>
+          <div class="space-y-0.5">
+            <div class="font-semibold text-[11px] text-slate-700 p-1.5 rounded flex items-center justify-between cursor-pointer hover:bg-slate-50" onclick="toggleTreeNode('day-${mVal}-${hVal}')">
+              <span>📂 ${hVal} ${tarikhDisplay ? '(' + tarikhDisplay + ')' : ''}</span>
+              <span class="text-[9px] text-slate-400">${itemsInDay.length} Slot</span>
+            </div>
+            <div id="day-${mVal}-${hVal}" class="pl-3 space-y-0.5">
         `;
-      });
 
-      weekHtml += `</div></div>`;
-    });
+        itemsInDay.forEach(r => {
+          const mulaClean  = cleanTimeFormatFrontend(r.masaMula);
+          const tamatClean = cleanTimeFormatFrontend(r.masaTamat);
+          const masaStr = (mulaClean && tamatClean) ? `${mulaClean}-${tamatClean}` : (r.kelas || '');
+
+          weekHtml += `
+            <div id="tree-item-${r.idRph}" onclick="selectRphForPrintFromTree('${r.idRph}')" class="tree-file-node p-1.5 rounded text-xs text-slate-600 cursor-pointer hover:bg-teal-50 hover:text-brand-800 transition-all flex items-center space-x-1.5">
+              <span>📝</span>
+              <span class="truncate">${r.subjek} - ${r.kelas} (${masaStr})</span>
+            </div>
+          `;
+        });
+
+        weekHtml += `</div></div>`;
+      });
+    }
 
     weekHtml += `</div>`;
     weekDiv.innerHTML = weekHtml;
     container.appendChild(weekDiv);
   });
 
-  if (list.length > 0) {
-    populatePrintPreview(list[0]);
+  // Papar pra-tonton item pertama secara automatik jika ada
+  if (allList && allList.length > 0) {
+    populatePrintPreview(allList[0]);
     setTimeout(() => {
-      const firstTreeItem = document.getElementById(`tree-item-${list[0].idRph}`);
+      const firstTreeItem = document.getElementById(`tree-item-${allList[0].idRph}`);
       if (firstTreeItem) {
         firstTreeItem.classList.add('bg-teal-100', 'font-bold', 'text-brand-800');
       }
@@ -691,7 +753,7 @@ function toggleTreeNode(nodeId) {
 }
 
 function selectRphForPrintFromTree(idRph) {
-  const list = window.currentGuruRphList || state.rphList || [];
+  const list = window.allGuruRphList || window.currentGuruRphList || state.rphList || [];
   const item = list.find(r => String(r.idRph) === String(idRph));
 
   if (!item) return;
