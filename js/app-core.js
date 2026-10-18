@@ -81,6 +81,35 @@ function cleanTimeFormatFrontend(str) {
 }
 
 /**
+ * PEMBANTU NYAHTAFSIR TARIKH TAKWIM (SOKONGAN US MM/DD/YYYY & ISO)
+ */
+function parseTakwimDateHelper(dateStr) {
+  if (!dateStr) return null;
+  let str = String(dateStr).trim();
+  let parts = str.split(/[\/\-]/);
+
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+      return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+    let p0 = parseInt(parts[0], 10);
+    let p1 = parseInt(parts[1], 10);
+    let p2 = parseInt(parts[2], 10);
+
+    if (p0 > 12) {
+      return new Date(p2, p1 - 1, p0);
+    } else if (p1 > 12) {
+      return new Date(p2, p0 - 1, p1);
+    } else {
+      return new Date(p2, p0 - 1, p1);
+    }
+  }
+
+  let d = new Date(str);
+  return !isNaN(d.getTime()) ? d : null;
+}
+
+/**
  * INISIALISASI SESI PENGGUNA & KAWALAN HAK AKSES JAWATAN PENTADBIR
  */
 function initUserSession() {
@@ -131,15 +160,17 @@ function initUserSession() {
       
       const isPentadbirRole = pentadbirJawatanList.some(j => jawatan.toLowerCase().includes(j));
 
+      // HANYA AKAN DIPAPARKAN UNTUK PENGGUNA STATUS ADMIN DALAM SISTEM_AKSES
       const roleToggleContainer = document.getElementById('roleToggleContainer');
       if (roleToggleContainer) {
-        if (sistemAkses === 'admin' || isPentadbirRole) {
+        if (sistemAkses === 'admin') {
           roleToggleContainer.style.display = 'flex';
         } else {
           roleToggleContainer.style.display = 'none';
         }
       }
 
+      // AKSEBILITI TAB SEMAKAN PENTADBIR
       const navApproval = document.getElementById('navTabApproval');
       if (navApproval) {
         if (isPentadbirRole || sistemAkses === 'admin') {
@@ -193,35 +224,58 @@ function loadTakwimAndInitDropdowns() {
 }
 
 /**
- * POPULASI DROPDOWN MINGGU & AMBIL DATA RPH DASHBOARD
+ * POPULASI DROPDOWN MINGGU SECARA MENURUN & PILIH MINGGU SEMASA AUTOMATIK
  */
 function populateWeeksDropdowns() {
   const selectGuru = document.getElementById('selectWeekGuru');
-  if (selectGuru) {
-    selectGuru.innerHTML = '';
+  if (!selectGuru) return;
+  selectGuru.innerHTML = '';
 
-    if (state.takwimList && state.takwimList.length > 0) {
-      state.takwimList.forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t.mingguKe;
-        let labelDate = (t.tarikhMula && t.tarikhTamat) ? ` (${t.tarikhMula} - ${t.tarikhTamat})` : '';
-        opt.textContent = `Minggu ${t.mingguKe}${labelDate}`;
-        selectGuru.appendChild(opt);
-      });
-      selectGuru.value = state.takwimList[0].mingguKe;
-    } else {
-      // Fallback sekiranya pangkalan data Takwim belum diisi
-      for (let i = 1; i <= 42; i++) {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = 'Minggu ' + i;
-        if (i === 1) opt.selected = true;
-        selectGuru.appendChild(opt);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let matchedCurrentWeek = null;
+
+  if (state.takwimList && state.takwimList.length > 0) {
+    // Susun minggu secara MENURUN (Descending order)
+    let sortedTakwim = [...state.takwimList].sort((a, b) => (parseInt(b.mingguKe, 10) || 0) - (parseInt(a.mingguKe, 10) || 0));
+
+    sortedTakwim.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.mingguKe;
+      let labelDate = (t.tarikhMula && t.tarikhTamat) ? ` (${t.tarikhMula} - ${t.tarikhTamat})` : '';
+      opt.textContent = `Minggu ${t.mingguKe}${labelDate}`;
+      selectGuru.appendChild(opt);
+
+      // Semak jika hari ini jatuh dalam julat Tarikh_Mula dan Tarikh_Tamat
+      let dMula = parseTakwimDateHelper(t.tarikhMula);
+      let dTamat = parseTakwimDateHelper(t.tarikhTamat);
+      if (dMula && dTamat) {
+        dMula.setHours(0, 0, 0, 0);
+        dTamat.setHours(23, 59, 59, 999);
+        if (today >= dMula && today <= dTamat) {
+          matchedCurrentWeek = t.mingguKe;
+        }
       }
+    });
+
+    if (matchedCurrentWeek) {
+      selectGuru.value = matchedCurrentWeek;
+    } else if (selectGuru.options.length > 0) {
+      selectGuru.selectedIndex = 0;
     }
+  } else {
+    // Fallback secara menurun (42 ke 1)
+    for (let i = 42; i >= 1; i--) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = 'Minggu ' + i;
+      selectGuru.appendChild(opt);
+    }
+    selectGuru.value = '1';
   }
   
-  const currentWeekVal = selectGuru ? selectGuru.value : '1';
+  const currentWeekVal = selectGuru.value || '1';
   const lbl = document.getElementById('lblMingguHariDashboard');
   if (lbl) lbl.textContent = `Minggu ${currentWeekVal} (Semasa)`;
 
@@ -365,7 +419,7 @@ function renderGuruRphTable(list) {
       ? `${masaRange} (${item.kelas || '-'})` 
       : (item.kelas || '-');
 
-    // PERMINTAAN 3: Jika telah disahkan / disemak oleh Pentadbir, KUNCI butang edit
+    // KUNCI BUTANG EDIT JIKA TELAH DISEMMAKAN OLEH PENTADBIR
     let actionBtn = '';
     if (isApproved) {
       actionBtn = `<span class="px-2.5 py-1 bg-slate-100 text-slate-500 rounded text-[11px] font-bold border border-slate-200 cursor-not-allowed" title="RPH telah disemak & disahkan oleh Pentadbir">🔒 Disemak & Dikunci</span>`;
