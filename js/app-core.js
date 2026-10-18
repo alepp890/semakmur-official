@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL 3: js/app-core.js (Logik Teras, Sesi Pengguna & Kawalan Akses Jawatan)
+ * FAIL 3: js/app-core.js (Logik Teras, Sesi Pengguna, Takwim & Kawalan Akses Jawatan)
  * ==============================================================================
  */
 
@@ -29,6 +29,7 @@ const state = {
   allUserJadual: [],
   dskpList: [],
   rphList: [],
+  takwimList: [],
   activeModalRphId: null,
   currentStarRating: 5
 };
@@ -158,6 +159,7 @@ function initUserSession() {
       if (mainBody) mainBody.style.display = 'flex';
 
       fetchJadualHariIni(email);
+      loadTakwimAndInitDropdowns();
     } catch (e) {
       console.error("Ralat membaca sesi pengguna:", e);
       window.location.replace('LoginSession.html');
@@ -165,8 +167,29 @@ function initUserSession() {
   } else {
     window.location.replace('LoginSession.html');
   }
+}
 
-  populateWeeksDropdowns();
+/**
+ * MUAT DATA TAKWIM MINGGUAN SEBENAR DARI BACKEND
+ */
+function loadTakwimAndInitDropdowns() {
+  fetchBackendApi('getTakwimData')
+    .then(res => {
+      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+        state.takwimList = res.data;
+        window.takwimListGlobal = res.data;
+      } else {
+        state.takwimList = [];
+        window.takwimListGlobal = [];
+      }
+      populateWeeksDropdowns();
+    })
+    .catch(err => {
+      console.error('Ralat muat Takwim:', err);
+      state.takwimList = [];
+      window.takwimListGlobal = [];
+      populateWeeksDropdowns();
+    });
 }
 
 /**
@@ -176,22 +199,44 @@ function populateWeeksDropdowns() {
   const selectGuru = document.getElementById('selectWeekGuru');
   if (selectGuru) {
     selectGuru.innerHTML = '';
-    for (let i = 1; i <= 42; i++) {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = 'Minggu ' + i;
-      if (i === 36) opt.selected = true;
-      selectGuru.appendChild(opt);
+
+    if (state.takwimList && state.takwimList.length > 0) {
+      state.takwimList.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.mingguKe;
+        let labelDate = (t.tarikhMula && t.tarikhTamat) ? ` (${t.tarikhMula} - ${t.tarikhTamat})` : '';
+        opt.textContent = `Minggu ${t.mingguKe}${labelDate}`;
+        selectGuru.appendChild(opt);
+      });
+      selectGuru.value = state.takwimList[0].mingguKe;
+    } else {
+      // Fallback sekiranya pangkalan data Takwim belum diisi
+      for (let i = 1; i <= 42; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = 'Minggu ' + i;
+        if (i === 1) opt.selected = true;
+        selectGuru.appendChild(opt);
+      }
     }
   }
   
+  const currentWeekVal = selectGuru ? selectGuru.value : '1';
   const lbl = document.getElementById('lblMingguHariDashboard');
-  if (lbl) lbl.textContent = 'Minggu 36 (Hari Ini)';
+  if (lbl) lbl.textContent = `Minggu ${currentWeekVal} (Semasa)`;
 
   loadGuruDashboardData();
 }
 
-function changeWeekGuru() { loadGuruDashboardData(); }
+function changeWeekGuru() {
+  const selectGuru = document.getElementById('selectWeekGuru');
+  const currentWeekVal = selectGuru ? selectGuru.value : '1';
+  const lbl = document.getElementById('lblMingguHariDashboard');
+  if (lbl) lbl.textContent = `Minggu ${currentWeekVal}`;
+
+  loadGuruDashboardData(); 
+}
+
 function filterGuruTableByDay() { loadGuruDashboardData(); }
 
 /**
@@ -249,7 +294,7 @@ function fetchJadualHariIni(emailGuru) {
 function loadGuruDashboardData() {
   const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
   const selectWeek = document.getElementById('selectWeekGuru');
-  const minggu = selectWeek ? selectWeek.value : '36';
+  const minggu = selectWeek ? selectWeek.value : '1';
   const filterDay = document.getElementById('filterDayGuru') ? document.getElementById('filterDayGuru').value : 'ALL';
 
   const tbody = document.getElementById('guruRphTableBody');
@@ -283,7 +328,7 @@ function loadGuruDashboardData() {
 }
 
 /**
- * PAPARAN JADUAL DASHBOARD GURU DENGAN BUTANG EDIT/LANJUT
+ * PAPARAN JADUAL DASHBOARD GURU DENGAN BUTANG EDIT/LANJUT ATAU KUNCI PENTADBIR
  */
 function renderGuruRphTable(list) {
   const tbody = document.getElementById('guruRphTableBody');
@@ -300,6 +345,8 @@ function renderGuruRphTable(list) {
     tr.className = 'hover:bg-slate-50 border-b border-slate-100';
 
     const isDraft = (item.statusHantar === 'Draf');
+    const isApproved = (item.statusSemak === 'Disahkan' || item.statusSemak === 'Disemak');
+
     const statusBadge = isDraft 
       ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">📝 Draf</span>`
       : `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full">🚀 Dihantar</span>`;
@@ -318,14 +365,20 @@ function renderGuruRphTable(list) {
       ? `${masaRange} (${item.kelas || '-'})` 
       : (item.kelas || '-');
 
+    // PERMINTAAN 3: Jika telah disahkan / disemak oleh Pentadbir, KUNCI butang edit
+    let actionBtn = '';
+    if (isApproved) {
+      actionBtn = `<span class="px-2.5 py-1 bg-slate-100 text-slate-500 rounded text-[11px] font-bold border border-slate-200 cursor-not-allowed" title="RPH telah disemak & disahkan oleh Pentadbir">🔒 Disemak & Dikunci</span>`;
+    } else {
+      actionBtn = `<button onclick="editRphRecord('${item.idRph}')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded text-[11px] font-bold transition-all shadow-sm">Edit/Lanjut</button>`;
+    }
+
     tr.innerHTML = `
       <td class="py-2.5 px-3 font-bold text-slate-800">${item.hari} - ${item.subjek}</td>
       <td class="py-2.5 px-3">${masaDisplay}</td>
       <td class="py-2.5 px-3">${statusBadge}</td>
       <td class="py-2.5 px-3 text-slate-500">${item.ulasanPenyemak || '-'}</td>
-      <td class="py-2.5 px-3 text-right">
-        <button onclick="editRphRecord('${item.idRph}')" class="px-2.5 py-1 bg-brand-600 hover:bg-brand-700 text-white rounded text-[11px] font-bold transition-all">Edit/Lanjut</button>
-      </td>
+      <td class="py-2.5 px-3 text-right">${actionBtn}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -343,7 +396,7 @@ function updateGuruStats(allList) {
 }
 
 /**
- * KAWALAN PAPARAN ROLE (PENTADBIR KEKAL BISA LIHAT WIDGET GURU KERANA PENTADBIR JUGA ADA JADUAL PDPC)
+ * KAWALAN PAPARAN ROLE
  */
 function switchUserRole(role) {
   state.currentUserRole = role;
@@ -352,7 +405,6 @@ function switchUserRole(role) {
   const guruView = document.getElementById('guruDashboardView');
   const pentadbirView = document.getElementById('pentadbirDashboardView');
 
-  // Paparan Guru Dashboard kekal sentiasa kelihatan kerana Pentadbir juga mempunyai kelas
   if (guruView) guruView.classList.remove('hidden');
 
   if (role === 'guru') {
