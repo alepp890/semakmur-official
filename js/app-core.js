@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL: js/app-core.js (Logik Teras, Sesi Pengguna & Kawalan Akses Jawatan)
+ * FAIL 3: js/app-core.js (Logik Teras, Sesi Pengguna & Kawalan Akses Jawatan)
  * ==============================================================================
  */
 
@@ -115,7 +115,7 @@ function initUserSession() {
         document.getElementById('printGuruName').innerText = name;
       }
 
-      // KAWALAN HAK AKSES TAB SEMAKAN PENTADBIR (HANYA GURU BESAR, PK PENTADBIRAN, PK HEM, PK KO KURIKULUM)
+      // KAWALAN HAK AKSES TAB SEMAKAN PENTADBIR (GURU BESAR, PK PENTADBIRAN, PK HEM, PK KO KURIKULUM)
       const pentadbirJawatanList = [
         'guru besar',
         'pk pentadbiran',
@@ -148,7 +148,7 @@ function initUserSession() {
         }
       }
 
-      if (isPentadbirRole) {
+      if (isPentadbirRole || sistemAkses === 'admin') {
         switchUserRole('pentadbir');
       } else {
         switchUserRole('guru');
@@ -342,6 +342,9 @@ function updateGuruStats(allList) {
   if (elNoReflect) elNoReflect.textContent = noReflectCount + ' Slot';
 }
 
+/**
+ * KAWALAN PAPARAN ROLE (PENTADBIR KEKAL BISA LIHAT WIDGET GURU KERANA PENTADBIR JUGA ADA JADUAL PDPC)
+ */
 function switchUserRole(role) {
   state.currentUserRole = role;
   const btnGuru = document.getElementById('roleBtnGuru');
@@ -349,16 +352,17 @@ function switchUserRole(role) {
   const guruView = document.getElementById('guruDashboardView');
   const pentadbirView = document.getElementById('pentadbirDashboardView');
 
+  // Paparan Guru Dashboard kekal sentiasa kelihatan kerana Pentadbir juga mempunyai kelas
+  if (guruView) guruView.classList.remove('hidden');
+
   if (role === 'guru') {
     if (btnGuru) btnGuru.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
     if (btnPentadbir) btnPentadbir.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
-    if (guruView) guruView.classList.remove('hidden');
     if (pentadbirView) pentadbirView.classList.add('hidden');
   } else {
     if (btnPentadbir) btnPentadbir.className = "px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-700 shadow-sm";
     if (btnGuru) btnGuru.className = "px-3 py-1 rounded-lg font-medium text-white hover:text-teal-200 transition-all";
     if (pentadbirView) pentadbirView.classList.remove('hidden');
-    if (guruView) guruView.classList.add('hidden');
     if (typeof loadPentadbirDashboardData === 'function') {
       loadPentadbirDashboardData();
     }
