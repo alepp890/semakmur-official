@@ -665,9 +665,9 @@ function renderPrintFolderTree(allList) {
     }
   });
 
-  // Jana Senarai Folder dari Minggu 1 hingga Minggu (Semasa + 1)
+  // JANA SENARAI FOLDER DARI MINGGU TERAKHIR (DI ATAS) KE MINGGU 1 (DI BAWAH SEKALI)
   let weekNumbers = [];
-  for (let w = 1; w <= maxWeekDisplay; w++) {
+  for (let w = maxWeekDisplay; w >= 1; w--) {
     weekNumbers.push(w);
   }
 
