@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND MODULE
- * FAIL: js/builder.js (Logik Pembina e-RPH, Dropdown Berkait DSKP, Kawalan Refleksi & Mod Cuti)
+ * FAIL 4: js/builder.js (Logik Pembina e-RPH, Dropdown Berkait DSKP, Takwim, Kawalan Refleksi & Mod Cuti)
  * ==============================================================================
  */
 
@@ -57,42 +57,75 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Populasikan Dropdown Minggu
+ * Populasikan Dropdown Minggu daripada Takwim Mingguan
  */
 function initBuilderWeekDropdown() {
   const selectWeek = document.getElementById('builderSelectWeek');
   if (!selectWeek) return;
 
   selectWeek.innerHTML = '';
-  for (let i = 1; i <= 42; i++) {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = 'Minggu ' + i;
-    if (i === 36) opt.selected = true;
-    selectWeek.appendChild(opt);
+  const takwim = window.takwimListGlobal || (typeof state !== 'undefined' ? state.takwimList : []) || [];
+
+  if (takwim.length > 0) {
+    takwim.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.mingguKe;
+      let labelDate = (t.tarikhMula && t.tarikhTamat) ? ` (${t.tarikhMula} - ${t.tarikhTamat})` : '';
+      opt.textContent = `Minggu ${t.mingguKe}${labelDate}`;
+      selectWeek.appendChild(opt);
+    });
+    selectWeek.value = takwim[0].mingguKe;
+  } else {
+    for (let i = 1; i <= 42; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = 'Minggu ' + i;
+      if (i === 1) opt.selected = true;
+      selectWeek.appendChild(opt);
+    }
   }
   
   onBuilderWeekChange();
 }
 
 /**
- * Peristiwa Perubahan Minggu - Penjanaan Hari & Tarikh Sebenar
+ * Peristiwa Perubahan Minggu - Penjanaan Hari & Tarikh Sebenar Berdasarkan Takwim
  */
 function onBuilderWeekChange() {
-  const weekVal = parseInt(document.getElementById('builderSelectWeek').value, 10) || 36;
+  const selectWeek = document.getElementById('builderSelectWeek');
+  if (!selectWeek) return;
+  const weekVal = selectWeek.value;
   const selectDateDay = document.getElementById('builderSelectDateDay');
   if (!selectDateDay) return;
 
   selectDateDay.innerHTML = '<option value="">-- Pilih Hari / Tarikh --</option>';
 
-  const refWeek = 36;
-  const refMonday = new Date(2026, 9, 19);
+  const takwim = window.takwimListGlobal || (typeof state !== 'undefined' ? state.takwimList : []) || [];
+  const currentTakwim = takwim.find(t => String(t.mingguKe) === String(weekVal));
+
+  let refMonday = null;
+  if (currentTakwim && currentTakwim.tarikhMula) {
+    let parts = currentTakwim.tarikhMula.split(/[\/\-]/);
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        refMonday = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      } else if (parts[2].length === 4) {
+        refMonday = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+      }
+    }
+  }
+
+  if (!refMonday || isNaN(refMonday.getTime())) {
+    const refWeek = 1;
+    refMonday = new Date(2026, 0, 12);
+    let weekDiff = (parseInt(weekVal, 10) || 1) - refWeek;
+    refMonday.setDate(refMonday.getDate() + (weekDiff * 7));
+  }
 
   const days = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
   days.forEach((day, idx) => {
     let dayDate = new Date(refMonday);
-    let weekDiff = weekVal - refWeek;
-    dayDate.setDate(refMonday.getDate() + (weekDiff * 7) + idx);
+    dayDate.setDate(refMonday.getDate() + idx);
 
     let dd = String(dayDate.getDate()).padStart(2, '0');
     let mm = String(dayDate.getMonth() + 1).padStart(2, '0');
@@ -110,7 +143,6 @@ function onBuilderWeekChange() {
   document.getElementById('builderSelectSlot').innerHTML = '<option value="">-- Pilih Slot Jadual --</option>';
   resetRphFormFields();
 
-  // Jika Mod Cuti Aktif, Kemaskini Pengiraan Hari
   const chkModCuti = document.getElementById('chkModCuti');
   if (chkModCuti && chkModCuti.checked) {
     updateCutiSummaryCount();
@@ -231,9 +263,6 @@ function onBuilderDateDayChange(callback) {
  * ==============================================================================
  */
 
-/**
- * Peristiwa Tukar Mod Cuti / Standard RPH
- */
 function toggleModCutiView() {
   const isCuti = document.getElementById('chkModCuti').checked;
   const secModCuti = document.getElementById('sectionModCutiWrapper');
@@ -270,9 +299,6 @@ function toggleModCutiView() {
   }
 }
 
-/**
- * Pra-tonton Gambar Poster Cuti
- */
 function previewPosterCutiImage(event) {
   const file = event.target.files[0];
   const container = document.getElementById('containerPosterPreview');
@@ -305,9 +331,6 @@ function previewPosterCutiImage(event) {
   }
 }
 
-/**
- * Kemas Kini Ringkas Pengiraan Hari & Slot Cuti Terlibat
- */
 function updateCutiSummaryCount() {
   const checkboxes = document.querySelectorAll('input[name="chkCutiHari"]:checked');
   const selectedDays = Array.from(checkboxes).map(cb => cb.value);
@@ -323,13 +346,10 @@ function updateCutiSummaryCount() {
 
   if (txtSummary) txtSummary.textContent = selectedDays.join(', ');
 
-  // Anggaran kasar slot atau pengiraan automatik
   const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
-  const weekVal = parseInt(document.getElementById('builderSelectWeek').value, 10) || 36;
 
   if (txtSlotsCount) txtSlotsCount.textContent = `Sedang mengira slot (${selectedDays.length} Hari)...`;
 
-  // Semak slot dari jadual bagi hari yang dipilih
   let fetchPromises = selectedDays.map(hari => fetchBackendApi('getJadualGuruByHari', { emailGuru: emailGuru, hari: hari }));
 
   Promise.all(fetchPromises)
@@ -347,9 +367,6 @@ function updateCutiSummaryCount() {
     });
 }
 
-/**
- * Hantar Rekod Cuti Pukal Ke Backend
- */
 function submitCutiFormBatch() {
   const checkboxes = document.querySelectorAll('input[name="chkCutiHari"]:checked');
   const selectedDays = Array.from(checkboxes).map(cb => cb.value);
@@ -374,9 +391,27 @@ function submitCutiFormBatch() {
   const namaGuru  = window.currentUser ? (window.currentUser.nama || window.currentUser.Nama_Guru || window.currentUser.name || '') : '';
   const mingguVal = document.getElementById('builderSelectWeek').value;
 
-  // Sediakan tarikh sebenar bagi setiap hari yang dipilih
-  const refWeek = 36;
-  const refMonday = new Date(2026, 9, 19);
+  const takwim = window.takwimListGlobal || (typeof state !== 'undefined' ? state.takwimList : []) || [];
+  const currentTakwim = takwim.find(t => String(t.mingguKe) === String(mingguVal));
+
+  let refMonday = null;
+  if (currentTakwim && currentTakwim.tarikhMula) {
+    let parts = currentTakwim.tarikhMula.split(/[\/\-]/);
+    if (parts.length === 3) {
+      if (parts[0].length === 4) {
+        refMonday = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      } else if (parts[2].length === 4) {
+        refMonday = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+      }
+    }
+  }
+
+  if (!refMonday || isNaN(refMonday.getTime())) {
+    refMonday = new Date(2026, 0, 12);
+    let weekDiff = (parseInt(mingguVal, 10) || 1) - 1;
+    refMonday.setDate(refMonday.getDate() + (weekDiff * 7));
+  }
+
   const daysOrder = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
 
   const senaraiHariData = selectedDays.map(dayStr => {
@@ -384,8 +419,7 @@ function submitCutiFormBatch() {
     if (dayIdx === -1) dayIdx = 0;
 
     let dayDate = new Date(refMonday);
-    let weekDiff = (parseInt(mingguVal, 10) || 36) - refWeek;
-    dayDate.setDate(refMonday.getDate() + (weekDiff * 7) + dayIdx);
+    dayDate.setDate(refMonday.getDate() + dayIdx);
 
     let yyyy = dayDate.getFullYear();
     let mm = String(dayDate.getMonth() + 1).padStart(2, '0');
@@ -415,7 +449,6 @@ function submitCutiFormBatch() {
       if (res && res.success) {
         showToast(res.message || 'Rekod Cuti Berjaya Dihantar!', '✅');
         
-        // Reset Borang Cuti
         document.getElementById('rphSebabCuti').value = '';
         document.getElementById('rphPosterFile').value = '';
         posterBase64Data = '';
@@ -457,25 +490,16 @@ function onBuilderSlotChange() {
   const hari       = document.getElementById('builderSelectDateDay').value;
   const subjekFull = selectedSlotData.subjekFull || '';
 
-  // 1. Isikan Maklumat Asas
   document.getElementById('rphTime').value = `${hari} (${mula} - ${tamat})`;
   document.getElementById('rphSubjectSelect').value = subjekFull;
   document.getElementById('rphClass').value = kelas;
 
-  // 2. Tarik Data Kehadiran Automatik dari Sheet Data_Kehadiran
   const tarikhVal = document.getElementById('rphDate').value;
   fetchKehadiranData(tarikhVal, kelas);
-
-  // 3. Semak Kawalan Masa PdPC & Status Refleksi
   checkPdpcTimeAndFreeze(tamat);
-
-  // 4. Dapatkan DSKP bagi Subjek Penuh & Kelas
   fetchDskpData(subjekFull, kelas);
 }
 
-/**
- * Tarik Data Kehadiran Automatik
- */
 function fetchKehadiranData(tarikh, kelas) {
   const displayInput = document.getElementById('rphKehadiranDisplay');
   if (!displayInput) return;
@@ -507,13 +531,12 @@ function fetchKehadiranData(tarikh, kelas) {
 }
 
 /**
- * FUNGSI SEMAKAN STATUS BUTANG HANTAR (DYNAMIC VALIDATION)
+ * PERMINTAAN 1: SEMAKAN STATUS BUTANG HANTAR & KAWALAN REFLEKSI
  */
 function validateSubmitButtonState() {
   const btnSubmit = document.getElementById('btnSubmitRph');
   if (!btnSubmit) return;
 
-  // Jika Mod Cuti Aktif, Abaikan Semakan Masa PdPC Standard
   const chkModCuti = document.getElementById('chkModCuti');
   if (chkModCuti && chkModCuti.checked) {
     btnSubmit.disabled = false;
@@ -526,7 +549,7 @@ function validateSubmitButtonState() {
 
   if (isHidden) {
     btnSubmit.disabled = true;
-    btnSubmit.title = "Butang Hantar dikunci kerana waktu PdPC belum tamat untuk melengkapkan refleksi.";
+    btnSubmit.title = "🔒 Butang Hantar dikunci kerana waktu PdPC belum tamat untuk melengkapkan refleksi.";
     return;
   }
 
@@ -554,9 +577,6 @@ function validateSubmitButtonState() {
   }
 }
 
-/**
- * Kawalan Menyebab/Menyorokkan Refleksi Mengikut Masa Tamat PdPC
- */
 function checkPdpcTimeAndFreeze(masaTamatStr) {
   const banner = document.getElementById('statusPdpcTimeBanner');
   const msgTxt = document.getElementById('txtPdpcTimeMsg');
@@ -609,9 +629,6 @@ function checkPdpcTimeAndFreeze(masaTamatStr) {
   validateSubmitButtonState();
 }
 
-/**
- * Tarik Data DSKP dan Populasikan Dropdown Tema
- */
 function fetchDskpData(subjek, kelas, callback) {
   const badge = document.getElementById('dskpStatusBadge');
   if (badge) badge.textContent = '⏳ Sedang menarik DSKP...';
@@ -685,9 +702,7 @@ function onThemeChange() {
   clearDskpFormFields();
 }
 
-function onTajukChange() {
-  autoFillDskpContent();
-}
+function onTajukChange() { autoFillDskpContent(); }
 
 function clearDskpFormFields() {
   document.getElementById('rphSP').value = '';
@@ -913,12 +928,12 @@ function resetRphFormFields() {
 }
 
 /**
- * EDIT / LANJUT RPH DRAF DARIPADA DASHBOARD GURU
+ * EDIT / LANJUT RPH DRAF DARIPADA DASHBOARD GURU (PERMINTAAN 2 & 3 INTEGRASI)
  */
 function editRphRecord(idRph) {
   if (!idRph) return;
 
-  const list = window.currentGuruRphList || state.rphList || [];
+  const list = window.currentGuruRphList || (typeof state !== 'undefined' ? state.rphList : []) || [];
   const item = list.find(r => String(r.idRph) === String(idRph));
 
   if (!item) {
@@ -926,20 +941,60 @@ function editRphRecord(idRph) {
     return;
   }
 
-  if (typeof setActiveTab === 'function') {
-    setActiveTab('tabBuilder');
+  // PERMINTAAN 3: Kunci jika pentadbir dah semak / beri cop
+  if (item.statusSemak === 'Disahkan' || item.statusSemak === 'Disemak') {
+    showToast('RPH ini telah disemak & disahkan oleh Pentadbir. Pindaan tidak dibenarkan.', '🔒');
+    return;
   }
 
-  // Pastikan Mod Cuti Dinyahaktifkan
-  const chkModCuti = document.getElementById('chkModCuti');
-  if (chkModCuti) {
-    chkModCuti.checked = false;
-    toggleModCutiView();
+  if (typeof setActiveTab === 'function') {
+    setActiveTab('tabBuilder');
   }
 
   const hiddenIdEl = document.getElementById('rphIdHidden');
   if (hiddenIdEl) hiddenIdEl.value = item.idRph;
 
+  // PERMINTAAN 2: Jika rekod adalah Cuti, aktifkan Mod Cuti secara automatik
+  const isCutiRecord = (
+    item.subjek === 'Cuti Sekolah' || 
+    (item.temaUnit && item.temaUnit.includes('[CUTI]')) || 
+    item.statusHantar === 'Cuti'
+  );
+
+  const chkModCuti = document.getElementById('chkModCuti');
+
+  if (isCutiRecord) {
+    if (chkModCuti) {
+      chkModCuti.checked = true;
+      toggleModCutiView();
+    }
+
+    if (document.getElementById('rphSebabCuti')) {
+      document.getElementById('rphSebabCuti').value = item.tajuk || item.tajukBidang || item.catatanRefleksi || '';
+    }
+    if (document.getElementById('rphJenisCuti') && item.temaUnit) {
+      let cleanJenis = item.temaUnit.replace('[CUTI]', '').trim();
+      document.getElementById('rphJenisCuti').value = cleanJenis || 'Cuti Peristiwa';
+    }
+
+    if (item.hari) {
+      const cbs = document.querySelectorAll('input[name="chkCutiHari"]');
+      cbs.forEach(cb => {
+        cb.checked = (cb.value.toLowerCase() === String(item.hari).toLowerCase());
+      });
+    }
+
+    updateCutiSummaryCount();
+    showToast('Rekod Cuti dimuatkan untuk pindaan!', '🌴');
+    return;
+  } else {
+    if (chkModCuti) {
+      chkModCuti.checked = false;
+      toggleModCutiView();
+    }
+  }
+
+  // Pengisian Borang RPH Standard
   document.getElementById('rphDate').value = item.tarikh || '';
   
   let masaMulaClean = cleanTimeFormatFrontend(item.masaMula);
