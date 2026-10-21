@@ -237,22 +237,123 @@
                 <!-- KOLUM KIRI UTAMA (SPAN 8) -->
                 <div class="lg:col-span-8 space-y-5" id="main-left-column">
 
-                    <!-- KAD PAUTAN E-RPH DIGITAL (BERADA DALAM KOLUM KIRI) -->
-                    <div onclick="bukaErphModule()" class="cursor-pointer bg-gradient-to-r from-teal-700 via-teal-800 to-emerald-800 text-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all group flex flex-col justify-between relative overflow-hidden">
-                        <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
-                        <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="w-11 h-11 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center text-xl text-teal-100 group-hover:scale-110 transition-transform">
-                                    <i class="fa-solid fa-book-open"></i>
-                                </div>
-                                <span class="px-3 py-1 bg-emerald-400/20 border border-emerald-300/30 text-emerald-200 text-xs font-extrabold rounded-full tracking-wide">Aplikasi Rasmi</span>
-                            </div>
-                            <h3 class="font-extrabold text-white text-lg group-hover:text-teal-200 transition-colors">Modul e-RPH Digital</h3>
-                            <p class="text-xs text-teal-100/80 mt-1 leading-relaxed">Akses pantas bagi penyediaan, penyemakan draf harian, dan rekod Rancangan Pengajaran Harian.</p>
+                    <!-- SEKSYEN MODUL UTAMA (6 KAD PETAK / SQUARE CARDS GRID) -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h2 class="font-extrabold text-base text-slate-800">Modul & Aplikasi Utama Guru</h2>
+                            <span class="text-xs text-slate-400 font-medium">6 Aplikasi Dipautkan</span>
                         </div>
-                        <div class="mt-4 pt-3 border-t border-white/15 flex items-center justify-between text-xs font-bold text-teal-200">
-                            <span>Buka Modul e-RPH Guru</span>
-                            <i class="fa-solid fa-arrow-right group-hover:translate-x-1.5 transition-transform"></i>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
+                            
+                            <!-- MODUL 1: e-RPH Digital -->
+                            <div onclick="bukaErphModule()" class="group cursor-pointer bg-gradient-to-br from-[#1b587a] to-[#2284b0] text-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-teal-600/30 relative overflow-hidden">
+                                <div class="flex items-center justify-between">
+                                    <div class="w-10 h-10 rounded-lg bg-white/20 border border-white/20 flex items-center justify-center text-lg text-white group-hover:scale-110 transition-transform">
+                                        <i class="fa-solid fa-book-open"></i>
+                                    </div>
+                                    <span class="px-2 py-0.5 bg-emerald-400/25 border border-emerald-300/30 text-emerald-200 text-[10px] font-extrabold rounded-full">Aktif</span>
+                                </div>
+                                <div class="my-auto pt-2">
+                                    <h3 class="font-extrabold text-sm text-white group-hover:text-teal-100 transition-colors leading-tight">e-RPH Digital</h3>
+                                    <p class="text-[11px] text-teal-100/80 mt-1 line-clamp-2">Penyediaan & semakan rancangan mengajar harian.</p>
+                                </div>
+                                <div class="pt-2 border-t border-white/15 flex items-center justify-between text-[11px] font-bold text-teal-200">
+                                    <span>Buka Modul</span>
+                                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                                </div>
+                            </div>
+
+                            <!-- MODUL 2: APDM & Kehadiran -->
+                            <div onclick="bukaAplikasi('APDM', 'https://apdm.moe.gov.my')" class="group cursor-pointer bg-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-slate-200 hover:border-blue-300 relative overflow-hidden">
+                                <div class="flex items-center justify-between">
+                                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                                        <i class="fa-solid fa-user-check"></i>
+                                    </div>
+                                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full">HEM</span>
+                                </div>
+                                <div class="my-auto pt-2">
+                                    <h3 class="font-bold text-sm text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">APDM Kehadiran</h3>
+                                    <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">Pengesahan kehadiran harian murid kelas.</p>
+                                </div>
+                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-blue-600">
+                                    <span>Pautkan APDM</span>
+                                    <i class="fa-solid fa-up-right-from-square text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
+                                </div>
+                            </div>
+
+                            <!-- MODUL 3: SSDM Disiplin -->
+                            <div onclick="bukaAplikasi('SSDM', 'https://ssdm.moe.gov.my')" class="group cursor-pointer bg-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-slate-200 hover:border-amber-300 relative overflow-hidden">
+                                <div class="flex items-center justify-between">
+                                    <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                                        <i class="fa-solid fa-shield-halved"></i>
+                                    </div>
+                                    <span class="px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-full">Sahsiah</span>
+                                </div>
+                                <div class="my-auto pt-2">
+                                    <h3 class="font-bold text-sm text-slate-800 group-hover:text-amber-600 transition-colors leading-tight">SSDM Disiplin</h3>
+                                    <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">Rekod amalan baik dan salah laku murid.</p>
+                                </div>
+                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-amber-600">
+                                    <span>Pautkan SSDM</span>
+                                    <i class="fa-solid fa-up-right-from-square text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
+                                </div>
+                            </div>
+
+                            <!-- MODUL 4: SPLKPM Latihan -->
+                            <div onclick="bukaAplikasi('SPLKPM', 'https://splkpm.moe.gov.my')" class="group cursor-pointer bg-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-slate-200 hover:border-purple-300 relative overflow-hidden">
+                                <div class="flex items-center justify-between">
+                                    <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                                        <i class="fa-solid fa-graduation-cap"></i>
+                                    </div>
+                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-600 text-[10px] font-bold rounded-full">LDP</span>
+                                </div>
+                                <div class="my-auto pt-2">
+                                    <h3 class="font-bold text-sm text-slate-800 group-hover:text-purple-600 transition-colors leading-tight">SPLKPM Latihan</h3>
+                                    <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">Semakan mata kredit dan latihan guru.</p>
+                                </div>
+                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-purple-600">
+                                    <span>Pautkan SPLKPM</span>
+                                    <i class="fa-solid fa-up-right-from-square text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
+                                </div>
+                            </div>
+
+                            <!-- MODUL 5: PAJSK Kokurikulum -->
+                            <div onclick="bukaAplikasi('PAJSK', '#')" class="group cursor-pointer bg-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-slate-200 hover:border-emerald-300 relative overflow-hidden">
+                                <div class="flex items-center justify-between">
+                                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                                        <i class="fa-solid fa-trophy"></i>
+                                    </div>
+                                    <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-full">Koko</span>
+                                </div>
+                                <div class="my-auto pt-2">
+                                    <h3 class="font-bold text-sm text-slate-800 group-hover:text-emerald-600 transition-colors leading-tight">PAJSK Koko</h3>
+                                    <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">Pentaksiran aktiviti & sukan murid.</p>
+                                </div>
+                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-emerald-600">
+                                    <span>Modul Koko</span>
+                                    <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
+                                </div>
+                            </div>
+
+                            <!-- MODUL 6: HRMIS Perkhidmatan -->
+                            <div onclick="bukaAplikasi('HRMIS', 'https://hrmis2.ecomponent.my')" class="group cursor-pointer bg-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-slate-200 hover:border-rose-300 relative overflow-hidden">
+                                <div class="flex items-center justify-between">
+                                    <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                                        <i class="fa-solid fa-id-card"></i>
+                                    </div>
+                                    <span class="px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-bold rounded-full">HR</span>
+                                </div>
+                                <div class="my-auto pt-2">
+                                    <h3 class="font-bold text-sm text-slate-800 group-hover:text-rose-600 transition-colors leading-tight">HRMIS / CRK</h3>
+                                    <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">Pengurusan perkhidmatan & baki cuti.</p>
+                                </div>
+                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-rose-600">
+                                    <span>Pautkan HRMIS</span>
+                                    <i class="fa-solid fa-up-right-from-square text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
@@ -522,7 +623,7 @@
         'pengurusan_kelas': 'Pengurusan Kelas',
         'tugasan_guru': 'Jadual & Tugasan Guru',
         'kurikulum': 'Kurikulum & e-RPH',
-        'pentadbiran': 'Pentadbiran & Laporan',
+        'pentadbiran': 'Prestasi & Laporan',
         'hem': 'Pengumuman & HEM'
     };
 
@@ -793,6 +894,25 @@
         window.location.href = 'LoginSession.html';
     }
 
+    // FUNGSI UNTUK MEMBUKA APLIKASI LUARAN / MODUL LAIN
+    function bukaAplikasi(namaAplikasi, url) {
+        if (!url || url === '#') {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'info',
+                    title: `Modul ${namaAplikasi}`,
+                    text: `Modul ${namaAplikasi} akan dipautkan dengan pangkalan data sebenar tidak lama lagi.`,
+                    confirmButtonColor: '#1f7a9c'
+                });
+            } else {
+                alert(`Modul ${namaAplikasi} belum dipautkan.`);
+            }
+            return;
+        }
+
+        window.open(url, '_blank');
+    }
+
     // FUNGSI SEMAK SESI, JANA LAUNCH TOKEN & BUKA TAB BAHARU e-RPH
     function bukaErphModule() {
         const storedUser = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser') || localStorage.getItem('userSession');
@@ -824,10 +944,8 @@
                 return;
             }
 
-            // 1. Format emel secara selamat untuk URL (kalis-ralat penyahkodan)
             const encodedEmail = encodeURIComponent(userEmail);
             
-            // 2. Bina Launch Token Unik (TTL: 30 saat)
             const timestamp = Date.now();
             const randStr = Math.random().toString(36).substring(2, 7).toUpperCase();
             const launchToken = `ERPH_TOK_${timestamp}_${randStr}`;
@@ -837,11 +955,9 @@
                 timestamp: timestamp
             };
 
-            // 3. Simpan data token sementara
             sessionStorage.setItem('ERPH_LAUNCH_TOKEN_DATA', JSON.stringify(tokenData));
             localStorage.setItem('ERPH_LAUNCH_TOKEN_DATA', JSON.stringify(tokenData));
 
-            // 4. Buka tab baharu dengan parameter URL
             window.open(`ErphGuru.html?launchToken=${launchToken}&usr=${encodedEmail}`, '_blank');
         } catch(e) {
             console.error("Ralat melancarkan e-RPH:", e);
