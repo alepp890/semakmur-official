@@ -55,20 +55,6 @@
             border: 1px solid #E2E8F0;
         }
 
-        /* Circular Progress Ring Styling */
-        .circle-chart {
-            width: 88px;
-            height: 88px;
-        }
-        .circle-chart__circle {
-            animation: circle-chart-fill 1.2s ease-in-out forwards;
-            transform: rotate(-90deg);
-            transform-origin: center;
-        }
-        @keyframes circle-chart-fill {
-            0% { stroke-dasharray: 0 100; }
-        }
-
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -211,7 +197,7 @@
             </div>
         </header>
 
-        <!-- KANDUNGAN DASHBOARD UTAMA (GRID 2 KOLUM: UTAMA + PANEL KANAN) -->
+        <!-- KANDUNGAN DASHBOARD UTAMA -->
         <main class="flex-1 overflow-y-auto p-5 space-y-5">
 
             <!-- LOKASI BREADCRUMB TEKS -->
@@ -232,198 +218,100 @@
                 </div>
             </div>
 
+            <!-- SEKSYEN MODUL UTAMA (6 KAD PETAK MELINTANG DENGAN SAIS 50% LEBIH KECIL & TAJUK SAHAJA) -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-extrabold text-sm text-slate-800">Modul & Aplikasi Utama Guru</h2>
+                    <span class="text-[11px] text-slate-400 font-medium">6 Aplikasi Dipautkan</span>
+                </div>
+
+                <!-- GRID 6 LAJUR MELINTANG -->
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+                    
+                    <!-- MODUL 1: e-RPH Digital -->
+                    <div onclick="bukaErphModule()" class="group cursor-pointer bg-gradient-to-br from-[#1b587a] to-[#2284b0] text-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-teal-600/30">
+                        <div class="w-8 h-8 rounded-lg bg-white/20 border border-white/20 flex items-center justify-center text-sm text-white group-hover:scale-110 transition-transform mb-1">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <h3 class="font-extrabold text-xs text-white leading-tight">e-RPH Digital</h3>
+                    </div>
+
+                    <!-- MODUL 2: APDM Kehadiran -->
+                    <div onclick="bukaAplikasi('APDM', 'https://apdm.moe.gov.my')" class="group cursor-pointer bg-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-slate-200 hover:border-blue-300">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-sm group-hover:scale-110 transition-transform mb-1">
+                            <i class="fa-solid fa-user-check"></i>
+                        </div>
+                        <h3 class="font-bold text-xs text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">APDM Kehadiran</h3>
+                    </div>
+
+                    <!-- MODUL 3: SSDM Disiplin -->
+                    <div onclick="bukaAplikasi('SSDM', 'https://ssdm.moe.gov.my')" class="group cursor-pointer bg-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-slate-200 hover:border-amber-300">
+                        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-sm group-hover:scale-110 transition-transform mb-1">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h3 class="font-bold text-xs text-slate-800 group-hover:text-amber-600 transition-colors leading-tight">SSDM Disiplin</h3>
+                    </div>
+
+                    <!-- MODUL 4: SPLKPM Latihan -->
+                    <div onclick="bukaAplikasi('SPLKPM', 'https://splkpm.moe.gov.my')" class="group cursor-pointer bg-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-slate-200 hover:border-purple-300">
+                        <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center text-sm group-hover:scale-110 transition-transform mb-1">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="font-bold text-xs text-slate-800 group-hover:text-purple-600 transition-colors leading-tight">SPLKPM Latihan</h3>
+                    </div>
+
+                    <!-- MODUL 5: PAJSK Koko -->
+                    <div onclick="bukaAplikasi('PAJSK', '#')" class="group cursor-pointer bg-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-slate-200 hover:border-emerald-300">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-sm group-hover:scale-110 transition-transform mb-1">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <h3 class="font-bold text-xs text-slate-800 group-hover:text-emerald-600 transition-colors leading-tight">PAJSK Koko</h3>
+                    </div>
+
+                    <!-- MODUL 6: HRMIS / CRK -->
+                    <div onclick="bukaAplikasi('HRMIS', 'https://hrmis2.ecomponent.my')" class="group cursor-pointer bg-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-slate-200 hover:border-rose-300">
+                        <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center text-sm group-hover:scale-110 transition-transform mb-1">
+                            <i class="fa-solid fa-id-card"></i>
+                        </div>
+                        <h3 class="font-bold text-xs text-slate-800 group-hover:text-rose-600 transition-colors leading-tight">HRMIS / CRK</h3>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- GRID 2 KOLUM (SEMUA SIDE BAR & PANEL DI BAWAH KAD MODUL) -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
                 
                 <!-- KOLUM KIRI UTAMA (SPAN 8) -->
                 <div class="lg:col-span-8 space-y-5" id="main-left-column">
 
-                    <!-- SEKSYEN MODUL UTAMA (6 KAD PETAK / SQUARE CARDS GRID) -->
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <h2 class="font-extrabold text-base text-slate-800">Modul & Aplikasi Utama Guru</h2>
-                            <span class="text-xs text-slate-400 font-medium">6 Aplikasi Dipautkan</span>
-                        </div>
-
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3.5">
-                            
-                            <!-- MODUL 1: e-RPH Digital -->
-                            <div onclick="bukaErphModule()" class="group cursor-pointer bg-gradient-to-br from-[#1b587a] to-[#2284b0] text-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-teal-600/30 relative overflow-hidden">
-                                <div class="flex items-center justify-between">
-                                    <div class="w-10 h-10 rounded-lg bg-white/20 border border-white/20 flex items-center justify-center text-lg text-white group-hover:scale-110 transition-transform">
-                                        <i class="fa-solid fa-book-open"></i>
-                                    </div>
-                                    <span class="px-2 py-0.5 bg-emerald-400/25 border border-emerald-300/30 text-emerald-200 text-[10px] font-extrabold rounded-full">Aktif</span>
-                                </div>
-                                <div class="my-auto pt-2">
-                                    <h3 class="font-extrabold text-sm text-white group-hover:text-teal-100 transition-colors leading-tight">e-RPH Digital</h3>
-                                    <p class="text-[11px] text-teal-100/80 mt-1 line-clamp-2">Penyediaan & semakan rancangan mengajar harian.</p>
-                                </div>
-                                <div class="pt-2 border-t border-white/15 flex items-center justify-between text-[11px] font-bold text-teal-200">
-                                    <span>Buka Modul</span>
-                                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                                </div>
-                            </div>
-
-                            <!-- MODUL 2: APDM & Kehadiran -->
-                            <div onclick="bukaAplikasi('APDM', 'https://apdm.moe.gov.my')" class="group cursor-pointer bg-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-slate-200 hover:border-blue-300 relative overflow-hidden">
-                                <div class="flex items-center justify-between">
-                                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-                                        <i class="fa-solid fa-user-check"></i>
-                                    </div>
-                                    <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full">HEM</span>
-                                </div>
-                                <div class="my-auto pt-2">
-                                    <h3 class="font-bold text-sm text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">APDM Kehadiran</h3>
-                                    <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">Pengesahan kehadiran harian murid kelas.</p>
-                                </div>
-                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-blue-600">
-                                    <span>Pautkan APDM</span>
-                                    <i class="fa-solid fa-up-right-from-square text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
-                                </div>
-                            </div>
-
-                            <!-- MODUL 3: SSDM Disiplin -->
-                            <div onclick="bukaAplikasi('SSDM', 'https://ssdm.moe.gov.my')" class="group cursor-pointer bg-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-slate-200 hover:border-amber-300 relative overflow-hidden">
-                                <div class="flex items-center justify-between">
-                                    <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-                                        <i class="fa-solid fa-shield-halved"></i>
-                                    </div>
-                                    <span class="px-2 py-0.5 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-full">Sahsiah</span>
-                                </div>
-                                <div class="my-auto pt-2">
-                                    <h3 class="font-bold text-sm text-slate-800 group-hover:text-amber-600 transition-colors leading-tight">SSDM Disiplin</h3>
-                                    <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">Rekod amalan baik dan salah laku murid.</p>
-                                </div>
-                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-amber-600">
-                                    <span>Pautkan SSDM</span>
-                                    <i class="fa-solid fa-up-right-from-square text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
-                                </div>
-                            </div>
-
-                            <!-- MODUL 4: SPLKPM Latihan -->
-                            <div onclick="bukaAplikasi('SPLKPM', 'https://splkpm.moe.gov.my')" class="group cursor-pointer bg-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-slate-200 hover:border-purple-300 relative overflow-hidden">
-                                <div class="flex items-center justify-between">
-                                    <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-                                        <i class="fa-solid fa-graduation-cap"></i>
-                                    </div>
-                                    <span class="px-2 py-0.5 bg-purple-50 text-purple-600 text-[10px] font-bold rounded-full">LDP</span>
-                                </div>
-                                <div class="my-auto pt-2">
-                                    <h3 class="font-bold text-sm text-slate-800 group-hover:text-purple-600 transition-colors leading-tight">SPLKPM Latihan</h3>
-                                    <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">Semakan mata kredit dan latihan guru.</p>
-                                </div>
-                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-purple-600">
-                                    <span>Pautkan SPLKPM</span>
-                                    <i class="fa-solid fa-up-right-from-square text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
-                                </div>
-                            </div>
-
-                            <!-- MODUL 5: PAJSK Kokurikulum -->
-                            <div onclick="bukaAplikasi('PAJSK', '#')" class="group cursor-pointer bg-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-slate-200 hover:border-emerald-300 relative overflow-hidden">
-                                <div class="flex items-center justify-between">
-                                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-                                        <i class="fa-solid fa-trophy"></i>
-                                    </div>
-                                    <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-full">Koko</span>
-                                </div>
-                                <div class="my-auto pt-2">
-                                    <h3 class="font-bold text-sm text-slate-800 group-hover:text-emerald-600 transition-colors leading-tight">PAJSK Koko</h3>
-                                    <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">Pentaksiran aktiviti & sukan murid.</p>
-                                </div>
-                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-emerald-600">
-                                    <span>Modul Koko</span>
-                                    <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
-                                </div>
-                            </div>
-
-                            <!-- MODUL 6: HRMIS Perkhidmatan -->
-                            <div onclick="bukaAplikasi('HRMIS', 'https://hrmis2.ecomponent.my')" class="group cursor-pointer bg-white p-4 rounded-xl shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col justify-between aspect-square border border-slate-200 hover:border-rose-300 relative overflow-hidden">
-                                <div class="flex items-center justify-between">
-                                    <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
-                                        <i class="fa-solid fa-id-card"></i>
-                                    </div>
-                                    <span class="px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-bold rounded-full">HR</span>
-                                </div>
-                                <div class="my-auto pt-2">
-                                    <h3 class="font-bold text-sm text-slate-800 group-hover:text-rose-600 transition-colors leading-tight">HRMIS / CRK</h3>
-                                    <p class="text-[11px] text-slate-400 mt-1 line-clamp-2">Pengurusan perkhidmatan & baki cuti.</p>
-                                </div>
-                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-rose-600">
-                                    <span>Pautkan HRMIS</span>
-                                    <i class="fa-solid fa-up-right-from-square text-[10px] group-hover:translate-x-0.5 transition-transform"></i>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- CARD 1: KEMAJUAN KELAS / COURSES PROGRESS -->
+                    <!-- SEKSYEN PENGUMUMAN & PEMBERITAHUAN (MENGGANTIKAN KEMAJUAN PdPC & e-RPH) -->
                     <div id="courses-progress-card" class="card-coligo p-5">
-                        <div class="flex items-center justify-between mb-1">
-                            <h2 class="font-extrabold text-base text-slate-800">Kemajuan PdPc & e-RPH Kelas</h2>
-                            <div class="flex items-center gap-1 text-slate-400">
-                                <button class="p-1 hover:text-slate-700 transition">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                                </button>
-                                <button class="p-1 hover:text-slate-700 transition">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                                </button>
+                        <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
+                            <div>
+                                <h2 class="font-extrabold text-base text-slate-800">Pengumuman & Pemberitahuan</h2>
+                                <p class="text-xs text-slate-400 font-medium italic">Makluman dan notis rasmi sekolah terkini</p>
                             </div>
+                            <button class="text-xs font-bold text-[#1f7a9c] hover:underline">+ Baru</button>
                         </div>
-                        <p class="text-xs text-slate-400 font-medium italic mb-5">Analisis peratusan melengkapkan e-RPH & modul subjek mengikut kelas</p>
 
-                        <!-- 4 CIRCULAR GAUGES -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-                            <!-- Gauge 1 -->
-                            <div class="flex flex-col items-center">
-                                <div class="relative w-20 h-20 mb-2">
-                                    <svg class="circle-chart" viewBox="0 0 33.83098862 33.83098862">
-                                        <circle stroke="#E2E8F0" stroke-width="3" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                        <circle class="circle-chart__circle" stroke="#1f7a9c" stroke-width="3.2" stroke-dasharray="85,100" stroke-linecap="round" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                    </svg>
-                                    <span class="absolute inset-0 flex items-center justify-center font-extrabold text-sm text-[#1f7a9c]">85%</span>
+                        <div class="space-y-3">
+                            <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition">
+                                <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
+                                    <span class="px-2 py-0.5 bg-teal-100 text-[#1f7a9c] rounded">PENTADBIRAN</span>
+                                    <span class="text-slate-400 font-normal">15 Okt 2026</span>
                                 </div>
-                                <h3 class="font-bold text-xs text-slate-800">Bahasa Melayu 1I</h3>
-                                <p class="text-[11px] text-slate-400">35 Murid</p>
+                                <h3 class="font-bold text-xs sm:text-sm text-slate-800 mb-1">Mesyuarat Kurikulum Bil 3/2026</h3>
+                                <p class="text-xs text-slate-600 leading-relaxed">Penyertaan semua Guru Mata Pelajaran adalah wajib. Mesyuarat akan bermula jam 2.00 petang di Bilik Gerakan sekolah.</p>
                             </div>
 
-                            <!-- Gauge 2 -->
-                            <div class="flex flex-col items-center">
-                                <div class="relative w-20 h-20 mb-2">
-                                    <svg class="circle-chart" viewBox="0 0 33.83098862 33.83098862">
-                                        <circle stroke="#E2E8F0" stroke-width="3" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                        <circle class="circle-chart__circle" stroke="#1f7a9c" stroke-width="3.2" stroke-dasharray="60,100" stroke-linecap="round" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                    </svg>
-                                    <span class="absolute inset-0 flex items-center justify-center font-extrabold text-sm text-[#1f7a9c]">60%</span>
+                            <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition">
+                                <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
+                                    <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded">HEM</span>
+                                    <span class="text-slate-400 font-normal">12 Okt 2026</span>
                                 </div>
-                                <h3 class="font-bold text-xs text-slate-800">Sejarah 2R</h3>
-                                <p class="text-[11px] text-slate-400">32 Murid</p>
-                            </div>
-
-                            <!-- Gauge 3 -->
-                            <div class="flex flex-col items-center">
-                                <div class="relative w-20 h-20 mb-2">
-                                    <svg class="circle-chart" viewBox="0 0 33.83098862 33.83098862">
-                                        <circle stroke="#E2E8F0" stroke-width="3" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                        <circle class="circle-chart__circle" stroke="#1f7a9c" stroke-width="3.2" stroke-dasharray="45,100" stroke-linecap="round" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                    </svg>
-                                    <span class="absolute inset-0 flex items-center justify-center font-extrabold text-sm text-[#1f7a9c]">45%</span>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800">Bahasa Melayu 3D</h3>
-                                <p class="text-[11px] text-slate-400">30 Murid</p>
-                            </div>
-
-                            <!-- Gauge 4 -->
-                            <div class="flex flex-col items-center">
-                                <div class="relative w-20 h-20 mb-2">
-                                    <svg class="circle-chart" viewBox="0 0 33.83098862 33.83098862">
-                                        <circle stroke="#E2E8F0" stroke-width="3" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                        <circle class="circle-chart__circle" stroke="#1f7a9c" stroke-width="3.2" stroke-dasharray="30,100" stroke-linecap="round" fill="none" cx="16.91549431" cy="16.91549431" r="13.91549431"/>
-                                    </svg>
-                                    <span class="absolute inset-0 flex items-center justify-center font-extrabold text-sm text-[#1f7a9c]">30%</span>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800">Sejarah 4M</h3>
-                                <p class="text-[11px] text-slate-400">28 Murid</p>
+                                <h3 class="font-bold text-xs sm:text-sm text-slate-800 mb-1">Pengesahan Kehadiran Murid APDM</h3>
+                                <p class="text-xs text-slate-600 leading-relaxed">Semua Guru Kelas diminta mengemaskini dan mengesahkan rekod kehadiran harian murid sebelum jam 9.00 pagi setiap hari persekolahan.</p>
                             </div>
                         </div>
                     </div>
@@ -530,7 +418,7 @@
 
                 </div>
 
-                <!-- KOLUM KANAN (SPAN 4) -->
+                <!-- KOLUM KANAN / SIDEBAR PANEL (SPAN 4 - BERADA DI BAWAH KAD MODUL) -->
                 <aside class="lg:col-span-4 space-y-5 shrink-0" id="right-panel">
 
                     <!-- CARD 1: TODAY SCHEDULE -->
@@ -572,34 +460,6 @@
 
                         <div class="mt-6 pt-3 border-t border-slate-100 text-center">
                             <p class="text-xs text-slate-400 font-medium italic">Sesi P&P tamat jam 1:30 PM :) Selamat mengajar!</p>
-                        </div>
-                    </div>
-
-                    <!-- CARD 2: PENGUMUMAN TERKINI -->
-                    <div class="card-coligo p-5">
-                        <div class="flex items-center justify-between mb-3">
-                            <h2 class="font-extrabold text-base text-slate-800">Pengumuman Sekolah</h2>
-                            <button class="text-xs font-bold text-[#1f7a9c] hover:underline">+ Baru</button>
-                        </div>
-
-                        <div class="space-y-3">
-                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                                <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
-                                    <span>PENTADBIRAN</span>
-                                    <span class="text-slate-400 font-normal">15 Okt 2026</span>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800 mb-0.5">Mesyuarat Kurikulum Bil 3/2026</h3>
-                                <p class="text-xs text-slate-600">Jam 2.00 petang di Bilik Gerakan sekolah.</p>
-                            </div>
-
-                            <div class="p-3 bg-slate-50 rounded-lg border border-slate-100">
-                                <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
-                                    <span>HEM</span>
-                                    <span class="text-slate-400 font-normal">12 Okt 2026</span>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800 mb-0.5">Pengesahan Kehadiran Murid</h3>
-                                <p class="text-xs text-slate-600">Sahkan rekod kehadiran APDM sebelum jam 9.00 pagi.</p>
-                            </div>
                         </div>
                     </div>
 
