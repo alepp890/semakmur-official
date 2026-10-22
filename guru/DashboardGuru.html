@@ -90,10 +90,10 @@
         <p class="text-white font-bold text-sm tracking-wide" id="loader-text">Memuatkan Dashboard...</p>
     </div>
 
-    <!-- 1. SIDEBAR KIRI (GAYA COLIGO TEAL GRADIENT) -->
+    <!-- 1. SIDEBAR KIRI -->
     <aside id="sidebar-container" class="w-64 bg-gradient-to-b from-[#1b587a] via-[#1e6f96] to-[#2284b0] text-white flex flex-col justify-between shrink-0 h-full z-30 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-200 shadow-lg">
         <div>
-            <!-- LOGO HEADER COLIGO STYLE -->
+            <!-- LOGO HEADER -->
             <div class="h-20 flex items-center px-6 border-b border-white/10 gap-3">
                 <div class="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center font-extrabold text-xl text-white border border-white/20 shadow-xs">
                     🎓
@@ -104,7 +104,7 @@
                 </div>
             </div>
 
-            <!-- PROFIL GURU RINGKAS SIDEBAR -->
+            <!-- PROFIL GURU RINGKAS -->
             <div class="p-4 mx-3 my-3 bg-white/10 rounded-xl border border-white/15 backdrop-blur-xs flex items-center gap-3">
                 <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Avatar Guru" class="w-11 h-11 rounded-full object-cover border-2 border-white/80 shadow-xs shrink-0">
                 <div class="overflow-hidden">
@@ -116,7 +116,7 @@
                 </div>
             </div>
 
-            <!-- NAVIGASI MENU UTAMA (6 MENU) -->
+            <!-- NAVIGASI MENU UTAMA -->
             <nav class="px-3 space-y-1.5 mt-2">
                 <button onclick="switchMainMenu('laman_utama')" id="nav-laman_utama" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-white text-[#1b6287] shadow-sm">
                     <i class="fa-solid fa-house w-5 text-center text-base"></i>
@@ -158,10 +158,10 @@
         </div>
     </aside>
 
-    <!-- 2. AREA KANDUNGAN UTAMA (HEADER + CONTENT) -->
+    <!-- 2. AREA KANDUNGAN UTAMA -->
     <div class="flex-1 flex flex-col h-full overflow-hidden">
         
-        <!-- HEADER ATAS COLIGO STYLE -->
+        <!-- HEADER ATAS -->
         <header class="h-20 bg-white border-b border-slate-200 shrink-0 flex items-center justify-between px-6 z-20">
             <div class="flex items-center gap-4">
                 <button onclick="toggleMobileSidebar()" class="md:hidden p-2 text-slate-600 hover:text-slate-900">
@@ -179,19 +179,18 @@
                     <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                 </div>
 
-                <!-- NOTIFIKASI BELL -->
                 <button class="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition">
                     <svg class="w-5 h-5 text-[#1f7a9c]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 01-6 0v-1m6 0H9"></path></svg>
                     <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                 </button>
 
-                <!-- MESEJ ICON -->
                 <button class="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition">
                     <svg class="w-5 h-5 text-[#1f7a9c]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
                 </button>
 
-                <a href="index.html?mode=portal" class="p-1 rounded-full hover:bg-slate-100 border border-slate-200" title="Ke Portal Utama">
+                <!-- PAUTAN DENGAN KELUAR FOLDER PARA HARUS UNTUK INDEX PORTAL -->
+                <a href="../index.html?mode=portal" class="p-1 rounded-full hover:bg-slate-100 border border-slate-200" title="Ke Portal Utama">
                     <img id="header-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" class="w-8 h-8 rounded-full object-cover">
                 </a>
             </div>
@@ -231,7 +230,7 @@
                                 <span class="text-[11px] text-slate-400 font-semibold px-2 py-0.5 bg-slate-100 rounded-full">6 Modul</span>
                             </div>
 
-                            <!-- GRID 6 KAD PETAK (SQUARE) UTAMA -->
+                            <!-- GRID 6 KAD PETAK UTAMA -->
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                                 
                                 <!-- MODUL 1: e-RPH Digital -->
@@ -330,7 +329,6 @@
                                 </select>
                             </div>
 
-                            <!-- JADUAL TUGASAN STATUS -->
                             <div class="overflow-x-auto mt-4">
                                 <table class="w-full text-left text-xs">
                                     <thead>
@@ -418,7 +416,7 @@
 
                     </div>
 
-                    <!-- CONTAINER SUB-MENU MODUL IKON (MENGGUNAKAN STYLING 100% SAMA DENGAN MODUL UTAMA) -->
+                    <!-- CONTAINER SUB-MENU MODUL IKON -->
                     <div id="page-submodule-view" class="card-coligo p-4 space-y-3 bg-white shadow-xs border border-slate-200 hidden">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                             <div class="flex items-center gap-2">
@@ -428,7 +426,6 @@
                             <span class="text-[11px] text-slate-400 font-semibold px-2 py-0.5 bg-slate-100 rounded-full" id="page-submodule-count">5 Modul</span>
                         </div>
 
-                        <!-- GRID IKON SUB-MENU DENGAN REKA BENTUK PETAK SAMA SEPERTI MODUL UTAMA -->
                         <div id="submodule-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                             <!-- Dijana melalui JS -->
                         </div>
@@ -439,7 +436,6 @@
                 <!-- KOLUM KANAN / SIDEBAR PANEL -->
                 <aside class="lg:col-span-4 space-y-5 shrink-0 transition-all duration-300" id="right-panel">
 
-                    <!-- CARD 1: TODAY SCHEDULE -->
                     <div class="card-coligo p-5">
                         <div class="mb-4 flex items-center justify-between border-b border-slate-100 pb-2">
                             <div>
@@ -450,7 +446,6 @@
                         </div>
 
                         <div class="space-y-4">
-                            <!-- Slot 1 -->
                             <div class="flex items-start gap-3">
                                 <div class="p-2 bg-teal-50 text-[#1f7a9c] rounded-full shrink-0 mt-0.5">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -465,7 +460,6 @@
 
                             <hr class="border-slate-100">
 
-                            <!-- Slot 2 -->
                             <div class="flex items-start gap-3">
                                 <div class="p-2 bg-teal-50 text-[#1f7a9c] rounded-full shrink-0 mt-0.5">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -491,8 +485,8 @@
         </main>
     </div>
 
-    <!-- CONFIG FILE -->
-    <script src="config.js"></script>
+    <!-- CONFIG FILE (Keluar paras ke root) -->
+    <script src="../config.js"></script>
 
     <!-- LOGIK JAVASCRIPT DASHBOARD -->
     <script>
@@ -516,7 +510,6 @@
         'lain_lain': 'Modul & Aplikasi Lain-lain'
     };
 
-    // SENARAI IKON SUB-MENU MODUL BAGI SETIAP HALAMAN
     const PAGE_SUBMODULES = {
         'pentadbiran': [
             { id: 'profil', title: 'Profil Sekolah', icon: 'fa-building', color: 'from-blue-600 to-indigo-500', action: 'bukaAplikasi("Profil Sekolah", "#")' },
@@ -567,14 +560,12 @@
     function checkUserSession() {
         const sessionData = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser');
         if (!sessionData) {
-            window.location.href = 'LoginSession.html';
+            window.location.href = '../LoginSession.html';
             return;
         }
 
         try {
             CURRENT_GURU_USER = JSON.parse(sessionData);
-            
-            // Sync untuk e-RPH
             localStorage.setItem('currentUser', JSON.stringify(CURRENT_GURU_USER));
 
             const name = CURRENT_GURU_USER.name || CURRENT_GURU_USER.nama || 'Guru Sekolah';
@@ -594,21 +585,19 @@
             switchMainMenu('laman_utama');
         } catch (e) {
             console.error('Session Error:', e);
-            window.location.href = 'LoginSession.html';
+            window.location.href = '../LoginSession.html';
         }
     }
 
     function switchMainMenu(menuKey) {
         ACTIVE_MAIN_MENU = menuKey;
 
-        // Reset sidebar button styles
         document.querySelectorAll('.menu-nav-btn').forEach(btn => {
             btn.className = "menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3";
             const i = btn.querySelector('i');
             if (i) i.classList.remove('text-[#1f7a9c]');
         });
 
-        // Set active button style
         const activeBtn = document.getElementById(`nav-${menuKey}`);
         if (activeBtn) {
             activeBtn.className = "menu-nav-btn w-full px-4 py-3 rounded-r-full font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-white text-[#1b6287] shadow-sm";
@@ -633,7 +622,6 @@
         }
     }
 
-    // MEMAPARKAN SUB-MENU BERBENTUK IKON MODUL PETAK (SAMA SEPERTI MODUL UTAMA)
     function renderPageSubmodules(menuKey) {
         const titleEl = document.getElementById('page-submodule-title');
         const countEl = document.getElementById('page-submodule-count');
@@ -664,7 +652,6 @@
         gridEl.innerHTML = html;
     }
 
-    // FUNGSI SOROK / BUKA PANEL KANAN BERSETA EXPAND RUANG UTAMA (FULL WIDTH)
     function toggleRightPanel() {
         const panel = document.getElementById('right-panel');
         const mainCol = document.getElementById('main-left-column');
@@ -673,13 +660,11 @@
         if (!panel || !mainCol) return;
 
         if (panel.classList.contains('hidden')) {
-            // PAPARKAN PANEL KANAN
             panel.classList.remove('hidden');
             mainCol.classList.remove('lg:col-span-12');
             mainCol.classList.add('lg:col-span-8');
             if (btnText) btnText.innerText = 'Sorok Panel Kanan';
         } else {
-            // SOROKKAN PANEL KANAN & KEMBANGKAN SEKSYEN UTAMA FULL WIDTH
             panel.classList.add('hidden');
             mainCol.classList.remove('lg:col-span-8');
             mainCol.classList.add('lg:col-span-12');
@@ -789,10 +774,9 @@
         sessionStorage.clear();
         localStorage.removeItem('SAVED_MOE_USER');
         localStorage.removeItem('currentUser');
-        window.location.href = 'LoginSession.html';
+        window.location.href = '../LoginSession.html';
     }
 
-    // FUNGSI UNTUK MEMBUKA APLIKASI LUARAN / MODUL LAIN
     function bukaAplikasi(namaAplikasi, url) {
         if (!url || url === '#') {
             if (typeof Swal !== 'undefined') {
@@ -811,7 +795,7 @@
         window.open(url, '_blank');
     }
 
-    // FUNGSI SEMAK SESI, JANA LAUNCH TOKEN & BUKA TAB BAHARU e-RPH
+    /* KEMASKINI FUNGSI MEMBUKA ErphGuru.html DI DALAM FOLDER /guru SAMA */
     function bukaErphModule() {
         const storedUser = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser') || localStorage.getItem('userSession');
         
@@ -823,11 +807,11 @@
                     text: 'Sila log masuk semula ke Portal Guru.',
                     confirmButtonColor: '#1f7a9c'
                 }).then(() => {
-                    window.location.href = 'LoginSession.html';
+                    window.location.href = '../LoginSession.html';
                 });
             } else {
                 alert('Sesi Luput. Sila log masuk semula.');
-                window.location.href = 'LoginSession.html';
+                window.location.href = '../LoginSession.html';
             }
             return;
         }
@@ -856,6 +840,7 @@
             sessionStorage.setItem('ERPH_LAUNCH_TOKEN_DATA', JSON.stringify(tokenData));
             localStorage.setItem('ERPH_LAUNCH_TOKEN_DATA', JSON.stringify(tokenData));
 
+            // Membuka ErphGuru.html secara langsung kerana berada dalam folder /guru yang sama
             window.open(`ErphGuru.html?launchToken=${launchToken}&usr=${encodedEmail}`, '_blank');
         } catch(e) {
             console.error("Ralat melancarkan e-RPH:", e);
