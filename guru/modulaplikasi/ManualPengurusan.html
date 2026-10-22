@@ -76,6 +76,24 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Gaya Paparan Cetakan / Dokumen 5.5 */
+        @media print {
+            header, nav, #admin-actions-container, .no-print, #category-tabs, #search-container {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .card-coligo {
+                border: none !important;
+                box-shadow: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-[#eef6f9] text-slate-800 h-full flex flex-col antialiased">
@@ -98,7 +116,7 @@
                 </div>
                 <div>
                     <h1 class="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight leading-tight">Manual Pengurusan Sekolah 2027</h1>
-                    <p class="text-[11px] text-[#1f7a9c] font-bold tracking-wide uppercase">Portal Agihan & Penetapan Jawatankuasa</p>
+                    <p class="text-[11px] text-[#1f7a9c] font-bold tracking-wide uppercase">Portal Agihan & Penetapan Jawatankuasa (Versi 5.5 Integrated)</p>
                 </div>
             </div>
         </div>
@@ -182,8 +200,16 @@
                 </button>
             </div>
 
-            <!-- ACTION BUTTONS UTAMA (GB / PK EDITORS) -->
-            <div class="flex items-center gap-2 w-full md:w-auto justify-end" id="admin-actions-container">
+            <!-- ACTION BUTTONS UTAMA & FUNGSI VERSION 5.5 -->
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end" id="admin-actions-container">
+                <button onclick="openCartaModal()" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <span>Carta Organisasi</span>
+                </button>
+                <button onclick="window.print()" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold text-xs rounded-lg transition flex items-center gap-1.5 shadow-2xs">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Cetak Manual</span>
+                </button>
                 <button onclick="openFormModal()" id="btn-tambah-jk" class="px-4 py-2 bg-[#1f7a9c] hover:bg-[#175d78] text-white font-bold text-xs rounded-lg transition flex items-center gap-2 shadow-xs">
                     <i class="fa-solid fa-plus"></i>
                     <span>Tambah Jawatankuasa</span>
@@ -197,13 +223,13 @@
 
         <!-- JADUAL PANGKALAN DATA JAWATANKUASA 2027 -->
         <div class="card-coligo p-5 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
                 <div>
                     <h2 class="font-extrabold text-base text-slate-800" id="table-title">Senarai Jawatankuasa Pengurusan 2027</h2>
-                    <p class="text-xs text-slate-400 font-medium italic">Data diselaraskan secara langsung daripada jadual Google Sheets</p>
+                    <p class="text-xs text-slate-400 font-medium italic">Penyusunan rasmi jawatankuasa sekolah bagi tahun 2027 (Modul 5.5 Dynamic)</p>
                 </div>
-                <div class="relative w-48 sm:w-64">
-                    <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Cari jawatankuasa / guru..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#1f7a9c]">
+                <div class="relative w-full sm:w-64" id="search-container">
+                    <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Cari jawatankuasa / guru / kod..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#1f7a9c]">
                     <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
                 </div>
             </div>
@@ -212,18 +238,19 @@
                 <table class="w-full text-left text-xs border-collapse">
                     <thead>
                         <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                            <th class="p-3 w-10 text-center">Bil</th>
-                            <th class="p-3">Kategori</th>
+                            <th class="p-3 w-12 text-center">Susun</th>
+                            <th class="p-3">Kategori & Kod</th>
                             <th class="p-3">Nama Jawatankuasa</th>
                             <th class="p-3">Peranan</th>
-                            <th class="p-3">Pegawai Dilantik (Cross-Check Profil)</th>
+                            <th class="p-3">Pegawai Dilantik (Profil Guru)</th>
+                            <th class="p-3">Skop / Senarai Tugas</th>
                             <th class="p-3 text-center">Status Kelulusan</th>
-                            <th class="p-3 text-right">Tindakan</th>
+                            <th class="p-3 text-right no-print">Tindakan</th>
                         </tr>
                     </thead>
                     <tbody id="manual-table-body" class="divide-y divide-slate-100 font-medium">
                         <tr>
-                            <td colspan="7" class="p-6 text-center text-slate-400 italic">
+                            <td colspan="8" class="p-6 text-center text-slate-400 italic">
                                 Sedang menarik pangkalan data jawatankuasa...
                             </td>
                         </tr>
@@ -234,77 +261,116 @@
 
     </main>
 
-    <!-- MODAL BORANG TAMBAH / EDIT JAWATANKUASA -->
+    <!-- MODAL BORANG TAMBAH / EDIT JAWATANKUASA (FUNGSI & MEDAN 5.5) -->
     <div id="form-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
             <div class="px-6 py-4 bg-[#1f7a9c] text-white flex items-center justify-between shrink-0">
-                <h3 class="font-extrabold text-sm sm:text-base" id="modal-title">Borang Penetapan Jawatankuasa 2027</h3>
-                <button onclick="closeFormModal()" class="text-white/80 hover:text-white text-lg font-bold">&times;</button>
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-file-pen text-lg"></i>
+                    <h3 class="font-extrabold text-sm sm:text-base" id="modal-title">Borang Penetapan Jawatankuasa 2027 (v5.5)</h3>
+                </div>
+                <button onclick="closeFormModal()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
             </div>
 
             <form id="jk-form" onsubmit="saveFormSubmission(event)" class="p-6 space-y-4 overflow-y-auto flex-1">
                 <input type="hidden" id="form-id-rekod" value="">
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Pengurusan <span class="text-red-500">*</span></label>
-                    <select id="form-kategori" required class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-[#1f7a9c]">
-                        <option value="Pentadbiran">Pentadbiran</option>
-                        <option value="Kurikulum">Kurikulum</option>
-                        <option value="HEM">Hal Ehwal Murid (HEM)</option>
-                        <option value="Kokurikulum">Ko-Kurikulum</option>
-                    </select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Pengurusan <span class="text-red-500">*</span></label>
+                        <select id="form-kategori" required class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-[#1f7a9c]">
+                            <option value="Pentadbiran">Pentadbiran</option>
+                            <option value="Kurikulum">Kurikulum</option>
+                            <option value="HEM">Hal Ehwal Murid (HEM)</option>
+                            <option value="Kokurikulum">Ko-Kurikulum</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Kod / Singkatan JK (Cth: JPMS, HIP)</label>
+                        <input type="text" id="form-kod-jk" placeholder="Cth: JPMS" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:border-[#1f7a9c]">
+                    </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Nama Jawatankuasa / Sub-Unit <span class="text-red-500">*</span></label>
-                    <input type="text" id="form-nama-jk" required placeholder="Contoh: Jawatankuasa Pengurusan Maklumat (JPMS)" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:border-[#1f7a9c]">
+                    <input type="text" id="form-nama-jk" required placeholder="Contoh: Jawatankuasa Pengurusan Maklumat Sekolah" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:border-[#1f7a9c]">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Peranan / Jawatan <span class="text-red-500">*</span></label>
+                        <select id="form-peranan" required class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-[#1f7a9c]">
+                            <option value="Pengerusi">Pengerusi</option>
+                            <option value="Timbalan Pengerusi">Timbalan Pengerusi</option>
+                            <option value="Naib Pengerusi">Naib Pengerusi</option>
+                            <option value="Setiausaha">Setiausaha</option>
+                            <option value="Penolong Setiausaha">Penolong Setiausaha</option>
+                            <option value="AJK">AJK / Ahli Jawatankuasa</option>
+                            <option value="Penyelaras">Penyelaras Unit</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">No. Susunan Keutamaan</label>
+                        <input type="number" id="form-susunan" value="1" min="1" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-[#1f7a9c]">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Status Kelulusan</label>
+                        <select id="form-status" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-[#1f7a9c]">
+                            <option value="Draft">Draft (Dalam Semakan PK)</option>
+                            <option value="Disahkan_PK">Disahkan oleh PK</option>
+                            <option value="Diluluskan_GB">Diluluskan Rasmi GB</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Peranan / Jawatan <span class="text-red-500">*</span></label>
-                    <select id="form-peranan" required class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-[#1f7a9c]">
-                        <option value="Pengerusi">Pengerusi</option>
-                        <option value="Timbalan Pengerusi">Timbalan Pengerusi</option>
-                        <option value="Naib Pengerusi">Naib Pengerusi</option>
-                        <option value="Setiausaha">Setiausaha</option>
-                        <option value="Penolong Setiausaha">Penolong Setiausaha</option>
-                        <option value="AJK">AJK / Ahli Jawatankuasa</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Guru Dilantik (Diambil dari Profil_Guru) <span class="text-red-500">*</span></label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Guru / Pegawai Dilantik (Cross-Check Profil) <span class="text-red-500">*</span></label>
                     <select id="form-email-guru" required class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-[#1f7a9c]">
                         <option value="">-- Pilih Guru --</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Status Rekod</label>
-                    <select id="form-status" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-[#1f7a9c]">
-                        <option value="Draft">Draft (Dalam Semakan PK)</option>
-                        <option value="Disahkan_PK">Disahkan oleh PK</option>
-                        <option value="Diluluskan_GB">Diluluskan Rasmi GB</option>
-                    </select>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Skop & Senarai Tugas Jawatankuasa (Versi 5.5)</label>
+                    <textarea id="form-skop-tugas" rows="3" placeholder="Nyatakan senarai tugas utama atau punca kuasa jawatankuasa ini..." class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:border-[#1f7a9c]"></textarea>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Catatan / Arahan GB</label>
-                    <textarea id="form-catatan" rows="2" placeholder="Catatan tambahan..." class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:border-[#1f7a9c]"></textarea>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Catatan / Arahan GB / Pentadbir</label>
+                    <textarea id="form-catatan" rows="2" placeholder="Catatan tambahan arahan penambahbaikan..." class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:border-[#1f7a9c]"></textarea>
                 </div>
 
                 <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
                     <button type="button" onclick="closeFormModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-[#1f7a9c] hover:bg-[#175d78] text-white font-bold text-xs rounded-lg transition shadow-xs">Simpan Rekod</button>
+                    <button type="submit" class="px-4 py-2 bg-[#1f7a9c] hover:bg-[#175d78] text-white font-bold text-xs rounded-lg transition shadow-xs">Simpan Rekod 2027</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL CARTA ORGANISASI VISUAL (FUNGSI 5.5) -->
+    <div id="carta-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 bg-[#1f7a9c] text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-sitemap"></i>
+                    <h3 class="font-extrabold text-sm sm:text-base" id="carta-modal-title">Carta Organisasi Jawatankuasa 2027</h3>
+                </div>
+                <button onclick="closeCartaModal()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-6" id="carta-container">
+                <!-- Visual carta dicipta menerusi JS -->
+            </div>
         </div>
     </div>
 
     <!-- PAUTAN KE CONFIG.JS DUA PARAS KELUAR FOLDER -->
     <script src="../../config.js"></script>
 
-    <!-- LOGIK JAVASCRIPT UTAMA PORTAL MANUAL -->
+    <!-- LOGIK JAVASCRIPT UTAMA PORTAL MANUAL (DENGAN INTEGRASI FUNGSI 5.5) -->
     <script>
     let CURRENT_USER = null;
     let ALL_USERS_PROFIL = [];
@@ -416,9 +482,9 @@
 
     function updateStats() {
         document.getElementById('stat-total').innerText = ALL_MANUAL_DATA.length;
-        document.getElementById('stat-draft').innerText = ALL_MANUAL_DATA.filter(d => String(d.Status_Kelulusan).toLowerCase().includes('draft')).length;
-        document.getElementById('stat-disahkan').innerText = ALL_MANUAL_DATA.filter(d => String(d.Status_Kelulusan).toLowerCase().includes('disahkan')).length;
-        document.getElementById('stat-diluluskan').innerText = ALL_MANUAL_DATA.filter(d => String(d.Status_Kelulusan).toLowerCase().includes('diluluskan')).length;
+        document.getElementById('stat-draft').innerText = ALL_MANUAL_DATA.filter(d => String(d.Status_Kelulusan || '').toLowerCase().includes('draft')).length;
+        document.getElementById('stat-disahkan').innerText = ALL_MANUAL_DATA.filter(d => String(d.Status_Kelulusan || '').toLowerCase().includes('disahkan')).length;
+        document.getElementById('stat-diluluskan').innerText = ALL_MANUAL_DATA.filter(d => String(d.Status_Kelulusan || '').toLowerCase().includes('diluluskan')).length;
     }
 
     function switchCategory(cat) {
@@ -444,12 +510,15 @@
         
         let filtered = ALL_MANUAL_DATA;
         if (ACTIVE_CATEGORY !== 'ALL') {
-            filtered = ALL_MANUAL_DATA.filter(item => String(item.Kategori).toLowerCase().trim() === ACTIVE_CATEGORY.toLowerCase().trim());
+            filtered = ALL_MANUAL_DATA.filter(item => String(item.Kategori || '').toLowerCase().trim() === ACTIVE_CATEGORY.toLowerCase().trim());
         }
+
+        // Susun mengikut Keutamaan/Susunan Jawatankuasa
+        filtered.sort((a, b) => Number(a.Susunan || 99) - Number(b.Susunan || 99));
 
         if (!filtered || filtered.length === 0) {
             tbody.innerHTML = `
-                <tr><td colspan="7" class="p-6 text-center text-slate-400 italic">
+                <tr><td colspan="8" class="p-6 text-center text-slate-400 italic">
                     Tiada rekod jawatankuasa bagi unit ini lagi.
                 </td></tr>`;
             return;
@@ -457,11 +526,9 @@
 
         let html = '';
         filtered.forEach((item, index) => {
-            // Cross check email guru dengan senarai Profil_Guru
-            const guruMatch = ALL_USERS_PROFIL.find(u => String(u.email).toLowerCase().trim() === String(item.Email_Guru).toLowerCase().trim());
+            const guruMatch = ALL_USERS_PROFIL.find(u => String(u.email).toLowerCase().trim() === String(item.Email_Guru || '').toLowerCase().trim());
             const namaGuruDisplay = item.Nama_Guru || (guruMatch ? guruMatch.nama : item.Email_Guru || 'Belum Dilantik');
 
-            // Badge Status Kelulusan
             let statusBadge = '<span class="px-2 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-full">Draft</span>';
             if (String(item.Status_Kelulusan).includes('Disahkan')) {
                 statusBadge = '<span class="px-2 py-1 bg-blue-100 text-blue-800 text-[10px] font-bold rounded-full">Disahkan PK</span>';
@@ -471,16 +538,22 @@
 
             html += `
                 <tr class="hover:bg-slate-50 transition">
-                    <td class="p-3 text-center text-slate-500 font-bold">${index + 1}</td>
-                    <td class="p-3 font-semibold text-slate-700"><span class="px-2 py-0.5 bg-slate-100 rounded text-[11px]">${item.Kategori || '-'}</span></td>
+                    <td class="p-3 text-center text-slate-500 font-bold">${item.Susunan || (index + 1)}</td>
+                    <td class="p-3 font-semibold text-slate-700">
+                        <span class="px-2 py-0.5 bg-slate-100 rounded text-[11px] block w-max mb-1">${item.Kategori || '-'}</span>
+                        ${item.Kod_JK ? `<span class="text-[10px] font-bold text-tealTheme">${item.Kod_JK}</span>` : ''}
+                    </td>
                     <td class="p-3 font-bold text-slate-800">${item.Nama_Jawatankuasa || '-'}</td>
                     <td class="p-3 font-semibold text-[#1f7a9c]">${item.Peranan || 'AJK'}</td>
                     <td class="p-3">
                         <div class="font-bold text-slate-800">${namaGuruDisplay}</div>
                         <div class="text-[10px] text-slate-400 font-mono">${item.Email_Guru || ''}</div>
                     </td>
+                    <td class="p-3 text-slate-600 text-[11px] max-w-xs truncate" title="${item.Skop_Tugas || '-'}">
+                        ${item.Skop_Tugas || '-'}
+                    </td>
                     <td class="p-3 text-center">${statusBadge}</td>
-                    <td class="p-3 text-right space-x-1">
+                    <td class="p-3 text-right space-x-1 no-print">
                         ${IS_GB_OR_PK ? `
                             <button onclick="editRecord('${item.ID_Rekod}')" class="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg transition" title="Edit">
                                 <i class="fa-solid fa-pen-to-square"></i>
@@ -508,10 +581,11 @@
     }
 
     function openFormModal(isEdit = false) {
-        document.getElementById('modal-title').innerText = isEdit ? 'Edit Rekod Jawatankuasa 2027' : 'Borang Penetapan Jawatankuasa 2027';
+        document.getElementById('modal-title').innerText = isEdit ? 'Edit Rekod Jawatankuasa 2027 (v5.5)' : 'Borang Penetapan Jawatankuasa 2027 (v5.5)';
         if (!isEdit) {
             document.getElementById('jk-form').reset();
             document.getElementById('form-id-rekod').value = '';
+            document.getElementById('form-susunan').value = ALL_MANUAL_DATA.length + 1;
             if (ACTIVE_CATEGORY !== 'ALL') {
                 document.getElementById('form-kategori').value = ACTIVE_CATEGORY;
             }
@@ -529,9 +603,12 @@
 
         document.getElementById('form-id-rekod').value = item.ID_Rekod;
         document.getElementById('form-kategori').value = item.Kategori || 'Pentadbiran';
+        document.getElementById('form-kod-jk').value = item.Kod_JK || '';
         document.getElementById('form-nama-jk').value = item.Nama_Jawatankuasa || '';
         document.getElementById('form-peranan').value = item.Peranan || 'AJK';
+        document.getElementById('form-susunan').value = item.Susunan || 1;
         document.getElementById('form-email-guru').value = (item.Email_Guru || '').toLowerCase().trim();
+        document.getElementById('form-skop-tugas').value = item.Skop_Tugas || '';
         document.getElementById('form-status').value = item.Status_Kelulusan || 'Draft';
         document.getElementById('form-catatan').value = item.Catatan_GB || '';
 
@@ -547,17 +624,20 @@
         const payloadData = {
             id_rekod: document.getElementById('form-id-rekod').value,
             kategori: document.getElementById('form-kategori').value,
+            kod_jk: document.getElementById('form-kod-jk').value,
             nama_jawatankuasa: document.getElementById('form-nama-jk').value,
             peranan: document.getElementById('form-peranan').value,
+            susunan: document.getElementById('form-susunan').value,
             email_guru: emailGuru,
             nama_guru: guruObj ? guruObj.nama : '',
+            skop_tugas: document.getElementById('form-skop-tugas').value,
             tahun_pengurusan: '2027',
             status_kelulusan: document.getElementById('form-status').value,
             catatan_gb: document.getElementById('form-catatan').value
         };
 
         closeFormModal();
-        showLoader('Menyimpan rekod ke Google Sheets...');
+        showLoader('Menyimpan rekod jawatankuasa...');
 
         try {
             const res = await postToBackend({
@@ -567,7 +647,7 @@
             hideLoader();
 
             if (res && res.success) {
-                Swal.fire('Berjaya', res.message, 'success');
+                Swal.fire('Berjaya', res.message || 'Rekod jawatankuasa berjaya disimpan.', 'success');
                 fetchPortalData();
             } else {
                 Swal.fire('Ralat', res.error || 'Gagal menyimpan rekod.', 'error');
@@ -645,6 +725,78 @@
             hideLoader();
             Swal.fire('Ralat', 'Gagal mengemaskini kelulusan.', 'error');
         }
+    }
+
+    /* LOGIK CARTA ORGANISASI VISUAL (FUNGSI 5.5) */
+    function openCartaModal() {
+        const container = document.getElementById('carta-container');
+        const unitText = ACTIVE_CATEGORY === 'ALL' ? 'Semua Pengurusan' : `Pengurusan Unit ${ACTIVE_CATEGORY}`;
+        document.getElementById('carta-modal-title').innerText = `Carta Organisasi Jawatankuasa 2027 - ${unitText}`;
+
+        let items = ALL_MANUAL_DATA;
+        if (ACTIVE_CATEGORY !== 'ALL') {
+            items = ALL_MANUAL_DATA.filter(i => String(i.Kategori || '').toLowerCase() === ACTIVE_CATEGORY.toLowerCase());
+        }
+
+        if (!items || items.length === 0) {
+            container.innerHTML = `<p class="text-center text-slate-400 italic">Tiada jawatankuasa ditemui untuk dipaparkan dalam Carta Organisasi.</p>`;
+            document.getElementById('carta-modal').classList.remove('hidden');
+            return;
+        }
+
+        // Kelompokkan mengikut Nama Jawatankuasa
+        const groups = {};
+        items.forEach(item => {
+            const key = item.Nama_Jawatankuasa || 'Lain-lain';
+            if (!groups[key]) groups[key] = [];
+            groups[key].push(item);
+        });
+
+        let html = '';
+        Object.keys(groups).forEach(jkName => {
+            const list = groups[jkName];
+            const pengerusi = list.find(l => String(l.Peranan).toLowerCase().includes('pengerusi')) || list[0];
+            const ahlis = list.filter(l => l !== pengerusi);
+
+            html += `
+                <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/50 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                        <h4 class="font-extrabold text-sm text-[#1f7a9c] flex items-center gap-2">
+                            <i class="fa-solid fa-users-gear"></i> ${jkName}
+                        </h4>
+                        <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-bold">${list[0].Kategori || 'Pentadbiran'}</span>
+                    </div>
+
+                    <!-- Pengerusi / Ketua -->
+                    <div class="flex justify-center">
+                        <div class="bg-gradient-to-r from-[#1f7a9c] to-[#175d78] text-white p-3 rounded-xl text-center shadow-xs min-w-[220px]">
+                            <span class="text-[10px] uppercase font-bold text-teal-200 tracking-wider">${pengerusi.Peranan}</span>
+                            <div class="font-bold text-xs mt-0.5">${pengerusi.Nama_Guru || 'Belum Dilantik'}</div>
+                        </div>
+                    </div>
+
+                    <!-- Garis Penjajaran -->
+                    ${ahlis.length > 0 ? `
+                        <div class="w-0.5 h-4 bg-slate-300 mx-auto"></div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                            ${ahlis.map(a => `
+                                <div class="bg-white p-2.5 rounded-lg border border-slate-200 text-center shadow-2xs">
+                                    <span class="text-[10px] text-slate-400 font-bold block uppercase">${a.Peranan}</span>
+                                    <span class="text-xs font-bold text-slate-800">${a.Nama_Guru || 'Belum Dilantik'}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        document.getElementById('carta-modal').classList.remove('hidden');
+    }
+
+    function closeCartaModal() {
+        document.getElementById('carta-modal').classList.add('hidden');
     }
 
     window.addEventListener('DOMContentLoaded', () => {
