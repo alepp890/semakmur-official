@@ -104,7 +104,7 @@
                 </div>
             </div>
 
-            <!-- NAVIGASI MENU UTAMA (Kini dinaikkan terus ke atas selepas profil dibuang) -->
+            <!-- NAVIGASI MENU UTAMA -->
             <nav class="px-3 space-y-1.5 mt-4">
                 <button onclick="switchMainMenu('laman_utama')" id="nav-laman_utama" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-white text-[#1b6287] shadow-sm">
                     <i class="fa-solid fa-house w-5 text-center text-base"></i>
@@ -149,7 +149,7 @@
     <!-- 2. AREA KANDUNGAN UTAMA -->
     <div class="flex-1 flex flex-col h-full overflow-hidden">
         
-        <!-- HEADER ATAS (WARNA CERAH, HEIGHT KEKAL h-20, GREETING & PROFIL DIGABUNGKAN) -->
+        <!-- HEADER ATAS -->
         <header class="h-20 bg-gradient-to-r from-[#eef8fa] via-[#e6f4f8] to-[#e0f0f5] border-b border-teal-100 shrink-0 flex items-center justify-between px-6 z-20 shadow-2xs">
             
             <!-- UCAPAN SELAMAT DATANG (DI ATAS NAMA GURU & KEKAL 1 ROW) -->
@@ -209,11 +209,11 @@
             <!-- GRID UTAMA DASHBOARD -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start" id="dashboard-grid-container">
                 
-                <!-- KOLUM KIRI UTAMA -->
-                <div class="lg:col-span-8 space-y-5 transition-all duration-300" id="main-left-column">
+                <!-- KOLUM KIRI UTAMA (GUNA flex flex-col gap-5 SUPAYA BEBAS DARIPADA BUG MARGIN space-y-5) -->
+                <div class="lg:col-span-8 flex flex-col gap-5 transition-all duration-300" id="main-left-column">
 
                     <!-- CONTAINER WIDGET LAMAN UTAMA -->
-                    <div id="laman-utama-widgets" class="space-y-5">
+                    <div id="laman-utama-widgets" class="flex flex-col gap-5">
 
                         <!-- SEKSYEN MODUL & APLIKASI UTAMA GURU -->
                         <div class="card-coligo p-4 space-y-3 bg-white shadow-xs border border-slate-200">
@@ -411,7 +411,7 @@
 
                     </div>
 
-                    <!-- CONTAINER SUB-MENU MODUL IKON (SELARI DENGAN WIDGET SIDEBAR KANAN) -->
+                    <!-- CONTAINER SUB-MENU MODUL IKON (KINI KEKAL SELARI TEPAT DENGAN PANEL WIDGET KANAN) -->
                     <div id="page-submodule-view" class="card-coligo p-4 space-y-3 bg-white shadow-xs border border-slate-200 hidden">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                             <div class="flex items-center gap-2">
