@@ -116,7 +116,7 @@
                 </div>
             </div>
 
-            <!-- NAVIGASI MENU UTAMA BAHARU (6 MENU) -->
+            <!-- NAVIGASI MENU UTAMA (6 MENU) -->
             <nav class="px-3 space-y-1.5 mt-2">
                 <button onclick="switchMainMenu('laman_utama')" id="nav-laman_utama" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-white text-[#1b6287] shadow-sm">
                     <i class="fa-solid fa-house w-5 text-center text-base"></i>
@@ -212,16 +212,16 @@
                 </button>
             </div>
 
-            <!-- GRID UTAMA DASHBOARD (SEBELAH KIRI UTAMA + SIDEBAR PANEL KANAN DI SEBELAH ATAS/SISI) -->
+            <!-- GRID UTAMA DASHBOARD -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start" id="dashboard-grid-container">
                 
-                <!-- KOLUM KIRI UTAMA (SPAN 8 atau SPAN 12 APABILA PANEL KANAN DISOROK) -->
+                <!-- KOLUM KIRI UTAMA -->
                 <div class="lg:col-span-8 space-y-5 transition-all duration-300" id="main-left-column">
 
-                    <!-- CONTAINER WIDGET LAMAN UTAMA (DIPAPARKAN PADA PAGE LAMAN UTAMA) -->
+                    <!-- CONTAINER WIDGET LAMAN UTAMA -->
                     <div id="laman-utama-widgets" class="space-y-5">
 
-                        <!-- SEKSYEN MODUL & APLIKASI UTAMA GURU (DALAM SECTION CARD TERKEMAS) -->
+                        <!-- SEKSYEN MODUL & APLIKASI UTAMA GURU -->
                         <div class="card-coligo p-4 space-y-3 bg-white shadow-xs border border-slate-200">
                             <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                                 <div class="flex items-center gap-2">
@@ -231,7 +231,7 @@
                                 <span class="text-[11px] text-slate-400 font-semibold px-2 py-0.5 bg-slate-100 rounded-full">6 Modul</span>
                             </div>
 
-                            <!-- GRID 6 KAD PETAK (SQUARE) BERKAPASITI DENGAN WARNA IKON MENARIK -->
+                            <!-- GRID 6 KAD PETAK (SQUARE) UTAMA -->
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                                 
                                 <!-- MODUL 1: e-RPH Digital -->
@@ -418,22 +418,25 @@
 
                     </div>
 
-                    <!-- CONTAINER SUB-MENU MODUL IKON (DIPAPARKAN APABILA MEMILIH PENTADBIRAN/KURIKULUM/HEM/KOKUM/LAIN-LAIN) -->
-                    <div id="page-submodule-view" class="card-coligo p-5 space-y-4 hidden">
-                        <div class="border-b border-slate-100 pb-3">
-                            <h2 class="font-extrabold text-lg text-slate-800" id="page-submodule-title">Modul Pengurusan</h2>
-                            <p class="text-xs text-slate-500 font-medium" id="page-submodule-desc">Pilih modul di bawah untuk maklumat lanjut</p>
+                    <!-- CONTAINER SUB-MENU MODUL IKON (MENGGUNAKAN STYLING 100% SAMA DENGAN MODUL UTAMA) -->
+                    <div id="page-submodule-view" class="card-coligo p-4 space-y-3 bg-white shadow-xs border border-slate-200 hidden">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#1f7a9c]"></span>
+                                <h2 class="font-extrabold text-sm text-slate-800" id="page-submodule-title">Modul & Aplikasi Pengurusan Pentadbiran</h2>
+                            </div>
+                            <span class="text-[11px] text-slate-400 font-semibold px-2 py-0.5 bg-slate-100 rounded-full" id="page-submodule-count">5 Modul</span>
                         </div>
 
-                        <!-- GRID IKON SUB-MENU -->
-                        <div id="submodule-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        <!-- GRID IKON SUB-MENU DENGAN REKA BENTUK PETAK SAMA SEPERTI MODUL UTAMA -->
+                        <div id="submodule-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
                             <!-- Dijana melalui JS -->
                         </div>
                     </div>
 
                 </div>
 
-                <!-- KOLUM KANAN / SIDEBAR PANEL (SPAN 4 - TERLETAK DI ATAS SEBELAH KANAN) -->
+                <!-- KOLUM KANAN / SIDEBAR PANEL -->
                 <aside class="lg:col-span-4 space-y-5 shrink-0 transition-all duration-300" id="right-panel">
 
                     <!-- CARD 1: TODAY SCHEDULE -->
@@ -505,39 +508,47 @@
         'lain_lain': 'Lain-lain & Dokumen'
     };
 
+    const MENU_MODULE_TITLES = {
+        'pentadbiran': 'Modul & Aplikasi Pengurusan Pentadbiran',
+        'kurikulum': 'Modul & Aplikasi Pengurusan Kurikulum',
+        'hem': 'Modul & Aplikasi Hal Ehwal Murid',
+        'kokurikulum': 'Modul & Aplikasi Pengurusan Ko Kurikulum',
+        'lain_lain': 'Modul & Aplikasi Lain-lain'
+    };
+
     // SENARAI IKON SUB-MENU MODUL BAGI SETIAP HALAMAN
     const PAGE_SUBMODULES = {
         'pentadbiran': [
-            { id: 'profil', title: 'Profil Sekolah', icon: 'fa-building', color: 'from-blue-600 to-indigo-500', bg: 'bg-blue-50 border-blue-200', action: 'bukaAplikasi("Profil Sekolah", "#")' },
-            { id: 'carta', title: 'Carta Organisasi', icon: 'fa-sitemap', color: 'from-indigo-600 to-purple-500', bg: 'bg-indigo-50 border-indigo-200', action: 'bukaAplikasi("Carta Organisasi", "#")' },
-            { id: 'skpmg', title: 'SKPMG / PBPPP', icon: 'fa-award', color: 'from-emerald-600 to-teal-500', bg: 'bg-emerald-50 border-emerald-200', action: 'bukaAplikasi("SKPMG / PBPPP", "#")' },
-            { id: 'kewangan', title: 'Pengurusan Kewangan', icon: 'fa-wallet', color: 'from-amber-500 to-yellow-500', bg: 'bg-amber-50 border-amber-200', action: 'bukaAplikasi("Pengurusan Kewangan", "#")' },
-            { id: 'laporan', title: 'Laporan Mingguan', icon: 'fa-file-lines', color: 'from-rose-600 to-pink-500', bg: 'bg-rose-50 border-rose-200', action: 'bukaAplikasi("Laporan Mingguan", "#")' }
+            { id: 'profil', title: 'Profil Sekolah', icon: 'fa-building', color: 'from-blue-600 to-indigo-500', action: 'bukaAplikasi("Profil Sekolah", "#")' },
+            { id: 'carta', title: 'Carta Organisasi', icon: 'fa-sitemap', color: 'from-indigo-600 to-purple-500', action: 'bukaAplikasi("Carta Organisasi", "#")' },
+            { id: 'skpmg', title: 'SKPMG / PBPPP', icon: 'fa-award', color: 'from-emerald-600 to-teal-500', action: 'bukaAplikasi("SKPMG / PBPPP", "#")' },
+            { id: 'kewangan', title: 'Pengurusan Kewangan', icon: 'fa-wallet', color: 'from-amber-500 to-yellow-500', action: 'bukaAplikasi("Pengurusan Kewangan", "#")' },
+            { id: 'laporan', title: 'Laporan Mingguan', icon: 'fa-file-lines', color: 'from-rose-600 to-pink-500', action: 'bukaAplikasi("Laporan Mingguan", "#")' }
         ],
         'kurikulum': [
-            { id: 'erph', title: 'e-RPH Digital', icon: 'fa-book-open', color: 'from-teal-600 to-teal-400', bg: 'bg-teal-50 border-teal-200', action: 'bukaErphModule()' },
-            { id: 'panitia', title: 'Pengurusan Panitia', icon: 'fa-chalkboard-user', color: 'from-blue-600 to-sky-400', bg: 'bg-blue-50 border-blue-200', action: 'bukaAplikasi("Pengurusan Panitia", "#")' },
-            { id: 'jadual', title: 'Jadual Waktu', icon: 'fa-calendar-days', color: 'from-purple-600 to-indigo-400', bg: 'bg-purple-50 border-purple-200', action: 'bukaAplikasi("Jadual Waktu", "#")' },
-            { id: 'pentaksiran', title: 'Pentaksiran & PBS', icon: 'fa-pen-to-square', color: 'from-amber-500 to-yellow-400', bg: 'bg-amber-50 border-amber-200', action: 'bukaAplikasi("Pentaksiran & PBS", "#")' }
+            { id: 'erph', title: 'e-RPH Digital', icon: 'fa-book-open', color: 'from-teal-600 to-teal-400', action: 'bukaErphModule()' },
+            { id: 'panitia', title: 'Pengurusan Panitia', icon: 'fa-chalkboard-user', color: 'from-blue-600 to-sky-400', action: 'bukaAplikasi("Pengurusan Panitia", "#")' },
+            { id: 'jadual', title: 'Jadual Waktu', icon: 'fa-calendar-days', color: 'from-purple-600 to-indigo-400', action: 'bukaAplikasi("Jadual Waktu", "#")' },
+            { id: 'pentaksiran', title: 'Pentaksiran & PBS', icon: 'fa-pen-to-square', color: 'from-amber-500 to-yellow-400', action: 'bukaAplikasi("Pentaksiran & PBS", "#")' }
         ],
         'hem': [
-            { id: 'ppda', title: 'Pengurusan PPDa', icon: 'fa-shield-halved', color: 'from-rose-600 to-red-400', bg: 'bg-rose-50 border-rose-200', action: 'bukaAplikasi("Pengurusan PPDa", "#")' },
-            { id: 'disiplin', title: 'Disiplin & SSDM', icon: 'fa-user-shield', color: 'from-amber-500 to-yellow-400', bg: 'bg-amber-50 border-amber-200', action: 'bukaAplikasi("SSDM Disiplin", "https://ssdm.moe.gov.my")' },
-            { id: 'apdm', title: 'APDM & Kehadiran', icon: 'fa-user-check', color: 'from-blue-600 to-sky-400', bg: 'bg-blue-50 border-blue-200', action: 'bukaAplikasi("APDM Kehadiran", "https://apdm.moe.gov.my")' },
-            { id: 'spbt', title: 'SPBT & Buku Teks', icon: 'fa-book', color: 'from-orange-500 to-amber-400', bg: 'bg-orange-50 border-orange-200', action: 'bukaAplikasi("SPBT", "#")' },
-            { id: 'rmt', title: 'RMT & Kesihatan', icon: 'fa-utensils', color: 'from-emerald-600 to-teal-400', bg: 'bg-emerald-50 border-emerald-200', action: 'bukaAplikasi("RMT & Kesihatan", "#")' }
+            { id: 'ppda', title: 'Pengurusan PPDa', icon: 'fa-shield-halved', color: 'from-rose-600 to-red-400', action: 'bukaAplikasi("Pengurusan PPDa", "#")' },
+            { id: 'disiplin', title: 'SSDM Disiplin', icon: 'fa-user-shield', color: 'from-amber-500 to-yellow-400', action: 'bukaAplikasi("SSDM Disiplin", "https://ssdm.moe.gov.my")' },
+            { id: 'apdm', title: 'APDM Kehadiran', icon: 'fa-user-check', color: 'from-blue-600 to-sky-400', action: 'bukaAplikasi("APDM Kehadiran", "https://apdm.moe.gov.my")' },
+            { id: 'spbt', title: 'SPBT & Buku Teks', icon: 'fa-book', color: 'from-orange-500 to-amber-400', action: 'bukaAplikasi("SPBT", "#")' },
+            { id: 'rmt', title: 'RMT & Kesihatan', icon: 'fa-utensils', color: 'from-emerald-600 to-teal-400', action: 'bukaAplikasi("RMT & Kesihatan", "#")' }
         ],
         'kokurikulum': [
-            { id: 'beruniform', title: 'Unit Beruniform', icon: 'fa-campground', color: 'from-emerald-600 to-teal-500', bg: 'bg-emerald-50 border-emerald-200', action: 'bukaAplikasi("Unit Beruniform", "#")' },
-            { id: 'kelab', title: 'Kelab & Persatuan', icon: 'fa-icons', color: 'from-indigo-600 to-blue-500', bg: 'bg-indigo-50 border-indigo-200', action: 'bukaAplikasi("Kelab & Persatuan", "#")' },
-            { id: 'sukan', title: 'Sukan & Permainan', icon: 'fa-futbol', color: 'from-amber-500 to-orange-500', bg: 'bg-amber-50 border-amber-200', action: 'bukaAplikasi("Sukan & Permainan", "#")' },
-            { id: 'pajsk', title: 'PAJSK & Markah', icon: 'fa-trophy', color: 'from-purple-600 to-pink-500', bg: 'bg-purple-50 border-purple-200', action: 'bukaAplikasi("PAJSK Koko", "#")' }
+            { id: 'beruniform', title: 'Unit Beruniform', icon: 'fa-campground', color: 'from-emerald-600 to-teal-500', action: 'bukaAplikasi("Unit Beruniform", "#")' },
+            { id: 'kelab', title: 'Kelab & Persatuan', icon: 'fa-icons', color: 'from-indigo-600 to-blue-500', action: 'bukaAplikasi("Kelab & Persatuan", "#")' },
+            { id: 'sukan', title: 'Sukan & Permainan', icon: 'fa-futbol', color: 'from-amber-500 to-orange-500', action: 'bukaAplikasi("Sukan & Permainan", "#")' },
+            { id: 'pajsk', title: 'PAJSK Koko', icon: 'fa-trophy', color: 'from-purple-600 to-pink-500', action: 'bukaAplikasi("PAJSK Koko", "#")' }
         ],
         'lain_lain': [
-            { id: 'manual', title: 'Buku Pengurusan', icon: 'fa-book-bookmark', color: 'from-blue-600 to-indigo-500', bg: 'bg-blue-50 border-blue-200', action: 'bukaAplikasi("Buku Pengurusan", "#")' },
-            { id: 'download', title: 'Muat Turun Dokumen', icon: 'fa-download', color: 'from-teal-600 to-emerald-500', bg: 'bg-teal-50 border-teal-200', action: 'bukaAplikasi("Muat Turun Dokumen", "#")' },
-            { id: 'galeri', title: 'Galeri Sekolah', icon: 'fa-images', color: 'from-purple-600 to-indigo-400', bg: 'bg-purple-50 border-purple-200', action: 'bukaAplikasi("Galeri Sekolah", "#")' },
-            { id: 'pautan', title: 'Pautan Luar MOE', icon: 'fa-link', color: 'from-amber-500 to-yellow-400', bg: 'bg-amber-50 border-amber-200', action: 'bukaAplikasi("Pautan Luar MOE", "#")' }
+            { id: 'manual', title: 'Buku Pengurusan', icon: 'fa-book-bookmark', color: 'from-blue-600 to-indigo-500', action: 'bukaAplikasi("Buku Pengurusan", "#")' },
+            { id: 'download', title: 'Muat Turun Dokumen', icon: 'fa-download', color: 'from-teal-600 to-emerald-500', action: 'bukaAplikasi("Muat Turun Dokumen", "#")' },
+            { id: 'galeri', title: 'Galeri Sekolah', icon: 'fa-images', color: 'from-purple-600 to-indigo-400', action: 'bukaAplikasi("Galeri Sekolah", "#")' },
+            { id: 'pautan', title: 'Pautan Luar MOE', icon: 'fa-link', color: 'from-amber-500 to-yellow-400', action: 'bukaAplikasi("Pautan Luar MOE", "#")' }
         ]
     };
 
@@ -622,31 +633,30 @@
         }
     }
 
-    // MEMAPARKAN SUB-MENU BERBENTUK IKON MODUL
+    // MEMAPARKAN SUB-MENU BERBENTUK IKON MODUL PETAK (SAMA SEPERTI MODUL UTAMA)
     function renderPageSubmodules(menuKey) {
         const titleEl = document.getElementById('page-submodule-title');
-        const descEl = document.getElementById('page-submodule-desc');
+        const countEl = document.getElementById('page-submodule-count');
         const gridEl = document.getElementById('submodule-grid-container');
 
-        if (titleEl) titleEl.innerText = MENU_LABELS[menuKey] || 'Modul Pengurusan';
-        if (descEl) descEl.innerText = `Pilih sub-modul bagi bahagian ${MENU_LABELS[menuKey]} di bawah untuk membuka aplikasi.`;
+        if (titleEl) titleEl.innerText = MENU_MODULE_TITLES[menuKey] || `Modul & Aplikasi ${MENU_LABELS[menuKey]}`;
 
         const modules = PAGE_SUBMODULES[menuKey] || [];
+        if (countEl) countEl.innerText = `${modules.length} Modul`;
 
         if (!modules || modules.length === 0) {
-            gridEl.innerHTML = `<p class="col-span-full text-slate-400 italic text-xs py-4 text-center">Tiada sub-modul tersedia bagi menu ini.</p>`;
+            gridEl.innerHTML = `<p class="col-span-full text-slate-400 italic text-xs py-4 text-center">Tiada modul tersedia bagi bahagian ini.</p>`;
             return;
         }
 
         let html = '';
         modules.forEach(mod => {
             html += `
-                <div onclick='${mod.action}' class="group cursor-pointer bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-400 p-4 rounded-xl transition-all flex flex-col items-center justify-center text-center shadow-xs hover:shadow-md transform hover:-translate-y-1">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-tr ${mod.color} text-white flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform mb-3">
+                <div onclick='${mod.action}' class="group cursor-pointer bg-slate-50 hover:bg-teal-50/60 border border-slate-200 hover:border-teal-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr ${mod.color} text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
                         <i class="fa-solid ${mod.icon}"></i>
                     </div>
-                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-teal-700 transition-colors leading-tight mb-1">${mod.title}</h3>
-                    <span class="text-[10px] text-slate-400 font-semibold">Buka Modul →</span>
+                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-teal-700 transition-colors leading-tight">${mod.title}</h3>
                 </div>
             `;
         });
