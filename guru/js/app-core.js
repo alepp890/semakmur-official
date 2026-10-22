@@ -1,7 +1,7 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL 1: js/app-core.js (Logik Teras, Sesi Pengguna, Takwim, Kawalan Akses, Rekod RPH Direktori & Pemasa Idle 5 Minit)
+ * FAIL: guru/js/app-core.js
  * ==============================================================================
  */
 
@@ -34,13 +34,8 @@ const state = {
   currentStarRating: 5
 };
 
-/**
- * ==============================================================================
- * KAWALAN PEMASA IDLE 5 MINIT TERASING (ISOLATED TAB TIMEOUT)
- * ==============================================================================
- */
 let idleTimer = null;
-const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 Minit (300,000 ms)
+const IDLE_TIMEOUT_MS = 5 * 60 * 1000;
 
 function resetIdleTimer() {
   if (idleTimer) clearTimeout(idleTimer);
@@ -51,7 +46,7 @@ function onIdleTimeout() {
   console.warn("⚠️ Pemasa Idle: Tiada aktiviti dikesan selama 5 minit.");
   sessionStorage.removeItem('ERPH_TAB_SESSION_ACTIVE');
   alert('Sesi e-RPH telah tamat masa akibat tiada aktiviti selama 5 minit. Sila log masuk semula.');
-  window.location.replace('LoginSession.html');
+  window.location.replace('../LoginSession.html');
 }
 
 function initIdleTimeoutMonitor() {
@@ -63,9 +58,6 @@ function initIdleTimeoutMonitor() {
   console.log("⏳ Pemasa Idle 5 Minit diaktifkan untuk tab e-RPH.");
 }
 
-/**
- * FUNGSI UTAMA PENGHUBUNG BACKEND API
- */
 async function fetchBackendApi(action, payloadData = {}) {
   const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL)
     ? WEB_APP_URL
@@ -88,9 +80,6 @@ async function fetchBackendApi(action, payloadData = {}) {
   return await response.json();
 }
 
-/**
- * PEMBANTU FORMAT MASA FRONTEND (PEMBERSIHAN ISO 1899)
- */
 function cleanTimeFormatFrontend(str) {
   if (!str) return '';
   let timeStr = String(str).trim();
@@ -109,9 +98,6 @@ function cleanTimeFormatFrontend(str) {
   return timeStr;
 }
 
-/**
- * PEMBANTU PENUKARAN TEKS MASA KE MINIT (UNTUK SUSUNAN KRONOLOGI TEPAT)
- */
 function timeToMinutes(timeStr) {
   if (!timeStr) return 0;
   let clean = String(timeStr).trim().toLowerCase();
@@ -129,7 +115,6 @@ function timeToMinutes(timeStr) {
   if (isPM && h < 12) h += 12;
   if (isAM && h === 12) h = 0;
 
-  // Sokongan waktu petang sekolah tanpa label PM (cth: 1:00 hingga 6:00)
   if (!isAM && !isPM && h >= 1 && h <= 6) {
     h += 12;
   }
@@ -137,9 +122,6 @@ function timeToMinutes(timeStr) {
   return (h * 60) + m;
 }
 
-/**
- * PEMBANTU NYAHTAFSIR TARIKH TAKWIM (SOKONGAN US MM/DD/YYYY & ISO)
- */
 function parseTakwimDateHelper(dateStr) {
   if (!dateStr) return null;
   let str = String(dateStr).trim();
@@ -168,9 +150,6 @@ function parseTakwimDateHelper(dateStr) {
   return !isNaN(d.getTime()) ? d : null;
 }
 
-/**
- * INISIALISASI SESI PENGGUNA & KAWALAN HAK AKSES JAWATAN PENTADBIR
- */
 function initUserSession() {
   const sessionData = localStorage.getItem('currentUser') || 
                       sessionStorage.getItem('CURRENT_USER') || 
@@ -245,23 +224,19 @@ function initUserSession() {
       const mainBody = document.getElementById('mainBody');
       if (mainBody) mainBody.style.display = 'flex';
 
-      // Aktifkan Pemasa Idle 5 Minit
       initIdleTimeoutMonitor();
 
       fetchJadualHariIni(email);
       loadTakwimAndInitDropdowns();
     } catch (e) {
       console.error("Ralat membaca sesi pengguna:", e);
-      window.location.replace('LoginSession.html');
+      window.location.replace('../LoginSession.html');
     }
   } else {
-    window.location.replace('LoginSession.html');
+    window.location.replace('../LoginSession.html');
   }
 }
 
-/**
- * MUAT DATA TAKWIM MINGGUAN SEBENAR DARI BACKEND
- */
 function loadTakwimAndInitDropdowns() {
   fetchBackendApi('getTakwimData')
     .then(res => {
@@ -282,9 +257,6 @@ function loadTakwimAndInitDropdowns() {
     });
 }
 
-/**
- * POPULASI DROPDOWN MINGGU SECARA MENURUN
- */
 function populateWeeksDropdowns() {
   const selectGuru = document.getElementById('selectWeekGuru');
   if (!selectGuru) return;
@@ -347,9 +319,6 @@ function populateWeeksDropdowns() {
   loadGuruDashboardData();
 }
 
-/**
- * KEMAS KINI DROPDOWN HARI DI DASHBOARD DENGAN FORMAT "ISNIN (DD/MM/YYYY)"
- */
 function updateDashboardDayDropdown() {
   const selectWeek = document.getElementById('selectWeekGuru');
   const selectDay = document.getElementById('filterDayGuru');
@@ -405,13 +374,9 @@ function changeWeekGuru() {
 
 function filterGuruTableByDay() { loadGuruDashboardData(); }
 
-/**
- * LOGIK PEMBANTU: SUSUN SECARA KRONOLOGI, GABUNG SLOT BERTURUT-TURUT & TAPIS BM 1 WAKTU TERPISAH
- */
 function processAndMergeJadual(dataList) {
   if (!Array.isArray(dataList) || dataList.length === 0) return [];
 
-  // 1. Pembersihan & Pemetaan Nilai Minit
   let slots = dataList.map(s => {
     const mula = cleanTimeFormatFrontend(s.jam_mula || s.masaMula);
     const tamat = cleanTimeFormatFrontend(s.jam_tamat || s.masaTamat);
@@ -426,10 +391,8 @@ function processAndMergeJadual(dataList) {
     };
   });
 
-  // 2. Susun secara KRONOLOGI mengikut minit masa mula (Awal -> Akhir)
   slots.sort((a, b) => a.mula_min - b.mula_min);
 
-  // 3. Gabungkan slot berturut-turut (Subjek + Kelas sama & Masa Tamat A === Masa Mula B)
   let merged = [];
   for (let slot of slots) {
     if (merged.length > 0) {
@@ -448,7 +411,6 @@ function processAndMergeJadual(dataList) {
     merged.push(slot);
   }
 
-  // 4. Tapis subjek BM: Jika ada BM 2 waktu bersama (waktuCount >= 2), abaikan BM 1 waktu terpisah
   const isBM = (subj) => {
     let str = subj.toLowerCase();
     return str === 'bm' || str === 'bahasa melayu';
@@ -469,9 +431,6 @@ function processAndMergeJadual(dataList) {
   return merged;
 }
 
-/**
- * TARIK JADUAL WAKTU HARI INI & TAMBAH BUTANG "+ BINA RPH"
- */
 function fetchJadualHariIni(emailGuru) {
   const container = document.getElementById('jadualWidgetContainer');
   if (!container) return;
@@ -483,7 +442,6 @@ function fetchJadualHariIni(emailGuru) {
     .then(res => {
       const rawDataList = (res && res.data) ? res.data : (Array.isArray(res) ? res : []);
       
-      // Proses susunan kronologi, penggabungan slot & penapisan BM 1 waktu
       const processedList = processAndMergeJadual(rawDataList);
       state.todayJadual = processedList;
 
@@ -521,9 +479,6 @@ function fetchJadualHariIni(emailGuru) {
     });
 }
 
-/**
- * MUAT DATA DASHBOARD RPH GURU
- */
 function loadGuruDashboardData() {
   const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
   const selectWeek = document.getElementById('selectWeekGuru');
@@ -567,9 +522,6 @@ function loadGuruDashboardData() {
     });
 }
 
-/**
- * PAPARAN JADUAL DASHBOARD GURU DENGAN BUTANG EDIT/LANJUT DAN BUTANG 🖨️ CETAK
- */
 function renderGuruRphTable(list) {
   const tbody = document.getElementById('guruRphTableBody');
   if (!tbody) return;
@@ -640,9 +592,6 @@ function updateGuruStats(allList) {
   if (elNoReflect) elNoReflect.textContent = noReflectCount + ' Slot';
 }
 
-/**
- * KAWALAN PAPARAN ROLE
- */
 function switchUserRole(role) {
   state.currentUserRole = role;
   const btnGuru = document.getElementById('roleBtnGuru');
@@ -697,12 +646,6 @@ function setActiveTab(tabId) {
   }
 }
 
-/**
- * ==============================================================================
- * MODUL REKOD RPH DIREKTORI 35% & SUNTIKAN DATA PREVIEW 65%
- * ==============================================================================
- */
-
 function cetakRphRecord(idRph) {
   if (!idRph) return;
 
@@ -736,7 +679,6 @@ function initPrintFolderExplorer() {
 
   const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
   
-  // Menarik KESELURUHAN rekod RPH guru (minggu: '') untuk membina direktori penuh
   fetchBackendApi('getErphListGuru', { emailGuru: emailGuru, minggu: '' })
     .then(res => {
       let allList = (res && res.success && Array.isArray(res.data)) ? res.data : [];
@@ -755,7 +697,6 @@ function renderPrintFolderTree(allList) {
   if (!container) return;
   container.innerHTML = '';
 
-  // Tentukan Minggu Semasa & Minggu Maksimum (Minggu Semasa + 1)
   const selectWeekGuru = document.getElementById('selectWeekGuru');
   let currentWeekVal = parseInt(selectWeekGuru ? selectWeekGuru.value : '1', 10) || 1;
   
@@ -780,7 +721,6 @@ function renderPrintFolderTree(allList) {
 
   const maxWeekDisplay = currentWeekVal + 1;
 
-  // Kumpulan mengikut Minggu -> Hari -> Slot
   const groupedByWeek = {};
   (allList || []).forEach(item => {
     const m = parseInt(item.minggu, 10) || 1;
@@ -792,7 +732,6 @@ function renderPrintFolderTree(allList) {
     }
   });
 
-  // JANA SENARAI FOLDER DARI MINGGU TERAKHIR (DI ATAS) KE MINGGU 1 (DI BAWAH SEKALI)
   let weekNumbers = [];
   for (let w = maxWeekDisplay; w >= 1; w--) {
     weekNumbers.push(w);
@@ -860,7 +799,6 @@ function renderPrintFolderTree(allList) {
     container.appendChild(weekDiv);
   });
 
-  // Papar pra-tonton item pertama secara automatik jika ada
   if (allList && allList.length > 0) {
     populatePrintPreview(allList[0]);
     setTimeout(() => {
