@@ -391,41 +391,61 @@
     }
 
     function checkUserSession() {
-        const sessionData = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser');
-        if (!sessionData) {
-            window.location.href = '../../LoginSession.html';
-            return;
-        }
-
-        try {
-            CURRENT_USER = JSON.parse(sessionData);
-            const name = CURRENT_USER.name || CURRENT_USER.nama || 'Pengguna';
-            const jawatan = (CURRENT_USER.jawatan || CURRENT_USER.role || '').toLowerCase();
-
-            document.getElementById('user-display-name').innerText = name;
-            document.getElementById('user-avatar-text').innerText = name.charAt(0).toUpperCase();
-
-            // Tentukan Peranan Kebenaran Akses (Role Access Control)
-            if (jawatan.includes('guru besar') || jawatan.includes('gb')) {
-                document.getElementById('user-role-badge').innerText = 'Guru Besar (GB)';
-                IS_GB_OR_PK = true;
-                document.getElementById('btn-kelulusan-gb').classList.remove('hidden');
-            } else if (jawatan.includes('penolong kanan') || jawatan.includes('pk')) {
-                document.getElementById('user-role-badge').innerText = 'Penolong Kanan (PK)';
-                IS_GB_OR_PK = true;
-            } else {
-                document.getElementById('user-role-badge').innerText = 'Guru / Pegawai';
-                IS_GB_OR_PK = false;
-                // Guru biasa hanya boleh melihat (Read-Only)
-                document.getElementById('btn-tambah-jk').classList.add('hidden');
-            }
-
-            fetchPortalData();
-        } catch (e) {
-            console.error('Session error:', e);
-            window.location.href = '../../LoginSession.html';
-        }
+    const sessionData = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser');
+    if (!sessionData) {
+        window.location.href = '../../LoginSession.html';
+        return;
     }
+
+    try {
+        CURRENT_USER = JSON.parse(sessionData);
+        const name = CURRENT_USER.name || CURRENT_USER.nama || CURRENT_USER.Nama || 'Pengguna';
+        
+        // Semak nilai dari kolum Jawatan dan Sistem_Akses
+        const jawatan = (CURRENT_USER.jawatan || CURRENT_USER.Jawatan || CURRENT_USER.role || '').toLowerCase();
+        const sistemAkses = (CURRENT_USER.sistem_akses || CURRENT_USER.Sistem_Akses || CURRENT_USER.akses || '').toLowerCase();
+
+        document.getElementById('user-display-name').innerText = name;
+        document.getElementById('user-avatar-text').innerText = name.charAt(0).toUpperCase();
+
+        // Pentakrifan Kebenaran Akses (Role Access Control)
+        const isAdminAkses = (sistemAkses === 'admin');
+        const isGB = jawatan.includes('guru besar') || jawatan.includes('gb');
+        const isPK = jawatan.includes('penolong kanan') || jawatan.includes('pk');
+
+        if (isGB || isAdminAkses) {
+            // Pentadbir Utama / Guru Besar
+            document.getElementById('user-role-badge').innerText = isGB ? 'Guru Besar (GB)' : 'Admin Sistem';
+            IS_GB_OR_PK = true;
+            
+            // Paparkan semua butang tindakan pentadbir
+            document.getElementById('btn-tambah-jk').classList.remove('hidden');
+            document.getElementById('btn-kelulusan-gb').classList.remove('hidden');
+
+        } else if (isPK) {
+            // Penolong Kanan
+            document.getElementById('user-role-badge').innerText = 'Penolong Kanan (PK)';
+            IS_GB_OR_PK = true;
+            
+            // PK boleh tambah/edit tetapi butang kelulusan akhir GB disembunyikan jika mahu
+            document.getElementById('btn-tambah-jk').classList.remove('hidden');
+            document.getElementById('btn-kelulusan-gb').classList.add('hidden');
+
+        } else {
+            // Guru Biasa (Paparan Read-Only)
+            document.getElementById('user-role-badge').innerText = 'Guru / Pegawai';
+            IS_GB_OR_PK = false;
+            
+            document.getElementById('btn-tambah-jk').classList.add('hidden');
+            document.getElementById('btn-kelulusan-gb').classList.add('hidden');
+        }
+
+        fetchPortalData();
+    } catch (e) {
+        console.error('Session error:', e);
+        window.location.href = '../../LoginSession.html';
+    }
+}
 
     async function postToBackend(payload) {
         const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
