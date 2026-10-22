@@ -376,7 +376,7 @@
             PENDING_ADMIN_USER = user;
             document.getElementById('admin-choice-modal').classList.remove('hidden');
         } else if (user.role === 'guru') {
-            window.location.href = 'DashboardGuru.html';
+            window.location.href = 'guru/DashboardGuru.html';
         } else if (user.role === 'murid' || user.role === 'student') {
             window.location.href = 'DashboardMurid.html';
         } else if (user.role === 'parent' || user.role === 'waris') {
@@ -406,7 +406,7 @@
         if (choice === 'admin') {
             window.location.href = 'DashboardAdmin.html';
         } else {
-            window.location.href = 'DashboardGuru.html';
+            window.location.href = 'guru/DashboardGuru.html';
         }
     }
 
