@@ -206,7 +206,8 @@
                     <span>Lokasi: </span>
                     <span id="breadcrumb-text" class="text-[#1f7a9c] font-bold">Dashboard / Laman Utama</span>
                 </div>
-                <button onclick="toggleRightPanel()" id="btn-toggle-right" class="text-xs text-[#1f7a9c] font-bold hover:underline">
+                <button onclick="toggleRightPanel()" id="btn-toggle-right" class="text-xs text-[#1f7a9c] font-bold hover:underline flex items-center gap-1 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-2xs">
+                    <i class="fa-solid fa-columns text-[10px]"></i>
                     <span id="toggle-right-text">Sorok Panel Kanan</span>
                 </button>
             </div>
@@ -218,74 +219,77 @@
                 </div>
             </div>
 
-            <!-- SEKSYEN MODUL UTAMA (6 KAD PETAK MELINTANG DENGAN SAIS 50% LEBIH KECIL & TAJUK SAHAJA) -->
-            <div class="space-y-2">
-                <div class="flex items-center justify-between">
-                    <h2 class="font-extrabold text-sm text-slate-800">Modul & Aplikasi Utama Guru</h2>
-                    <span class="text-[11px] text-slate-400 font-medium">6 Aplikasi Dipautkan</span>
-                </div>
-
-                <!-- GRID 6 LAJUR MELINTANG -->
-                <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
-                    
-                    <!-- MODUL 1: e-RPH Digital -->
-                    <div onclick="bukaErphModule()" class="group cursor-pointer bg-gradient-to-br from-[#1b587a] to-[#2284b0] text-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-teal-600/30">
-                        <div class="w-8 h-8 rounded-lg bg-white/20 border border-white/20 flex items-center justify-center text-sm text-white group-hover:scale-110 transition-transform mb-1">
-                            <i class="fa-solid fa-book-open"></i>
-                        </div>
-                        <h3 class="font-extrabold text-xs text-white leading-tight">e-RPH Digital</h3>
-                    </div>
-
-                    <!-- MODUL 2: APDM Kehadiran -->
-                    <div onclick="bukaAplikasi('APDM', 'https://apdm.moe.gov.my')" class="group cursor-pointer bg-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-slate-200 hover:border-blue-300">
-                        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center text-sm group-hover:scale-110 transition-transform mb-1">
-                            <i class="fa-solid fa-user-check"></i>
-                        </div>
-                        <h3 class="font-bold text-xs text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">APDM Kehadiran</h3>
-                    </div>
-
-                    <!-- MODUL 3: SSDM Disiplin -->
-                    <div onclick="bukaAplikasi('SSDM', 'https://ssdm.moe.gov.my')" class="group cursor-pointer bg-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-slate-200 hover:border-amber-300">
-                        <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center text-sm group-hover:scale-110 transition-transform mb-1">
-                            <i class="fa-solid fa-shield-halved"></i>
-                        </div>
-                        <h3 class="font-bold text-xs text-slate-800 group-hover:text-amber-600 transition-colors leading-tight">SSDM Disiplin</h3>
-                    </div>
-
-                    <!-- MODUL 4: SPLKPM Latihan -->
-                    <div onclick="bukaAplikasi('SPLKPM', 'https://splkpm.moe.gov.my')" class="group cursor-pointer bg-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-slate-200 hover:border-purple-300">
-                        <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center text-sm group-hover:scale-110 transition-transform mb-1">
-                            <i class="fa-solid fa-graduation-cap"></i>
-                        </div>
-                        <h3 class="font-bold text-xs text-slate-800 group-hover:text-purple-600 transition-colors leading-tight">SPLKPM Latihan</h3>
-                    </div>
-
-                    <!-- MODUL 5: PAJSK Koko -->
-                    <div onclick="bukaAplikasi('PAJSK', '#')" class="group cursor-pointer bg-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-slate-200 hover:border-emerald-300">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-sm group-hover:scale-110 transition-transform mb-1">
-                            <i class="fa-solid fa-trophy"></i>
-                        </div>
-                        <h3 class="font-bold text-xs text-slate-800 group-hover:text-emerald-600 transition-colors leading-tight">PAJSK Koko</h3>
-                    </div>
-
-                    <!-- MODUL 6: HRMIS / CRK -->
-                    <div onclick="bukaAplikasi('HRMIS', 'https://hrmis2.ecomponent.my')" class="group cursor-pointer bg-white p-2.5 rounded-xl shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col items-center justify-center text-center aspect-square border border-slate-200 hover:border-rose-300">
-                        <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center text-sm group-hover:scale-110 transition-transform mb-1">
-                            <i class="fa-solid fa-id-card"></i>
-                        </div>
-                        <h3 class="font-bold text-xs text-slate-800 group-hover:text-rose-600 transition-colors leading-tight">HRMIS / CRK</h3>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- GRID 2 KOLUM (SEMUA SIDE BAR & PANEL DI BAWAH KAD MODUL) -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <!-- GRID UTAMA DASHBOARD (SEBELAH KIRI UTAMA + SIDEBAR PANEL KANAN DI SEBELAH ATAS/SISI) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start" id="dashboard-grid-container">
                 
-                <!-- KOLUM KIRI UTAMA (SPAN 8) -->
-                <div class="lg:col-span-8 space-y-5" id="main-left-column">
+                <!-- KOLUM KIRI UTAMA (SPAN 8 atau SPAN 12 APABILA PANEL KANAN DISOROK) -->
+                <div class="lg:col-span-8 space-y-5 transition-all duration-300" id="main-left-column">
 
-                    <!-- SEKSYEN PENGUMUMAN & PEMBERITAHUAN (MENGGANTIKAN KEMAJUAN PdPC & e-RPH) -->
+                    <!-- SEKSYEN MODUL & APLIKASI UTAMA GURU (DALAM SECTION CARD TERKEMAS) -->
+                    <div class="card-coligo p-4 space-y-3 bg-white shadow-xs border border-slate-200">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#1f7a9c]"></span>
+                                <h2 class="font-extrabold text-sm text-slate-800">Modul & Aplikasi Utama Guru</h2>
+                            </div>
+                            <span class="text-[11px] text-slate-400 font-semibold px-2 py-0.5 bg-slate-100 rounded-full">6 Modul</span>
+                        </div>
+
+                        <!-- GRID 6 KAD PETAK (SQUARE) BERKAPASITI DENGAN WARNA IKON MENARIK -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                            
+                            <!-- MODUL 1: e-RPH Digital -->
+                            <div onclick="bukaErphModule()" class="group cursor-pointer bg-slate-50 hover:bg-teal-50/60 border border-slate-200 hover:border-teal-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-teal-600 to-teal-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                    <i class="fa-solid fa-book-open"></i>
+                                </div>
+                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-teal-700 transition-colors leading-tight">e-RPH Digital</h3>
+                            </div>
+
+                            <!-- MODUL 2: APDM Kehadiran -->
+                            <div onclick="bukaAplikasi('APDM', 'https://apdm.moe.gov.my')" class="group cursor-pointer bg-slate-50 hover:bg-blue-50/60 border border-slate-200 hover:border-blue-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 to-sky-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                    <i class="fa-solid fa-user-check"></i>
+                                </div>
+                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-blue-700 transition-colors leading-tight">APDM Kehadiran</h3>
+                            </div>
+
+                            <!-- MODUL 3: SSDM Disiplin -->
+                            <div onclick="bukaAplikasi('SSDM', 'https://ssdm.moe.gov.my')" class="group cursor-pointer bg-slate-50 hover:bg-amber-50/60 border border-slate-200 hover:border-amber-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-amber-700 transition-colors leading-tight">SSDM Disiplin</h3>
+                            </div>
+
+                            <!-- MODUL 4: SPLKPM Latihan -->
+                            <div onclick="bukaAplikasi('SPLKPM', 'https://splkpm.moe.gov.my')" class="group cursor-pointer bg-slate-50 hover:bg-purple-50/60 border border-slate-200 hover:border-purple-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                    <i class="fa-solid fa-graduation-cap"></i>
+                                </div>
+                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-purple-700 transition-colors leading-tight">SPLKPM Latihan</h3>
+                            </div>
+
+                            <!-- MODUL 5: PAJSK Koko -->
+                            <div onclick="bukaAplikasi('PAJSK', '#')" class="group cursor-pointer bg-slate-50 hover:bg-emerald-50/60 border border-slate-200 hover:border-emerald-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                    <i class="fa-solid fa-trophy"></i>
+                                </div>
+                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-emerald-700 transition-colors leading-tight">PAJSK Koko</h3>
+                            </div>
+
+                            <!-- MODUL 6: HRMIS / CRK -->
+                            <div onclick="bukaAplikasi('HRMIS', 'https://hrmis2.ecomponent.my')" class="group cursor-pointer bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-rose-600 to-pink-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                    <i class="fa-solid fa-id-card"></i>
+                                </div>
+                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-rose-700 transition-colors leading-tight">HRMIS / CRK</h3>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- SEKSYEN PENGUMUMAN & PEMBERITAHUAN -->
                     <div id="courses-progress-card" class="card-coligo p-5">
                         <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
                             <div>
@@ -418,14 +422,17 @@
 
                 </div>
 
-                <!-- KOLUM KANAN / SIDEBAR PANEL (SPAN 4 - BERADA DI BAWAH KAD MODUL) -->
-                <aside class="lg:col-span-4 space-y-5 shrink-0" id="right-panel">
+                <!-- KOLUM KANAN / SIDEBAR PANEL (SPAN 4 - TERLETAK DI ATAS SEBELAH KANAN) -->
+                <aside class="lg:col-span-4 space-y-5 shrink-0 transition-all duration-300" id="right-panel">
 
                     <!-- CARD 1: TODAY SCHEDULE -->
                     <div class="card-coligo p-5">
-                        <div class="mb-4">
-                            <h2 class="font-extrabold text-base text-slate-800">Jadual Hari Ini</h2>
-                            <p class="text-xs text-slate-400 font-medium italic">Sesi waktu mengajar yang dijadualkan</p>
+                        <div class="mb-4 flex items-center justify-between border-b border-slate-100 pb-2">
+                            <div>
+                                <h2 class="font-extrabold text-base text-slate-800">Jadual Hari Ini</h2>
+                                <p class="text-xs text-slate-400 font-medium italic">Sesi waktu mengajar yang dijadualkan</p>
+                            </div>
+                            <span class="p-2 bg-teal-50 text-[#1f7a9c] rounded-lg text-sm font-bold">📅</span>
                         </div>
 
                         <div class="space-y-4">
@@ -636,16 +643,26 @@
         }
     }
 
+    // FUNGSI SOROK / BUKA PANEL KANAN BERSETA EXPAND RUANG UTAMA
     function toggleRightPanel() {
         const panel = document.getElementById('right-panel');
+        const mainCol = document.getElementById('main-left-column');
         const btnText = document.getElementById('toggle-right-text');
 
+        if (!panel || !mainCol) return;
+
         if (panel.classList.contains('hidden')) {
+            // PAPARKAN PANEL KANAN
             panel.classList.remove('hidden');
-            btnText.innerText = 'Sorok Panel Kanan';
+            mainCol.classList.remove('lg:col-span-12');
+            mainCol.classList.add('lg:col-span-8');
+            if (btnText) btnText.innerText = 'Sorok Panel Kanan';
         } else {
+            // SOROKKAN PANEL KANAN & KEMBANGKAN SEKSYEN UTAMA
             panel.classList.add('hidden');
-            btnText.innerText = 'Buka Panel Kanan';
+            mainCol.classList.remove('lg:col-span-8');
+            mainCol.classList.add('lg:col-span-12');
+            if (btnText) btnText.innerText = 'Buka Panel Kanan';
         }
     }
 
