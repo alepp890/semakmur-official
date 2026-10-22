@@ -116,36 +116,36 @@
                 </div>
             </div>
 
-            <!-- NAVIGASI MENU UTAMA -->
+            <!-- NAVIGASI MENU UTAMA BAHARU (6 MENU) -->
             <nav class="px-3 space-y-1.5 mt-2">
                 <button onclick="switchMainMenu('laman_utama')" id="nav-laman_utama" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-white text-[#1b6287] shadow-sm">
-                    <svg class="w-5 h-5 text-[#1b6287]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                    <span>Dashboard</span>
-                </button>
-
-                <button onclick="switchMainMenu('pengurusan_kelas')" id="nav-pengurusan_kelas" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    <span>Pengurusan Kelas</span>
-                </button>
-
-                <button onclick="switchMainMenu('tugasan_guru')" id="nav-tugasan_guru" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    <span>Jadual & Tugasan</span>
-                </button>
-
-                <button onclick="bukaErphModule()" id="nav-kurikulum" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                    <span>Kurikulum & e-RPH</span>
+                    <i class="fa-solid fa-house w-5 text-center text-base"></i>
+                    <span>Laman Utama</span>
                 </button>
 
                 <button onclick="switchMainMenu('pentadbiran')" id="nav-pentadbiran" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                    <span>Prestasi & Laporan</span>
+                    <i class="fa-solid fa-building-user w-5 text-center text-base"></i>
+                    <span>Pentadbiran</span>
+                </button>
+
+                <button onclick="switchMainMenu('kurikulum')" id="nav-kurikulum" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
+                    <i class="fa-solid fa-book-open-reader w-5 text-center text-base"></i>
+                    <span>Kurikulum</span>
                 </button>
 
                 <button onclick="switchMainMenu('hem')" id="nav-hem" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5 4.359h1.612l4.223 12.067H9.22l-1.503-4.298H4.622L3.118 16.426H1.5L5.723 4.359z"></path></svg>
-                    <span>Pengumuman & HEM</span>
+                    <i class="fa-solid fa-user-shield w-5 text-center text-base"></i>
+                    <span>Hal Ehwal Murid</span>
+                </button>
+
+                <button onclick="switchMainMenu('kokurikulum')" id="nav-kokurikulum" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
+                    <i class="fa-solid fa-trophy w-5 text-center text-base"></i>
+                    <span>Ko Kurikulum</span>
+                </button>
+
+                <button onclick="switchMainMenu('lain_lain')" id="nav-lain_lain" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
+                    <i class="fa-solid fa-ellipsis-stroke w-5 text-center text-base"></i>
+                    <span>Lain-lain</span>
                 </button>
             </nav>
         </div>
@@ -212,211 +212,222 @@
                 </button>
             </div>
 
-            <!-- SUB-TABS BAR -->
-            <div id="sub-tabs-container" class="card-coligo p-2 bg-white hidden">
-                <div id="sub-tabs-bar" class="flex flex-wrap gap-2 text-xs">
-                    <!-- Sub-tabs janaan JS -->
-                </div>
-            </div>
-
             <!-- GRID UTAMA DASHBOARD (SEBELAH KIRI UTAMA + SIDEBAR PANEL KANAN DI SEBELAH ATAS/SISI) -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start" id="dashboard-grid-container">
                 
                 <!-- KOLUM KIRI UTAMA (SPAN 8 atau SPAN 12 APABILA PANEL KANAN DISOROK) -->
                 <div class="lg:col-span-8 space-y-5 transition-all duration-300" id="main-left-column">
 
-                    <!-- SEKSYEN MODUL & APLIKASI UTAMA GURU (DALAM SECTION CARD TERKEMAS) -->
-                    <div class="card-coligo p-4 space-y-3 bg-white shadow-xs border border-slate-200">
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-[#1f7a9c]"></span>
-                                <h2 class="font-extrabold text-sm text-slate-800">Modul & Aplikasi Utama Guru</h2>
+                    <!-- CONTAINER WIDGET LAMAN UTAMA (DIPAPARKAN PADA PAGE LAMAN UTAMA) -->
+                    <div id="laman-utama-widgets" class="space-y-5">
+
+                        <!-- SEKSYEN MODUL & APLIKASI UTAMA GURU (DALAM SECTION CARD TERKEMAS) -->
+                        <div class="card-coligo p-4 space-y-3 bg-white shadow-xs border border-slate-200">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-[#1f7a9c]"></span>
+                                    <h2 class="font-extrabold text-sm text-slate-800">Modul & Aplikasi Utama Guru</h2>
+                                </div>
+                                <span class="text-[11px] text-slate-400 font-semibold px-2 py-0.5 bg-slate-100 rounded-full">6 Modul</span>
                             </div>
-                            <span class="text-[11px] text-slate-400 font-semibold px-2 py-0.5 bg-slate-100 rounded-full">6 Modul</span>
+
+                            <!-- GRID 6 KAD PETAK (SQUARE) BERKAPASITI DENGAN WARNA IKON MENARIK -->
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                                
+                                <!-- MODUL 1: e-RPH Digital -->
+                                <div onclick="bukaErphModule()" class="group cursor-pointer bg-slate-50 hover:bg-teal-50/60 border border-slate-200 hover:border-teal-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-teal-600 to-teal-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                        <i class="fa-solid fa-book-open"></i>
+                                    </div>
+                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-teal-700 transition-colors leading-tight">e-RPH Digital</h3>
+                                </div>
+
+                                <!-- MODUL 2: APDM Kehadiran -->
+                                <div onclick="bukaAplikasi('APDM', 'https://apdm.moe.gov.my')" class="group cursor-pointer bg-slate-50 hover:bg-blue-50/60 border border-slate-200 hover:border-blue-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 to-sky-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                        <i class="fa-solid fa-user-check"></i>
+                                    </div>
+                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-blue-700 transition-colors leading-tight">APDM Kehadiran</h3>
+                                </div>
+
+                                <!-- MODUL 3: SSDM Disiplin -->
+                                <div onclick="bukaAplikasi('SSDM', 'https://ssdm.moe.gov.my')" class="group cursor-pointer bg-slate-50 hover:bg-amber-50/60 border border-slate-200 hover:border-amber-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                        <i class="fa-solid fa-shield-halved"></i>
+                                    </div>
+                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-amber-700 transition-colors leading-tight">SSDM Disiplin</h3>
+                                </div>
+
+                                <!-- MODUL 4: SPLKPM Latihan -->
+                                <div onclick="bukaAplikasi('SPLKPM', 'https://splkpm.moe.gov.my')" class="group cursor-pointer bg-slate-50 hover:bg-purple-50/60 border border-slate-200 hover:border-purple-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                        <i class="fa-solid fa-graduation-cap"></i>
+                                    </div>
+                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-purple-700 transition-colors leading-tight">SPLKPM Latihan</h3>
+                                </div>
+
+                                <!-- MODUL 5: PAJSK Koko -->
+                                <div onclick="bukaAplikasi('PAJSK', '#')" class="group cursor-pointer bg-slate-50 hover:bg-emerald-50/60 border border-slate-200 hover:border-emerald-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                        <i class="fa-solid fa-trophy"></i>
+                                    </div>
+                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-emerald-700 transition-colors leading-tight">PAJSK Koko</h3>
+                                </div>
+
+                                <!-- MODUL 6: HRMIS / CRK -->
+                                <div onclick="bukaAplikasi('HRMIS', 'https://hrmis2.ecomponent.my')" class="group cursor-pointer bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-rose-600 to-pink-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                        <i class="fa-solid fa-id-card"></i>
+                                    </div>
+                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-rose-700 transition-colors leading-tight">HRMIS / CRK</h3>
+                                </div>
+
+                            </div>
                         </div>
 
-                        <!-- GRID 6 KAD PETAK (SQUARE) BERKAPASITI DENGAN WARNA IKON MENARIK -->
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                            
-                            <!-- MODUL 1: e-RPH Digital -->
-                            <div onclick="bukaErphModule()" class="group cursor-pointer bg-slate-50 hover:bg-teal-50/60 border border-slate-200 hover:border-teal-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-teal-600 to-teal-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                    <i class="fa-solid fa-book-open"></i>
+                        <!-- SEKSYEN PENGUMUMAN & PEMBERITAHUAN -->
+                        <div id="courses-progress-card" class="card-coligo p-5">
+                            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
+                                <div>
+                                    <h2 class="font-extrabold text-base text-slate-800">Pengumuman & Pemberitahuan</h2>
+                                    <p class="text-xs text-slate-400 font-medium italic">Makluman dan notis rasmi sekolah terkini</p>
                                 </div>
-                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-teal-700 transition-colors leading-tight">e-RPH Digital</h3>
+                                <button class="text-xs font-bold text-[#1f7a9c] hover:underline">+ Baru</button>
                             </div>
 
-                            <!-- MODUL 2: APDM Kehadiran -->
-                            <div onclick="bukaAplikasi('APDM', 'https://apdm.moe.gov.my')" class="group cursor-pointer bg-slate-50 hover:bg-blue-50/60 border border-slate-200 hover:border-blue-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 to-sky-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                    <i class="fa-solid fa-user-check"></i>
+                            <div class="space-y-3">
+                                <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition">
+                                    <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
+                                        <span class="px-2 py-0.5 bg-teal-100 text-[#1f7a9c] rounded">PENTADBIRAN</span>
+                                        <span class="text-slate-400 font-normal">15 Okt 2026</span>
+                                    </div>
+                                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 mb-1">Mesyuarat Kurikulum Bil 3/2026</h3>
+                                    <p class="text-xs text-slate-600 leading-relaxed">Penyertaan semua Guru Mata Pelajaran adalah wajib. Mesyuarat akan bermula jam 2.00 petang di Bilik Gerakan sekolah.</p>
                                 </div>
-                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-blue-700 transition-colors leading-tight">APDM Kehadiran</h3>
-                            </div>
 
-                            <!-- MODUL 3: SSDM Disiplin -->
-                            <div onclick="bukaAplikasi('SSDM', 'https://ssdm.moe.gov.my')" class="group cursor-pointer bg-slate-50 hover:bg-amber-50/60 border border-slate-200 hover:border-amber-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                    <i class="fa-solid fa-shield-halved"></i>
+                                <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition">
+                                    <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
+                                        <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded">HEM</span>
+                                        <span class="text-slate-400 font-normal">12 Okt 2026</span>
+                                    </div>
+                                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 mb-1">Pengesahan Kehadiran Murid APDM</h3>
+                                    <p class="text-xs text-slate-600 leading-relaxed">Semua Guru Kelas diminta mengemaskini dan mengesahkan rekod kehadiran harian murid sebelum jam 9.00 pagi setiap hari persekolahan.</p>
                                 </div>
-                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-amber-700 transition-colors leading-tight">SSDM Disiplin</h3>
                             </div>
-
-                            <!-- MODUL 4: SPLKPM Latihan -->
-                            <div onclick="bukaAplikasi('SPLKPM', 'https://splkpm.moe.gov.my')" class="group cursor-pointer bg-slate-50 hover:bg-purple-50/60 border border-slate-200 hover:border-purple-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                    <i class="fa-solid fa-graduation-cap"></i>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-purple-700 transition-colors leading-tight">SPLKPM Latihan</h3>
-                            </div>
-
-                            <!-- MODUL 5: PAJSK Koko -->
-                            <div onclick="bukaAplikasi('PAJSK', '#')" class="group cursor-pointer bg-slate-50 hover:bg-emerald-50/60 border border-slate-200 hover:border-emerald-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                    <i class="fa-solid fa-trophy"></i>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-emerald-700 transition-colors leading-tight">PAJSK Koko</h3>
-                            </div>
-
-                            <!-- MODUL 6: HRMIS / CRK -->
-                            <div onclick="bukaAplikasi('HRMIS', 'https://hrmis2.ecomponent.my')" class="group cursor-pointer bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-rose-600 to-pink-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                    <i class="fa-solid fa-id-card"></i>
-                                </div>
-                                <h3 class="font-bold text-xs text-slate-800 group-hover:text-rose-700 transition-colors leading-tight">HRMIS / CRK</h3>
-                            </div>
-
                         </div>
+
+                        <!-- CARD 2: TUGASAN & STATUS PENGHANTARAN -->
+                        <div class="card-coligo p-5">
+                            <div class="flex items-center justify-between mb-1">
+                                <div>
+                                    <h2 class="font-extrabold text-base text-slate-800">Semakan Tugasan & e-RPH</h2>
+                                    <p class="text-xs text-slate-400 font-medium italic">Status penghantaran buku latihan & rekod mengajar minggu ini</p>
+                                </div>
+                                <select class="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 text-slate-700 font-semibold focus:outline-none">
+                                    <option>Semua Kelas</option>
+                                    <option>1 IRIS</option>
+                                    <option>2 ROS</option>
+                                </select>
+                            </div>
+
+                            <!-- JADUAL TUGASAN STATUS -->
+                            <div class="overflow-x-auto mt-4">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="text-slate-400 border-b border-slate-200 uppercase tracking-wider font-semibold">
+                                            <th class="pb-3 font-semibold">Subjek | Topik</th>
+                                            <th class="pb-3 font-semibold">Tarikh Akhir</th>
+                                            <th class="pb-3 font-semibold">Kadar Hantar</th>
+                                            <th class="pb-3 font-semibold">Status</th>
+                                            <th class="pb-3 text-right font-semibold">Tindakan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 font-medium">
+                                        <tr>
+                                            <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
+                                                <span class="p-1.5 bg-teal-50 text-[#1f7a9c] rounded-md">📋</span>
+                                                Bahasa Melayu 1I | Latihan Karangan Pendek
+                                            </td>
+                                            <td class="py-3.5 text-slate-500">20 Okt 2026</td>
+                                            <td class="py-3.5 font-bold text-slate-800">85 %</td>
+                                            <td class="py-3.5">
+                                                <span class="text-amber-600 italic font-semibold">Menunggu Penghantaran</span>
+                                            </td>
+                                            <td class="py-3.5 text-right text-slate-400">⋮</td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
+                                                <span class="p-1.5 bg-amber-50 text-amber-600 rounded-md">⏳</span>
+                                                Sejarah 2R | Bab 3 Kesultanan Melayu
+                                            </td>
+                                            <td class="py-3.5 text-slate-500">18 Okt 2026</td>
+                                            <td class="py-3.5 font-bold text-slate-800">98 %</td>
+                                            <td class="py-3.5">
+                                                <span class="text-amber-500 italic font-semibold">Sedia untuk disemak</span>
+                                            </td>
+                                            <td class="py-3.5 text-right text-slate-400">⋮</td>
+                                        </tr>
+
+                                        <tr>
+                                            <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
+                                                <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-md">✓</span>
+                                                Bahasa Melayu 3D | E-RPH Minggu 38
+                                            </td>
+                                            <td class="py-3.5 text-slate-500">16 Okt 2026</td>
+                                            <td class="py-3.5 font-bold text-slate-800">100 %</td>
+                                            <td class="py-3.5">
+                                                <span class="text-emerald-600 italic font-semibold">Disahkan Pentadbir!</span>
+                                            </td>
+                                            <td class="py-3.5 text-right text-slate-400">⋮</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- SENARAI MURID VIEW -->
+                        <div id="students-table-view" class="card-coligo p-5 hidden">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="font-extrabold text-base text-slate-800" id="students-card-title">Senarai Murid Kelas</h2>
+                                <button onclick="fetchClassStudentsRealData()" class="px-3 py-1.5 bg-[#1f7a9c] hover:bg-[#175d78] text-white font-bold text-xs rounded-lg transition">
+                                    🔄 Kemaskini
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs border-collapse">
+                                    <thead>
+                                        <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                                            <th class="p-3 w-12 text-center">Bil</th>
+                                            <th class="p-3">Nama Murid</th>
+                                            <th class="p-3">ID DELIMa / E-Mel</th>
+                                            <th class="p-3 text-center">Jantina</th>
+                                            <th class="p-3 text-center">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="students-table-body" class="divide-y divide-slate-100 font-medium">
+                                        <tr>
+                                            <td colspan="5" class="p-4 text-center text-slate-400 italic">
+                                                Sedang menarik data murid...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <!-- SEKSYEN PENGUMUMAN & PEMBERITAHUAN -->
-                    <div id="courses-progress-card" class="card-coligo p-5">
-                        <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
-                            <div>
-                                <h2 class="font-extrabold text-base text-slate-800">Pengumuman & Pemberitahuan</h2>
-                                <p class="text-xs text-slate-400 font-medium italic">Makluman dan notis rasmi sekolah terkini</p>
-                            </div>
-                            <button class="text-xs font-bold text-[#1f7a9c] hover:underline">+ Baru</button>
+                    <!-- CONTAINER SUB-MENU MODUL IKON (DIPAPARKAN APABILA MEMILIH PENTADBIRAN/KURIKULUM/HEM/KOKUM/LAIN-LAIN) -->
+                    <div id="page-submodule-view" class="card-coligo p-5 space-y-4 hidden">
+                        <div class="border-b border-slate-100 pb-3">
+                            <h2 class="font-extrabold text-lg text-slate-800" id="page-submodule-title">Modul Pengurusan</h2>
+                            <p class="text-xs text-slate-500 font-medium" id="page-submodule-desc">Pilih modul di bawah untuk maklumat lanjut</p>
                         </div>
 
-                        <div class="space-y-3">
-                            <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition">
-                                <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
-                                    <span class="px-2 py-0.5 bg-teal-100 text-[#1f7a9c] rounded">PENTADBIRAN</span>
-                                    <span class="text-slate-400 font-normal">15 Okt 2026</span>
-                                </div>
-                                <h3 class="font-bold text-xs sm:text-sm text-slate-800 mb-1">Mesyuarat Kurikulum Bil 3/2026</h3>
-                                <p class="text-xs text-slate-600 leading-relaxed">Penyertaan semua Guru Mata Pelajaran adalah wajib. Mesyuarat akan bermula jam 2.00 petang di Bilik Gerakan sekolah.</p>
-                            </div>
-
-                            <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition">
-                                <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
-                                    <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded">HEM</span>
-                                    <span class="text-slate-400 font-normal">12 Okt 2026</span>
-                                </div>
-                                <h3 class="font-bold text-xs sm:text-sm text-slate-800 mb-1">Pengesahan Kehadiran Murid APDM</h3>
-                                <p class="text-xs text-slate-600 leading-relaxed">Semua Guru Kelas diminta mengemaskini dan mengesahkan rekod kehadiran harian murid sebelum jam 9.00 pagi setiap hari persekolahan.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CARD 2: TUGASAN & STATUS PENGHANTARAN -->
-                    <div class="card-coligo p-5">
-                        <div class="flex items-center justify-between mb-1">
-                            <div>
-                                <h2 class="font-extrabold text-base text-slate-800">Semakan Tugasan & e-RPH</h2>
-                                <p class="text-xs text-slate-400 font-medium italic">Status penghantaran buku latihan & rekod mengajar minggu ini</p>
-                            </div>
-                            <select class="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 text-slate-700 font-semibold focus:outline-none">
-                                <option>Semua Kelas</option>
-                                <option>1 IRIS</option>
-                                <option>2 ROS</option>
-                            </select>
-                        </div>
-
-                        <!-- JADUAL TUGASAN STATUS -->
-                        <div class="overflow-x-auto mt-4">
-                            <table class="w-full text-left text-xs">
-                                <thead>
-                                    <tr class="text-slate-400 border-b border-slate-200 uppercase tracking-wider font-semibold">
-                                        <th class="pb-3 font-semibold">Subjek | Topik</th>
-                                        <th class="pb-3 font-semibold">Tarikh Akhir</th>
-                                        <th class="pb-3 font-semibold">Kadar Hantar</th>
-                                        <th class="pb-3 font-semibold">Status</th>
-                                        <th class="pb-3 text-right font-semibold">Tindakan</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 font-medium">
-                                    <tr>
-                                        <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
-                                            <span class="p-1.5 bg-teal-50 text-[#1f7a9c] rounded-md">📋</span>
-                                            Bahasa Melayu 1I | Latihan Karangan Pendek
-                                        </td>
-                                        <td class="py-3.5 text-slate-500">20 Okt 2026</td>
-                                        <td class="py-3.5 font-bold text-slate-800">85 %</td>
-                                        <td class="py-3.5">
-                                            <span class="text-amber-600 italic font-semibold">Menunggu Penghantaran</span>
-                                        </td>
-                                        <td class="py-3.5 text-right text-slate-400">⋮</td>
-                                    </tr>
-
-                                    <tr>
-                                        <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
-                                            <span class="p-1.5 bg-amber-50 text-amber-600 rounded-md">⏳</span>
-                                            Sejarah 2R | Bab 3 Kesultanan Melayu
-                                        </td>
-                                        <td class="py-3.5 text-slate-500">18 Okt 2026</td>
-                                        <td class="py-3.5 font-bold text-slate-800">98 %</td>
-                                        <td class="py-3.5">
-                                            <span class="text-amber-500 italic font-semibold">Sedia untuk disemak</span>
-                                        </td>
-                                        <td class="py-3.5 text-right text-slate-400">⋮</td>
-                                    </tr>
-
-                                    <tr>
-                                        <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
-                                            <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-md">✓</span>
-                                            Bahasa Melayu 3D | E-RPH Minggu 38
-                                        </td>
-                                        <td class="py-3.5 text-slate-500">16 Okt 2026</td>
-                                        <td class="py-3.5 font-bold text-slate-800">100 %</td>
-                                        <td class="py-3.5">
-                                            <span class="text-emerald-600 italic font-semibold">Disahkan Pentadbir!</span>
-                                        </td>
-                                        <td class="py-3.5 text-right text-slate-400">⋮</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- SENARAI MURID VIEW -->
-                    <div id="students-table-view" class="card-coligo p-5 hidden">
-                        <div class="flex items-center justify-between mb-4">
-                            <h2 class="font-extrabold text-base text-slate-800" id="students-card-title">Senarai Murid Kelas</h2>
-                            <button onclick="fetchClassStudentsRealData()" class="px-3 py-1.5 bg-[#1f7a9c] hover:bg-[#175d78] text-white font-bold text-xs rounded-lg transition">
-                                🔄 Kemaskini
-                            </button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-xs border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                                        <th class="p-3 w-12 text-center">Bil</th>
-                                        <th class="p-3">Nama Murid</th>
-                                        <th class="p-3">ID DELIMa / E-Mel</th>
-                                        <th class="p-3 text-center">Jantina</th>
-                                        <th class="p-3 text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="students-table-body" class="divide-y divide-slate-100 font-medium">
-                                    <tr>
-                                        <td colspan="5" class="p-4 text-center text-slate-400 italic">
-                                            Sedang menarik data murid...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <!-- GRID IKON SUB-MENU -->
+                        <div id="submodule-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            <!-- Dijana melalui JS -->
                         </div>
                     </div>
 
@@ -487,32 +498,46 @@
 
     const MENU_LABELS = {
         'laman_utama': 'Dashboard / Laman Utama',
-        'pengurusan_kelas': 'Pengurusan Kelas',
-        'tugasan_guru': 'Jadual & Tugasan Guru',
-        'kurikulum': 'Kurikulum & e-RPH',
-        'pentadbiran': 'Prestasi & Laporan',
-        'hem': 'Pengumuman & HEM'
+        'pentadbiran': 'Pengurusan Pentadbiran',
+        'kurikulum': 'Pengurusan Kurikulum',
+        'hem': 'Hal Ehwal Murid (HEM)',
+        'kokurikulum': 'Pengurusan Ko Kurikulum',
+        'lain_lain': 'Lain-lain & Dokumen'
     };
 
-    const MENU_SUBTABS = {
-        'laman_utama': [{ key: 'pengumuman', label: '📢 Laman Utama' }],
-        'pengurusan_kelas': [
-            { key: 'senarai_murid', label: '📋 Senarai Murid' },
-            { key: 'maklumat_kelas', label: 'ℹ️ Maklumat Kelas' }
-        ],
-        'tugasan_guru': [
-            { key: 'senarai_tugasan', label: '📝 Senarai Tugasan' },
-            { key: 'jadual_guru', label: '📅 Jadual Mengajar' }
+    // SENARAI IKON SUB-MENU MODUL BAGI SETIAP HALAMAN
+    const PAGE_SUBMODULES = {
+        'pentadbiran': [
+            { id: 'profil', title: 'Profil Sekolah', icon: 'fa-building', color: 'from-blue-600 to-indigo-500', bg: 'bg-blue-50 border-blue-200', action: 'bukaAplikasi("Profil Sekolah", "#")' },
+            { id: 'carta', title: 'Carta Organisasi', icon: 'fa-sitemap', color: 'from-indigo-600 to-purple-500', bg: 'bg-indigo-50 border-indigo-200', action: 'bukaAplikasi("Carta Organisasi", "#")' },
+            { id: 'skpmg', title: 'SKPMG / PBPPP', icon: 'fa-award', color: 'from-emerald-600 to-teal-500', bg: 'bg-emerald-50 border-emerald-200', action: 'bukaAplikasi("SKPMG / PBPPP", "#")' },
+            { id: 'kewangan', title: 'Pengurusan Kewangan', icon: 'fa-wallet', color: 'from-amber-500 to-yellow-500', bg: 'bg-amber-50 border-amber-200', action: 'bukaAplikasi("Pengurusan Kewangan", "#")' },
+            { id: 'laporan', title: 'Laporan Mingguan', icon: 'fa-file-lines', color: 'from-rose-600 to-pink-500', bg: 'bg-rose-50 border-rose-200', action: 'bukaAplikasi("Laporan Mingguan", "#")' }
         ],
         'kurikulum': [
-            { key: 'erph', label: '📖 E-RPH' },
-            { key: 'panitia', label: '🏛️ Panitia' }
-        ],
-        'pentadbiran': [
-            { key: 'laporan_mingguan', label: '📄 Laporan Mingguan' }
+            { id: 'erph', title: 'e-RPH Digital', icon: 'fa-book-open', color: 'from-teal-600 to-teal-400', bg: 'bg-teal-50 border-teal-200', action: 'bukaErphModule()' },
+            { id: 'panitia', title: 'Pengurusan Panitia', icon: 'fa-chalkboard-user', color: 'from-blue-600 to-sky-400', bg: 'bg-blue-50 border-blue-200', action: 'bukaAplikasi("Pengurusan Panitia", "#")' },
+            { id: 'jadual', title: 'Jadual Waktu', icon: 'fa-calendar-days', color: 'from-purple-600 to-indigo-400', bg: 'bg-purple-50 border-purple-200', action: 'bukaAplikasi("Jadual Waktu", "#")' },
+            { id: 'pentaksiran', title: 'Pentaksiran & PBS', icon: 'fa-pen-to-square', color: 'from-amber-500 to-yellow-400', bg: 'bg-amber-50 border-amber-200', action: 'bukaAplikasi("Pentaksiran & PBS", "#")' }
         ],
         'hem': [
-            { key: 'kehadiran', label: '📊 Kehadiran' }
+            { id: 'ppda', title: 'Pengurusan PPDa', icon: 'fa-shield-halved', color: 'from-rose-600 to-red-400', bg: 'bg-rose-50 border-rose-200', action: 'bukaAplikasi("Pengurusan PPDa", "#")' },
+            { id: 'disiplin', title: 'Disiplin & SSDM', icon: 'fa-user-shield', color: 'from-amber-500 to-yellow-400', bg: 'bg-amber-50 border-amber-200', action: 'bukaAplikasi("SSDM Disiplin", "https://ssdm.moe.gov.my")' },
+            { id: 'apdm', title: 'APDM & Kehadiran', icon: 'fa-user-check', color: 'from-blue-600 to-sky-400', bg: 'bg-blue-50 border-blue-200', action: 'bukaAplikasi("APDM Kehadiran", "https://apdm.moe.gov.my")' },
+            { id: 'spbt', title: 'SPBT & Buku Teks', icon: 'fa-book', color: 'from-orange-500 to-amber-400', bg: 'bg-orange-50 border-orange-200', action: 'bukaAplikasi("SPBT", "#")' },
+            { id: 'rmt', title: 'RMT & Kesihatan', icon: 'fa-utensils', color: 'from-emerald-600 to-teal-400', bg: 'bg-emerald-50 border-emerald-200', action: 'bukaAplikasi("RMT & Kesihatan", "#")' }
+        ],
+        'kokurikulum': [
+            { id: 'beruniform', title: 'Unit Beruniform', icon: 'fa-campground', color: 'from-emerald-600 to-teal-500', bg: 'bg-emerald-50 border-emerald-200', action: 'bukaAplikasi("Unit Beruniform", "#")' },
+            { id: 'kelab', title: 'Kelab & Persatuan', icon: 'fa-icons', color: 'from-indigo-600 to-blue-500', bg: 'bg-indigo-50 border-indigo-200', action: 'bukaAplikasi("Kelab & Persatuan", "#")' },
+            { id: 'sukan', title: 'Sukan & Permainan', icon: 'fa-futbol', color: 'from-amber-500 to-orange-500', bg: 'bg-amber-50 border-amber-200', action: 'bukaAplikasi("Sukan & Permainan", "#")' },
+            { id: 'pajsk', title: 'PAJSK & Markah', icon: 'fa-trophy', color: 'from-purple-600 to-pink-500', bg: 'bg-purple-50 border-purple-200', action: 'bukaAplikasi("PAJSK Koko", "#")' }
+        ],
+        'lain_lain': [
+            { id: 'manual', title: 'Buku Pengurusan', icon: 'fa-book-bookmark', color: 'from-blue-600 to-indigo-500', bg: 'bg-blue-50 border-blue-200', action: 'bukaAplikasi("Buku Pengurusan", "#")' },
+            { id: 'download', title: 'Muat Turun Dokumen', icon: 'fa-download', color: 'from-teal-600 to-emerald-500', bg: 'bg-teal-50 border-teal-200', action: 'bukaAplikasi("Muat Turun Dokumen", "#")' },
+            { id: 'galeri', title: 'Galeri Sekolah', icon: 'fa-images', color: 'from-purple-600 to-indigo-400', bg: 'bg-purple-50 border-purple-200', action: 'bukaAplikasi("Galeri Sekolah", "#")' },
+            { id: 'pautan', title: 'Pautan Luar MOE', icon: 'fa-link', color: 'from-amber-500 to-yellow-400', bg: 'bg-amber-50 border-amber-200', action: 'bukaAplikasi("Pautan Luar MOE", "#")' }
         ]
     };
 
@@ -568,82 +593,68 @@
         // Reset sidebar button styles
         document.querySelectorAll('.menu-nav-btn').forEach(btn => {
             btn.className = "menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3";
-            const svg = btn.querySelector('svg');
-            if (svg) svg.classList.remove('text-[#1f7a9c]');
+            const i = btn.querySelector('i');
+            if (i) i.classList.remove('text-[#1f7a9c]');
         });
 
         // Set active button style
         const activeBtn = document.getElementById(`nav-${menuKey}`);
         if (activeBtn) {
             activeBtn.className = "menu-nav-btn w-full px-4 py-3 rounded-r-full font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-white text-[#1b6287] shadow-sm";
-            const svg = activeBtn.querySelector('svg');
-            if (svg) svg.classList.add('text-[#1f7a9c]');
+            const i = activeBtn.querySelector('i');
+            if (i) i.classList.add('text-[#1f7a9c]');
         }
 
         const breadcrumbEl = document.getElementById('breadcrumb-text');
         if (breadcrumbEl) breadcrumbEl.innerText = MENU_LABELS[menuKey] || menuKey;
 
-        const subContainer = document.getElementById('sub-tabs-container');
-        const rightPanel = document.getElementById('right-panel');
-        const coursesProgressCard = document.getElementById('courses-progress-card');
-        const studentsTableView = document.getElementById('students-table-view');
+        const lamanUtamaWidgets = document.getElementById('laman-utama-widgets');
+        const pageSubmoduleView = document.getElementById('page-submodule-view');
 
         if (menuKey === 'laman_utama') {
-            if (subContainer) subContainer.classList.add('hidden');
-            if (rightPanel) rightPanel.classList.remove('hidden');
-            if (coursesProgressCard) coursesProgressCard.classList.remove('hidden');
-            if (studentsTableView) studentsTableView.classList.add('hidden');
+            if (lamanUtamaWidgets) lamanUtamaWidgets.classList.remove('hidden');
+            if (pageSubmoduleView) pageSubmoduleView.classList.add('hidden');
         } else {
-            if (subContainer) subContainer.classList.remove('hidden');
-            if (rightPanel) rightPanel.classList.add('hidden');
-            if (coursesProgressCard) coursesProgressCard.classList.add('hidden');
-            
-            if (menuKey === 'pengurusan_kelas') {
-                if (studentsTableView) studentsTableView.classList.remove('hidden');
-            } else {
-                if (studentsTableView) studentsTableView.classList.add('hidden');
-            }
+            if (lamanUtamaWidgets) lamanUtamaWidgets.classList.add('hidden');
+            if (pageSubmoduleView) pageSubmoduleView.classList.remove('hidden');
 
-            renderSubTabs(menuKey);
+            renderPageSubmodules(menuKey);
         }
     }
 
-    function renderSubTabs(menuKey) {
-        const subBar = document.getElementById('sub-tabs-bar');
-        const tabs = MENU_SUBTABS[menuKey] || [];
+    // MEMAPARKAN SUB-MENU BERBENTUK IKON MODUL
+    function renderPageSubmodules(menuKey) {
+        const titleEl = document.getElementById('page-submodule-title');
+        const descEl = document.getElementById('page-submodule-desc');
+        const gridEl = document.getElementById('submodule-grid-container');
 
-        if (!tabs || tabs.length === 0) {
-            subBar.innerHTML = `<span class="text-xs text-slate-400 italic p-1">Tiada sub-menu bagi modul ini.</span>`;
+        if (titleEl) titleEl.innerText = MENU_LABELS[menuKey] || 'Modul Pengurusan';
+        if (descEl) descEl.innerText = `Pilih sub-modul bagi bahagian ${MENU_LABELS[menuKey]} di bawah untuk membuka aplikasi.`;
+
+        const modules = PAGE_SUBMODULES[menuKey] || [];
+
+        if (!modules || modules.length === 0) {
+            gridEl.innerHTML = `<p class="col-span-full text-slate-400 italic text-xs py-4 text-center">Tiada sub-modul tersedia bagi menu ini.</p>`;
             return;
         }
 
         let html = '';
-        tabs.forEach((tab, idx) => {
-            const isActive = idx === 0;
-            const activeClass = isActive 
-                ? 'bg-[#1f7a9c] text-white font-bold' 
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium';
-            
+        modules.forEach(mod => {
             html += `
-                <button onclick="switchSubTab('${tab.key}', this)" class="sub-tab-btn flex-1 min-w-[130px] px-3 py-1.5 rounded-md transition text-center ${activeClass}">
-                    ${tab.label}
-                </button>
+                <div onclick='${mod.action}' class="group cursor-pointer bg-white hover:bg-slate-50 border border-slate-200 hover:border-teal-400 p-4 rounded-xl transition-all flex flex-col items-center justify-center text-center shadow-xs hover:shadow-md transform hover:-translate-y-1">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-tr ${mod.color} text-white flex items-center justify-center text-lg shadow-xs group-hover:scale-110 transition-transform mb-3">
+                        <i class="fa-solid ${mod.icon}"></i>
+                    </div>
+                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-teal-700 transition-colors leading-tight mb-1">${mod.title}</h3>
+                    <span class="text-[10px] text-slate-400 font-semibold">Buka Modul →</span>
+                </div>
             `;
         });
 
-        subBar.innerHTML = html;
+        gridEl.innerHTML = html;
     }
 
-    function switchSubTab(subKey, btnEl) {
-        document.querySelectorAll('.sub-tab-btn').forEach(b => {
-            b.className = "sub-tab-btn flex-1 min-w-[130px] px-3 py-1.5 rounded-md transition text-center bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium";
-        });
-        if (btnEl) {
-            btnEl.className = "sub-tab-btn flex-1 min-w-[130px] px-3 py-1.5 rounded-md transition text-center bg-[#1f7a9c] text-white font-bold";
-        }
-    }
-
-    // FUNGSI SOROK / BUKA PANEL KANAN BERSETA EXPAND RUANG UTAMA
+    // FUNGSI SOROK / BUKA PANEL KANAN BERSETA EXPAND RUANG UTAMA (FULL WIDTH)
     function toggleRightPanel() {
         const panel = document.getElementById('right-panel');
         const mainCol = document.getElementById('main-left-column');
@@ -658,7 +669,7 @@
             mainCol.classList.add('lg:col-span-8');
             if (btnText) btnText.innerText = 'Sorok Panel Kanan';
         } else {
-            // SOROKKAN PANEL KANAN & KEMBANGKAN SEKSYEN UTAMA
+            // SOROKKAN PANEL KANAN & KEMBANGKAN SEKSYEN UTAMA FULL WIDTH
             panel.classList.add('hidden');
             mainCol.classList.remove('lg:col-span-8');
             mainCol.classList.add('lg:col-span-12');
