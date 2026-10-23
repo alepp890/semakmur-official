@@ -63,9 +63,12 @@ function initIdleTimeoutMonitor() {
 }
 
 async function fetchBackendApi(action, payloadData = {}) {
-  const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL)
-    ? WEB_APP_URL
-    : 'https://script.google.com/macros/s/AKfycbzxLA0J-FsbeeiwR0Y-TkOfCwRKfMCLwXLc0jr6qErT7reV17bL8UMqjq8wZbIuYTwy/exec';
+  // Menyokong pembacaan URL dari config.js sama ada pembolehubah global atau objek APP_CONFIG
+  const targetUrl = (typeof window.APP_CONFIG !== 'undefined' && window.APP_CONFIG.WEB_APP_URL)
+    ? window.APP_CONFIG.WEB_APP_URL
+    : ((typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL)
+      ? WEB_APP_URL
+      : 'https://script.google.com/macros/s/AKfycbzxLA0J-FsbeeiwR0Y-TkOfCwRKfMCLwXLc0jr6qErT7reV17bL8UMqjq8wZbIuYTwy/exec');
 
   const payload = {
     action: action,
@@ -83,7 +86,6 @@ async function fetchBackendApi(action, payloadData = {}) {
   if (!response.ok) throw new Error('Ralat Pelayan HTTP ' + response.status);
   return await response.json();
 }
-
 function cleanTimeFormatFrontend(str) {
   if (!str) return '';
   let timeStr = String(str).trim();
