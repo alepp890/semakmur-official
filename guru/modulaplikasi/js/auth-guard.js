@@ -8,7 +8,7 @@
   console.log("🔒 Auth Guard: Memulakan semakan sesi pengguna...");
 
   // Laluan ke LoginSession.html di root (Naik 3 tingkat dari root/guru/modulaplikasi/js/)
-  const LOGIN_URL = '../../../LoginSession.html';
+  const LOGIN_URL = '../../LoginSession.html';
 
   function unhidePage() {
     const showTarget = () => {
