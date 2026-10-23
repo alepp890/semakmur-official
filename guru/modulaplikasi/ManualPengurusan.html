@@ -1,1057 +1,587 @@
 <!DOCTYPE html>
 <html lang="ms" class="h-full">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual Pengurusan SK Segambut Makmur 2026</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Pengurusan Sekolah V2 - SeMAKMUR</title>
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- FontAwesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            rose: {
-              50: '#fff1f2',
-              100: '#ffe4e6',
-              500: '#f43f5e',
-              600: '#e11d48',
-              700: '#be123c',
-              800: '#9f1239',
-              900: '#881337'
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            display: ['Outfit', 'sans-serif']
-          }
-        }
-      }
-    }
-  </script>
-
-  <style>
-    body { background-color: #f1f5f9; font-family: 'Inter', sans-serif; color: #334155; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #f1f5f9; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-    .menu-card { transition: all 0.2s ease-in-out; }
-    .menu-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08); }
-  </style>
-</head>
-<body class="min-h-screen flex text-slate-800 bg-slate-100">
-
-  <!-- SIDEBAR NAVIGASI KIRI -->
-  <aside id="sidebar" class="w-72 bg-slate-900 text-slate-300 flex flex-col shrink-0 min-h-screen border-r border-slate-800 hidden md:flex">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <div class="p-4 border-b border-slate-800 flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold">
-        <i class="fa-solid fa-school text-lg"></i>
-      </div>
-      <div>
-        <h2 class="font-display font-bold text-sm text-white leading-tight">SK Segambut Makmur</h2>
-        <p class="text-[11px] text-rose-400 font-semibold">Manual Pengurusan 2026</p>
-      </div>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { 
+                        tealTheme: '#1f7a9c',
+                        tealDark: '#175d78',
+                        tealLight: '#2ca2cd',
+                        tealBg: '#eef6f9',
+                        cardBg: '#ffffff'
+                    },
+                    fontFamily: { 
+                        sans: ['Plus Jakarta Sans', 'sans-serif'] 
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            background-color: #EEF6F9;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #2D3748;
+        }
+
+        .card-coligo {
+            background: #FFFFFF;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
+            border: 1px solid #E2E8F0;
+        }
+
+        .loader-ring {
+            display: inline-block;
+            position: relative;
+            width: 44px;
+            height: 44px;
+        }
+        .loader-ring div {
+            box-sizing: border-box;
+            display: block;
+            position: absolute;
+            width: 34px;
+            height: 34px;
+            margin: 5px;
+            border: 3.5px solid #1f7a9c;
+            border-radius: 50%;
+            animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            border-color: #1f7a9c transparent transparent transparent;
+        }
+        @keyframes loader-ring {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-[#eef6f9] text-slate-800 h-full flex flex-col antialiased">
+
+    <!-- GLOBAL LOADER -->
+    <div id="global-loader" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-[9999] flex flex-col items-center justify-center transition-all duration-200">
+        <div class="loader-ring mb-3"><div></div><div></div><div></div></div>
+        <p class="text-white font-bold text-sm tracking-wide" id="loader-text">Memuatkan Manual Pengurusan...</p>
     </div>
 
-    <!-- SIDEBAR MENU LIST -->
-    <div class="flex-1 overflow-y-auto p-3 space-y-1 text-xs">
-      
-      <button onclick="showView('viewDashboard')" id="sideDashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold bg-rose-600 text-white shadow-sm transition">
-        <i class="fa-solid fa-chart-pie w-4 text-center"></i>
-        <span>Dashboard Utama</span>
-      </button>
-
-      <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data Induk Staf</div>
-      
-      <button onclick="showView('viewProfilStaf')" id="sideProfilStaf" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
-        <i class="fa-solid fa-id-card-clip w-4 text-center text-rose-400"></i>
-        <span>Profil Guru, AKP & PIBG</span>
-      </button>
-
-      <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pengurusan Utama</div>
-
-      <button onclick="showView('viewPentadbiran')" id="sidePentadbiran" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
-        <i class="fa-solid fa-briefcase w-4 text-center text-amber-400"></i>
-        <span>Pengurusan Pentadbiran</span>
-      </button>
-
-      <button onclick="openPlaceholderModule('Pengurusan Kurikulum')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
-        <i class="fa-solid fa-book-bookmark w-4 text-center text-emerald-400"></i>
-        <span>Pengurusan Kurikulum</span>
-      </button>
-
-      <button onclick="openPlaceholderModule('Hal Ehwal Murid')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
-        <i class="fa-solid fa-user-graduate w-4 text-center text-blue-400"></i>
-        <span>Hal Ehwal Murid</span>
-      </button>
-
-      <button onclick="openPlaceholderModule('Pengurusan Kokurikulum')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
-        <i class="fa-solid fa-trophy w-4 text-center text-rose-400"></i>
-        <span>Pengurusan Kokurikulum</span>
-      </button>
-
-    </div>
-
-    <div class="p-3 border-t border-slate-800 text-[11px] text-slate-500 text-center">
-      Portal Pengurusan Guru v3.2
-    </div>
-  </aside>
-
-  <!-- CONTENT MAIN CONTAINER -->
-  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
-
-    <!-- TOP NAVBAR HEADER -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 lg:px-8 py-3 flex items-center justify-between shadow-sm">
-      <div class="flex items-center gap-3">
-        <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-lg bg-slate-100 text-slate-700">
-          <i class="fa-solid fa-bars text-lg"></i>
-        </button>
-        <div class="flex items-center gap-2 text-xs text-slate-500">
-          <span class="font-bold text-slate-800">Manual Pengurusan</span>
-          <span>/</span>
-          <span id="txtBreadcrumb" class="text-rose-600 font-semibold">Dashboard Utama</span>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-3">
-        <div class="bg-slate-100 p-1 rounded-xl flex items-center text-xs">
-          <button id="btnRoleGuru" onclick="setRole('guru')" class="px-3 py-1 rounded-lg font-bold bg-rose-600 text-white transition">👨‍🏫 Guru</button>
-          <button id="btnRoleAdmin" onclick="setRole('admin')" class="px-3 py-1 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition">👔 Admin</button>
+    <!-- HEADER / NAVIGATION TOP BAR -->
+    <header class="h-20 bg-white border-b border-slate-200 shrink-0 flex items-center justify-between px-6 z-20 shadow-2xs">
+        <div class="flex items-center gap-3">
+            <a href="../DashboardGuru.html" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center" title="Kembali ke Dashboard">
+                <i class="fa-solid fa-arrow-left text-base"></i>
+            </a>
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#1f7a9c] to-[#2ca2cd] text-white flex items-center justify-center text-lg shadow-xs font-bold">
+                    📘
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight leading-tight">Manual Pengurusan Sekolah</h1>
+                    <p class="text-[11px] text-[#1f7a9c] font-bold tracking-wide uppercase">Portal Agihan & Penetapan Jawatankuasa Staf</p>
+                </div>
+            </div>
         </div>
 
-        <div class="flex items-center gap-2 border-l border-slate-200 pl-3">
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120" class="w-8 h-8 rounded-full border border-rose-300 object-cover">
-          <div class="hidden sm:block text-left">
-            <p class="text-xs font-bold text-slate-800 leading-none">Cikgu Nurul Aini</p>
-            <p class="text-[10px] text-slate-500">SK Segambut Makmur</p>
-          </div>
+        <div class="flex items-center gap-3">
+            <div class="text-right hidden sm:block">
+                <h2 id="user-display-name" class="font-bold text-xs text-slate-800">Pentadbir / Admin</h2>
+                <span id="user-role-badge" class="px-2 py-0.5 text-[10px] bg-teal-100 text-[#1f7a9c] font-bold rounded-full">Mod Kawalan Utama</span>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-[#1f7a9c] text-white flex items-center justify-center font-bold text-xs shadow-xs" id="user-avatar-text">
+                A
+            </div>
         </div>
-      </div>
     </header>
 
-    <!-- MAIN BODY CONTENT -->
-    <main class="p-4 lg:p-8 space-y-6">
+    <!-- KANDUNGAN UTAMA PORTAL -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 max-w-7xl mx-auto w-full">
 
-      <!-- ================= 1. VIEW DASHBOARD UTAMA ================= -->
-      <div id="viewDashboard" class="space-y-6">
+        <!-- KAD METRIK RINGKASAN PERANAN -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="card-coligo p-4 flex items-center justify-between border-l-4 border-l-slate-600">
+                <div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Jumlah Lantikan</p>
+                    <h3 class="text-xl font-extrabold text-slate-800 mt-0.5" id="stat-total">0</h3>
+                </div>
+                <div class="p-3 bg-slate-100 text-slate-600 rounded-xl text-lg">
+                    <i class="fa-solid fa-sitemap"></i>
+                </div>
+            </div>
 
-        <!-- BANNER SIZE COMPACT -->
-        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-md border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
-          <div class="flex items-center gap-4 z-10">
-            <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md p-2 border border-white/20 shrink-0 flex items-center justify-center">
-              <i class="fa-solid fa-graduation-cap text-3xl text-rose-400"></i>
+            <div class="card-coligo p-4 flex items-center justify-between border-l-4 border-l-blue-500">
+                <div>
+                    <p class="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Pentadbiran</p>
+                    <h3 class="text-xl font-extrabold text-slate-800 mt-0.5" id="stat-pentadbiran">0</h3>
+                </div>
+                <div class="p-3 bg-blue-50 text-blue-600 rounded-xl text-lg">
+                    <i class="fa-solid fa-user-gear"></i>
+                </div>
             </div>
-            <div>
-              <h1 class="font-display font-extrabold text-xl lg:text-2xl text-white tracking-tight">Sekolah Kebangsaan Segambut Makmur</h1>
-              <p class="text-xs text-rose-300 font-semibold mt-0.5">Manual Pengurusan 2026</p>
-            </div>
-          </div>
 
-          <div class="w-full md:w-72 bg-slate-800/90 border border-slate-700/80 p-3 rounded-xl z-10 space-y-1.5">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-300 text-[11px] font-medium">Status Pengisian Manual:</span>
-              <span id="txtProgressVal" class="font-extrabold text-rose-400">75%</span>
+            <div class="card-coligo p-4 flex items-center justify-between border-l-4 border-l-emerald-500">
+                <div>
+                    <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Kurikulum</p>
+                    <h3 class="text-xl font-extrabold text-slate-800 mt-0.5" id="stat-kurikulum">0</h3>
+                </div>
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl text-lg">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
             </div>
-            <div class="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
-              <div id="barProgress" class="bg-gradient-to-r from-rose-500 to-rose-400 h-2.5 rounded-full transition-all duration-700" style="width: 75%;"></div>
+
+            <div class="card-coligo p-4 flex items-center justify-between border-l-4 border-l-amber-500">
+                <div>
+                    <p class="text-[11px] font-bold text-amber-600 uppercase tracking-wider">HEM & Koko</p>
+                    <h3 class="text-xl font-extrabold text-slate-800 mt-0.5" id="stat-hem-koko">0</h3>
+                </div>
+                <div class="p-3 bg-amber-50 text-amber-600 rounded-xl text-lg">
+                    <i class="fa-solid fa-people-group"></i>
+                </div>
             </div>
-          </div>
         </div>
 
-        <!-- 5 KAD STATISTIK UTAMA -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg shrink-0">
-              <i class="fa-solid fa-user-tie"></i>
+        <!-- TAB NAVIGASI KATEGORI UNIT & KAWALAN PENTADBIR -->
+        <div class="card-coligo p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- BUTTONS TAB KATEGORI -->
+            <div class="flex flex-wrap items-center gap-1.5 w-full md:w-auto" id="category-tabs">
+                <button onclick="switchCategory('ALL')" id="tab-ALL" class="tab-btn px-4 py-2 rounded-lg font-bold text-xs transition bg-[#1f7a9c] text-white shadow-2xs">
+                    Semua Unit
+                </button>
+                <button onclick="switchCategory('Pentadbiran')" id="tab-Pentadbiran" class="tab-btn px-4 py-2 rounded-lg font-bold text-xs text-slate-600 hover:bg-slate-100 transition">
+                    Pentadbiran
+                </button>
+                <button onclick="switchCategory('Kurikulum')" id="tab-Kurikulum" class="tab-btn px-4 py-2 rounded-lg font-bold text-xs text-slate-600 hover:bg-slate-100 transition">
+                    Kurikulum
+                </button>
+                <button onclick="switchCategory('HEM')" id="tab-HEM" class="tab-btn px-4 py-2 rounded-lg font-bold text-xs text-slate-600 hover:bg-slate-100 transition">
+                    Hal Ehwal Murid
+                </button>
+                <button onclick="switchCategory('Kokurikulum')" id="tab-Kokurikulum" class="tab-btn px-4 py-2 rounded-lg font-bold text-xs text-slate-600 hover:bg-slate-100 transition">
+                    Ko-Kurikulum
+                </button>
             </div>
-            <div>
-              <p class="text-[11px] text-slate-400 font-medium">Bil. Guru</p>
-              <h3 id="statCountGuru" class="text-xl font-extrabold text-slate-800">8</h3>
-            </div>
-          </div>
 
-          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
-              <i class="fa-solid fa-users-gear"></i>
+            <!-- ACTION BUTTON UTAMA -->
+            <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+                <button onclick="openFormModal()" id="btn-tambah-jk" class="px-4 py-2 bg-[#1f7a9c] hover:bg-[#175d78] text-white font-bold text-xs rounded-lg transition flex items-center gap-2 shadow-xs">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Tambah Jawatankuasa</span>
+                </button>
             </div>
-            <div>
-              <p class="text-[11px] text-slate-400 font-medium">Bil. AKP</p>
-              <h3 id="statCountAKP" class="text-xl font-extrabold text-slate-800">3</h3>
-            </div>
-          </div>
-
-          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
-              <i class="fa-solid fa-door-open"></i>
-            </div>
-            <div>
-              <p class="text-[11px] text-slate-400 font-medium">Bil. Kelas</p>
-              <h3 id="statCountKelas" class="text-xl font-extrabold text-slate-800">0</h3>
-            </div>
-          </div>
-
-          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
-              <i class="fa-solid fa-children"></i>
-            </div>
-            <div>
-              <p class="text-[11px] text-slate-400 font-medium">Bil. Murid</p>
-              <h3 class="text-xl font-extrabold text-slate-800">450</h3>
-            </div>
-          </div>
-
-          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3 col-span-2 sm:col-span-1">
-            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
-              <i class="fa-solid fa-calendar-check"></i>
-            </div>
-            <div>
-              <p class="text-[11px] text-slate-400 font-medium">Aktiviti Tahunan</p>
-              <h3 class="text-xl font-extrabold text-slate-800">28</h3>
-            </div>
-          </div>
         </div>
 
-        <!-- MENU PAUTAN PANTAS -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="font-display font-bold text-slate-800 text-sm flex items-center gap-2">
-              <i class="fa-solid fa-border-all text-rose-600"></i>
-              <span>Menu Pantas Modul</span>
-            </h3>
-            <span class="text-xs text-slate-400">Tekan modul untuk pengisian terus</span>
-          </div>
+        <!-- JADUAL PANGKALAN DATA PERANAN STAF -->
+        <div class="card-coligo p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h2 class="font-extrabold text-base text-slate-800" id="table-title">Senarai Jawatankuasa Pengurusan Sekolah</h2>
+                    <p class="text-xs text-slate-400 font-medium italic">Data diselaraskan secara langsung daripada Helaian Peranan_Staf (V2)</p>
+                </div>
+                <div class="relative w-48 sm:w-64">
+                    <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Cari jawatankuasa / staf / skop..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg bg-slate-50 border border-slate-200 focus:outline-none focus:border-[#1f7a9c]">
+                    <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+                </div>
+            </div>
 
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 text-xs">
-            <button onclick="showView('viewProfilStaf')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 border border-slate-200 rounded-xl text-left font-bold text-slate-800 flex flex-col justify-between h-20">
-              <span>Profil Guru, AKP & PIBG</span>
-              <i class="fa-solid fa-arrow-right text-rose-500 text-right text-xs"></i>
-            </button>
-
-            <button onclick="showView('viewPentadbiran')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 border border-slate-200 rounded-xl text-left font-bold text-slate-800 flex flex-col justify-between h-20">
-              <span>Pengurusan Pentadbiran</span>
-              <i class="fa-solid fa-arrow-right text-amber-500 text-right text-xs"></i>
-            </button>
-          </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
+                            <th class="p-3 w-10 text-center">Bil</th>
+                            <th class="p-3">Kategori</th>
+                            <th class="p-3">JK Induk</th>
+                            <th class="p-3">Nama Jawatankuasa</th>
+                            <th class="p-3">Peranan</th>
+                            <th class="p-3">Skop / Kelas / Unit</th>
+                            <th class="p-3">Pegawai Dilantik</th>
+                            <th class="p-3 text-center">Status</th>
+                            <th class="p-3 text-right">Tindakan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manual-table-body" class="divide-y divide-slate-100 font-medium">
+                        <tr>
+                            <td colspan="9" class="p-6 text-center text-slate-400 italic">
+                                Sedang menarik pangkalan data Peranan_Staf...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-
-      </div>
-
-
-      <!-- ================= 2. VIEW PROFIL GURU, AKP & PIBG ================= -->
-      <div id="viewProfilStaf" class="hidden space-y-6">
-        
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <h2 class="font-display font-bold text-base text-slate-800">Pangkalan Data Profil Guru, AKP & PIBG</h2>
-            <p class="text-xs text-slate-400">Data induk sekolah untuk integrasi modul pengurusan</p>
-          </div>
-          <button onclick="bukaModalTambahGuru()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5">
-            <i class="fa-solid fa-user-plus"></i> Tambah Guru Baharu
-          </button>
-        </div>
-
-        <!-- BORANG TAMBAH GURU (TOGGLE MODAL/FORM) -->
-        <div id="boxFormTambahGuru" class="hidden bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-          <div class="flex items-center justify-between border-b pb-3">
-            <h3 class="font-bold text-sm text-slate-800">Borang Profil Guru Baharu</h3>
-            <button onclick="tutupFormTambahGuru()" class="text-slate-400 hover:text-rose-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-          </div>
-
-          <form onsubmit="simpanProfilGuru(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-            <div>
-              <label class="block font-bold mb-1">Nama Penuh (Mengikut IC)</label>
-              <input type="text" id="inpNamaPenuh" required class="w-full bg-slate-50 border rounded-xl p-2.5">
-            </div>
-
-            <div>
-              <label class="block font-bold mb-1">Nama Samaran / Panggilan</label>
-              <input type="text" id="inpNamaSamaran" required class="w-full bg-slate-50 border rounded-xl p-2.5">
-            </div>
-
-            <div>
-              <label class="block font-bold mb-1">No. Kad Pengenalan</label>
-              <input type="text" id="inpNoIC" placeholder="880101-14-1234" required class="w-full bg-slate-50 border rounded-xl p-2.5">
-            </div>
-
-            <div>
-              <label class="block font-bold mb-1">Gred Jawatan</label>
-              <select id="inpGred" class="w-full bg-slate-50 border rounded-xl p-2.5 font-semibold">
-                <option value="DG41">DG41</option>
-                <option value="DG44">DG44</option>
-                <option value="DG48">DG48</option>
-                <option value="DG52">DG52</option>
-                <option value="DG54">DG54</option>
-                <option value="Guru Besar">Guru Besar (DG52/54)</option>
-                <option value="PK Pentadbiran">PK Pentadbiran (DG48/52)</option>
-                <option value="PK HEM">PK HEM (DG48/52)</option>
-                <option value="PK Kokurikulum">PK Kokurikulum (DG48/52)</option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block font-bold mb-1">Opsyen Subjek</label>
-              <input type="text" id="inpOpsyen" placeholder="Contoh: Bahasa Melayu" required class="w-full bg-slate-50 border rounded-xl p-2.5">
-            </div>
-
-            <div>
-              <label class="block font-bold mb-1">E-mel MOE (DELIMa)</label>
-              <input type="email" id="inpEmailMoe" placeholder="g-12345678@moe-dl.edu.my" required class="w-full bg-slate-50 border rounded-xl p-2.5">
-            </div>
-
-            <div>
-              <label class="block font-bold mb-1">No. Telefon Bimbit</label>
-              <input type="tel" id="inpNoTel" placeholder="012-3456789" required class="w-full bg-slate-50 border rounded-xl p-2.5">
-            </div>
-
-            <div>
-              <label class="block font-bold mb-1">Muat Naik Gambar Passport</label>
-              <input type="file" accept="image/*" class="w-full bg-slate-50 border rounded-xl p-2">
-            </div>
-
-            <div class="md:col-span-3 flex justify-end gap-2 pt-2">
-              <button type="button" onclick="tutupFormTambahGuru()" class="px-4 py-2 bg-slate-100 rounded-xl font-bold">Batal</button>
-              <button type="submit" class="px-5 py-2 bg-rose-600 text-white rounded-xl font-bold">Simpan Guru</button>
-            </div>
-          </form>
-        </div>
-
-        <!-- JADUAL SENARAI GURU -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div class="p-4 bg-slate-50 border-b font-bold text-xs text-slate-700">Senarai Guru Berdaftar Sekolah (Induk)</div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-slate-100 font-bold border-b text-slate-700">
-                <tr>
-                  <th class="p-3">Nama Penuh & Samaran</th>
-                  <th class="p-3">No. IC</th>
-                  <th class="p-3">Gred & Opsyen</th>
-                  <th class="p-3">E-mel MOE</th>
-                  <th class="p-3">No. Tel</th>
-                  <th class="p-3 text-right">Tindakan</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyProfilGuru" class="divide-y">
-                <!-- Rendered JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-      </div>
-
-
-      <!-- ================= 3. VIEW PENGURUSAN PENTADBIRAN (7 KOMPONEN) ================= -->
-      <div id="viewPentadbiran" class="hidden space-y-8">
-        
-        <!-- HEADER MODULE -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <h2 class="font-display font-bold text-base text-slate-800">Modul Pengurusan Pentadbiran 2026</h2>
-            <p class="text-xs text-slate-400">Pengurusan Jawatankuasa, Kelas, Bilik Khas & Tugasan Guru</p>
-          </div>
-          <span class="px-3 py-1 bg-amber-50 text-amber-700 font-bold text-xs rounded-xl border border-amber-200">
-            Pentadbiran Sekolah
-          </span>
-        </div>
-
-        <!-- KOMPONEN 1: PENYELIA PBPPP (PALING ATAS) -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-          <div class="border-b pb-3 flex items-center justify-between">
-            <h3 class="font-display font-bold text-sm text-slate-800 flex items-center gap-2">
-              <i class="fa-solid fa-sitemap text-rose-600"></i>
-              <span>1. Agihan Penyelia PBPPP (Pegawai Penilai & PYD)</span>
-            </h3>
-            <span class="text-[11px] text-slate-400">Susunan Hierarki Penilaian Guru</span>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-            <!-- GB -->
-            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <span class="font-bold text-rose-700 block border-b pb-1">Guru Besar (PP1/PP2)</span>
-              <p class="font-bold text-slate-800" id="nameGB">Pn. Hajah Faridah binti Hassan</p>
-              <p class="text-[10px] text-slate-400">Senarai PYD Di Bawah Penyeliaan:</p>
-              <div id="pydListGB" class="space-y-1 bg-white p-2 rounded-xl border max-h-36 overflow-y-auto">
-                <!-- Rendered JS -->
-              </div>
-            </div>
-
-            <!-- PKP -->
-            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <span class="font-bold text-amber-700 block border-b pb-1">PK Pentadbiran</span>
-              <p class="font-bold text-slate-800" id="namePKP">En. Mohd Farhan bin Rozali</p>
-              <p class="text-[10px] text-slate-400">Senarai PYD Di Bawah Penyeliaan:</p>
-              <div id="pydListPKP" class="space-y-1 bg-white p-2 rounded-xl border max-h-36 overflow-y-auto">
-                <!-- Rendered JS -->
-              </div>
-            </div>
-
-            <!-- PK HEM -->
-            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <span class="font-bold text-blue-700 block border-b pb-1">PK Hal Ehwal Murid</span>
-              <p class="font-bold text-slate-800" id="namePKHEM">Pn. Siti Hajar binti Yusof</p>
-              <p class="text-[10px] text-slate-400">Senarai PYD Di Bawah Penyeliaan:</p>
-              <div id="pydListPKHEM" class="space-y-1 bg-white p-2 rounded-xl border max-h-36 overflow-y-auto">
-                <!-- Rendered JS -->
-              </div>
-            </div>
-
-            <!-- PK KOKU -->
-            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-              <span class="font-bold text-emerald-700 block border-b pb-1">PK Kokurikulum</span>
-              <p class="font-bold text-slate-800" id="namePKKOKU">En. Lim Chee Keong</p>
-              <p class="text-[10px] text-slate-400">Senarai PYD Di Bawah Penyeliaan:</p>
-              <div id="pydListPKKOKU" class="space-y-1 bg-white p-2 rounded-xl border max-h-36 overflow-y-auto">
-                <!-- Rendered JS -->
-              </div>
-            </div>
-          </div>
-        </div>
-
-
-        <!-- KOMPONEN 2: SENARAI KELAS (GURU KELAS & PEMBANTU - STARTS EMPTY) -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-          <div class="flex items-center justify-between border-b pb-3">
-            <div>
-              <h3 class="font-display font-bold text-sm text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-chalkboard-user text-rose-600"></i>
-                <span>2. Senarai Kelas - Guru Kelas & Guru Pembantu</span>
-              </h3>
-              <p class="text-[11px] text-slate-400">Tapisan automatik diaktifkan untuk mengelakkan pertindihan nama guru</p>
-            </div>
-            <button onclick="tambahRuanganKelas()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5">
-              <i class="fa-solid fa-plus"></i> Tambah Kelas
-            </button>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-slate-100 font-bold text-slate-700 border-b">
-                <tr>
-                  <th class="p-3 w-12 text-center">Bil</th>
-                  <th class="p-3 w-48">Pilih Nama Kelas</th>
-                  <th class="p-3">Guru Kelas</th>
-                  <th class="p-3">Guru Pembantu</th>
-                  <th class="p-3 w-20 text-center">Tindakan</th>
-                </tr>
-              </thead>
-              <tbody id="tbodySenaraiKelas" class="divide-y">
-                <!-- Rendered via JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-
-        <!-- KOMPONEN 3: PENGURISAN BILIK-BILIK KHAS (STARTS EMPTY) -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-          <div class="flex items-center justify-between border-b pb-3">
-            <div>
-              <h3 class="font-display font-bold text-sm text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-door-open text-rose-600"></i>
-                <span>3. Pengurusan Bilik-Bilik Khas</span>
-              </h3>
-              <p class="text-[11px] text-slate-400">Senarai penyelaras bilik khas dan jawatan panitia</p>
-            </div>
-            <button onclick="tambahRuanganBilikKhas()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5">
-              <i class="fa-solid fa-plus"></i> Tambah Bilik Khas
-            </button>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-slate-100 font-bold text-slate-700 border-b">
-                <tr>
-                  <th class="p-3 w-12 text-center">Bil</th>
-                  <th class="p-3 w-56">Nama Bilik Khas</th>
-                  <th class="p-3">Guru Penyelaras</th>
-                  <th class="p-3 w-64">Jawatan Guru</th>
-                  <th class="p-3 w-20 text-center">Tindakan</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyBilikKhas" class="divide-y">
-                <!-- Rendered via JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-
-        <!-- KOMPONEN 4: KUMPULAN BERTUGAS (KUMPULAN 1 - 4 & EXCLUDE PENTADBIR) -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-          <div class="border-b pb-3 flex items-center justify-between">
-            <div>
-              <h3 class="font-display font-bold text-sm text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-users-rectangle text-rose-600"></i>
-                <span>4. Kumpulan Bertugas Mingguan Guru (Kumpulan 1 - 4)</span>
-              </h3>
-              <p class="text-[11px] text-slate-400">Pentadbir (Guru Besar & PK) dikecualikan secara automatik daripada senarai ini</p>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-            <!-- KUMPULAN 1 -->
-            <div class="p-4 bg-slate-50 rounded-2xl border space-y-3">
-              <div class="flex justify-between items-center font-bold text-rose-700 border-b pb-1">
-                <span>Kumpulan 1</span>
-                <span id="countK1" class="text-[10px] bg-rose-100 px-2 py-0.5 rounded-full">0 Ahli</span>
-              </div>
-              <div id="boxGroupK1" class="space-y-1.5 min-h-[100px]"></div>
-              <select onchange="tambahAhliKumpulan(1, this.value)" id="selectK1" class="w-full bg-white border rounded-xl p-2 font-semibold">
-                <!-- Render JS -->
-              </select>
-            </div>
-
-            <!-- KUMPULAN 2 -->
-            <div class="p-4 bg-slate-50 rounded-2xl border space-y-3">
-              <div class="flex justify-between items-center font-bold text-amber-700 border-b pb-1">
-                <span>Kumpulan 2</span>
-                <span id="countK2" class="text-[10px] bg-amber-100 px-2 py-0.5 rounded-full">0 Ahli</span>
-              </div>
-              <div id="boxGroupK2" class="space-y-1.5 min-h-[100px]"></div>
-              <select onchange="tambahAhliKumpulan(2, this.value)" id="selectK2" class="w-full bg-white border rounded-xl p-2 font-semibold">
-                <!-- Render JS -->
-              </select>
-            </div>
-
-            <!-- KUMPULAN 3 -->
-            <div class="p-4 bg-slate-50 rounded-2xl border space-y-3">
-              <div class="flex justify-between items-center font-bold text-blue-700 border-b pb-1">
-                <span>Kumpulan 3</span>
-                <span id="countK3" class="text-[10px] bg-blue-100 px-2 py-0.5 rounded-full">0 Ahli</span>
-              </div>
-              <div id="boxGroupK3" class="space-y-1.5 min-h-[100px]"></div>
-              <select onchange="tambahAhliKumpulan(3, this.value)" id="selectK3" class="w-full bg-white border rounded-xl p-2 font-semibold">
-                <!-- Render JS -->
-              </select>
-            </div>
-
-            <!-- KUMPULAN 4 -->
-            <div class="p-4 bg-slate-50 rounded-2xl border space-y-3">
-              <div class="flex justify-between items-center font-bold text-emerald-700 border-b pb-1">
-                <span>Kumpulan 4</span>
-                <span id="countK4" class="text-[10px] bg-emerald-100 px-2 py-0.5 rounded-full">0 Ahli</span>
-              </div>
-              <div id="boxGroupK4" class="space-y-1.5 min-h-[100px]"></div>
-              <select onchange="tambahAhliKumpulan(4, this.value)" id="selectK4" class="w-full bg-white border rounded-xl p-2 font-semibold">
-                <!-- Render JS -->
-              </select>
-            </div>
-          </div>
-        </div>
-
-
-        <!-- KOMPONEN 5: JADUAL GURU BERTUGAS MINGGUAN -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
-          <div class="flex items-center justify-between border-b pb-3">
-            <div>
-              <h3 class="font-display font-bold text-sm text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-calendar-days text-rose-600"></i>
-                <span>5. Jadual Guru Bertugas Mingguan</span>
-              </h3>
-              <p class="text-[11px] text-slate-400">Pengiliran Ketua Guru Bertugas mengikut Kumpulan Mingguan</p>
-            </div>
-            <button onclick="tambahJadualBertugas()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5">
-              <i class="fa-solid fa-plus"></i> Tambah Minggu
-            </button>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead class="bg-slate-100 font-bold text-slate-700 border-b">
-                <tr>
-                  <th class="p-3 w-28">Minggu</th>
-                  <th class="p-3 w-36">Tarikh Mula</th>
-                  <th class="p-3 w-36">Tarikh Tamat</th>
-                  <th class="p-3 w-40">Kumpulan</th>
-                  <th class="p-3">Ketua Guru Bertugas (Rotation)</th>
-                  <th class="p-3 w-20 text-center">Tindakan</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyJadualBertugas" class="divide-y">
-                <!-- Render JS -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-
-        <!-- KOMPONEN 6: SECTION JADUAL PEMANTAUAN DAN PENCERAPAN (SECTION ONLY) -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-2 opacity-80">
-          <div class="flex items-center justify-between border-b pb-2">
-            <h3 class="font-display font-bold text-sm text-slate-800 flex items-center gap-2">
-              <i class="fa-solid fa-clipboard-check text-slate-400"></i>
-              <span>6. Jadual Pemantauan dan Pencerapan Guru</span>
-            </h3>
-            <span class="text-[10px] bg-slate-100 px-2.5 py-1 rounded-full font-bold text-slate-500">Ruangan Section</span>
-          </div>
-          <p class="text-xs text-slate-500 italic">Ruangan ini disiapkan khas untuk modul Pemantauan & Pencerapan Guru akan datang.</p>
-        </div>
-
-
-        <!-- KOMPONEN 7: SECTION JADUAL PEMERIKSAAN BUKU TULIS (SECTION ONLY) -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-2 opacity-80">
-          <div class="flex items-center justify-between border-b pb-2">
-            <h3 class="font-display font-bold text-sm text-slate-800 flex items-center gap-2">
-              <i class="fa-solid fa-book-open-reader text-slate-400"></i>
-              <span>7. Jadual Pemeriksaan Buku Tulis Murid</span>
-            </h3>
-            <span class="text-[10px] bg-slate-100 px-2.5 py-1 rounded-full font-bold text-slate-500">Ruangan Section</span>
-          </div>
-          <p class="text-xs text-slate-500 italic">Ruangan ini disiapkan khas untuk jadual penyerahan dan pemeriksaan buku tulis murid.</p>
-        </div>
-
-      </div>
 
     </main>
 
-  </div>
+    <!-- MODAL BORANG TAMBAH / EDIT PERANAN -->
+    <div id="form-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 bg-[#1f7a9c] text-white flex items-center justify-between shrink-0">
+                <h3 class="font-extrabold text-sm sm:text-base" id="modal-title">Borang Penetapan Jawatankuasa</h3>
+                <button onclick="closeFormModal()" class="text-white/80 hover:text-white text-lg font-bold">&times;</button>
+            </div>
 
-  <!-- JAVASCRIPT LOGIK & DATA STORE -->
-  <script>
-    // DATA STORE INDUK (PRE-POPULATED SAMPLES)
-    let guruList = [
-      { id: "G1", nama: "Pn. Hajah Faridah binti Hassan", samaran: "Cikgu Faridah", ic: "720315-14-5234", gred: "Guru Besar", opsyen: "Pengurusan", email: "faridah@moe-dl.edu.my", tel: "019-1111111" },
-      { id: "G2", nama: "En. Mohd Farhan bin Rozali", samaran: "Cikgu Farhan", ic: "800520-10-5891", gred: "PK Pentadbiran", opsyen: "Matematik", email: "farhan@moe-dl.edu.my", tel: "019-2222222" },
-      { id: "G3", nama: "Pn. Siti Hajar binti Yusof", samaran: "Cikgu Hajar", ic: "830912-08-6120", gred: "PK HEM", opsyen: "Pendidikan Islam", email: "hajar@moe-dl.edu.my", tel: "019-3333333" },
-      { id: "G4", nama: "En. Lim Chee Keong", samaran: "Cikgu Lim", ic: "811103-07-5543", gred: "PK Kokurikulum", opsyen: "PJK", email: "lim@moe-dl.edu.my", tel: "019-4444444" },
-      { id: "G5", nama: "Cikgu Nurul Aini binti Zulkifli", samaran: "Cikgu Aini", ic: "900415-14-6632", gred: "DG44", opsyen: "Sains", email: "aini@moe-dl.edu.my", tel: "012-5555555" },
-      { id: "G6", nama: "Cikgu Ahmad Razak bin Hashim", samaran: "Cikgu Razak", ic: "880822-01-5123", gred: "DG44", opsyen: "Bahasa Melayu", email: "razak@moe-dl.edu.my", tel: "012-6666666" },
-      { id: "G7", nama: "Cikgu Maria binti Abdullah", samaran: "Cikgu Maria", ic: "940105-10-5342", gred: "DG41", opsyen: "Bahasa Inggeris", email: "maria@moe-dl.edu.my", tel: "012-7777777" },
-      { id: "G8", nama: "Cikgu Imran bin Zainal", samaran: "Cikgu Imran", ic: "911210-03-5987", gred: "DG41", opsyen: "Sejarah", email: "imran@moe-dl.edu.my", tel: "012-8888888" }
-    ];
+            <form id="jk-form" onsubmit="saveFormSubmission(event)" class="p-6 space-y-4 overflow-y-auto flex-1">
+                <input type="hidden" id="form-id-peranan" value="">
 
-    let akpList = [
-      { nama: "Pn. Azlina binti Ahmad", jawatan: "Ketua Pembantu Tadbir" },
-      { nama: "En. Suhaimi bin Ali", jawatan: "Pembantu Operasi" }
-    ];
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Pengurusan <span class="text-red-500">*</span></label>
+                        <select id="form-kategori" required class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-[#1f7a9c]">
+                            <option value="Pentadbiran">Pentadbiran</option>
+                            <option value="Kurikulum">Kurikulum</option>
+                            <option value="HEM">Hal Ehwal Murid (HEM)</option>
+                            <option value="Kokurikulum">Ko-Kurikulum</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">JK Induk / Payung <span class="text-red-500">*</span></label>
+                        <input type="text" id="form-jk-induk" required placeholder="Contoh: JK Induk Kurikulum" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:border-[#1f7a9c]">
+                    </div>
+                </div>
 
-    let senaraiKelasData = [];
-    let bilikKhasData = [];
-    let kumpulanBertugas = { 1: [], 2: [], 3: [], 4: [] };
-    let jadualBertugasData = [];
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Jawatankuasa / Sub-Unit <span class="text-red-500">*</span></label>
+                    <input type="text" id="form-nama-jk" required placeholder="Contoh: Pengurusan Kelas / JK Digital / Jadual Bertugas" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:border-[#1f7a9c]">
+                </div>
 
-    // INITIALIZATION
-    window.addEventListener('DOMContentLoaded', () => {
-      renderProfilGuruTable();
-      renderPBPPP();
-      renderSenaraiKelas();
-      renderBilikKhas();
-      renderKumpulanBertugas();
-      renderJadualBertugas();
-    });
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Peranan / Jawatan <span class="text-red-500">*</span></label>
+                        <input type="text" id="form-peranan" required placeholder="Contoh: Guru Kelas / Setiausaha / Penyelaras / AJK" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:border-[#1f7a9c]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Skop / Sasaran / Kelas <span class="text-red-500">*</span></label>
+                        <input type="text" id="form-skop-tugas" required placeholder="Contoh: 1 Lavender / Kumpulan A / Makmal ICT" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 focus:outline-none focus:border-[#1f7a9c]">
+                    </div>
+                </div>
 
-    function toggleMobileSidebar() {
-      document.getElementById('sidebar').classList.toggle('hidden');
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Pilih Pegawai Dilantik (Master_Staf) <span class="text-red-500">*</span></label>
+                        <select id="form-id-staf" required class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-[#1f7a9c]">
+                            <option value="">-- Pilih Staf --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Tahun Pengurusan</label>
+                        <input type="number" id="form-tahun" value="2026" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-bold focus:outline-none focus:border-[#1f7a9c]">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Status Rekod</label>
+                    <select id="form-status" class="w-full px-3 py-2 text-xs border border-slate-200 rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-[#1f7a9c]">
+                        <option value="Aktif">Aktif</option>
+                        <option value="Tidak Aktif">Tidak Aktif</option>
+                    </select>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                    <button type="button" onclick="closeFormModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-[#1f7a9c] hover:bg-[#175d78] text-white font-bold text-xs rounded-lg transition shadow-xs">Simpan Rekod</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PAUTAN KE CONFIG.JS -->
+    <script src="../../config.js"></script>
+
+    <!-- LOGIK JAVASCRIPT UTAMA -->
+    <script>
+    let ALL_STAF = [];
+    let ALL_PERANAN = [];
+    let ACTIVE_CATEGORY = 'ALL';
+
+    function showLoader(txt = "Memuatkan...") {
+        const loader = document.getElementById('global-loader');
+        const lTxt = document.getElementById('loader-text');
+        if (lTxt) lTxt.innerText = txt;
+        if (loader) loader.classList.remove('hidden');
     }
 
-    function showView(viewId) {
-      ['viewDashboard', 'viewProfilStaf', 'viewPentadbiran'].forEach(v => {
-        const el = document.getElementById(v);
-        if (el) el.classList.add('hidden');
-      });
-
-      document.getElementById(viewId).classList.remove('hidden');
-
-      const bTxt = document.getElementById('txtBreadcrumb');
-      if (viewId === 'viewDashboard') bTxt.innerText = 'Dashboard Utama';
-      if (viewId === 'viewProfilStaf') bTxt.innerText = 'Profil Guru, AKP & PIBG';
-      if (viewId === 'viewPentadbiran') bTxt.innerText = 'Pengurusan Pentadbiran';
+    function hideLoader() {
+        const loader = document.getElementById('global-loader');
+        if (loader) loader.classList.add('hidden');
     }
 
-    function openPlaceholderModule(title) {
-      Swal.fire({
-        title: title,
-        text: 'Modul ini dalam persediaan kemaskini data.',
-        icon: 'info',
-        confirmButtonColor: '#e11d48'
-      });
+    async function postToBackend(payload) {
+        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
+            ? WEB_APP_URL 
+            : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
+
+        const response = await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload),
+            redirect: 'follow'
+        });
+
+        if (!response.ok) throw new Error('HTTP Error ' + response.status);
+        return await response.json();
     }
 
-    // ================= PROFIL GURU HANDLERS =================
-    function bukaModalTambahGuru() {
-      document.getElementById('boxFormTambahGuru').classList.remove('hidden');
-    }
-    function tutupFormTambahGuru() {
-      document.getElementById('boxFormTambahGuru').classList.add('hidden');
-    }
+    async function fetchPortalData() {
+        showLoader('Sedang menyelaraskan pangkalan data V2...');
+        try {
+            const res = await postToBackend({ action: 'getManualV2Data' });
+            hideLoader();
 
-    function simpanProfilGuru(e) {
-      e.preventDefault();
-      const newG = {
-        id: "G" + (Date.now() % 10000),
-        nama: document.getElementById('inpNamaPenuh').value,
-        samaran: document.getElementById('inpNamaSamaran').value,
-        ic: document.getElementById('inpNoIC').value,
-        gred: document.getElementById('inpGred').value,
-        opsyen: document.getElementById('inpOpsyen').value,
-        email: document.getElementById('inpEmailMoe').value,
-        tel: document.getElementById('inpNoTel').value
-      };
-
-      guruList.push(newG);
-      renderProfilGuruTable();
-      renderPBPPP();
-      renderSenaraiKelas();
-      renderBilikKhas();
-      renderKumpulanBertugas();
-
-      tutupFormTambahGuru();
-      Swal.fire('Berjaya!', 'Profil guru baharu telah disimpan.', 'success');
+            if (res && res.success) {
+                ALL_STAF = res.staf || [];
+                ALL_PERANAN = res.peranan || [];
+                
+                populateStafDropdown();
+                updateStats();
+                renderTable();
+            } else {
+                Swal.fire('Ralat', res.error || 'Gagal menarik data jawatankuasa.', 'error');
+            }
+        } catch (err) {
+            hideLoader();
+            console.error('Fetch error:', err);
+            Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan pelayan backend.', 'error');
+        }
     }
 
-    function renderProfilGuruTable() {
-      const tbody = document.getElementById('tbodyProfilGuru');
-      document.getElementById('statCountGuru').innerText = guruList.length;
-      document.getElementById('statCountAKP').innerText = akpList.length;
+    function populateStafDropdown() {
+        const select = document.getElementById('form-id-staf');
+        select.innerHTML = '<option value="">-- Pilih Staf --</option>';
 
-      tbody.innerHTML = '';
-      guruList.forEach(g => {
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-50">
-            <td class="p-3">
-              <p class="font-bold text-slate-800">${g.nama}</p>
-              <p class="text-[10px] text-rose-600 font-semibold">"${g.samaran}"</p>
-            </td>
-            <td class="p-3 font-mono">${g.ic}</td>
-            <td class="p-3 font-semibold">${g.gred} <span class="text-slate-400">(${g.opsyen})</span></td>
-            <td class="p-3 text-slate-500">${g.email}</td>
-            <td class="p-3 font-mono">${g.tel}</td>
-            <td class="p-3 text-right">
-              <button onclick="padamGuru('${g.id}')" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-trash"></i></button>
-            </td>
-          </tr>
-        `;
-      });
+        ALL_STAF.forEach(staf => {
+            const id = staf.ID_Staf;
+            const nama = staf.Nama_Penuh || staf.Nama_Samaran || 'Staf';
+            const kategori = staf.Kategori_Staf || 'GURU';
+
+            if (id) {
+                const opt = document.createElement('option');
+                opt.value = String(id).trim();
+                opt.textContent = `${nama} (${id} - ${kategori})`;
+                select.appendChild(opt);
+            }
+        });
     }
 
-    function padamGuru(id) {
-      guruList = guruList.filter(x => x.id !== id);
-      renderProfilGuruTable();
-      renderPBPPP();
-      renderSenaraiKelas();
-      renderBilikKhas();
-      renderKumpulanBertugas();
+    function updateStats() {
+        document.getElementById('stat-total').innerText = ALL_PERANAN.length;
+        document.getElementById('stat-pentadbiran').innerText = ALL_PERANAN.filter(d => String(d.Kategori_Pengurusan).toLowerCase().includes('pentadbiran')).length;
+        document.getElementById('stat-kurikulum').innerText = ALL_PERANAN.filter(d => String(d.Kategori_Pengurusan).toLowerCase().includes('kurikulum')).length;
+        document.getElementById('stat-hem-koko').innerText = ALL_PERANAN.filter(d => {
+            const cat = String(d.Kategori_Pengurusan).toLowerCase();
+            return cat.includes('hem') || cat.includes('koko');
+        }).length;
     }
 
-    // ================= 1. PBPPP HANDLER =================
-    function renderPBPPP() {
-      const pydGB = document.getElementById('pydListGB');
-      const pydPKP = document.getElementById('pydListPKP');
-      const pydPKHEM = document.getElementById('pydListPKHEM');
-      const pydPKKOKU = document.getElementById('pydListPKKOKU');
+    function switchCategory(cat) {
+        ACTIVE_CATEGORY = cat;
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.className = "tab-btn px-4 py-2 rounded-lg font-bold text-xs text-slate-600 hover:bg-slate-100 transition";
+        });
 
-      pydGB.innerHTML = ''; pydPKP.innerHTML = ''; pydPKHEM.innerHTML = ''; pydPKKOKU.innerHTML = '';
+        const activeBtn = document.getElementById(`tab-${cat}`);
+        if (activeBtn) {
+            activeBtn.className = "tab-btn px-4 py-2 rounded-lg font-bold text-xs transition bg-[#1f7a9c] text-white shadow-2xs";
+        }
 
-      guruList.forEach((g, idx) => {
-        const itemHtml = `<p class="truncate font-medium text-slate-700">• ${g.samaran}</p>`;
-        if (idx % 4 === 0) pydGB.innerHTML += itemHtml;
-        else if (idx % 4 === 1) pydPKP.innerHTML += itemHtml;
-        else if (idx % 4 === 2) pydPKHEM.innerHTML += itemHtml;
-        else pydPKKOKU.innerHTML += itemHtml;
-      });
+        document.getElementById('table-title').innerText = cat === 'ALL' 
+            ? 'Senarai Semua Jawatankuasa Pengurusan Sekolah' 
+            : `Senarai Jawatankuasa Unit ${cat}`;
+
+        renderTable();
     }
 
-
-    // ================= 2. SENARAI KELAS HANDLERS (STARTS EMPTY + FILTER) =================
-    function tambahRuanganKelas() {
-      senaraiKelasData.push({
-        id: "K-" + Date.now(),
-        namaKelas: "",
-        guruKelas: "",
-        guruPembantu: ""
-      });
-      renderSenaraiKelas();
-    }
-
-    function padamRuanganKelas(id) {
-      senaraiKelasData = senaraiKelasData.filter(x => x.id !== id);
-      renderSenaraiKelas();
-    }
-
-    function updateKelasField(id, field, value) {
-      const item = senaraiKelasData.find(x => x.id === id);
-      if (item) item[field] = value;
-      renderSenaraiKelas(); // Re-render to update filters!
-    }
-
-    function renderSenaraiKelas() {
-      const tbody = document.getElementById('tbodySenaraiKelas');
-      document.getElementById('statCountKelas').innerText = senaraiKelasData.length;
-
-      if (senaraiKelasData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 italic">Tiada kelas ditambah. Klik "+ Tambah Kelas" di atas.</td></tr>`;
-        return;
-      }
-
-      // Collect all selected teachers across classes
-      const selectedTeachers = new Set();
-      senaraiKelasData.forEach(k => {
-        if (k.guruKelas) selectedTeachers.add(k.guruKelas);
-        if (k.guruPembantu) selectedTeachers.add(k.guruPembantu);
-      });
-
-      const optionsKelas = ["1 Cemerlang", "1 Gemilang", "2 Cemerlang", "2 Gemilang", "3 Cemerlang", "3 Gemilang", "4 Cemerlang", "5 Cemerlang", "6 Cemerlang"];
-
-      tbody.innerHTML = '';
-      senaraiKelasData.forEach((row, idx) => {
+    function renderTable() {
+        const tbody = document.getElementById('manual-table-body');
         
-        // Build Guru Options Filtered
-        let optGuruKelas = `<option value="">-- Pilih Guru Kelas --</option>`;
-        let optGuruPembantu = `<option value="">-- Pilih Guru Pembantu --</option>`;
+        let filtered = ALL_PERANAN;
+        if (ACTIVE_CATEGORY !== 'ALL') {
+            filtered = ALL_PERANAN.filter(item => String(item.Kategori_Pengurusan).toLowerCase().trim() === ACTIVE_CATEGORY.toLowerCase().trim());
+        }
 
-        guruList.forEach(g => {
-          // If teacher is selected in THIS field OR not selected anywhere else
-          if (g.id === row.guruKelas || !selectedTeachers.has(g.id)) {
-            optGuruKelas += `<option value="${g.id}" ${row.guruKelas === g.id ? 'selected' : ''}>${g.nama}</option>`;
-          }
-          if (g.id === row.guruPembantu || !selectedTeachers.has(g.id)) {
-            optGuruPembantu += `<option value="${g.id}" ${row.guruPembantu === g.id ? 'selected' : ''}>${g.nama}</option>`;
-          }
-        });
+        if (!filtered || filtered.length === 0) {
+            tbody.innerHTML = `
+                <tr><td colspan="9" class="p-6 text-center text-slate-400 italic">
+                    Tiada rekod jawatankuasa bagi unit ini lagi.
+                </td></tr>`;
+            return;
+        }
 
-        let optKelasHtml = `<option value="">-- Pilih Kelas --</option>`;
-        optionsKelas.forEach(ok => {
-          optKelasHtml += `<option value="${ok}" ${row.namaKelas === ok ? 'selected' : ''}>${ok}</option>`;
-        });
+        let html = '';
+        filtered.forEach((item, index) => {
+            // Pemautan ID_Staf ke profil Master_Staf
+            const stafMatch = ALL_STAF.find(s => String(s.ID_Staf).toLowerCase().trim() === String(item.ID_Staf).toLowerCase().trim());
+            const namaStafDisplay = stafMatch ? (stafMatch.Nama_Penuh || stafMatch.Nama_Samaran) : (item.ID_Staf || 'Belum Dilantik');
 
-        tbody.innerHTML += `
-          <tr>
-            <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="p-3">
-              <select onchange="updateKelasField('${row.id}', 'namaKelas', this.value)" class="w-full border p-2 rounded-xl bg-slate-50 font-bold">
-                ${optKelasHtml}
-              </select>
-            </td>
-            <td class="p-3">
-              <select onchange="updateKelasField('${row.id}', 'guruKelas', this.value)" class="w-full border p-2 rounded-xl bg-slate-50">
-                ${optGuruKelas}
-              </select>
-            </td>
-            <td class="p-3">
-              <select onchange="updateKelasField('${row.id}', 'guruPembantu', this.value)" class="w-full border p-2 rounded-xl bg-slate-50">
-                ${optGuruPembantu}
-              </select>
-            </td>
-            <td class="p-3 text-center">
-              <button onclick="padamRuanganKelas('${row.id}')" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-trash"></i></button>
-            </td>
-          </tr>
-        `;
-      });
-    }
+            // Badge Status
+            let statusBadge = '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">Aktif</span>';
+            if (String(item.Status).toLowerCase() === 'tidak aktif') {
+                statusBadge = '<span class="px-2 py-0.5 bg-slate-200 text-slate-600 text-[10px] font-bold rounded-full">Tidak Aktif</span>';
+            }
 
-
-    // ================= 3. BILIK KHAS HANDLERS (STARTS EMPTY) =================
-    function tambahRuanganBilikKhas() {
-      bilikKhasData.push({ id: "B-" + Date.now(), namaBilik: "", penyelaras: "", jawatan: "" });
-      renderBilikKhas();
-    }
-
-    function padamBilikKhas(id) {
-      bilikKhasData = bilikKhasData.filter(x => x.id !== id);
-      renderBilikKhas();
-    }
-
-    function updateBilikField(id, field, value) {
-      const item = bilikKhasData.find(x => x.id === id);
-      if (item) item[field] = value;
-    }
-
-    function renderBilikKhas() {
-      const tbody = document.getElementById('tbodyBilikKhas');
-      if (bilikKhasData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400 italic">Tiada bilik khas ditambah. Klik "+ Tambah Bilik Khas" di atas.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = '';
-      bilikKhasData.forEach((row, idx) => {
-        let optG = `<option value="">-- Pilih Guru Penyelaras --</option>`;
-        guruList.forEach(g => {
-          optG += `<option value="${g.id}" ${row.penyelaras === g.id ? 'selected' : ''}>${g.nama}</option>`;
-        });
-
-        tbody.innerHTML += `
-          <tr>
-            <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="p-3">
-              <input type="text" value="${row.namaBilik}" onchange="updateBilikField('${row.id}', 'namaBilik', this.value)" placeholder="Contoh: Makmal Sains / Pusat Sumber" class="w-full border p-2 rounded-xl bg-slate-50 font-bold">
-            </td>
-            <td class="p-3">
-              <select onchange="updateBilikField('${row.id}', 'penyelaras', this.value)" class="w-full border p-2 rounded-xl bg-slate-50">
-                ${optG}
-              </select>
-            </td>
-            <td class="p-3">
-              <input type="text" value="${row.jawatan}" onchange="updateBilikField('${row.id}', 'jawatan', this.value)" placeholder="Contoh: KP Sains / GDM" class="w-full border p-2 rounded-xl bg-slate-50">
-            </td>
-            <td class="p-3 text-center">
-              <button onclick="padamBilikKhas('${row.id}')" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-trash"></i></button>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-
-    // ================= 4. KUMPULAN BERTUGAS HANDLERS (EXCLUDE PENTADBIR) =================
-    function renderKumpulanBertugas() {
-      // Filter out Pentadbir (GB, PKP, PKHEM, PKKOKU)
-      const nonAdmins = guruList.filter(g => !['Guru Besar', 'PK Pentadbiran', 'PK HEM', 'PK Kokurikulum'].includes(g.gred));
-
-      // Collect all teachers currently in Groups 1-4
-      const selectedInGroups = new Set();
-      [1, 2, 3, 4].forEach(grp => {
-        kumpulanBertugas[grp].forEach(gid => selectedInGroups.add(gid));
-      });
-
-      [1, 2, 3, 4].forEach(grp => {
-        const box = document.getElementById(`boxGroupK${grp}`);
-        const select = document.getElementById(`selectK1` ? `selectK${grp}` : null);
-        document.getElementById(`countK${grp}`).innerText = `${kumpulanBertugas[grp].length} Ahli`;
-
-        // Render current members
-        box.innerHTML = '';
-        kumpulanBertugas[grp].forEach(gid => {
-          const gObj = guruList.find(x => x.id === gid);
-          if (gObj) {
-            box.innerHTML += `
-              <div class="flex items-center justify-between p-2 bg-white rounded-xl border text-xs">
-                <span class="font-bold text-slate-800">${gObj.samaran}</span>
-                <button onclick="buangAhliKumpulan(${grp}, '${gid}')" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-xmark"></i></button>
-              </div>
+            html += `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="p-3 text-center text-slate-500 font-bold">${index + 1}</td>
+                    <td class="p-3 font-semibold text-slate-700"><span class="px-2 py-0.5 bg-slate-100 rounded text-[11px]">${item.Kategori_Pengurusan || '-'}</span></td>
+                    <td class="p-3 font-medium text-slate-600">${item.JK_Induk || '-'}</td>
+                    <td class="p-3 font-bold text-slate-800">${item.Nama_Jawatankuasa || '-'}</td>
+                    <td class="p-3 font-semibold text-[#1f7a9c]">${item.Peranan || 'AJK'}</td>
+                    <td class="p-3 font-semibold text-slate-700">${item.Skop_Tugas_Kelas || '-'}</td>
+                    <td class="p-3">
+                        <div class="font-bold text-slate-800">${namaStafDisplay}</div>
+                        <div class="text-[10px] text-slate-400 font-mono">${item.ID_Staf || ''}</div>
+                    </td>
+                    <td class="p-3 text-center">${statusBadge}</td>
+                    <td class="p-3 text-right space-x-1">
+                        <button onclick="editRecord('${item.ID_Peranan}')" class="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-lg transition" title="Edit">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="deleteRecord('${item.ID_Peranan}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg transition" title="Hapus">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
             `;
-          }
         });
 
-        // Build Select Options for non-assigned non-admin teachers
-        let opt = `<option value="">+ Tambah Guru Ke K${grp}</option>`;
-        nonAdmins.forEach(g => {
-          if (!selectedInGroups.has(g.id)) {
-            opt += `<option value="${g.id}">${g.nama}</option>`;
-          }
+        tbody.innerHTML = html;
+    }
+
+    function filterTable() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const rows = document.querySelectorAll('#manual-table-body tr');
+
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
         });
-        if (select) select.innerHTML = opt;
-      });
-
-      renderJadualBertugas(); // Sync ketua selection!
     }
 
-    function tambahAhliKumpulan(grp, teacherId) {
-      if (!teacherId) return;
-      kumpulanBertugas[grp].push(teacherId);
-      renderKumpulanBertugas();
+    function openFormModal(isEdit = false) {
+        document.getElementById('modal-title').innerText = isEdit ? 'Edit Rekod Jawatankuasa' : 'Borang Penetapan Jawatankuasa';
+        if (!isEdit) {
+            document.getElementById('jk-form').reset();
+            document.getElementById('form-id-peranan').value = '';
+            document.getElementById('form-tahun').value = '2026';
+            if (ACTIVE_CATEGORY !== 'ALL') {
+                document.getElementById('form-kategori').value = ACTIVE_CATEGORY;
+            }
+        }
+        document.getElementById('form-modal').classList.remove('hidden');
     }
 
-    function buangAhliKumpulan(grp, teacherId) {
-      kumpulanBertugas[grp] = kumpulanBertugas[grp].filter(x => x !== teacherId);
-      renderKumpulanBertugas();
+    function closeFormModal() {
+        document.getElementById('form-modal').classList.add('hidden');
     }
 
+    function editRecord(idPeranan) {
+        const item = ALL_PERANAN.find(d => String(d.ID_Peranan) === String(idPeranan));
+        if (!item) return;
 
-    // ================= 5. JADUAL GURU BERTUGAS MINGGUAN =================
-    function tambahJadualBertugas() {
-      jadualBertugasData.push({
-        id: "J-" + Date.now(),
-        minggu: "Minggu " + (jadualBertugasData.length + 1),
-        mula: "",
-        tamat: "",
-        kumpulan: "1",
-        ketua: ""
-      });
-      renderJadualBertugas();
+        document.getElementById('form-id-peranan').value = item.ID_Peranan;
+        document.getElementById('form-kategori').value = item.Kategori_Pengurusan || 'Pentadbiran';
+        document.getElementById('form-jk-induk').value = item.JK_Induk || '';
+        document.getElementById('form-nama-jk').value = item.Nama_Jawatankuasa || '';
+        document.getElementById('form-peranan').value = item.Peranan || '';
+        document.getElementById('form-skop-tugas').value = item.Skop_Tugas_Kelas || '';
+        document.getElementById('form-id-staf').value = String(item.ID_Staf || '').trim();
+        document.getElementById('form-tahun').value = item.Tahun || '2026';
+        document.getElementById('form-status').value = item.Status || 'Aktif';
+
+        openFormModal(true);
     }
 
-    function padamJadualBertugas(id) {
-      jadualBertugasData = jadualBertugasData.filter(x => x.id !== id);
-      renderJadualBertugas();
+    async function saveFormSubmission(event) {
+        event.preventDefault();
+
+        const payloadData = {
+            id_peranan: document.getElementById('form-id-peranan').value,
+            kategori_pengurusan: document.getElementById('form-kategori').value,
+            jk_induk: document.getElementById('form-jk-induk').value,
+            nama_jawatankuasa: document.getElementById('form-nama-jk').value,
+            peranan: document.getElementById('form-peranan').value,
+            skop_tugas_kelas: document.getElementById('form-skop-tugas').value,
+            id_staf: document.getElementById('form-id-staf').value,
+            tahun: document.getElementById('form-tahun').value,
+            status: document.getElementById('form-status').value
+        };
+
+        closeFormModal();
+        showLoader('Menyimpan rekod ke Google Sheets...');
+
+        try {
+            const res = await postToBackend({
+                action: 'savePerananStafV2',
+                data: payloadData
+            });
+            hideLoader();
+
+            if (res && res.success) {
+                Swal.fire('Berjaya', res.message, 'success');
+                fetchPortalData();
+            } else {
+                Swal.fire('Ralat', res.error || 'Gagal menyimpan rekod.', 'error');
+            }
+        } catch (err) {
+            hideLoader();
+            Swal.fire('Ralat', 'Gagal menyimpan data ke pangkalan data.', 'error');
+        }
     }
 
-    function updateJadualField(id, field, value) {
-      const item = jadualBertugasData.find(x => x.id === id);
-      if (item) {
-        item[field] = value;
-        if (field === 'kumpulan') item.ketua = ""; // Reset ketua on group change
-      }
-      renderJadualBertugas();
-    }
-
-    function renderJadualBertugas() {
-      const tbody = document.getElementById('tbodyJadualBertugas');
-      if (jadualBertugasData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Tiada minggu bertugas ditambah. Klik "+ Tambah Minggu" di atas.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = '';
-      jadualBertugasData.forEach((row) => {
-        const grpMembers = kumpulanBertugas[row.kumpulan] || [];
-        let optKetua = `<option value="">-- Pilih Ketua (Dari K${row.kumpulan}) --</option>`;
-        grpMembers.forEach(gid => {
-          const gObj = guruList.find(x => x.id === gid);
-          if (gObj) {
-            optKetua += `<option value="${gObj.id}" ${row.ketua === gObj.id ? 'selected' : ''}>${gObj.nama}</option>`;
-          }
+    async function deleteRecord(idPeranan) {
+        const confirm = await Swal.fire({
+            title: 'Hapuskan Rekod?',
+            text: 'Adakah anda pasti mahu menghapuskan jawatankuasa ini?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            confirmButtonText: 'Ya, Hapuskan'
         });
 
-        tbody.innerHTML += `
-          <tr>
-            <td class="p-3">
-              <input type="text" value="${row.minggu}" onchange="updateJadualField('${row.id}', 'minggu', this.value)" class="w-full border p-2 rounded-xl bg-slate-50 font-bold">
-            </td>
-            <td class="p-3">
-              <input type="date" value="${row.mula}" onchange="updateJadualField('${row.id}', 'mula', this.value)" class="w-full border p-2 rounded-xl bg-slate-50">
-            </td>
-            <td class="p-3">
-              <input type="date" value="${row.tamat}" onchange="updateJadualField('${row.id}', 'tamat', this.value)" class="w-full border p-2 rounded-xl bg-slate-50">
-            </td>
-            <td class="p-3">
-              <select onchange="updateJadualField('${row.id}', 'kumpulan', this.value)" class="w-full border p-2 rounded-xl bg-slate-50 font-bold">
-                <option value="1" ${row.kumpulan === '1' ? 'selected' : ''}>Kumpulan 1</option>
-                <option value="2" ${row.kumpulan === '2' ? 'selected' : ''}>Kumpulan 2</option>
-                <option value="3" ${row.kumpulan === '3' ? 'selected' : ''}>Kumpulan 3</option>
-                <option value="4" ${row.kumpulan === '4' ? 'selected' : ''}>Kumpulan 4</option>
-              </select>
-            </td>
-            <td class="p-3">
-              <select onchange="updateJadualField('${row.id}', 'ketua', this.value)" class="w-full border p-2 rounded-xl bg-slate-50">
-                ${optKetua}
-              </select>
-            </td>
-            <td class="p-3 text-center">
-              <button onclick="padamJadualBertugas('${row.id}')" class="text-rose-600 hover:text-rose-800"><i class="fa-solid fa-trash"></i></button>
-            </td>
-          </tr>
-        `;
-      });
+        if (!confirm.isConfirmed) return;
+
+        showLoader('Menghapuskan rekod...');
+        try {
+            const res = await postToBackend({
+                action: 'deletePerananStafV2',
+                data: { id_peranan: idPeranan }
+            });
+            hideLoader();
+
+            if (res && res.success) {
+                Swal.fire('Dihapuskan', res.message, 'success');
+                fetchPortalData();
+            } else {
+                Swal.fire('Ralat', res.error, 'error');
+            }
+        } catch (e) {
+            hideLoader();
+            Swal.fire('Ralat', 'Gagal menghapuskan rekod.', 'error');
+        }
     }
 
-    function setRole(r) {
-      if (r === 'guru') {
-        document.getElementById('btnRoleGuru').className = 'px-3 py-1 rounded-lg font-bold bg-rose-600 text-white transition';
-        document.getElementById('btnRoleAdmin').className = 'px-3 py-1 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition';
-        Swal.fire({ icon: 'info', title: 'Mod Guru', text: 'Akses membaca sahaja.', timer: 1000, showConfirmButton: false });
-      } else {
-        document.getElementById('btnRoleAdmin').className = 'px-3 py-1 rounded-lg font-bold bg-rose-600 text-white transition';
-        document.getElementById('btnRoleGuru').className = 'px-3 py-1 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition';
-        Swal.fire({ icon: 'success', title: 'Mod Pentadbir', text: 'Akses penuh penyuntingan!', timer: 1000, showConfirmButton: false });
-      }
-    }
-  </script>
+    window.addEventListener('DOMContentLoaded', () => {
+        fetchPortalData();
+    });
+    </script>
 </body>
 </html>
