@@ -65,7 +65,7 @@ function initIdleTimeoutMonitor() {
 async function fetchBackendApi(action, payloadData = {}) {
   const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL)
     ? WEB_APP_URL
-    : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
+    : 'https://script.google.com/macros/s/AKfycbzxLA0J-FsbeeiwR0Y-TkOfCwRKfMCLwXLc0jr6qErT7reV17bL8UMqjq8wZbIuYTwy/exec';
 
   const payload = {
     action: action,
