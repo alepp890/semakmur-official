@@ -1,11 +1,14 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - AUTH GUARD (TOKEN-BASED & DIRECT-LINK PROTECTED)
- * FAIL: guru/js/auth-guard.js
+ * FAIL: root/guru/modulaplikasi/js/auth-guard.js
  * ==============================================================================
  */
 (function checkSessionGuard() {
   console.log("🔒 Auth Guard: Memulakan semakan sesi pengguna...");
+
+  // Laluan ke LoginSession.html di root (Naik 3 tingkat dari root/guru/modulaplikasi/js/)
+  const LOGIN_URL = '../../../LoginSession.html';
 
   function unhidePage() {
     const showTarget = () => {
@@ -45,7 +48,7 @@
   if (!rawData) {
     console.warn("❌ Auth Guard: Tiada sesi ditemui dalam LocalStorage / SessionStorage.");
     alert('Akses Ditolak! Sila log masuk terlebih dahulu.');
-    window.location.replace('../../LoginSession.html');
+    window.location.replace(LOGIN_URL);
     return;
   }
 
@@ -84,7 +87,7 @@
       if (urlEmail && urlEmail !== userEmail) {
         console.warn(`❌ Auth Guard: Emel URL [${urlEmail}] tidak sepadan dengan emel akaun [${userEmail}].`);
         alert('Akses Ditolak! Token pelancaran ini tidak sepadan dengan akaun anda.');
-        window.location.replace('../LoginSession.html');
+        window.location.replace(LOGIN_URL);
         return;
       }
 
@@ -94,7 +97,7 @@
     } else if (!isErphTabActive) {
       console.warn("❌ Auth Guard: Akses pautan terus dikesan tanpa token pelancaran sah.");
       alert('Akses Ditolak! Modul e-RPH tidak boleh dibuka melalui pautan terus (direct link). Sila lancarkan dari Dashboard Utama.');
-      window.location.replace('../LoginSession.html');
+      window.location.replace(LOGIN_URL);
       return;
     }
 
@@ -112,6 +115,6 @@
       localStorage.removeItem(usedKey);
       sessionStorage.removeItem(usedKey);
     }
-    window.location.replace('../LoginSession.html');
+    window.location.replace(LOGIN_URL);
   }
 })();
