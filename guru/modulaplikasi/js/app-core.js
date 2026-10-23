@@ -46,7 +46,7 @@ function onIdleTimeout() {
   console.warn("⚠️ Pemasa Idle: Tiada aktiviti dikesan selama 5 minit.");
   sessionStorage.removeItem('ERPH_TAB_SESSION_ACTIVE');
   alert('Sesi e-RPH telah tamat masa akibat tiada aktiviti selama 5 minit. Sila log masuk semula.');
-  window.location.replace('../LoginSession.html');
+  window.location.replace('../../LoginSession.html');
 }
 
 function initIdleTimeoutMonitor() {
