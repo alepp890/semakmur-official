@@ -346,7 +346,13 @@ function updateDashboardDayDropdown() {
   }
 
   const days = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
-  const currentVal = selectDay.value;
+
+  // Tetapkan paparan pertama kepada 'ALL' jika belum diinisialisasi
+  let currentVal = selectDay.value;
+  if (!state.isDayDropdownInitialized) {
+    currentVal = 'ALL';
+    state.isDayDropdownInitialized = true;
+  }
 
   selectDay.innerHTML = '<option value="ALL">Semua Hari</option>';
 
@@ -365,7 +371,8 @@ function updateDashboardDayDropdown() {
     selectDay.appendChild(opt);
   });
 
-  if (currentVal) selectDay.value = currentVal;
+  // Pilih 'ALL' sebagai lalai utama
+  selectDay.value = (currentVal && Array.from(selectDay.options).some(o => o.value === currentVal)) ? currentVal : 'ALL';
 }
 
 function changeWeekGuru() {
