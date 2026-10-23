@@ -4,7 +4,7 @@
  */
 
 // URL Utama  Apps Script Web App (Di-deploy dari Akaun MOE)
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxUaP6VWYp8uwFEWI47wrEeC_1KBLDxW_nuLyjDE5jifEC9hU7qLeDyd2IcQz--14Q/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxlPuSetnlTtkmoJo4x6QAtOzqFHihQibRImSfHruuXmr4jQEHY9sO1w7U3kvk8ZUPq/exec';
 
 // Tetapan Google OAuth Client ID (Dari Google Cloud Console Akaun Peribadi)
 const GOOGLE_CLIENT_ID = '637460698521-djt73cs1emsa5n5m7p2q8s4feohmhnuh.apps.googleusercontent.com';
