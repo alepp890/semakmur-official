@@ -45,7 +45,7 @@
   if (!rawData) {
     console.warn("❌ Auth Guard: Tiada sesi ditemui dalam LocalStorage / SessionStorage.");
     alert('Akses Ditolak! Sila log masuk terlebih dahulu.');
-    window.location.replace('../LoginSession.html');
+    window.location.replace('../../LoginSession.html');
     return;
   }
 
