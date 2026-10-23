@@ -25,13 +25,14 @@
         extend: {
           colors: {
             brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-              800: '#3730a3',
-              dark: '#1e1b4b'
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              200: '#fecdd3',
+              500: '#f43f5e',
+              600: '#e11d48',
+              700: '#be123c',
+              800: '#9f1239',
+              dark: '#4c0519'
             },
             accent: {
               amber: '#f59e0b',
@@ -100,41 +101,41 @@
 </head>
 <body id="mainBody" class="min-h-screen flex flex-col antialiased bg-slate-50">
 
-  <!-- TOP HEADER / NAVBAR -->
-  <header class="bg-gradient-to-r from-brand-800 via-brand-700 to-brand-600 text-white shadow-md sticky top-0 z-40 no-print">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4 border-b border-white/10">
+  <!-- TOP HEADER / NAVBAR (Tema Matte Soft Rose) -->
+  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40 border-b border-rose-500/20 no-print">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
       
       <div class="flex items-center space-x-3">
         <!-- PAUTAN KEMBALI KE DASHBOARD GURU -->
-        <a href="DashboardGuru_3.html" class="bg-white/10 p-2 rounded-xl backdrop-blur-md border border-white/20 hover:bg-white/20 transition flex items-center justify-center" title="Kembali ke Dashboard">
-          <i class="fa-solid fa-arrow-left text-lg text-indigo-200"></i>
+        <a href="DashboardGuru_3.html" class="bg-slate-800/80 p-2 rounded-xl border border-slate-700/60 hover:bg-slate-700 transition flex items-center justify-center" title="Kembali ke Dashboard">
+          <i class="fa-solid fa-arrow-left text-lg text-rose-300"></i>
         </a>
         <div>
           <div class="flex items-center space-x-2">
             <span class="text-xl">📘</span>
             <h1 class="font-display font-bold text-xl tracking-tight text-white">Manual Pengurusan SK SeMAKMUR</h1>
           </div>
-          <p class="text-xs text-indigo-100">Portal Pengurusan Jawatan, Jawatankuasa & Deskripsi Tugas Guru 2026</p>
+          <p class="text-xs text-rose-200/80">Portal Pengurusan Jawatan, Jawatankuasa & Deskripsi Tugas Guru 2026</p>
         </div>
       </div>
 
       <div class="flex items-center space-x-4">
         <!-- TOGGLE MOD USER / PERANAN -->
-        <div id="roleToggleContainer" class="bg-black/20 p-1 rounded-xl flex items-center border border-white/10 text-xs">
-          <span class="px-2 text-indigo-100 font-medium hidden sm:inline">Peranan:</span>
-          <button id="roleBtnGuru" onclick="switchUserRole('guru')" class="px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-800 shadow-sm">
+        <div id="roleToggleContainer" class="bg-slate-800 p-1 rounded-xl flex items-center border border-slate-700 text-xs">
+          <span class="px-2 text-rose-100 font-medium hidden sm:inline">Peranan:</span>
+          <button id="roleBtnGuru" onclick="switchUserRole('guru')" class="px-3 py-1 rounded-lg font-semibold transition-all bg-rose-600 text-white shadow-sm">
             👨‍🏫 Guru
           </button>
-          <button id="roleBtnPentadbir" onclick="switchUserRole('pentadbir')" class="px-3 py-1 rounded-lg font-medium text-white hover:text-indigo-200 transition-all">
+          <button id="roleBtnPentadbir" onclick="switchUserRole('pentadbir')" class="px-3 py-1 rounded-lg font-medium text-slate-300 hover:text-white transition-all">
             👔 Pentadbir / Admin
           </button>
         </div>
 
-        <div class="flex items-center space-x-2 border-l border-white/10 pl-3">
-          <img id="userAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120" alt="Profile" class="w-8 h-8 rounded-full border-2 border-indigo-300 object-cover">
+        <div class="flex items-center space-x-2 border-l border-slate-700 pl-3">
+          <img id="userAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120" alt="Profile" class="w-8 h-8 rounded-full border-2 border-rose-400/50 object-cover">
           <div class="hidden lg:block text-left">
             <p id="userName" class="text-xs font-semibold leading-tight text-white">Cikgu Nurul Aini</p>
-            <p id="userRoleTitle" class="text-[10px] text-indigo-200">Guru Akademik & AJK Pengurusan</p>
+            <p id="userRoleTitle" class="text-[10px] text-rose-200/70">Guru Akademik & AJK Pengurusan</p>
           </div>
         </div>
       </div>
@@ -145,34 +146,34 @@
       <div class="flex space-x-1 sm:space-x-2 shrink-0">
         
         <!-- TAB 1: PAPARAN MANUAL -->
-        <button onclick="setActiveTab('tabPaparan')" id="navTabPaparan" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f8fafc] text-brand-800 font-bold">
+        <button onclick="setActiveTab('tabPaparan')" id="navTabPaparan" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f8fafc] text-rose-700 font-bold">
           <i class="fa-solid fa-book-open text-sm"></i>
           <span>Paparan Manual</span>
         </button>
 
         <!-- TAB 2: TETAPAN JAWATAN & TUGAS -->
-        <button onclick="setActiveTab('tabTetapan')" id="navTabTetapan" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-indigo-100 hover:text-white hover:bg-white/10 relative">
+        <button onclick="setActiveTab('tabTetapan')" id="navTabTetapan" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800/50 relative">
           <i class="fa-solid fa-sliders text-sm"></i>
           <span>Tetapan Jawatan & Tugas</span>
           <span id="badgeAdminOnly" class="bg-amber-400 text-slate-900 text-[9px] font-extrabold px-1.5 py-0.2 rounded ml-1">ADMIN</span>
         </button>
 
         <!-- TAB 3: CARTA ORGANISASI -->
-        <button onclick="setActiveTab('tabCarta')" id="navTabCarta" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-indigo-100 hover:text-white hover:bg-white/10">
+        <button onclick="setActiveTab('tabCarta')" id="navTabCarta" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800/50">
           <i class="fa-solid fa-sitemap text-sm"></i>
           <span>Carta Organisasi</span>
         </button>
 
         <!-- TAB 4: CETAK & EKSPORT -->
-        <button onclick="setActiveTab('tabCetak')" id="navTabCetak" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-indigo-100 hover:text-white hover:bg-white/10">
+        <button onclick="setActiveTab('tabCetak')" id="navTabCetak" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800/50">
           <i class="fa-solid fa-print text-sm"></i>
           <span>Cetak & Eksport</span>
         </button>
       </div>
 
       <div class="relative hidden md:block w-64 pb-1">
-        <input type="text" id="globalSearchInput" oninput="filterGlobalManual()" placeholder="Cari Guru / Jawatan / Unit..." class="w-full bg-white/10 text-white placeholder-indigo-200/70 text-xs rounded-full pl-8 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 border border-white/20">
-        <i class="fa-solid fa-magnifying-glass text-indigo-200 absolute left-2.5 top-2.5 text-xs"></i>
+        <input type="text" id="globalSearchInput" oninput="filterGlobalManual()" placeholder="Cari Guru / Jawatan / Unit..." class="w-full bg-slate-800/90 text-white placeholder-rose-200/50 text-xs rounded-full pl-8 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-rose-400 border border-slate-700">
+        <i class="fa-solid fa-magnifying-glass text-rose-300/70 absolute left-2.5 top-2.5 text-xs"></i>
       </div>
     </nav>
   </header>
@@ -180,19 +181,19 @@
   <!-- MAIN CONTAINER -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-    <!-- HEADER INFORMASI ASAS -->
-    <div class="bg-gradient-to-r from-brand-700 to-indigo-800 rounded-2xl p-5 text-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 no-print">
+    <!-- HEADER INFORMASI MATTE SOFT PINK -->
+    <div class="bg-rose-900/90 rounded-2xl p-5 text-white shadow-sm border border-rose-800/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 no-print">
       <div class="flex items-center space-x-4">
-        <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md shrink-0 border border-white/15">
-          <i class="fa-solid fa-school text-2xl text-amber-300"></i>
+        <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md shrink-0 border border-white/10">
+          <i class="fa-solid fa-school text-2xl text-rose-200"></i>
         </div>
         <div>
           <h2 class="font-display font-extrabold text-lg text-white tracking-tight">Manual Pengurusan & Agihan Tugas Guru 2026</h2>
-          <p class="text-xs text-indigo-100 mt-0.5">Panduan Pengurusan Pentadbiran, Kurikulum, Hal Ehwal Murid (HEM) & Kokurikulum SK SeMAKMUR.</p>
+          <p class="text-xs text-rose-100/80 mt-0.5">Panduan Pengurusan Pentadbiran, Kurikulum, Hal Ehwal Murid (HEM) & Kokurikulum SK SeMAKMUR.</p>
         </div>
       </div>
       <div class="flex items-center gap-2 self-stretch md:self-auto justify-end">
-        <span id="roleNoticeBadge" class="bg-indigo-900/60 text-indigo-200 text-xs font-semibold px-3 py-1.5 rounded-xl border border-indigo-500/30 flex items-center gap-1.5">
+        <span id="roleNoticeBadge" class="bg-rose-950/60 text-rose-200 text-xs font-semibold px-3 py-1.5 rounded-xl border border-rose-700/50 flex items-center gap-1.5">
           <i class="fa-solid fa-user-shield text-amber-300"></i>
           <span id="txtRoleNotice">Mod Paparan Guru</span>
         </span>
@@ -202,12 +203,12 @@
     <!-- VIEW 1: PAPARAN MANUAL PENGURUSAN -->
     <section id="tabPaparan" class="tab-content space-y-6">
 
-      <!-- KAD STATISTIK -->
+      <!-- KAD STATISTIK MATTE -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
           <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
             <span>Jumlah Guru</span>
-            <i class="fa-solid fa-users text-indigo-500"></i>
+            <i class="fa-solid fa-users text-rose-500"></i>
           </div>
           <h3 id="statTotalGuru" class="text-2xl font-bold text-slate-800">24</h3>
           <p class="text-[10px] text-slate-500 mt-0.5">Guru Akademik & Pentadbir</p>
@@ -244,7 +245,7 @@
       <!-- FILTER MENU & CARIAN -->
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
         <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
-          <button onclick="filterPaparanUnit('ALL')" id="btnUnitAll" class="px-3.5 py-2 rounded-xl bg-brand-600 text-white shadow-sm transition">Semua Unit</button>
+          <button onclick="filterPaparanUnit('ALL')" id="btnUnitAll" class="px-3.5 py-2 rounded-xl bg-rose-600 text-white shadow-sm transition">Semua Unit</button>
           <button onclick="filterPaparanUnit('Pentadbiran')" id="btnUnitPentadbiran" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Pentadbiran</button>
           <button onclick="filterPaparanUnit('Kurikulum')" id="btnUnitKurikulum" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Kurikulum</button>
           <button onclick="filterPaparanUnit('HEM')" id="btnUnitHEM" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Hal Ehwal Murid</button>
@@ -252,7 +253,7 @@
         </div>
 
         <div class="relative min-w-[240px]">
-          <input type="text" id="inputFilterPaparan" oninput="renderPaparanTable()" placeholder="Cari nama guru / jawatan..." class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl pl-8 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <input type="text" id="inputFilterPaparan" oninput="renderPaparanTable()" placeholder="Cari nama guru / jawatan..." class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl pl-8 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500">
           <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400 text-xs"></i>
         </div>
       </div>
@@ -261,7 +262,7 @@
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
         <div class="p-4 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
           <h3 class="font-display font-bold text-slate-800 text-sm flex items-center gap-2">
-            <i class="fa-solid fa-list-check text-brand-600"></i>
+            <i class="fa-solid fa-list-check text-rose-600"></i>
             <span>Senarai Jawatan & Deskripsi Tugas Guru Sekolah 2026</span>
           </h3>
           <span class="text-xs text-slate-400 font-medium" id="lblCountDisplay">Menunjukkan 0 rekod</span>
@@ -307,7 +308,7 @@
 
         <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center space-x-2 text-xs font-bold">
-            <button onclick="setTetapanSubMenu('borang')" id="btnSubBorang" class="px-4 py-2 rounded-xl bg-brand-600 text-white shadow-sm flex items-center gap-2">
+            <button onclick="setTetapanSubMenu('borang')" id="btnSubBorang" class="px-4 py-2 rounded-xl bg-rose-600 text-white shadow-sm flex items-center gap-2">
               <i class="fa-solid fa-plus-circle"></i> Tambah / Kemaskini Tugas
             </button>
             <button onclick="setTetapanSubMenu('senarai')" id="btnSubSenarai" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-2">
@@ -331,10 +332,10 @@
           <div id="colBorangTetapan" class="lg:col-span-5 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 class="font-display font-bold text-slate-800 text-sm flex items-center gap-2">
-                <i class="fa-solid fa-user-pen text-brand-600"></i>
+                <i class="fa-solid fa-user-pen text-rose-600"></i>
                 <span id="txtFormTitle">Borang Tetapan Jawatan & Tugas</span>
               </h3>
-              <span class="text-[10px] bg-indigo-50 text-brand-700 px-2.5 py-1 rounded-full font-bold">Akses Admin</span>
+              <span class="text-[10px] bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full font-bold">Akses Admin</span>
             </div>
 
             <form id="formTetapanJawatan" onsubmit="handleSimpanTetapan(event)" class="space-y-4 text-xs">
@@ -342,7 +343,7 @@
 
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Pilih Nama Guru / Staf</label>
-                <select id="inpNamaGuru" required onchange="autoFillGuruDetails()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <select id="inpNamaGuru" required onchange="autoFillGuruDetails()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
                   <option value="">-- Pilih Guru --</option>
                   <option value="Cikgu Ahmad Razak bin Hashim">Cikgu Ahmad Razak bin Hashim (DG44)</option>
                   <option value="Cikgu Nurul Aini binti Zulkifli">Cikgu Nurul Aini binti Zulkifli (DG44)</option>
@@ -356,12 +357,12 @@
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="block font-bold text-slate-700 mb-1">Gred / Opsyen</label>
-                  <input type="text" id="inpGredGuru" placeholder="Contoh: DG44 (Bahasa Melayu)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  <input type="text" id="inpGredGuru" placeholder="Contoh: DG44 (Bahasa Melayu)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
                 </div>
 
                 <div>
                   <label class="block font-bold text-slate-700 mb-1">Kategori / Unit</label>
-                  <select id="inpKategoriUnit" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+                  <select id="inpKategoriUnit" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
                     <option value="Pentadbiran">Pentadbiran</option>
                     <option value="Kurikulum">Kurikulum</option>
                     <option value="HEM">Hal Ehwal Murid (HEM)</option>
@@ -372,17 +373,17 @@
 
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Jawatan Utama / Tanggungjawab</label>
-                <input type="text" id="inpJawatanUtama" required placeholder="Contoh: Ketua Panitia Bahasa Melayu / SU Sukan" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <input type="text" id="inpJawatanUtama" required placeholder="Contoh: Ketua Panitia Bahasa Melayu / SU Sukan" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
               </div>
 
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Perincian / Deskripsi Tugas Guru</label>
-                <textarea id="inpDeskripsiTugas" rows="4" required placeholder="Tuliskan senarai senarai tugas terperinci, jadual mesyuarat, atau skop kerja..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                <textarea id="inpDeskripsiTugas" rows="4" required placeholder="Tuliskan senarai senarai tugas terperinci, jadual mesyuarat, atau skop kerja..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500"></textarea>
               </div>
 
               <div>
                 <label class="block font-bold text-slate-700 mb-1">Status Jawatan</label>
-                <select id="inpStatusJawatan" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <select id="inpStatusJawatan" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
                   <option value="Aktif / Disahkan">Aktif / Disahkan</option>
                   <option value="Dalam Semakan">Dalam Semakan</option>
                   <option value="Pemangku">Pemangku / Sementara</option>
@@ -391,7 +392,7 @@
 
               <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
                 <button type="button" onclick="batalEdit()" class="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition">Batal</button>
-                <button type="submit" class="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
+                <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
                   <i class="fa-solid fa-floppy-disk"></i> <span id="btnSubmitLabel">Simpan Tetapan</span>
                 </button>
               </div>
@@ -441,36 +442,36 @@
             <h2 class="text-xl font-display font-bold text-slate-800">Carta Organisasi Pengurusan Sekolah 2026</h2>
             <p class="text-xs text-slate-400">Hierarki Pengurusan Utama SK SeMAKMUR</p>
           </div>
-          <span class="bg-indigo-50 text-brand-700 text-xs font-bold px-3 py-1 rounded-full border border-indigo-200">Pengurusan Tertinggi</span>
+          <span class="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-200">Pengurusan Tertinggi</span>
         </div>
 
         <div class="space-y-6 flex flex-col items-center">
           
           <!-- Peringkat 1 -->
-          <div class="bg-gradient-to-br from-brand-700 to-indigo-900 text-white p-4 rounded-2xl shadow-md border border-indigo-600 text-center w-full max-w-sm space-y-1">
+          <div class="bg-rose-900 text-white p-4 rounded-2xl shadow-md border border-rose-800 text-center w-full max-w-sm space-y-1">
             <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">Pengerusi / PGB</span>
             <h3 class="font-bold text-sm">Pn. Hajah Faridah binti Hassan</h3>
-            <p class="text-xs text-indigo-200">Guru Besar SK SeMAKMUR</p>
+            <p class="text-xs text-rose-200">Guru Besar SK SeMAKMUR</p>
           </div>
 
           <div class="w-0.5 h-6 bg-slate-300"></div>
 
           <!-- Peringkat 2 -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-            <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-2xl text-center space-y-1">
-              <span class="text-[10px] font-bold bg-indigo-200 text-brand-800 px-2 py-0.5 rounded-full">PK Pentadbiran</span>
+            <div class="bg-rose-50/70 border border-rose-200 p-4 rounded-2xl text-center space-y-1">
+              <span class="text-[10px] font-bold bg-rose-200 text-rose-800 px-2 py-0.5 rounded-full">PK Pentadbiran</span>
               <h4 class="font-bold text-xs text-slate-800">En. Mohd Farhan bin Rozali</h4>
               <p class="text-[11px] text-slate-500">PK Pentadbiran & Kurikulum</p>
             </div>
 
-            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl text-center space-y-1">
+            <div class="bg-emerald-50/70 border border-emerald-200 p-4 rounded-2xl text-center space-y-1">
               <span class="text-[10px] font-bold bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded-full">PK Hal Ehwal Murid</span>
               <h4 class="font-bold text-xs text-slate-800">Pn. Siti Hajar binti Yusof</h4>
               <p class="text-[11px] text-slate-500">PK Hal Ehwal Murid (HEM)</p>
             </div>
 
-            <div class="bg-rose-50 border border-rose-200 p-4 rounded-2xl text-center space-y-1">
-              <span class="text-[10px] font-bold bg-rose-200 text-rose-800 px-2 py-0.5 rounded-full">PK Kokurikulum</span>
+            <div class="bg-amber-50/70 border border-amber-200 p-4 rounded-2xl text-center space-y-1">
+              <span class="text-[10px] font-bold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">PK Kokurikulum</span>
               <h4 class="font-bold text-xs text-slate-800">En. Lim Chee Keong</h4>
               <p class="text-[11px] text-slate-500">PK Kokurikulum</p>
             </div>
@@ -494,7 +495,7 @@
     <section id="tabCetak" class="tab-content space-y-6 hidden">
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex justify-between items-center no-print">
         <div class="flex items-center space-x-3">
-          <div class="p-2.5 bg-indigo-50 text-brand-700 rounded-xl">
+          <div class="p-2.5 bg-rose-50 text-rose-700 rounded-xl">
             <i class="fa-solid fa-print text-xl"></i>
           </div>
           <div>
@@ -503,7 +504,7 @@
           </div>
         </div>
 
-        <button onclick="window.print()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2">
+        <button onclick="window.print()" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2">
           <i class="fa-solid fa-file-pdf"></i> Cetak / Simpan PDF
         </button>
       </div>
@@ -638,15 +639,15 @@
       const roleNotice = document.getElementById('txtRoleNotice');
 
       if (role === 'guru') {
-        btnGuru.className = 'px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-800 shadow-sm';
-        btnPentadbir.className = 'px-3 py-1 rounded-lg font-medium text-white hover:text-indigo-200 transition-all';
+        btnGuru.className = 'px-3 py-1 rounded-lg font-semibold transition-all bg-rose-600 text-white shadow-sm';
+        btnPentadbir.className = 'px-3 py-1 rounded-lg font-medium text-slate-300 hover:text-white transition-all';
         roleNotice.innerText = 'Mod Paparan Guru (Akses Membaca)';
 
         if (bannerDenied) bannerDenied.classList.remove('hidden');
         if (contentAdmin) contentAdmin.classList.add('opacity-50', 'pointer-events-none');
       } else {
-        btnPentadbir.className = 'px-3 py-1 rounded-lg font-semibold transition-all bg-white text-brand-800 shadow-sm';
-        btnGuru.className = 'px-3 py-1 rounded-lg font-medium text-white hover:text-indigo-200 transition-all';
+        btnPentadbir.className = 'px-3 py-1 rounded-lg font-semibold transition-all bg-rose-600 text-white shadow-sm';
+        btnGuru.className = 'px-3 py-1 rounded-lg font-medium text-slate-300 hover:text-white transition-all';
         roleNotice.innerText = 'Mod Pentadbir / Admin (Kuasa Penuh Edit)';
 
         if (bannerDenied) bannerDenied.classList.add('hidden');
@@ -665,12 +666,12 @@
         if (t === tabId) {
           if (el) el.classList.remove('hidden');
           if (navBtn) {
-            navBtn.className = 'px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f8fafc] text-brand-800 font-bold';
+            navBtn.className = 'px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f8fafc] text-rose-700 font-bold';
           }
         } else {
           if (el) el.classList.add('hidden');
           if (navBtn) {
-            navBtn.className = 'px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-indigo-100 hover:text-white hover:bg-white/10';
+            navBtn.className = 'px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800/50';
           }
         }
       });
@@ -707,7 +708,7 @@
         const b = document.getElementById(btnId);
         if (b) {
           if ((unit === 'ALL' && btnId === 'btnUnitAll') || btnId === 'btnUnit' + unit) {
-            b.className = 'px-3.5 py-2 rounded-xl bg-brand-600 text-white shadow-sm transition';
+            b.className = 'px-3.5 py-2 rounded-xl bg-rose-600 text-white shadow-sm transition';
           } else {
             b.className = 'px-3.5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
           }
@@ -757,7 +758,7 @@
               <p class="font-bold text-slate-800">${item.nama}</p>
               <p class="text-[10px] text-slate-400">${item.gred || 'DG44'}</p>
             </td>
-            <td class="py-3 px-4 font-semibold text-brand-800">${item.jawatan}</td>
+            <td class="py-3 px-4 font-semibold text-rose-700">${item.jawatan}</td>
             <td class="py-3 px-4">
               <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${badgeBg}">${item.kategori}</span>
             </td>
@@ -784,10 +785,10 @@
               <p class="font-bold text-slate-800 text-xs">${item.nama}</p>
               <span class="text-[10px] text-slate-400">${item.kategori}</span>
             </td>
-            <td class="py-2.5 px-3 font-semibold text-brand-700 text-xs">${item.jawatan}</td>
+            <td class="py-2.5 px-3 font-semibold text-rose-700 text-xs">${item.jawatan}</td>
             <td class="py-2.5 px-3 text-slate-500 text-[11px] truncate max-w-[180px]">${item.deskripsi}</td>
             <td class="py-2.5 px-3 text-right space-x-1">
-              <button onclick="editRekod('${item.id}')" class="p-1.5 bg-indigo-50 hover:bg-indigo-100 text-brand-700 rounded-lg transition" title="Edit">
+              <button onclick="editRekod('${item.id}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg transition" title="Edit">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
               <button onclick="padamRekod('${item.id}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Padam">
@@ -846,7 +847,7 @@
         icon: 'success',
         title: 'Berjaya Disimpan!',
         text: 'Tetapan jawatan dan tugas guru telah dikemaskini.',
-        confirmButtonColor: '#4f46e5'
+        confirmButtonColor: '#e11d48'
       });
     }
 
@@ -903,7 +904,7 @@
         text: 'Semua rekod akan dikembalikan kepada tetapan default pengurusan 2026.',
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#4f46e5',
+        confirmButtonColor: '#e11d48',
         cancelButtonColor: '#64748b',
         confirmButtonText: 'Ya, Reset Data'
       }).then((result) => {
@@ -934,7 +935,7 @@
       manualDataList.forEach(item => {
         grid.innerHTML += `
           <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
-            <span class="text-[9px] font-bold text-brand-700 uppercase block">${item.kategori}</span>
+            <span class="text-[9px] font-bold text-rose-700 uppercase block">${item.kategori}</span>
             <p class="font-bold text-slate-800">${item.jawatan}</p>
             <p class="text-[11px] text-slate-500">${item.nama}</p>
           </div>
