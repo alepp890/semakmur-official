@@ -1,10 +1,11 @@
 /**
  * ==============================================================================
  * SEMAKMUR OFFICIAL & E-RPH DIGITAL - FRONTEND CORE MODULE
- * FAIL: guru/js/app-core.js
+ * FAIL: root/guru/modulaplikasi/js/app-core.js
  * ==============================================================================
  */
 
+// Pemataan Kod Subjek ke Nama Penuh DSKP
 const SUBJECT_MAP = {
   'BM': 'Bahasa Melayu',
   'BI': 'Bahasa Inggeris',
@@ -15,9 +16,12 @@ const SUBJECT_MAP = {
   'PSV': 'Pendidikan Seni Visual',
   'PI/Q': 'Pendidikan Islam',
   'PI/U': 'Pendidikan Islam',
+  'PI': 'Pendidikan Islam',
   'RBT': 'Reka Bentuk dan Teknologi',
   'PJ': 'Pendidikan Jasmani',
-  'PK': 'Pendidikan Kesihatan'
+  'PK': 'Pendidikan Kesihatan',
+  'SEJ': 'Sejarah',
+  'HIST': 'Sejarah'
 };
 
 const state = {
@@ -46,7 +50,7 @@ function onIdleTimeout() {
   console.warn("⚠️ Pemasa Idle: Tiada aktiviti dikesan selama 5 minit.");
   sessionStorage.removeItem('ERPH_TAB_SESSION_ACTIVE');
   alert('Sesi e-RPH telah tamat masa akibat tiada aktiviti selama 5 minit. Sila log masuk semula.');
-  window.location.replace('../../LoginSession.html');
+  window.location.replace('../../../LoginSession.html');
 }
 
 function initIdleTimeoutMonitor() {
@@ -230,10 +234,10 @@ function initUserSession() {
       loadTakwimAndInitDropdowns();
     } catch (e) {
       console.error("Ralat membaca sesi pengguna:", e);
-      window.location.replace('../LoginSession.html');
+      window.location.replace('../../../LoginSession.html');
     }
   } else {
-    window.location.replace('../LoginSession.html');
+    window.location.replace('../../../LoginSession.html');
   }
 }
 
