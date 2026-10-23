@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal e-RPH KPM - Pengurusan Rekod Mengajar Harian</title>
 
-  <!-- 1. AUTH GUARD (MEMANGGIL SKRIP TERPISAH DARI FOLDER JS) -->
+  <!-- 1. CONFIG DARI ROOT (NAIK 2 PARAS) -->
+  <script src="../../config.js"></script>
+
+  <!-- 2. AUTH GUARD (MEMANGGIL SKRIP TERPISAH DARI FOLDER JS) -->
   <script src="js/auth-guard.js"></script>
 
   <!-- Tailwind CSS CDN -->
@@ -100,7 +103,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4 border-b border-white/10">
       
       <div class="flex items-center space-x-3">
-        <a href="DashboardGuru.html" class="bg-white/10 p-2 rounded-xl backdrop-blur-md border border-white/20 hover:bg-white/20 transition" title="Kembali ke Dashboard">
+        <!-- PAUTAN KEMBALI KE DASHBOARD GURU (NAIK 1 PARAS) -->
+        <a href="../DashboardGuru.html" class="bg-white/10 p-2 rounded-xl backdrop-blur-md border border-white/20 hover:bg-white/20 transition" title="Kembali ke Dashboard">
           <svg class="w-7 h-7 text-teal-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C20.832 18.477 19.247 18 17.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
           </svg>
@@ -1077,10 +1081,9 @@
     </div>
   </div>
 
-  <!-- SELEPAS (BETUL) -->
-<script src="../config.js"></script>
-<script src="js/app-core.js"></script>
-<script src="js/builder.js"></script>
-<script src="js/approval.js"></script>
+  <!-- MODUL SKRIP APLIKASI (DALAM FOLDER MODULAPLIKASI/JS) -->
+  <script src="js/app-core.js"></script>
+  <script src="js/builder.js"></script>
+  <script src="js/approval.js"></script>
 </body>
 </html>
