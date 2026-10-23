@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual Pengurusan Sekolah SeMAKMUR 2026</title>
+  <title>Manual Pengurusan SK Segambut Makmur 2026</title>
 
-  <!-- Google Fonts: Inter & Outfit -->
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -24,21 +24,15 @@
       theme: {
         extend: {
           colors: {
-            brand: {
+            rose: {
               50: '#fff1f2',
               100: '#ffe4e6',
-              200: '#fecdd3',
               500: '#f43f5e',
               600: '#e11d48',
               700: '#be123c',
               800: '#9f1239',
-              dark: '#4c0519'
-            },
-            accent: {
-              amber: '#f59e0b',
-              amberLight: '#fef3c7',
-              emerald: '#10b981',
-              rose: '#f43f5e'
+              900: '#881337',
+              950: '#4c0519'
             }
           },
           fontFamily: {
@@ -52,7 +46,7 @@
 
   <style>
     body {
-      background-color: #f8fafc;
+      background-color: #f1f5f9;
       font-family: 'Inter', sans-serif;
       color: #334155;
     }
@@ -60,914 +54,573 @@
     .hide-scrollbar::-webkit-scrollbar { display: none; }
     .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #f1f5f9;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-    @media print {
-      body {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-      }
-      .no-print {
-        display: none !important;
-      }
-      .print-only {
-        display: block !important;
-      }
-      .print-card {
-        box-shadow: none !important;
-        border: 1px solid #000 !important;
-        padding: 1rem !important;
-        margin: 0 !important;
-        width: 100% !important;
-      }
+    .menu-card {
+      transition: all 0.2s ease-in-out;
     }
-    .print-only {
-      display: none;
+    .menu-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08);
     }
   </style>
 </head>
-<body id="mainBody" class="min-h-screen flex flex-col antialiased bg-slate-50">
+<body class="min-h-screen flex text-slate-800 bg-slate-100">
 
-  <!-- TOP HEADER / NAVBAR (Tema Matte Soft Rose) -->
-  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-40 border-b border-rose-500/20 no-print">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+  <!-- SIDEBAR NAVIGASI KIRI -->
+  <aside id="sidebar" class="w-72 bg-slate-900 text-slate-300 flex flex-col shrink-0 min-h-screen border-r border-slate-800 hidden md:flex">
+    
+    <!-- SIDEBAR HEADER -->
+    <div class="p-4 border-b border-slate-800 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold">
+        <i class="fa-solid fa-school text-lg"></i>
+      </div>
+      <div>
+        <h2 class="font-display font-bold text-sm text-white leading-tight">SK Segambut Makmur</h2>
+        <p class="text-[11px] text-rose-400 font-semibold">Manual Pengurusan 2026</p>
+      </div>
+    </div>
+
+    <!-- SIDEBAR MENU LIST -->
+    <div class="flex-1 overflow-y-auto p-3 space-y-1 text-xs">
       
-      <div class="flex items-center space-x-3">
-        <!-- PAUTAN KEMBALI KE DASHBOARD GURU -->
-        <a href="DashboardGuru_3.html" class="bg-slate-800/80 p-2 rounded-xl border border-slate-700/60 hover:bg-slate-700 transition flex items-center justify-center" title="Kembali ke Dashboard">
-          <i class="fa-solid fa-arrow-left text-lg text-rose-300"></i>
-        </a>
-        <div>
-          <div class="flex items-center space-x-2">
-            <span class="text-xl">📘</span>
-            <h1 class="font-display font-bold text-xl tracking-tight text-white">Manual Pengurusan SK SeMAKMUR</h1>
-          </div>
-          <p class="text-xs text-rose-200/80">Portal Pengurusan Jawatan, Jawatankuasa & Deskripsi Tugas Guru 2026</p>
-        </div>
-      </div>
+      <button onclick="showDashboard()" id="sideNavDashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold bg-rose-600 text-white shadow-sm transition">
+        <i class="fa-solid fa-chart-pie w-4 text-center"></i>
+        <span>Dashboard Utama</span>
+      </button>
 
-      <div class="flex items-center space-x-4">
-        <!-- TOGGLE MOD USER / PERANAN -->
-        <div id="roleToggleContainer" class="bg-slate-800 p-1 rounded-xl flex items-center border border-slate-700 text-xs">
-          <span class="px-2 text-rose-100 font-medium hidden sm:inline">Peranan:</span>
-          <button id="roleBtnGuru" onclick="switchUserRole('guru')" class="px-3 py-1 rounded-lg font-semibold transition-all bg-rose-600 text-white shadow-sm">
-            👨‍🏫 Guru
-          </button>
-          <button id="roleBtnPentadbir" onclick="switchUserRole('pentadbir')" class="px-3 py-1 rounded-lg font-medium text-slate-300 hover:text-white transition-all">
-            👔 Pentadbir / Admin
-          </button>
-        </div>
+      <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tetapan Asas</div>
+      
+      <button onclick="openModule('muka-depan', 'Muka Depan Buku Pengurusan')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-book-open w-4 text-center text-rose-400"></i>
+        <span>Muka Depan</span>
+      </button>
 
-        <div class="flex items-center space-x-2 border-l border-slate-700 pl-3">
-          <img id="userAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120" alt="Profile" class="w-8 h-8 rounded-full border-2 border-rose-400/50 object-cover">
-          <div class="hidden lg:block text-left">
-            <p id="userName" class="text-xs font-semibold leading-tight text-white">Cikgu Nurul Aini</p>
-            <p id="userRoleTitle" class="text-[10px] text-rose-200/70">Guru Akademik & AJK Pengurusan</p>
-          </div>
-        </div>
-      </div>
+      <button onclick="openModule('prakata', 'Prakata & Aluan')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-comment-dots w-4 text-center text-rose-400"></i>
+        <span>Prakata & Aluan</span>
+      </button>
+
+      <button onclick="openModule('profil', 'Profil Sekolah')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-id-card w-4 text-center text-rose-400"></i>
+        <span>Profil Sekolah</span>
+      </button>
+
+      <button onclick="openModule('pelan', 'Pelan Lokasi & Pelan Kebakaran')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-fire-extinguisher w-4 text-center text-rose-400"></i>
+        <span>Pelan Kebakaran / Kecemasan</span>
+      </button>
+
+      <button onclick="openModule('falsafah', 'Falsafah & Piagam')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-award w-4 text-center text-rose-400"></i>
+        <span>Falsafah & Piagam</span>
+      </button>
+
+      <button onclick="openModule('lencana', 'Lencana Sekolah')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-shield-halved w-4 text-center text-rose-400"></i>
+        <span>Lencana Sekolah</span>
+      </button>
+
+      <button onclick="openModule('lagu', 'Lagu, Objektif & Ikrar Guru')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-music w-4 text-center text-rose-400"></i>
+        <span>Lagu, Objektif & Ikrar</span>
+      </button>
+
+      <button onclick="openModule('enrolmen', 'Enrolmen Murid, Data Guru & Data AKP')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-users-viewfinder w-4 text-center text-rose-400"></i>
+        <span>Enrolmen & Data Staf</span>
+      </button>
+
+      <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pengurusan Utama</div>
+
+      <button onclick="openModule('pentadbiran', 'Pengurusan Pentadbiran')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-briefcase w-4 text-center text-amber-400"></i>
+        <span>Pengurusan Pentadbiran</span>
+      </button>
+
+      <button onclick="openModule('kurikulum', 'Pengurusan Kurikulum')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-book-bookmark w-4 text-center text-emerald-400"></i>
+        <span>Pengurusan Kurikulum</span>
+      </button>
+
+      <button onclick="openModule('hem', 'Hal Ehwal Murid (HEM)')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-user-graduate w-4 text-center text-blue-400"></i>
+        <span>Hal Ehwal Murid</span>
+      </button>
+
+      <button onclick="openModule('kokurikulum', 'Pengurusan Kokurikulum')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-trophy w-4 text-center text-rose-400"></i>
+        <span>Pengurusan Kokurikulum</span>
+      </button>
+
+      <button onclick="openModule('carta', 'Carta Organisasi Pengurusan')" class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition">
+        <i class="fa-solid fa-sitemap w-4 text-center text-purple-400"></i>
+        <span>Carta Organisasi</span>
+      </button>
+
     </div>
 
-    <!-- TAB NAVIGATION BAR -->
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between space-x-2 overflow-x-auto text-sm font-medium pt-2">
-      <div class="flex space-x-1 sm:space-x-2 shrink-0">
+    <!-- SIDEBAR FOOTER -->
+    <div class="p-3 border-t border-slate-800 text-[11px] text-slate-500 text-center">
+      Portal Pengurusan Guru v3.0
+    </div>
+  </aside>
+
+  <!-- CONTENT MAIN CONTAINER -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+
+    <!-- TOP NAVBAR HEADER -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 lg:px-8 py-3 flex items-center justify-between shadow-sm">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-lg bg-slate-100 text-slate-700">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <span class="font-bold text-slate-800">Manual Pengurusan</span>
+          <span>/</span>
+          <span id="txtBreadcrumb" class="text-rose-600 font-semibold">Dashboard Utama</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- MOD TOGGLE ROLE -->
+        <div class="bg-slate-100 p-1 rounded-xl flex items-center text-xs">
+          <button id="btnRoleGuru" onclick="setRole('guru')" class="px-3 py-1 rounded-lg font-bold bg-rose-600 text-white transition">👨‍🏫 Guru</button>
+          <button id="btnRoleAdmin" onclick="setRole('admin')" class="px-3 py-1 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition">👔 Admin</button>
+        </div>
+
+        <div class="flex items-center gap-2 border-l border-slate-200 pl-3">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120" class="w-8 h-8 rounded-full border border-rose-300 object-cover">
+          <div class="hidden sm:block text-left">
+            <p class="text-xs font-bold text-slate-800 leading-none">Cikgu Nurul Aini</p>
+            <p class="text-[10px] text-slate-500">SK Segambut Makmur</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN BODY CONTENT -->
+    <main class="p-4 lg:p-8 space-y-6">
+
+      <!-- DASHBOARD VIEW CONTAINER -->
+      <div id="viewDashboard" class="space-y-6">
+
+        <!-- BANNER SIZE COMPACT / RINGKAS -->
+        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-md border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
+          <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-rose-600/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div class="flex items-center gap-4 z-10">
+            <!-- LOGO SEKOLAH -->
+            <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md p-2 border border-white/20 shrink-0 flex items-center justify-center">
+              <i class="fa-solid fa-graduation-cap text-3xl text-rose-400"></i>
+            </div>
+
+            <div>
+              <h1 class="font-display font-extrabold text-xl lg:text-2xl text-white tracking-tight">Sekolah Kebangsaan Segambut Makmur</h1>
+              <p class="text-xs text-rose-300 font-semibold mt-0.5">Manual Pengurusan 2026</p>
+            </div>
+          </div>
+
+          <!-- PROGRESS BAR KEMAJUAN MANUAL -->
+          <div class="w-full md:w-72 bg-slate-800/90 border border-slate-700/80 p-3 rounded-xl z-10 space-y-1.5">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-300 text-[11px] font-medium">Status Pengisian Manual:</span>
+              <span id="txtProgressVal" class="font-extrabold text-rose-400">68%</span>
+            </div>
+            <div class="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
+              <div id="barProgress" class="bg-gradient-to-r from-rose-500 to-rose-400 h-2.5 rounded-full transition-all duration-700" style="width: 68%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 KAD STATISTIK UTAMA -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg shrink-0">
+              <i class="fa-solid fa-user-tie"></i>
+            </div>
+            <div>
+              <p class="text-[11px] text-slate-400 font-medium">Bil. Guru</p>
+              <h3 class="text-xl font-extrabold text-slate-800">42</h3>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+              <i class="fa-solid fa-users-gear"></i>
+            </div>
+            <div>
+              <p class="text-[11px] text-slate-400 font-medium">Bil. AKP</p>
+              <h3 class="text-xl font-extrabold text-slate-800">8</h3>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
+              <i class="fa-solid fa-door-open"></i>
+            </div>
+            <div>
+              <p class="text-[11px] text-slate-400 font-medium">Bil. Kelas</p>
+              <h3 class="text-xl font-extrabold text-slate-800">18</h3>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+              <i class="fa-solid fa-children"></i>
+            </div>
+            <div>
+              <p class="text-[11px] text-slate-400 font-medium">Bil. Murid</p>
+              <h3 class="text-xl font-extrabold text-slate-800">520</h3>
+            </div>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3 col-span-2 sm:col-span-1">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg shrink-0">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div>
+              <p class="text-[11px] text-slate-400 font-medium">Aktiviti Tahunan</p>
+              <h3 class="text-xl font-extrabold text-slate-800">35</h3>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- PAUTAN PANTAS (GRID MENU PANTAS MATCHING REFERENCE IMAGE) -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="font-display font-bold text-slate-800 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-border-all text-rose-600"></i>
+              <span>Menu Pantas Dashboard</span>
+            </h3>
+            <span class="text-xs text-slate-400">Pilih modul untuk dikemaskini</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 text-xs">
+
+            <button onclick="openModule('muka-depan', 'Muka Depan')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Muka Depan</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('prakata', 'Prakata & Aluan')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Prakata & Aluan</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('profil', 'Profil Sekolah')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Profil Sekolah</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('pelan', 'Pelan Lokasi & Pelan Kebakaran / Kecemasan')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800 leading-snug">Pelan Lokasi & Kebakaran</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('falsafah', 'Falsafah & Piagam')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Falsafah & Piagam</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('lencana', 'Lencana Sekolah')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Lencana Sekolah</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('lagu', 'Lagu, Objektif & Ikrar Guru')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800 leading-snug">Lagu, Objektif & Ikrar</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('enrolmen', 'Enrolmen Murid, Data Guru & Data AKP')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800 leading-snug">Enrolmen & Data Staf</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('tetapan-sekolah', 'Tetapan Sekolah')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Tetapan Sekolah</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('tatacara', 'Tatacara Pengurusan SK Segambut Makmur')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800 leading-snug">Tatacara Pengurusan</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('pentadbiran', 'Pengurusan Pentadbiran')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Pengurusan Pentadbiran</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('kurikulum', 'Pengurusan Kurikulum')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Pengurusan Kurikulum</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('hem', 'Hal Ehwal Murid')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Hal Ehwal Murid</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('kokurikulum', 'Pengurusan Kokurikulum')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Kokurikulum</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('ppki', 'Program Pendidikan Khas Integrasi (PPKI)')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800 leading-snug">PPKI Integrasi</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('pibg', 'Pengurusan PIBG')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Pengurusan PIBG</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('carta', 'Carta Organisasi')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Carta Organisasi</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('pemberatan', 'Pemberatan Tugasan Guru')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Pemberatan Tugasan</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('rpm', 'RPM 2026')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">RPM 2026</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('takwim', 'Takwim Sekolah')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Takwim Sekolah</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('pekeliling', 'Pekeliling Penjawat Awam')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800 leading-snug">Pekeliling Awam</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('etika', 'Etika Pemakaian Staf')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Etika Pemakaian</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('tatatertib', 'Tatatertib & Disiplin')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Tatatertib & Disiplin</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('aktiviti', 'Aktiviti Tahunan')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Aktiviti Tahunan</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('muatnaik', 'Bahan Muat Naik')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Bahan Muat Naik</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('pemulihan', 'Semak & Pemulihan Data')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800 leading-snug">🔍 Semak & Pemulihan</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('manual-pengisian', 'Manual Pengisian')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800 leading-snug">📘 Manual Pengisian</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('manual-penggunaan', 'Manual Penggunaan')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800 leading-snug">📗 Manual Penggunaan</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+            <button onclick="openModule('cetak-data', 'Cetak & Data')" class="menu-card p-3.5 bg-slate-50 hover:bg-rose-50 hover:border-rose-300 border border-slate-200 rounded-xl text-left font-medium text-slate-700 flex flex-col justify-between h-20">
+              <span class="font-bold text-slate-800">Cetak & Data</span>
+              <i class="fa-solid fa-arrow-right text-slate-400 text-right text-xs"></i>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CONTAINER DYNAMIC CONTENT MODUL -->
+      <div id="viewModuleContent" class="hidden space-y-6">
         
-        <!-- TAB 1: PAPARAN MANUAL -->
-        <button onclick="setActiveTab('tabPaparan')" id="navTabPaparan" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f8fafc] text-rose-700 font-bold">
-          <i class="fa-solid fa-book-open text-sm"></i>
-          <span>Paparan Manual</span>
-        </button>
-
-        <!-- TAB 2: TETAPAN JAWATAN & TUGAS -->
-        <button onclick="setActiveTab('tabTetapan')" id="navTabTetapan" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800/50 relative">
-          <i class="fa-solid fa-sliders text-sm"></i>
-          <span>Tetapan Jawatan & Tugas</span>
-          <span id="badgeAdminOnly" class="bg-amber-400 text-slate-900 text-[9px] font-extrabold px-1.5 py-0.2 rounded ml-1">ADMIN</span>
-        </button>
-
-        <!-- TAB 3: CARTA ORGANISASI -->
-        <button onclick="setActiveTab('tabCarta')" id="navTabCarta" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800/50">
-          <i class="fa-solid fa-sitemap text-sm"></i>
-          <span>Carta Organisasi</span>
-        </button>
-
-        <!-- TAB 4: CETAK & EKSPORT -->
-        <button onclick="setActiveTab('tabCetak')" id="navTabCetak" class="px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800/50">
-          <i class="fa-solid fa-print text-sm"></i>
-          <span>Cetak & Eksport</span>
-        </button>
-      </div>
-
-      <div class="relative hidden md:block w-64 pb-1">
-        <input type="text" id="globalSearchInput" oninput="filterGlobalManual()" placeholder="Cari Guru / Jawatan / Unit..." class="w-full bg-slate-800/90 text-white placeholder-rose-200/50 text-xs rounded-full pl-8 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-rose-400 border border-slate-700">
-        <i class="fa-solid fa-magnifying-glass text-rose-300/70 absolute left-2.5 top-2.5 text-xs"></i>
-      </div>
-    </nav>
-  </header>
-
-  <!-- MAIN CONTAINER -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-
-    <!-- HEADER INFORMASI MATTE SOFT PINK -->
-    <div class="bg-rose-900/90 rounded-2xl p-5 text-white shadow-sm border border-rose-800/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 no-print">
-      <div class="flex items-center space-x-4">
-        <div class="p-3 bg-white/10 rounded-2xl backdrop-blur-md shrink-0 border border-white/10">
-          <i class="fa-solid fa-school text-2xl text-rose-200"></i>
-        </div>
-        <div>
-          <h2 class="font-display font-extrabold text-lg text-white tracking-tight">Manual Pengurusan & Agihan Tugas Guru 2026</h2>
-          <p class="text-xs text-rose-100/80 mt-0.5">Panduan Pengurusan Pentadbiran, Kurikulum, Hal Ehwal Murid (HEM) & Kokurikulum SK SeMAKMUR.</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 self-stretch md:self-auto justify-end">
-        <span id="roleNoticeBadge" class="bg-rose-950/60 text-rose-200 text-xs font-semibold px-3 py-1.5 rounded-xl border border-rose-700/50 flex items-center gap-1.5">
-          <i class="fa-solid fa-user-shield text-amber-300"></i>
-          <span id="txtRoleNotice">Mod Paparan Guru</span>
-        </span>
-      </div>
-    </div>
-
-    <!-- VIEW 1: PAPARAN MANUAL PENGURUSAN -->
-    <section id="tabPaparan" class="tab-content space-y-6">
-
-      <!-- KAD STATISTIK MATTE -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
-          <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-            <span>Jumlah Guru</span>
-            <i class="fa-solid fa-users text-rose-500"></i>
-          </div>
-          <h3 id="statTotalGuru" class="text-2xl font-bold text-slate-800">24</h3>
-          <p class="text-[10px] text-slate-500 mt-0.5">Guru Akademik & Pentadbir</p>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
-          <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-            <span>Pentadbiran</span>
-            <i class="fa-solid fa-building-user text-amber-500"></i>
-          </div>
-          <h3 id="statPentadbiran" class="text-2xl font-bold text-amber-600">5 Unit</h3>
-          <p class="text-[10px] text-slate-500 mt-0.5">Pengurusan Utama Sekolah</p>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
-          <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-            <span>Unit Kurikulum</span>
-            <i class="fa-solid fa-book text-emerald-500"></i>
-          </div>
-          <h3 id="statKurikulum" class="text-2xl font-bold text-emerald-600">8 Panitia</h3>
-          <p class="text-[10px] text-slate-500 mt-0.5">Kurikulum & PBD</p>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80">
-          <div class="flex justify-between items-center text-xs text-slate-400 mb-1">
-            <span>HEM & Kokurikulum</span>
-            <i class="fa-solid fa-trophy text-rose-500"></i>
-          </div>
-          <h3 id="statHemKoku" class="text-2xl font-bold text-rose-600">12 Unit</h3>
-          <p class="text-[10px] text-slate-500 mt-0.5">Sukan, Kelab & Kebajikan</p>
-        </div>
-      </div>
-
-      <!-- FILTER MENU & CARIAN -->
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
-        <div class="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
-          <button onclick="filterPaparanUnit('ALL')" id="btnUnitAll" class="px-3.5 py-2 rounded-xl bg-rose-600 text-white shadow-sm transition">Semua Unit</button>
-          <button onclick="filterPaparanUnit('Pentadbiran')" id="btnUnitPentadbiran" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Pentadbiran</button>
-          <button onclick="filterPaparanUnit('Kurikulum')" id="btnUnitKurikulum" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Kurikulum</button>
-          <button onclick="filterPaparanUnit('HEM')" id="btnUnitHEM" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Hal Ehwal Murid</button>
-          <button onclick="filterPaparanUnit('Kokurikulum')" id="btnUnitKokurikulum" class="px-3.5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Kokurikulum</button>
-        </div>
-
-        <div class="relative min-w-[240px]">
-          <input type="text" id="inputFilterPaparan" oninput="renderPaparanTable()" placeholder="Cari nama guru / jawatan..." class="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl pl-8 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-rose-500">
-          <i class="fa-solid fa-search absolute left-3 top-3 text-slate-400 text-xs"></i>
-        </div>
-      </div>
-
-      <!-- JADUAL PAPARAN -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
-        <div class="p-4 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
-          <h3 class="font-display font-bold text-slate-800 text-sm flex items-center gap-2">
-            <i class="fa-solid fa-list-check text-rose-600"></i>
-            <span>Senarai Jawatan & Deskripsi Tugas Guru Sekolah 2026</span>
-          </h3>
-          <span class="text-xs text-slate-400 font-medium" id="lblCountDisplay">Menunjukkan 0 rekod</span>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-slate-600">
-            <thead class="bg-slate-100/80 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
-              <tr>
-                <th class="py-3.5 px-4 w-12 text-center">No</th>
-                <th class="py-3.5 px-4">Nama Guru & Gred</th>
-                <th class="py-3.5 px-4">Jawatan Utama / Pentadbiran</th>
-                <th class="py-3.5 px-4">Unit & Jawatankuasa</th>
-                <th class="py-3.5 px-4">Deskripsi / Scope Tugas</th>
-                <th class="py-3.5 px-4 text-center">Status</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyPaparanManual" class="divide-y divide-slate-100">
-              <!-- Rendered via JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- VIEW 2: TETAPAN JAWATAN & TUGAS (KHAS ADMIN) -->
-    <section id="tabTetapan" class="tab-content space-y-6 hidden">
-
-      <div id="bannerAccessDenied" class="hidden bg-rose-50 border border-rose-200 text-rose-800 p-6 rounded-2xl shadow-sm space-y-3 text-center">
-        <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
-          <i class="fa-solid fa-lock"></i>
-        </div>
-        <div>
-          <h3 class="font-display font-bold text-base text-rose-900">Akses Terhad Kepada Admin / Pentadbir</h3>
-          <p class="text-xs text-rose-700 max-w-lg mx-auto mt-1">
-            Bahagian tetapan jawatan dan agihan tugas ini hanya boleh dicapai oleh Pentadbir Sekolah. Sila tukar mod ke <strong>👔 Pentadbir / Admin</strong> di sudut atas untuk membuat perubahan.
-          </p>
-        </div>
-      </div>
-
-      <div id="contentTetapanAdmin" class="space-y-6">
-
-        <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
-          <div class="flex items-center space-x-2 text-xs font-bold">
-            <button onclick="setTetapanSubMenu('borang')" id="btnSubBorang" class="px-4 py-2 rounded-xl bg-rose-600 text-white shadow-sm flex items-center gap-2">
-              <i class="fa-solid fa-plus-circle"></i> Tambah / Kemaskini Tugas
+        <!-- MODULE TOOLBAR BACK BUTTON -->
+        <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+          <div class="flex items-center gap-3">
+            <button onclick="showDashboard()" class="p-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 transition flex items-center justify-center">
+              <i class="fa-solid fa-arrow-left text-base"></i>
             </button>
-            <button onclick="setTetapanSubMenu('senarai')" id="btnSubSenarai" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-2">
-              <i class="fa-solid fa-table-list"></i> Senarai Rekod Tetapan
-            </button>
-          </div>
-
-          <div class="flex items-center space-x-2">
-            <button onclick="resetDataKeAsal()" class="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl border border-rose-200 transition flex items-center gap-1.5">
-              <i class="fa-solid fa-rotate-left"></i> Reset Data Asal
-            </button>
-            <button onclick="exportJSONData()" class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-200 transition flex items-center gap-1.5">
-              <i class="fa-solid fa-download"></i> Muat Turun Backup JSON
-            </button>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-          <!-- BORANG TETAPAN -->
-          <div id="colBorangTetapan" class="lg:col-span-5 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 class="font-display font-bold text-slate-800 text-sm flex items-center gap-2">
-                <i class="fa-solid fa-user-pen text-rose-600"></i>
-                <span id="txtFormTitle">Borang Tetapan Jawatan & Tugas</span>
-              </h3>
-              <span class="text-[10px] bg-rose-50 text-rose-700 px-2.5 py-1 rounded-full font-bold">Akses Admin</span>
+            <div>
+              <h2 id="moduleTitle" class="font-display font-bold text-base text-slate-800">Tajuk Modul</h2>
+              <p class="text-[11px] text-slate-400">Pengurusan Data Manual 2026</p>
             </div>
-
-            <form id="formTetapanJawatan" onsubmit="handleSimpanTetapan(event)" class="space-y-4 text-xs">
-              <input type="hidden" id="editRecordId" value="">
-
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Pilih Nama Guru / Staf</label>
-                <select id="inpNamaGuru" required onchange="autoFillGuruDetails()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
-                  <option value="">-- Pilih Guru --</option>
-                  <option value="Cikgu Ahmad Razak bin Hashim">Cikgu Ahmad Razak bin Hashim (DG44)</option>
-                  <option value="Cikgu Nurul Aini binti Zulkifli">Cikgu Nurul Aini binti Zulkifli (DG44)</option>
-                  <option value="Cikgu Maria binti Abdullah">Cikgu Maria binti Abdullah (DG41)</option>
-                  <option value="Cikgu Mohd Farhan bin Rozali">Cikgu Mohd Farhan bin Rozali (DG48)</option>
-                  <option value="Cikgu Siti Hajar binti Yusof">Cikgu Siti Hajar binti Yusof (DG44)</option>
-                  <option value="Cikgu Lim Chee Keong">Cikgu Lim Chee Keong (DG48)</option>
-                </select>
-              </div>
-
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block font-bold text-slate-700 mb-1">Gred / Opsyen</label>
-                  <input type="text" id="inpGredGuru" placeholder="Contoh: DG44 (Bahasa Melayu)" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
-                </div>
-
-                <div>
-                  <label class="block font-bold text-slate-700 mb-1">Kategori / Unit</label>
-                  <select id="inpKategoriUnit" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
-                    <option value="Pentadbiran">Pentadbiran</option>
-                    <option value="Kurikulum">Kurikulum</option>
-                    <option value="HEM">Hal Ehwal Murid (HEM)</option>
-                    <option value="Kokurikulum">Kokurikulum</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Jawatan Utama / Tanggungjawab</label>
-                <input type="text" id="inpJawatanUtama" required placeholder="Contoh: Ketua Panitia Bahasa Melayu / SU Sukan" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
-              </div>
-
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Perincian / Deskripsi Tugas Guru</label>
-                <textarea id="inpDeskripsiTugas" rows="4" required placeholder="Tuliskan senarai senarai tugas terperinci, jadual mesyuarat, atau skop kerja..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500"></textarea>
-              </div>
-
-              <div>
-                <label class="block font-bold text-slate-700 mb-1">Status Jawatan</label>
-                <select id="inpStatusJawatan" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500">
-                  <option value="Aktif / Disahkan">Aktif / Disahkan</option>
-                  <option value="Dalam Semakan">Dalam Semakan</option>
-                  <option value="Pemangku">Pemangku / Sementara</option>
-                </select>
-              </div>
-
-              <div class="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2">
-                <button type="button" onclick="batalEdit()" class="px-4 py-2 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 transition">Batal</button>
-                <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
-                  <i class="fa-solid fa-floppy-disk"></i> <span id="btnSubmitLabel">Simpan Tetapan</span>
-                </button>
-              </div>
-            </form>
           </div>
 
-          <!-- SENARAI TETAPAN -->
-          <div id="colSenaraiTetapan" class="lg:col-span-7 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 class="font-display font-bold text-slate-800 text-sm">Senarai Agihan Jawatan & Tugas</h3>
-                <p class="text-[11px] text-slate-400">Semua tetapan disimpan dalam pangkalan data sekolah</p>
-              </div>
-              <span class="text-xs font-bold bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg border border-emerald-200" id="lblCountTetapan">
-                0 Rekod
-              </span>
-            </div>
+          <button onclick="simpanModulSimulasi()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
+          </button>
+        </div>
 
+        <!-- AREA PIPING BORANG MODUL TERPILIH -->
+        <div id="moduleInnerBody" class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm text-xs space-y-4">
+          <!-- Rendered via JS -->
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- JAVASCRIPT SYSTEM LOGIC -->
+  <script>
+    let currentRole = 'guru';
+
+    function setRole(role) {
+      currentRole = role;
+      const btnGuru = document.getElementById('btnRoleGuru');
+      const btnAdmin = document.getElementById('btnRoleAdmin');
+
+      if (role === 'guru') {
+        btnGuru.className = 'px-3 py-1 rounded-lg font-bold bg-rose-600 text-white transition';
+        btnAdmin.className = 'px-3 py-1 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition';
+        Swal.fire({ icon: 'info', title: 'Mod Guru', text: 'Akses paparan sahaja.', timer: 1200, showConfirmButton: false });
+      } else {
+        btnAdmin.className = 'px-3 py-1 rounded-lg font-bold bg-rose-600 text-white transition';
+        btnGuru.className = 'px-3 py-1 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition';
+        Swal.fire({ icon: 'success', title: 'Mod Pentadbir', text: 'Kuasa Penuh Edit & Simpan!', timer: 1200, showConfirmButton: false });
+      }
+    }
+
+    function toggleMobileSidebar() {
+      const sb = document.getElementById('sidebar');
+      sb.classList.toggle('hidden');
+    }
+
+    function showDashboard() {
+      document.getElementById('viewDashboard').classList.remove('hidden');
+      document.getElementById('viewModuleContent').classList.add('hidden');
+      document.getElementById('txtBreadcrumb').innerText = 'Dashboard Utama';
+    }
+
+    function openModule(modKey, modTitle) {
+      document.getElementById('viewDashboard').classList.add('hidden');
+      document.getElementById('viewModuleContent').classList.remove('hidden');
+      document.getElementById('moduleTitle').innerText = modTitle;
+      document.getElementById('txtBreadcrumb').innerText = modTitle;
+
+      const inner = document.getElementById('moduleInnerBody');
+
+      // GENERATE TEMPLATE DYNAMIC MODUL
+      if (modKey === 'muka-depan') {
+        inner.innerHTML = `
+          <h3 class="font-bold text-sm text-slate-800 border-b pb-2">Tetapan Muka Depan Buku Pengurusan</h3>
+          <div class="space-y-3 max-w-lg">
+            <div>
+              <label class="block font-bold mb-1">Tajuk Buku Pengurusan</label>
+              <input type="text" value="MANUAL PENGURUSAN DAN TUGAS SEKOALAH 2026" class="w-full bg-slate-50 border p-2.5 rounded-xl">
+            </div>
+            <div>
+              <label class="block font-bold mb-1">Tema / Moto Tahun Semasa</label>
+              <input type="text" value="Pendidikan Berkualiti, Insan Terdidik, Negara Sejahtera" class="w-full bg-slate-50 border p-2.5 rounded-xl">
+            </div>
+          </div>
+        `;
+      } else if (modKey === 'prakata') {
+        inner.innerHTML = `
+          <h3 class="font-bold text-sm text-slate-800 border-b pb-2">Prakata & Kata Aluan Guru Besar</h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block font-bold mb-1">Nama Guru Besar</label>
+              <input type="text" value="Pn. Hajah Faridah binti Hassan" class="w-full bg-slate-50 border p-2.5 rounded-xl font-bold">
+            </div>
+            <div>
+              <label class="block font-bold mb-1">Teks Kata Aluan Guru Besar</label>
+              <textarea rows="6" class="w-full bg-slate-50 border p-2.5 rounded-xl">Selamat sejahtera dan salam sehati sejiwa. Terima kasih kepada semua warga SK Segambut Makmur atas komitmen berterusan dalam menjayakan perancangan sekolah 2026...</textarea>
+            </div>
+          </div>
+        `;
+      } else if (modKey === 'pelan') {
+        inner.innerHTML = `
+          <h3 class="font-bold text-sm text-slate-800 border-b pb-2">Pelan Lokasi & Pelan Kebakaran / Kecemasan</h3>
+          <div class="space-y-4">
+            <div class="p-4 border-2 border-dashed border-slate-300 rounded-2xl text-center bg-slate-50 space-y-2">
+              <i class="fa-solid fa-cloud-arrow-up text-3xl text-rose-500"></i>
+              <p class="font-bold text-slate-700">Muat Naik Fail Pelan Kebakaran (PNG/JPG/PDF)</p>
+              <p class="text-[11px] text-slate-400">Saiz fail maksimum 10MB</p>
+              <input type="file" class="mx-auto block text-xs">
+            </div>
+          </div>
+        `;
+      } else if (modKey === 'pentadbiran') {
+        inner.innerHTML = `
+          <h3 class="font-bold text-sm text-slate-800 border-b pb-2">Pengurusan Pentadbiran - Senarai Kelas & Guru Kelas</h3>
+          <div class="space-y-4">
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs text-slate-600">
-                <thead class="bg-slate-50 text-slate-500 font-bold uppercase border-b border-slate-200">
-                  <tr>
-                    <th class="py-2.5 px-3">Guru & Unit</th>
-                    <th class="py-2.5 px-3">Jawatan</th>
-                    <th class="py-2.5 px-3">Deskripsi</th>
-                    <th class="py-2.5 px-3 text-right">Tindakan</th>
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 font-bold">
+                    <th class="p-2.5 border">Nama Kelas</th>
+                    <th class="p-2.5 border">Guru Kelas</th>
+                    <th class="p-2.5 border">Bilik Khas</th>
                   </tr>
                 </thead>
-                <tbody id="tbodyTetapanAdmin" class="divide-y divide-slate-100">
-                  <!-- Rendered via JS -->
+                <tbody>
+                  <tr>
+                    <td class="p-2.5 border font-bold">1 Cemerlang</td>
+                    <td class="p-2.5 border">
+                      <select class="w-full p-1.5 border rounded-lg bg-slate-50">
+                        <option>Cikgu Nurul Aini binti Zulkifli</option>
+                        <option>Cikgu Ahmad Razak bin Hashim</option>
+                      </select>
+                    </td>
+                    <td class="p-2.5 border">Bilik Darjah 1A</td>
+                  </tr>
+                  <tr>
+                    <td class="p-2.5 border font-bold">2 Gemilang</td>
+                    <td class="p-2.5 border">
+                      <select class="w-full p-1.5 border rounded-lg bg-slate-50">
+                        <option>Cikgu Maria binti Abdullah</option>
+                        <option>Cikgu Mohd Farhan bin Rozali</option>
+                      </select>
+                    </td>
+                    <td class="p-2.5 border">Bilik Darjah 2B</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
           </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-    <!-- VIEW 3: CARTA ORGANISASI -->
-    <section id="tabCarta" class="tab-content space-y-6 hidden">
-      <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 space-y-6">
-        <div class="border-b border-slate-100 pb-4 flex items-center justify-between">
-          <div>
-            <h2 class="text-xl font-display font-bold text-slate-800">Carta Organisasi Pengurusan Sekolah 2026</h2>
-            <p class="text-xs text-slate-400">Hierarki Pengurusan Utama SK SeMAKMUR</p>
-          </div>
-          <span class="bg-rose-50 text-rose-700 text-xs font-bold px-3 py-1 rounded-full border border-rose-200">Pengurusan Tertinggi</span>
-        </div>
-
-        <div class="space-y-6 flex flex-col items-center">
-          
-          <!-- Peringkat 1 -->
-          <div class="bg-rose-900 text-white p-4 rounded-2xl shadow-md border border-rose-800 text-center w-full max-w-sm space-y-1">
-            <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full">Pengerusi / PGB</span>
-            <h3 class="font-bold text-sm">Pn. Hajah Faridah binti Hassan</h3>
-            <p class="text-xs text-rose-200">Guru Besar SK SeMAKMUR</p>
-          </div>
-
-          <div class="w-0.5 h-6 bg-slate-300"></div>
-
-          <!-- Peringkat 2 -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-            <div class="bg-rose-50/70 border border-rose-200 p-4 rounded-2xl text-center space-y-1">
-              <span class="text-[10px] font-bold bg-rose-200 text-rose-800 px-2 py-0.5 rounded-full">PK Pentadbiran</span>
-              <h4 class="font-bold text-xs text-slate-800">En. Mohd Farhan bin Rozali</h4>
-              <p class="text-[11px] text-slate-500">PK Pentadbiran & Kurikulum</p>
-            </div>
-
-            <div class="bg-emerald-50/70 border border-emerald-200 p-4 rounded-2xl text-center space-y-1">
-              <span class="text-[10px] font-bold bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded-full">PK Hal Ehwal Murid</span>
-              <h4 class="font-bold text-xs text-slate-800">Pn. Siti Hajar binti Yusof</h4>
-              <p class="text-[11px] text-slate-500">PK Hal Ehwal Murid (HEM)</p>
-            </div>
-
-            <div class="bg-amber-50/70 border border-amber-200 p-4 rounded-2xl text-center space-y-1">
-              <span class="text-[10px] font-bold bg-amber-200 text-amber-800 px-2 py-0.5 rounded-full">PK Kokurikulum</span>
-              <h4 class="font-bold text-xs text-slate-800">En. Lim Chee Keong</h4>
-              <p class="text-[11px] text-slate-500">PK Kokurikulum</p>
-            </div>
-          </div>
-
-          <div class="w-0.5 h-6 bg-slate-300"></div>
-
-          <!-- Peringkat 3 -->
-          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 w-full space-y-3">
-            <h4 class="font-bold text-xs text-slate-700 uppercase tracking-wider text-center border-b border-slate-200 pb-2">Setiausaha & Ketua Unit Jawatankuasa</h4>
-            <div id="cartaUnitGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-              <!-- Rendered via JS -->
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 4: CETAK & EKSPORT -->
-    <section id="tabCetak" class="tab-content space-y-6 hidden">
-      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 flex justify-between items-center no-print">
-        <div class="flex items-center space-x-3">
-          <div class="p-2.5 bg-rose-50 text-rose-700 rounded-xl">
-            <i class="fa-solid fa-print text-xl"></i>
-          </div>
-          <div>
-            <h2 class="font-display font-bold text-slate-800 text-base">Modul Cetakan Manual Pengurusan</h2>
-            <p class="text-xs text-slate-400">Jana salinan fizikal PDF Manual Pengurusan Sekolah 2026</p>
-          </div>
-        </div>
-
-        <button onclick="window.print()" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-2">
-          <i class="fa-solid fa-file-pdf"></i> Cetak / Simpan PDF
-        </button>
-      </div>
-
-      <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-300 print-card text-black font-sans space-y-6">
-        <div class="border-b-2 border-black pb-4 text-center space-y-1">
-          <h1 class="text-lg font-bold uppercase tracking-wide">Kementerian Pendidikan Malaysia</h1>
-          <h2 class="text-base font-bold text-slate-900">SEKOLAH KEBANGSAAN SEMAKMUR</h2>
-          <p class="text-xs font-semibold text-slate-700">MANUAL PENGURUSAN DAN AGIHAN TUGAS GURU TAHUN 2026</p>
-        </div>
-
-        <div class="space-y-4 text-xs">
-          <table class="w-full border-collapse border border-black text-left">
-            <thead>
-              <tr class="bg-slate-200 text-black font-bold uppercase border-b border-black">
-                <th class="border border-black p-2 w-10 text-center">Bil</th>
-                <th class="border border-black p-2">Nama Guru</th>
-                <th class="border border-black p-2">Unit</th>
-                <th class="border border-black p-2">Jawatan Utama</th>
-                <th class="border border-black p-2">Deskripsi Tugas</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyCetakDocument">
-              <!-- Rendered via JS -->
-            </tbody>
-          </table>
-        </div>
-
-        <div class="pt-8 border-t border-slate-300 flex justify-between items-end text-xs italic text-slate-500">
-          <p>Disahkan oleh Guru Besar SK SeMAKMUR pada: 02 Januari 2026</p>
-          <p>Cetakan Rasmi Sistem Portal Guru SeMAKMUR v2.0</p>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- JAVASCRIPT LOGIK & DATA -->
-  <script>
-    const DEFAULT_MANUAL_DATA = [
-      {
-        id: "MAN-101",
-        nama: "Cikgu Ahmad Razak bin Hashim",
-        gred: "DG44 (Bahasa Melayu)",
-        kategori: "Kurikulum",
-        jawatan: "Ketua Panitia Bahasa Melayu",
-        deskripsi: "Menguruskan mesyuarat panitia 4 kali semahun, merancang program peningkatan akademik BM, dan menyelia fail DSKP/PBD.",
-        status: "Aktif / Disahkan"
-      },
-      {
-        id: "MAN-102",
-        nama: "Cikgu Nurul Aini binti Zulkifli",
-        gred: "DG44 (Sains & Matematik)",
-        kategori: "Pentadbiran",
-        jawatan: "Setiausaha Pengurusan & Laporan Mingguan",
-        deskripsi: "Menguruskan minit mesyuarat guru, mengumpul Laporan Mingguan Guru Bertugas, serta mengemas kini maklumat portal pengurusan.",
-        status: "Aktif / Disahkan"
-      },
-      {
-        id: "MAN-103",
-        nama: "Cikgu Maria binti Abdullah",
-        gred: "DG41 (Bahasa Inggeris)",
-        kategori: "Hal Ehwal Murid (HEM)",
-        jawatan: "Penyelaras Unit Disiplin & Pengawas",
-        deskripsi: "Menguruskan badan pengawas sekolah, rekod SSDM murid, dan mengendalikan program sahsiah terpuji murid.",
-        status: "Aktif / Disahkan"
-      },
-      {
-        id: "MAN-104",
-        nama: "Cikgu Mohd Farhan bin Rozali",
-        gred: "DG48 (Matematik)",
-        kategori: "Pentadbiran",
-        jawatan: "Penolong Kanan Pentadbiran",
-        deskripsi: "Menyelia pempelajaran dan pemudahcaraan (PdPC), jadual waktu guru, e-RPH KPM, dan pengurusan sumber manusia sekolah.",
-        status: "Aktif / Disahkan"
-      },
-      {
-        id: "MAN-105",
-        nama: "Cikgu Siti Hajar binti Yusof",
-        gred: "DG44 (Pendidikan Islam)",
-        kategori: "HEM",
-        jawatan: "Penolong Kanan Hal Ehwal Murid",
-        deskripsi: "Menguruskan kebajikan murid, RMT, Kesihatan & Keselamatan sekolah, serta pendaftaran murid baharu.",
-        status: "Aktif / Disahkan"
-      },
-      {
-        id: "MAN-106",
-        nama: "Cikgu Lim Chee Keong",
-        gred: "DG48 (Pendidikan Jasmani)",
-        kategori: "Kokurikulum",
-        jawatan: "Penolong Kanan Kokurikulum",
-        deskripsi: "Merancang dan menguruskan aktiviti Sukan Tahunan, Unit Beruniform, Kelab & Persatuan, serta PAJSK.",
-        status: "Aktif / Disahkan"
-      }
-    ];
-
-    let currentRole = 'guru';
-    let currentTab = 'tabPaparan';
-    let currentUnitFilter = 'ALL';
-    let manualDataList = [];
-
-    window.addEventListener('DOMContentLoaded', () => {
-      muatDataPangkalan();
-      switchUserRole('guru');
-    });
-
-    function muatDataPangkalan() {
-      const saved = localStorage.getItem('MANUAL_PENGURUSAN_DATA_2026');
-      if (saved) {
-        try {
-          manualDataList = JSON.parse(saved);
-        } catch(e) {
-          manualDataList = [...DEFAULT_MANUAL_DATA];
-        }
-      } else {
-        manualDataList = [...DEFAULT_MANUAL_DATA];
-        simpanKeLocalStorage();
-      }
-      kemaskiniSemuaPaparan();
-    }
-
-    function simpanKeLocalStorage() {
-      localStorage.setItem('MANUAL_PENGURUSAN_DATA_2026', JSON.stringify(manualDataList));
-    }
-
-    function switchUserRole(role) {
-      currentRole = role;
-      const btnGuru = document.getElementById('roleBtnGuru');
-      const btnPentadbir = document.getElementById('roleBtnPentadbir');
-      const bannerDenied = document.getElementById('bannerAccessDenied');
-      const contentAdmin = document.getElementById('contentTetapanAdmin');
-      const roleNotice = document.getElementById('txtRoleNotice');
-
-      if (role === 'guru') {
-        btnGuru.className = 'px-3 py-1 rounded-lg font-semibold transition-all bg-rose-600 text-white shadow-sm';
-        btnPentadbir.className = 'px-3 py-1 rounded-lg font-medium text-slate-300 hover:text-white transition-all';
-        roleNotice.innerText = 'Mod Paparan Guru (Akses Membaca)';
-
-        if (bannerDenied) bannerDenied.classList.remove('hidden');
-        if (contentAdmin) contentAdmin.classList.add('opacity-50', 'pointer-events-none');
-      } else {
-        btnPentadbir.className = 'px-3 py-1 rounded-lg font-semibold transition-all bg-rose-600 text-white shadow-sm';
-        btnGuru.className = 'px-3 py-1 rounded-lg font-medium text-slate-300 hover:text-white transition-all';
-        roleNotice.innerText = 'Mod Pentadbir / Admin (Kuasa Penuh Edit)';
-
-        if (bannerDenied) bannerDenied.classList.add('hidden');
-        if (contentAdmin) contentAdmin.classList.remove('opacity-50', 'pointer-events-none');
-      }
-    }
-
-    function setActiveTab(tabId) {
-      currentTab = tabId;
-      const tabs = ['tabPaparan', 'tabTetapan', 'tabCarta', 'tabCetak'];
-      
-      tabs.forEach(t => {
-        const el = document.getElementById(t);
-        const navBtn = document.getElementById('nav' + t.charAt(0).toUpperCase() + t.slice(1));
-        
-        if (t === tabId) {
-          if (el) el.classList.remove('hidden');
-          if (navBtn) {
-            navBtn.className = 'px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 bg-[#f8fafc] text-rose-700 font-bold';
-          }
-        } else {
-          if (el) el.classList.add('hidden');
-          if (navBtn) {
-            navBtn.className = 'px-4 py-2.5 rounded-t-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800/50';
-          }
-        }
-      });
-
-      if (tabId === 'tabCarta') renderCartaOrganisasi();
-      if (tabId === 'tabCetak') renderCetakDocument();
-    }
-
-    function kemaskiniSemuaPaparan() {
-      renderStatistik();
-      renderPaparanTable();
-      renderTetapanAdminTable();
-      renderCartaOrganisasi();
-      renderCetakDocument();
-    }
-
-    function renderStatistik() {
-      document.getElementById('statTotalGuru').innerText = manualDataList.length;
-      
-      const pentadbiran = manualDataList.filter(d => d.kategori === 'Pentadbiran').length;
-      const kurikulum = manualDataList.filter(d => d.kategori === 'Kurikulum').length;
-      const hemKoku = manualDataList.filter(d => d.kategori === 'HEM' || d.kategori === 'Kokurikulum').length;
-
-      document.getElementById('statPentadbiran').innerText = `${pentadbiran} Jawatan`;
-      document.getElementById('statKurikulum').innerText = `${kurikulum} Jawatan`;
-      document.getElementById('statHemKoku').innerText = `${hemKoku} Jawatan`;
-    }
-
-    function filterPaparanUnit(unit) {
-      currentUnitFilter = unit;
-      const buttons = ['btnUnitAll', 'btnUnitPentadbiran', 'btnUnitKurikulum', 'btnUnitHEM', 'btnUnitKokurikulum'];
-      
-      buttons.forEach(btnId => {
-        const b = document.getElementById(btnId);
-        if (b) {
-          if ((unit === 'ALL' && btnId === 'btnUnitAll') || btnId === 'btnUnit' + unit) {
-            b.className = 'px-3.5 py-2 rounded-xl bg-rose-600 text-white shadow-sm transition';
-          } else {
-            b.className = 'px-3.5 py-2 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
-          }
-        }
-      });
-
-      renderPaparanTable();
-    }
-
-    function renderPaparanTable() {
-      const tbody = document.getElementById('tbodyPaparanManual');
-      const query = (document.getElementById('inputFilterPaparan')?.value || '').toLowerCase();
-      if (!tbody) return;
-
-      tbody.innerHTML = '';
-
-      let filtered = manualDataList.filter(item => {
-        const matchUnit = (currentUnitFilter === 'ALL') || (item.kategori.toLowerCase() === currentUnitFilter.toLowerCase());
-        const matchQuery = item.nama.toLowerCase().includes(query) || 
-                           item.jawatan.toLowerCase().includes(query) || 
-                           item.deskripsi.toLowerCase().includes(query);
-        return matchUnit && matchQuery;
-      });
-
-      document.getElementById('lblCountDisplay').innerText = `Menunjukkan ${filtered.length} rekod`;
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="6" class="text-center py-8 text-slate-400 italic">Tiada rekod jawatan ditemui.</td>
-          </tr>
         `;
+      } else {
+        inner.innerHTML = `
+          <div class="p-6 text-center space-y-2">
+            <i class="fa-solid fa-folder-open text-4xl text-rose-400"></i>
+            <h4 class="font-bold text-slate-800 text-sm">Ruangan Pengisian ${modTitle}</h4>
+            <p class="text-slate-500 text-xs">Sila masukkan maklumat atau data yang ingin disimpan untuk bahagian ini.</p>
+            <textarea rows="5" placeholder="Tulis perincian data di sini..." class="w-full max-w-xl bg-slate-50 border p-3 rounded-xl mx-auto block text-xs"></textarea>
+          </div>
+        `;
+      }
+    }
+
+    function simpanModulSimulasi() {
+      if (currentRole !== 'admin') {
+        Swal.fire('Akses Ditolak', 'Sila bertukar ke mod Pentadbir/Admin untuk menyimpan!', 'error');
         return;
       }
-
-      filtered.forEach((item, idx) => {
-        let badgeBg = 'bg-slate-100 text-slate-700';
-        if (item.kategori === 'Pentadbiran') badgeBg = 'bg-amber-100 text-amber-800 border border-amber-200';
-        if (item.kategori === 'Kurikulum') badgeBg = 'bg-emerald-100 text-emerald-800 border border-emerald-200';
-        if (item.kategori === 'HEM') badgeBg = 'bg-blue-100 text-blue-800 border border-blue-200';
-        if (item.kategori === 'Kokurikulum') badgeBg = 'bg-rose-100 text-rose-800 border border-rose-200';
-
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="py-3 px-4 text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="py-3 px-4">
-              <p class="font-bold text-slate-800">${item.nama}</p>
-              <p class="text-[10px] text-slate-400">${item.gred || 'DG44'}</p>
-            </td>
-            <td class="py-3 px-4 font-semibold text-rose-700">${item.jawatan}</td>
-            <td class="py-3 px-4">
-              <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${badgeBg}">${item.kategori}</span>
-            </td>
-            <td class="py-3 px-4 text-slate-600 max-w-xs text-[11px] leading-relaxed">${item.deskripsi}</td>
-            <td class="py-3 px-4 text-center">
-              <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">✓ Disahkan</span>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-    function renderTetapanAdminTable() {
-      const tbody = document.getElementById('tbodyTetapanAdmin');
-      if (!tbody) return;
-
-      tbody.innerHTML = '';
-      document.getElementById('lblCountTetapan').innerText = `${manualDataList.length} Rekod`;
-
-      manualDataList.forEach((item) => {
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="py-2.5 px-3">
-              <p class="font-bold text-slate-800 text-xs">${item.nama}</p>
-              <span class="text-[10px] text-slate-400">${item.kategori}</span>
-            </td>
-            <td class="py-2.5 px-3 font-semibold text-rose-700 text-xs">${item.jawatan}</td>
-            <td class="py-2.5 px-3 text-slate-500 text-[11px] truncate max-w-[180px]">${item.deskripsi}</td>
-            <td class="py-2.5 px-3 text-right space-x-1">
-              <button onclick="editRekod('${item.id}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg transition" title="Edit">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-              <button onclick="padamRekod('${item.id}')" class="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition" title="Padam">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-    function autoFillGuruDetails() {
-      const nama = document.getElementById('inpNamaGuru').value;
-      const inpGred = document.getElementById('inpGredGuru');
-
-      if (nama.includes('DG48')) inpGred.value = 'DG48';
-      else if (nama.includes('DG44')) inpGred.value = 'DG44';
-      else if (nama.includes('DG41')) inpGred.value = 'DG41';
-    }
-
-    function handleSimpanTetapan(e) {
-      e.preventDefault();
-
-      if (currentRole !== 'pentadbir') {
-        Swal.fire({
-          icon: 'error',
-          title: 'Akses Ditolak!',
-          text: 'Sila bertukar ke mod Pentadbir untuk menyimpan perubahan.'
-        });
-        return;
-      }
-
-      const id = document.getElementById('editRecordId').value;
-      const nama = document.getElementById('inpNamaGuru').value;
-      const gred = document.getElementById('inpGredGuru').value;
-      const kategori = document.getElementById('inpKategoriUnit').value;
-      const jawatan = document.getElementById('inpJawatanUtama').value;
-      const deskripsi = document.getElementById('inpDeskripsiTugas').value;
-      const status = document.getElementById('inpStatusJawatan').value;
-
-      if (id) {
-        const index = manualDataList.findIndex(x => x.id === id);
-        if (index !== -1) {
-          manualDataList[index] = { id, nama, gred, kategori, jawatan, deskripsi, status };
-        }
-      } else {
-        const newId = 'MAN-' + (Date.now() % 10000);
-        manualDataList.push({ id: newId, nama, gred, kategori, jawatan, deskripsi, status });
-      }
-
-      simpanKeLocalStorage();
-      kemaskiniSemuaPaparan();
-      batalEdit();
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Berjaya Disimpan!',
-        text: 'Tetapan jawatan dan tugas guru telah dikemaskini.',
-        confirmButtonColor: '#e11d48'
-      });
-    }
-
-    function editRekod(id) {
-      const item = manualDataList.find(x => x.id === id);
-      if (!item) return;
-
-      document.getElementById('editRecordId').value = item.id;
-      document.getElementById('inpNamaGuru').value = item.nama;
-      document.getElementById('inpGredGuru').value = item.gred || '';
-      document.getElementById('inpKategoriUnit').value = item.kategori;
-      document.getElementById('inpJawatanUtama').value = item.jawatan;
-      document.getElementById('inpDeskripsiTugas').value = item.deskripsi;
-      document.getElementById('inpStatusJawatan').value = item.status || 'Aktif / Disahkan';
-
-      document.getElementById('txtFormTitle').innerText = 'Kemaskini Jawatan Guru';
-      document.getElementById('btnSubmitLabel').innerText = 'Kemaskini Rekod';
-    }
-
-    function batalEdit() {
-      document.getElementById('formTetapanJawatan').reset();
-      document.getElementById('editRecordId').value = '';
-      document.getElementById('txtFormTitle').innerText = 'Borang Tetapan Jawatan & Tugas';
-      document.getElementById('btnSubmitLabel').innerText = 'Simpan Tetapan';
-    }
-
-    function padamRekod(id) {
-      if (currentRole !== 'pentadbir') {
-        Swal.fire('Akses Ditolak', 'Hanya pentadbir boleh memadam rekod.', 'error');
-        return;
-      }
-
-      Swal.fire({
-        title: 'Adakah anda pasti?',
-        text: "Rekod jawatan ini akan dipadamkan daripada manual pengurusan.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#f43f5e',
-        cancelButtonColor: '#64748b',
-        confirmButtonText: 'Ya, Padam!'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          manualDataList = manualDataList.filter(x => x.id !== id);
-          simpanKeLocalStorage();
-          kemaskiniSemuaPaparan();
-          Swal.fire('Dipadam!', 'Rekod berjaya dipadamkan.', 'success');
-        }
-      });
-    }
-
-    function resetDataKeAsal() {
-      Swal.fire({
-        title: 'Reset Pangkalan Data?',
-        text: 'Semua rekod akan dikembalikan kepada tetapan default pengurusan 2026.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#e11d48',
-        cancelButtonColor: '#64748b',
-        confirmButtonText: 'Ya, Reset Data'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          manualDataList = [...DEFAULT_MANUAL_DATA];
-          simpanKeLocalStorage();
-          kemaskiniSemuaPaparan();
-          Swal.fire('Reset Berjaya', 'Data pengurusan telah dikembalikan.', 'success');
-        }
-      });
-    }
-
-    function exportJSONData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(manualDataList, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", "Manual_Pengurusan_SK_SeMAKMUR_2026.json");
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function renderCartaOrganisasi() {
-      const grid = document.getElementById('cartaUnitGrid');
-      if (!grid) return;
-
-      grid.innerHTML = '';
-      manualDataList.forEach(item => {
-        grid.innerHTML += `
-          <div class="p-3 bg-white rounded-xl border border-slate-200 space-y-1">
-            <span class="text-[9px] font-bold text-rose-700 uppercase block">${item.kategori}</span>
-            <p class="font-bold text-slate-800">${item.jawatan}</p>
-            <p class="text-[11px] text-slate-500">${item.nama}</p>
-          </div>
-        `;
-      });
-    }
-
-    function renderCetakDocument() {
-      const tbody = document.getElementById('tbodyCetakDocument');
-      if (!tbody) return;
-
-      tbody.innerHTML = '';
-      manualDataList.forEach((item, idx) => {
-        tbody.innerHTML += `
-          <tr>
-            <td class="border border-black p-2 text-center font-bold">${idx + 1}</td>
-            <td class="border border-black p-2 font-bold">${item.nama}</td>
-            <td class="border border-black p-2">${item.kategori}</td>
-            <td class="border border-black p-2 font-semibold">${item.jawatan}</td>
-            <td class="border border-black p-2 leading-tight text-[11px]">${item.deskripsi}</td>
-          </tr>
-        `;
-      });
-    }
-
-    function filterGlobalManual() {
-      const val = document.getElementById('globalSearchInput').value;
-      const inpPaparan = document.getElementById('inputFilterPaparan');
-      if (inpPaparan) {
-        inpPaparan.value = val;
-        renderPaparanTable();
-      }
+      Swal.fire('Berjaya Simpan!', 'Maklumat modul telah dikemaskini.', 'success');
     }
   </script>
 </body>
