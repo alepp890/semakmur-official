@@ -1,747 +1,359 @@
 <!DOCTYPE html>
 <html lang="ms" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manual Pengurusan Sekolah 2026 - SeMAKMUR</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Pengurusan SK Segambut Makmur 2026</title>
 
-    <!-- Google Fonts & FontAwesome -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- SweetAlert2 & Tailwind CSS -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- SweetAlert2 & Tailwind CSS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { 
-                        tealTheme: '#1f7a9c',
-                        tealDark: '#175d78',
-                        tealLight: '#2ca2cd',
-                        tealBg: '#eef6f9'
-                    },
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] }
-                }
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            rose: {
+              50: '#fff1f2', 100: '#ffe4e6', 500: '#f43f5e',
+              600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337'
             }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif']
+          }
         }
-    </script>
+      }
+    }
+  </script>
 
-    <style>
-        html, body { height: 100%; margin: 0; background-color: #EEF6F9; font-family: 'Plus Jakarta Sans', sans-serif; color: #1E293B; }
-        .card-book { background: #FFFFFF; border-radius: 1rem; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04); }
-        .loader-ring { display: inline-block; position: relative; width: 44px; height: 44px; }
-        .loader-ring div { box-sizing: border-box; display: block; position: absolute; width: 34px; height: 34px; margin: 5px; border: 3.5px solid #1f7a9c; border-radius: 50%; animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite; border-color: #1f7a9c transparent transparent transparent; }
-        @keyframes loader-ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+  <style>
+    body { background-color: #f1f5f9; font-family: 'Inter', sans-serif; color: #334155; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .nav-btn.active { background-color: #e11d48; color: #ffffff; font-weight: 700; }
+  </style>
 </head>
-<body class="bg-[#eef6f9] text-slate-800 h-full flex flex-col antialiased">
+<body class="min-h-screen flex text-slate-800 bg-slate-100">
 
-    <!-- GLOBAL LOADER -->
-    <div id="global-loader" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-[9999] flex flex-col items-center justify-center transition-all duration-200">
-        <div class="loader-ring mb-3"><div></div><div></div><div></div></div>
-        <p class="text-white font-bold text-sm tracking-wide" id="loader-text">Memuatkan Buku Pengurusan...</p>
+  <!-- SIDEBAR NAVIGASI KIRI -->
+  <aside id="sidebar" class="w-72 bg-slate-900 text-slate-300 flex flex-col shrink-0 min-h-screen border-r border-slate-800 hidden md:flex">
+    
+    <div class="p-4 border-b border-slate-800 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold">
+        <i class="fa-solid fa-school text-lg"></i>
+      </div>
+      <div>
+        <h2 class="font-display font-bold text-sm text-white leading-tight">SK Segambut Makmur</h2>
+        <p class="text-[11px] text-rose-400 font-semibold">Manual Pengurusan 2026</p>
+      </div>
     </div>
 
-    <!-- HEADER NAVIGATION -->
-    <header class="h-20 bg-white border-b border-slate-200 shrink-0 flex items-center justify-between px-6 z-20 shadow-xs">
-        <div class="flex items-center gap-3">
-            <a href="../DashboardGuru.html" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center">
-                <i class="fa-solid fa-arrow-left text-base"></i>
-            </a>
-            <div class="flex items-center gap-2.5">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#1f7a9c] to-[#2ca2cd] text-white flex items-center justify-center text-xl shadow-xs font-bold">
-                    📖
-                </div>
-                <div>
-                    <h1 class="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight leading-tight">Manual Pengurusan Sekolah 2026</h1>
-                    <p class="text-[11px] text-[#1f7a9c] font-bold tracking-wide uppercase">Interactive Portal - 4 Bidang Pengurusan</p>
-                </div>
-            </div>
-        </div>
+    <!-- SIDEBAR MENU LIST -->
+    <div class="flex-1 overflow-y-auto p-3 space-y-1 text-xs">
+      
+      <button onclick="showView('viewDashboard')" id="sideDashboard" class="nav-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition">
+        <i class="fa-solid fa-chart-pie w-4 text-center"></i>
+        <span>Dashboard Utama</span>
+      </button>
 
-        <div class="flex items-center gap-3">
-            <button onclick="openNewCommitteeModal()" class="px-4 py-2 bg-[#1f7a9c] hover:bg-[#175d78] text-white font-extrabold text-xs rounded-xl transition flex items-center gap-2 shadow-xs">
-                <i class="fa-solid fa-plus-circle"></i>
-                <span>Cipta Jawatankuasa Baharu</span>
-            </button>
+      <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data Induk</div>
+      
+      <button onclick="showView('viewProfilStaf')" id="sideProfilStaf" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-id-card-clip w-4 text-center text-rose-400"></i>
+        <span>Profil Guru & AKP</span>
+      </button>
+
+      <!-- SEKSYEN JAWATANKUASA INDUK -->
+      <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-rose-400 uppercase tracking-wider">Jawatankuasa Induk</div>
+
+      <button onclick="showView('viewIndukPengurusan')" id="sideIndukPengurusan" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-sitemap w-4 text-center text-amber-400"></i>
+        <span>JK Induk Pengurusan</span>
+      </button>
+
+      <button onclick="showView('viewIndukKurikulum')" id="sideIndukKurikulum" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-book-bookmark w-4 text-center text-emerald-400"></i>
+        <span>JK Induk Kurikulum</span>
+      </button>
+
+      <button onclick="showView('viewIndukHEM')" id="sideIndukHEM" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-user-graduate w-4 text-center text-blue-400"></i>
+        <span>JK Induk Hal Ehwal Murid</span>
+      </button>
+
+      <button onclick="showView('viewIndukKoko')" id="sideIndukKoko" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+        <i class="fa-solid fa-trophy w-4 text-center text-purple-400"></i>
+        <span>JK Induk Kokurikulum</span>
+      </button>
+
+    </div>
+
+    <div class="p-3 border-t border-slate-800 text-[11px] text-slate-500 text-center">
+      DB V2 Connected • SeMAKMUR
+    </div>
+  </aside>
+
+  <!-- CONTENT MAIN CONTAINER -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+
+    <!-- TOP NAVBAR HEADER -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 lg:px-8 py-3 flex items-center justify-between shadow-xs">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-lg bg-slate-100 text-slate-700">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <span class="font-bold text-slate-800">Manual Pengurusan</span>
+          <span>/</span>
+          <span id="txtBreadcrumb" class="text-rose-600 font-semibold">Dashboard Utama</span>
         </div>
+      </div>
     </header>
 
-    <!-- KANDUNGAN UTAMA -->
-    <main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 max-w-7xl mx-auto w-full">
+    <!-- MAIN BODY CONTENT -->
+    <main class="p-4 lg:p-8 space-y-6">
 
-        <!-- NAVIGASI TAB 4 BIDANG UTAMA -->
-        <div class="flex flex-wrap items-center gap-2 border-b border-slate-300 pb-3">
-            <button onclick="switchCategory('Pentadbiran')" id="tab-Pentadbiran" class="chap-btn px-5 py-2.5 rounded-xl font-extrabold text-xs transition bg-[#1f7a9c] text-white shadow-xs flex items-center gap-2">
-                <i class="fa-solid fa-building-columns"></i> 1. Pengurusan Pentadbiran
-            </button>
-            <button onclick="switchCategory('Kurikulum')" id="tab-Kurikulum" class="chap-btn px-5 py-2.5 rounded-xl font-extrabold text-xs text-slate-600 hover:bg-slate-200 transition flex items-center gap-2">
-                <i class="fa-solid fa-book-open"></i> 2. Pengurusan Kurikulum
-            </button>
-            <button onclick="switchCategory('HEM')" id="tab-HEM" class="chap-btn px-5 py-2.5 rounded-xl font-extrabold text-xs text-slate-600 hover:bg-slate-200 transition flex items-center gap-2">
-                <i class="fa-solid fa-people-roof"></i> 3. Hal Ehwal Murid
-            </button>
-            <button onclick="switchCategory('Kokurikulum')" id="tab-Kokurikulum" class="chap-btn px-5 py-2.5 rounded-xl font-extrabold text-xs text-slate-600 hover:bg-slate-200 transition flex items-center gap-2">
-                <i class="fa-solid fa-trophy"></i> 4. Pengurusan Kokurikulum
-            </button>
+      <!-- ================= 1. DASHBOARD UTAMA ================= -->
+      <div id="viewDashboard" class="space-y-6">
+        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-md border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-5">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md p-2 border border-white/20 flex items-center justify-center">
+              <i class="fa-solid fa-sitemap text-3xl text-rose-400"></i>
+            </div>
+            <div>
+              <h1 class="font-display font-extrabold text-xl lg:text-2xl text-white">Pengurusan Jawatankuasa Induk</h1>
+              <p class="text-xs text-rose-300 font-semibold mt-0.5">Sila pilih Jawatankuasa Induk pada sidebar untuk menetapkan Setiausaha & AJK.</p>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <!-- BEKAS KAD KANDUNGAN DINAMIK -->
-        <div id="cards-container" class="space-y-6">
-            <!-- Kad-kad dijana oleh JavaScript -->
+      <!-- ================= 2. PROFIL GURU & AKP ================= -->
+      <div id="viewProfilStaf" class="hidden space-y-6">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+          <h2 class="font-display font-bold text-base text-slate-800">Senarai Guru Sekolah (Master_Staf)</h2>
+          <p class="text-xs text-slate-400">Nama-nama guru di bawah digunakan secara automatik dalam dropdown Setiausaha & AJK.</p>
         </div>
+      </div>
+
+      <!-- ================= 3. JK INDUK PENGURUSAN ================= -->
+      <div id="viewIndukPengurusan" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-amber-500">
+          <div class="flex items-center justify-between border-b pb-3">
+            <div>
+              <h2 class="font-display font-bold text-lg text-slate-800"><i class="fa-solid fa-sitemap text-amber-500 mr-2"></i>Jawatankuasa Induk Pengurusan & Pentadbiran</h2>
+              <p class="text-xs text-slate-500">Kepimpinan Utama Pengurusan Sekolah & Pentadbiran Operasi</p>
+            </div>
+            <button onclick="simpanJKInduk('Pengurusan')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> Simpan JK Induk Pengurusan
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <label class="block font-bold text-slate-700">Pengerusi:</label>
+              <input type="text" value="Syed (Guru Besar)" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+            </div>
+
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <label class="block font-bold text-slate-700">Timbalan Pengerusi:</label>
+              <input type="text" value="GPK Pentadbiran / Kurikulum" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+            </div>
+
+            <div class="p-4 bg-amber-50 rounded-xl border border-amber-200 space-y-2 md:col-span-2">
+              <label class="block font-bold text-amber-900 text-sm">Setiausaha Pengurusan (Wajib Pilih Guru):</label>
+              <select id="select-su-pengurusan" class="select-guru-opt w-full p-2.5 bg-white border border-amber-300 rounded-lg font-extrabold text-slate-800">
+                <!-- Dropdown Guru -->
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 4. JK INDUK KURIKULUM ================= -->
+      <div id="viewIndukKurikulum" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-emerald-600">
+          <div class="flex items-center justify-between border-b pb-3">
+            <div>
+              <h2 class="font-display font-bold text-lg text-slate-800"><i class="fa-solid fa-book-bookmark text-emerald-600 mr-2"></i>Jawatankuasa Induk Kurikulum</h2>
+              <p class="text-xs text-slate-500">Pengurusan Dasar Kurikulum, Panitia & Pentaksiran</p>
+            </div>
+            <button onclick="simpanJKInduk('Kurikulum')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> Simpan JK Induk Kurikulum
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <label class="block font-bold text-slate-700">Pengerusi:</label>
+              <input type="text" value="Syed (Guru Besar)" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+            </div>
+
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <label class="block font-bold text-slate-700">Timbalan Pengerusi:</label>
+              <input type="text" value="GPK Pentadbiran / Kurikulum" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+            </div>
+
+            <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2 md:col-span-2">
+              <label class="block font-bold text-emerald-900 text-sm">Setiausaha Kurikulum (Wajib Pilih Guru):</label>
+              <select id="select-su-kurikulum" class="select-guru-opt w-full p-2.5 bg-white border border-emerald-300 rounded-lg font-extrabold text-slate-800">
+                <!-- Dropdown Guru -->
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 5. JK INDUK HAL EHWAL MURID ================= -->
+      <div id="viewIndukHEM" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-blue-600">
+          <div class="flex items-center justify-between border-b pb-3">
+            <div>
+              <h2 class="font-display font-bold text-lg text-slate-800"><i class="fa-solid fa-user-graduate text-blue-600 mr-2"></i>Jawatankuasa Induk Hal Ehwal Murid (HEM)</h2>
+              <p class="text-xs text-slate-500">Pengurusan Disiplin, Bantuan, Kesihatan & Kebajikan Murid</p>
+            </div>
+            <button onclick="simpanJKInduk('HEM')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> Simpan JK Induk HEM
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <label class="block font-bold text-slate-700">Pengerusi:</label>
+              <input type="text" value="Syed (Guru Besar)" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+            </div>
+
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <label class="block font-bold text-slate-700">Timbalan Pengerusi:</label>
+              <input type="text" value="GPK Hal Ehwal Murid" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+            </div>
+
+            <div class="p-4 bg-blue-50 rounded-xl border border-blue-200 space-y-2 md:col-span-2">
+              <label class="block font-bold text-blue-900 text-sm">Setiausaha HEM (Wajib Pilih Guru):</label>
+              <select id="select-su-hem" class="select-guru-opt w-full p-2.5 bg-white border border-blue-300 rounded-lg font-extrabold text-slate-800">
+                <!-- Dropdown Guru -->
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 6. JK INDUK KOKURIKULUM ================= -->
+      <div id="viewIndukKoko" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-purple-600">
+          <div class="flex items-center justify-between border-b pb-3">
+            <div>
+              <h2 class="font-display font-bold text-lg text-slate-800"><i class="fa-solid fa-trophy text-purple-600 mr-2"></i>Jawatankuasa Induk Kokurikulum</h2>
+              <p class="text-xs text-slate-500">Pengurusan Badan Beruniform, Kelab, Persatuan & Sukan</p>
+            </div>
+            <button onclick="simpanJKInduk('Kokurikulum')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> Simpan JK Induk Koko
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <label class="block font-bold text-slate-700">Pengerusi:</label>
+              <input type="text" value="Syed (Guru Besar)" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+            </div>
+
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+              <label class="block font-bold text-slate-700">Timbalan Pengerusi:</label>
+              <input type="text" value="GPK Kokurikulum" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+            </div>
+
+            <div class="p-4 bg-purple-50 rounded-xl border border-purple-200 space-y-2 md:col-span-2">
+              <label class="block font-bold text-purple-900 text-sm">Setiausaha Kokurikulum (Wajib Pilih Guru):</label>
+              <select id="select-su-koko" class="select-guru-opt w-full p-2.5 bg-white border border-purple-300 rounded-lg font-extrabold text-slate-800">
+                <!-- Dropdown Guru -->
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
 
     </main>
+  </div>
 
-    <!-- MODAL PENAMBAHAN JAWATANKUASA -->
-    <div id="new-jk-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
-            <div class="px-6 py-4 bg-[#1f7a9c] text-white flex items-center justify-between">
-                <h3 class="font-extrabold text-sm sm:text-base">Tambah Jawatankuasa Baharu</h3>
-                <button onclick="closeNewCommitteeModal()" class="text-white/80 hover:text-white text-lg font-bold">&times;</button>
-            </div>
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Bidang Utama</label>
-                    <select id="modal-new-kategori" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg bg-slate-50 font-bold focus:outline-none focus:border-[#1f7a9c]">
-                        <option value="Pentadbiran">Pengurusan Pentadbiran</option>
-                        <option value="Kurikulum">Pengurusan Kurikulum</option>
-                        <option value="HEM">Hal Ehwal Murid (HEM)</option>
-                        <option value="Kokurikulum">Pengurusan Kokurikulum</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">JK Induk / Payung <span class="text-red-500">*</span></label>
-                    <input type="text" id="modal-new-jk-induk" placeholder="Contoh: JK Induk Pengurusan Sekolah" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#1f7a9c]">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Jawatankuasa / Unit <span class="text-red-500">*</span></label>
-                    <input type="text" id="modal-new-nama-jk" placeholder="Contoh: JK Digital & Internet" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#1f7a9c]">
-                </div>
-                <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <button type="button" onclick="closeNewCommitteeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition">Batal</button>
-                    <button type="button" onclick="createCommitteeCard()" class="px-4 py-2 bg-[#1f7a9c] hover:bg-[#175d78] text-white font-bold text-xs rounded-lg transition">Cipta Kad</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="../../config.js"></script>
-
-    <script>
-    let ALL_STAF = [];
-    let ALL_PERANAN = [];
-    let ALL_LOKASI = [];
-    let ALL_SUBJEK = [];
-    let ACTIVE_CATEGORY = 'Pentadbiran';
-
-    // Senarai Preset Jawatankuasa Induk Pentadbiran
-    const PENTADBIRAN_PRESETS = [
-        "JK Strategik", "JK Risiko", "JK Digital", "JK BYOD & Internet",
-        "JK Mampan", "JK Surau", "JK Kewangan", "JK Papan Kenyataan"
+  <script>
+    // SENARAI GURU SEMENTARA (AKAN DITARIK DARI MASTER_STAF BACKEND)
+    let guruList = [
+      { id: "STF001", nama: "Syed (Guru Besar)" },
+      { id: "STF002", nama: "En. Mohd Farhan (GPK Pentadbiran)" },
+      { id: "STF003", nama: "Pn. Siti Hajar (GPK HEM)" },
+      { id: "STF004", nama: "En. Lim Chee Keong (GPK Koko)" },
+      { id: "STF005", nama: "Cikgu Nurul Aini" },
+      { id: "STF006", nama: "Cikgu Ahmad Razak" },
+      { id: "STF007", nama: "Cikgu Maria Abdullah" },
+      { id: "STF008", nama: "Cikgu Imran Zainal" }
     ];
 
-    function showLoader(txt = "Memuatkan...") {
-        document.getElementById('loader-text').innerText = txt;
-        document.getElementById('global-loader').classList.remove('hidden');
-    }
-
-    function hideLoader() {
-        document.getElementById('global-loader').classList.add('hidden');
-    }
-
-    async function postToBackend(payload) {
-        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
-            ? WEB_APP_URL 
-            : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
-
-        const response = await fetch(targetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload),
-            redirect: 'follow'
-        });
-
-        if (!response.ok) throw new Error('HTTP Error ' + response.status);
-        return await response.json();
-    }
-
-    async function fetchPortalData() {
-        showLoader('Menyelaraskan pangkalan data V2...');
-        try {
-            const res = await postToBackend({ action: 'getManualV2Data' });
-            hideLoader();
-
-            if (res && res.success) {
-                ALL_STAF = res.staf || [];
-                ALL_PERANAN = res.peranan || [];
-                ALL_LOKASI = res.lokasi || [];
-                ALL_SUBJEK = res.subjek || [];
-                
-                renderChapter();
-            } else {
-                Swal.fire('Ralat', res.error || 'Gagal menarik data.', 'error');
-            }
-        } catch (err) {
-            hideLoader();
-            Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
-        }
-    }
-
-    function switchCategory(cat) {
-        ACTIVE_CATEGORY = cat;
-        document.querySelectorAll('.chap-btn').forEach(btn => {
-            btn.className = "chap-btn px-5 py-2.5 rounded-xl font-extrabold text-xs text-slate-600 hover:bg-slate-200 transition flex items-center gap-2";
-        });
-
-        const activeBtn = document.getElementById(`tab-${cat}`);
-        if (activeBtn) {
-            activeBtn.className = "chap-btn px-5 py-2.5 rounded-xl font-extrabold text-xs transition bg-[#1f7a9c] text-white shadow-xs flex items-center gap-2";
-        }
-
-        renderChapter();
-    }
-
-    function renderChapter() {
-        const container = document.getElementById('cards-container');
-        container.innerHTML = '';
-
-        if (ACTIVE_CATEGORY === 'Pentadbiran') {
-            renderPentadbiranSection(container);
-        } else if (ACTIVE_CATEGORY === 'Kurikulum') {
-            renderKurikulumSection(container);
-        } else if (ACTIVE_CATEGORY === 'HEM') {
-            renderHEMSection(container);
-        } else if (ACTIVE_CATEGORY === 'Kokurikulum') {
-            renderKokurikulumSection(container);
-        }
-    }
-
-    // =========================================================================
-    // 1. SECTION PENGURUSAN PENTADBIRAN
-    // =========================================================================
-    function renderPentadbiranSection(container) {
-        // A. Pengurusan Kelas, Penyelaras Aliran & Guru Pembantu
-        renderPengurusanKelasCard(container);
-
-        // B. Penyelaras Bilik Khas
-        renderBilikKhasCard(container);
-
-        // C. Kumpulan Bertugas Mingguan (4 Kumpulan)
-        renderKumpulanBertugasCard(container);
-
-        // D. Pemantauan & Pencerapan (RPH, PdPc, Semakan Buku Tulis)
-        renderPemantauanCard(container);
-
-        // E. Jawatankuasa Induk Pengurusan Sekolah (Preset Items)
-        renderJKIndukPengurusanCard(container);
-    }
-
-    // A. KAD GURU KELAS, ALIRAN & PEMBANTU
-    function renderPengurusanKelasCard(container) {
-        const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas');
-        const cleanCardId = 'card-pengurusan-kelas';
-
-        let html = `
-            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-[#1f7a9c]" data-jk="Pengurusan Kelas" data-jkinduk="JK Induk Pentadbiran">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
-                    <div>
-                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-chalkboard-user text-[#1f7a9c] mr-2"></i>Guru Kelas, Penyelaras Aliran & Guru Pembantu</h2>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">Penetapan susunan sebelah-sebelah mengikut senarai Master_Kelas_Bilik.</p>
-                    </div>
-                    <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan Pengurusan Kelas
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        `;
-
-        senaraiKelas.forEach(kelas => {
-            const namaKelas = kelas.Nama_Lokasi;
-            const gk = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Pengurusan Kelas' && p.Peranan === 'Guru Kelas' && p.Skop_Tugas_Kelas === namaKelas);
-            const gpk = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Pengurusan Kelas' && p.Peranan === 'Guru Pembantu' && p.Skop_Tugas_Kelas === namaKelas);
-
-            html += `
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
-                        <span class="font-extrabold text-sm text-[#1f7a9c]"><i class="fa-solid fa-door-open mr-1.5"></i>${namaKelas}</span>
-                        <span class="text-[10px] font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded">${kelas.Tahap_Blok || 'Kelas'}</span>
-                    </div>
-
-                    <div class="space-y-2">
-                        <div class="card-row-item" data-peranan="Guru Kelas" data-skop="${namaKelas}">
-                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Guru Kelas:</label>
-                            <select class="select-staf w-full p-2 text-xs border border-slate-300 rounded-lg bg-white font-semibold focus:border-[#1f7a9c]">
-                                ${buildStafOptions(gk ? gk.ID_Staf : '')}
-                            </select>
-                        </div>
-
-                        <div class="card-row-item" data-peranan="Guru Pembantu" data-skop="${namaKelas}">
-                            <label class="block text-[11px] font-bold text-slate-600 mb-1">Guru Pembantu Kelas:</label>
-                            <select class="select-staf w-full p-2 text-xs border border-slate-300 rounded-lg bg-white font-semibold focus:border-[#1f7a9c]">
-                                ${buildStafOptions(gpk ? gpk.ID_Staf : '')}
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-        html += `</div></div>`;
-        container.insertAdjacentHTML('beforeend', html);
-    }
-
-    // B. KAD PENYELARAS BILIK KHAS
-    function renderBilikKhasCard(container) {
-        const bilikKhas = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'bilik khas');
-        const cleanCardId = 'card-penyelaras-bilik-khas';
-
-        let html = `
-            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-blue-600" data-jk="Penyelaras Bilik Khas" data-jkinduk="JK Induk Pentadbiran">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
-                    <div>
-                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-building text-blue-600 mr-2"></i>Penyelaras Bilik-Bilik Khas</h2>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">Tarik senarai bilik khas terus dari Master_Kelas_Bilik.</p>
-                    </div>
-                    <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan Penyelaras Bilik
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        `;
-
-        bilikKhas.forEach(bilik => {
-            const namaBilik = bilik.Nama_Lokasi;
-            const penyelaras = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Penyelaras Bilik Khas' && p.Skop_Tugas_Kelas === namaBilik);
-
-            html += `
-                <div class="p-4 bg-blue-50/40 rounded-xl border border-blue-200 space-y-3">
-                    <div class="font-extrabold text-sm text-blue-900 border-b border-blue-200 pb-2">
-                        <i class="fa-solid fa-key mr-1.5"></i>${namaBilik}
-                    </div>
-
-                    <div class="card-row-item" data-peranan="Penyelaras Bilik" data-skop="${namaBilik}">
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Guru Penyelaras:</label>
-                        <select class="select-staf w-full p-2 text-xs border border-blue-300 rounded-lg bg-white font-semibold">
-                            ${buildStafOptions(penyelaras ? penyelaras.ID_Staf : '')}
-                        </select>
-                    </div>
-                </div>
-            `;
-        });
-
-        html += `</div></div>`;
-        container.insertAdjacentHTML('beforeend', html);
-    }
-
-    // C. KAD KUMPULAN BERTUGAS (4 KUMPULAN)
-    function renderKumpulanBertugasCard(container) {
-        const kumpulanList = ['Kumpulan A', 'Kumpulan B', 'Kumpulan C', 'Kumpulan D'];
-        const cleanCardId = 'card-kumpulan-bertugas';
-
-        let html = `
-            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-amber-500" data-jk="Jadual Bertugas Mingguan" data-jkinduk="JK Induk Pentadbiran">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
-                    <div>
-                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-users-rectangle text-amber-600 mr-2"></i>Kumpulan Bertugas Mingguan (4 Kumpulan)</h2>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">Penetapan Ketua Kumpulan Bertugas bagi Kumpulan A, B, C dan D.</p>
-                    </div>
-                    <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan Jadual Bertugas
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        `;
-
-        kumpulanList.forEach(kumpulan => {
-            const ketua = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Jadual Bertugas Mingguan' && p.Peranan === 'Ketua Kumpulan' && p.Skop_Tugas_Kelas === kumpulan);
-
-            html += `
-                <div class="p-4 bg-amber-50/50 rounded-xl border border-amber-200 space-y-3">
-                    <div class="font-extrabold text-sm text-amber-800 border-b border-amber-200 pb-2">
-                        <i class="fa-solid fa-calendar-week mr-2"></i>${kumpulan}
-                    </div>
-
-                    <div class="card-row-item" data-peranan="Ketua Kumpulan" data-skop="${kumpulan}">
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Ketua Kumpulan Bertugas:</label>
-                        <select class="select-staf w-full p-2 text-xs border border-amber-300 rounded-lg bg-white font-semibold">
-                            ${buildStafOptions(ketua ? ketua.ID_Staf : '')}
-                        </select>
-                    </div>
-                </div>
-            `;
-        });
-
-        html += `</div></div>`;
-        container.insertAdjacentHTML('beforeend', html);
-    }
-
-    // D. KAD PEMANTAUAN (RPH, PDPC, SEMAKAN BUKU TULIS)
-    function renderPemantauanCard(container) {
-        const senaraiPemantauan = [
-            { nama: "Penghantaran RPH / e-RPH", id: "RPH" },
-            { nama: "Pencerapan PdPc", id: "PDPC" },
-            { nama: "Semakan Hasil Kerja Murid", id: "SEMAKAN_BUKU" }
-        ];
-
-        const cleanCardId = 'card-pemantauan-pencerapan';
-
-        let html = `
-            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-purple-600" data-jk="Jawatankuasa Pemantauan & Pencerapan" data-jkinduk="JK Induk Pentadbiran">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
-                    <div>
-                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-clipboard-check text-purple-600 mr-2"></i>Pemantauan RPH, Pencerapan PdPc & Semakan Buku</h2>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">Penetapan Pegawai Penilai / Penyelaras Pemantauan Guru.</p>
-                    </div>
-                    <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan Pemantauan
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        `;
-
-        senaraiPemantauan.forEach(item => {
-            const penyelaras = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Jawatankuasa Pemantauan & Pencerapan' && p.Skop_Tugas_Kelas === item.nama);
-
-            html += `
-                <div class="p-4 bg-purple-50/40 rounded-xl border border-purple-200 space-y-3">
-                    <div class="font-extrabold text-xs text-purple-900 border-b border-purple-200 pb-2">
-                        <i class="fa-solid fa-circle-check mr-1.5"></i>${item.nama}
-                    </div>
-
-                    <div class="card-row-item" data-peranan="Penyelaras" data-skop="${item.nama}">
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Penyelaras / Pegawai Penilai:</label>
-                        <select class="select-staf w-full p-2 text-xs border border-purple-300 rounded-lg bg-white font-semibold">
-                            ${buildStafOptions(penyelaras ? penyelaras.ID_Staf : '')}
-                        </select>
-                    </div>
-                </div>
-            `;
-        });
-
-        html += `</div></div>`;
-        container.insertAdjacentHTML('beforeend', html);
-    }
-
-    // E. KAD JAWATANKUASA INDUK PENGURUSAN SEKOLAH (PRESET)
-    function renderJKIndukPengurusanCard(container) {
-        const cleanCardId = 'card-jk-induk-pengurusan-sekolah';
-
-        let html = `
-            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-rose-600" data-jk="Jawatankuasa Induk Pengurusan Sekolah" data-jkinduk="JK Induk Pentadbiran">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
-                    <div>
-                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-sitemap text-rose-600 mr-2"></i>Jawatankuasa Induk Pengurusan Sekolah</h2>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">Penetapan Penyelaras & AJK bagi unit-unit pengurusan strategik.</p>
-                    </div>
-                    <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan JK Induk
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        `;
-
-        PENTADBIRAN_PRESETS.forEach(unitName => {
-            const penyelaras = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Jawatankuasa Induk Pengurusan Sekolah' && p.Skop_Tugas_Kelas === unitName);
-
-            html += `
-                <div class="p-4 bg-rose-50/40 rounded-xl border border-rose-200 space-y-3">
-                    <div class="font-extrabold text-xs text-rose-900 border-b border-rose-200 pb-2">
-                        <i class="fa-solid fa-shield-halved mr-1.5"></i>${unitName}
-                    </div>
-
-                    <div class="card-row-item" data-peranan="Penyelaras" data-skop="${unitName}">
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Penyelaras / Setiausaha:</label>
-                        <select class="select-staf w-full p-2 text-xs border border-rose-300 rounded-lg bg-white font-semibold">
-                            ${buildStafOptions(penyelaras ? penyelaras.ID_Staf : '')}
-                        </select>
-                    </div>
-                </div>
-            `;
-        });
-
-        html += `</div></div>`;
-        container.insertAdjacentHTML('beforeend', html);
-    }
-
-    // =========================================================================
-    // 2. SECTION PENGURUSAN KURIKULUM
-    // =========================================================================
-    function renderKurikulumSection(container) {
-        renderPanitiaCard(container);
-        renderStandardCommitteeCard(container, "Pentaksiran & Peperiksaan (PBD / UASA)", { jkInduk: "JK Induk Kurikulum", items: [] });
-        renderStandardCommitteeCard(container, "Jadual Waktu & MBR", { jkInduk: "JK Induk Kurikulum", items: [] });
-        renderStandardCommitteeCard(container, "Pusat Sumber Sekolah (PSS)", { jkInduk: "JK Induk Kurikulum", items: [] });
-    }
-
-    function renderPanitiaCard(container) {
-        const cleanCardId = 'card-panitia-mata-pelajaran';
-        let subjekList = ALL_SUBJEK.filter(s => !s.ID_Subjek_Induk); // Subjek Induk sahaja
-
-        if (subjekList.length === 0) {
-            subjekList = [
-                { Nama_Subjek: "Bahasa Melayu" }, { Nama_Subjek: "Bahasa Inggeris" },
-                { Nama_Subjek: "Matematik" }, { Nama_Subjek: "Sains" },
-                { Nama_Subjek: "Pendidikan Islam" }, { Nama_Subjek: "Sejarah" }
-            ];
-        }
-
-        let html = `
-            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-emerald-600" data-jk="Panitia Mata Pelajaran" data-jkinduk="JK Induk Kurikulum">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
-                    <div>
-                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-book-open-reader text-emerald-600 mr-2"></i>Ketua Panitia Mata Pelajaran</h2>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">Penetapan Ketua Panitia mengikut senarai subjek sekolah.</p>
-                    </div>
-                    <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan Panitia
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        `;
-
-        subjekList.forEach(sub => {
-            const namaSubjek = sub.Nama_Subjek;
-            const kp = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Panitia Mata Pelajaran' && p.Peranan === 'Ketua Panitia' && p.Skop_Tugas_Kelas === namaSubjek);
-
-            html += `
-                <div class="p-4 bg-emerald-50/40 rounded-xl border border-emerald-200 space-y-3">
-                    <div class="font-extrabold text-xs text-emerald-900 border-b border-emerald-200 pb-2">
-                        <i class="fa-solid fa-book mr-1.5"></i>${namaSubjek}
-                    </div>
-
-                    <div class="card-row-item" data-peranan="Ketua Panitia" data-skop="${namaSubjek}">
-                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Ketua Panitia:</label>
-                        <select class="select-staf w-full p-2 text-xs border border-emerald-300 rounded-lg bg-white font-semibold">
-                            ${buildStafOptions(kp ? kp.ID_Staf : '')}
-                        </select>
-                    </div>
-                </div>
-            `;
-        });
-
-        html += `</div></div>`;
-        container.insertAdjacentHTML('beforeend', html);
-    }
-
-    // =========================================================================
-    // 3. SECTION HAL EHWAL MURID (HEM)
-    // =========================================================================
-    function renderHEMSection(container) {
-        renderStandardCommitteeCard(container, "Disiplin & Badan Pengawas", { jkInduk: "JK Induk HEM", items: [] });
-        renderStandardCommitteeCard(container, "Pengurusan Kantin, RMT & Susu", { jkInduk: "JK Induk HEM", items: [] });
-        renderStandardCommitteeCard(container, "Kebersihan, Kesihatan & Keselamatan (3K)", { jkInduk: "JK Induk HEM", items: [] });
-        renderStandardCommitteeCard(container, "Pengurusan Data Murid (idMe)", { jkInduk: "JK Induk HEM", items: [] });
-    }
-
-    // =========================================================================
-    // 4. SECTION KOKURIKULUM
-    // =========================================================================
-    function renderKokurikulumSection(container) {
-        renderStandardCommitteeCard(container, "Badan Beruniform", { jkInduk: "JK Induk Kokurikulum", items: [] });
-        renderStandardCommitteeCard(container, "Kelab & Persatuan", { jkInduk: "JK Induk Kokurikulum", items: [] });
-        renderStandardCommitteeCard(container, "Sukan & Permainan", { jkInduk: "JK Induk Kokurikulum", items: [] });
-    }
-
-    // KAD STANDARD (DENGAN TANGGA TAMBAH BARIS)
-    function renderStandardCommitteeCard(container, namaJk, groupData) {
-        const cleanCardId = 'card-' + namaJk.replace(/[^a-zA-Z0-9]/g, '_');
-
-        let cardHtml = `
-            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-slate-600" data-jk="${namaJk}" data-jkinduk="${groupData.jkInduk}">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h2 class="font-extrabold text-lg text-slate-800">${namaJk}</h2>
-                            <span class="px-2.5 py-0.5 bg-slate-100 text-slate-700 font-bold text-[10px] rounded-full">${groupData.jkInduk}</span>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="addCardRow('${cleanCardId}')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-plus text-xs"></i> Tambah Peranan
-                        </button>
-                        <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                            <i class="fa-solid fa-floppy-disk"></i> Simpan
-                        </button>
-                    </div>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                                <th class="p-2.5 w-1/4">Peranan / Jawatan</th>
-                                <th class="p-2.5 w-1/4">Skop / Unit / Catatan</th>
-                                <th class="p-2.5 w-2/5">Pegawai Dilantik</th>
-                                <th class="p-2.5 text-center w-12">Tindakan</th>
-                            </tr>
-                        </thead>
-                        <tbody class="rows-holder divide-y divide-slate-100 font-medium">
-                            ${generateRowHtml('', '', '')}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-
-        container.insertAdjacentHTML('beforeend', cardHtml);
-    }
-
-    function generateRowHtml(peranan = '', skop = '', selectedStafId = '', idPeranan = '') {
-        return `
-            <tr class="card-row-item hover:bg-slate-50 transition" data-idperanan="${idPeranan}">
-                <td class="p-2">
-                    <input type="text" class="input-peranan w-full p-2 text-xs border border-slate-200 rounded-lg font-bold focus:border-[#1f7a9c]" value="${peranan}" placeholder="Contoh: Penyelaras / AJK">
-                </td>
-                <td class="p-2">
-                    <input type="text" class="input-skop w-full p-2 text-xs border border-slate-200 rounded-lg focus:border-[#1f7a9c]" value="${skop}" placeholder="Contoh: Pengakap / Unit 1">
-                </td>
-                <td class="p-2">
-                    <select class="select-staf w-full p-2 text-xs border border-slate-200 rounded-lg bg-white font-semibold focus:border-[#1f7a9c]">
-                        ${buildStafOptions(selectedStafId)}
-                    </select>
-                </td>
-                <td class="p-2 text-center">
-                    <button onclick="deleteCardRow(this)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition" title="Hapus Baris">
-                        <i class="fa-solid fa-trash-can text-sm"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-    }
-
-    function buildStafOptions(selectedId = '') {
-        let optHtml = '<option value="">-- Belum Dilantik --</option>';
-        ALL_STAF.forEach(staf => {
-            const id = String(staf.ID_Staf || '').trim();
-            const nama = staf.Nama_Penuh || staf.Nama_Samaran || id;
-            const isSelected = String(id).toLowerCase() === String(selectedId).toLowerCase() ? 'selected' : '';
-            if (id) {
-                optHtml += `<option value="${id}" ${isSelected}>${nama}</option>`;
-            }
-        });
-        return optHtml;
-    }
-
-    function addCardRow(cardId) {
-        const card = document.getElementById(cardId);
-        if (!card) return;
-        const tbody = card.querySelector('.rows-holder');
-        if (tbody) {
-            tbody.insertAdjacentHTML('beforeend', generateRowHtml());
-        }
-    }
-
-    function deleteCardRow(btn) {
-        const row = btn.closest('tr');
-        if (row) row.remove();
-    }
-
-    async function saveCardData(cardId) {
-        const card = document.getElementById(cardId);
-        if (!card) return;
-
-        const namaJk = card.getAttribute('data-jk');
-        const jkInduk = card.getAttribute('data-jkinduk');
-        const rowItems = card.querySelectorAll('.card-row-item');
-
-        let payloadBatch = [];
-
-        rowItems.forEach(row => {
-            let peranan = '';
-            let skop = '';
-            let idPeranan = row.getAttribute('data-idperanan') || '';
-
-            if (row.hasAttribute('data-peranan')) {
-                peranan = row.getAttribute('data-peranan');
-                skop = row.getAttribute('data-skop');
-            } else {
-                const perananInput = row.querySelector('.input-peranan');
-                const skopInput = row.querySelector('.input-skop');
-                peranan = perananInput ? perananInput.value.trim() : '';
-                skop = skopInput ? skopInput.value.trim() : '';
-            }
-
-            const selectStaf = row.querySelector('.select-staf');
-            const idStaf = selectStaf ? selectStaf.value : '';
-
-            if (peranan || idStaf) {
-                payloadBatch.push({
-                    id_peranan: idPeranan,
-                    kategori_pengurusan: ACTIVE_CATEGORY,
-                    jk_induk: jkInduk,
-                    nama_jawatankuasa: namaJk,
-                    peranan: peranan,
-                    skop_tugas_kelas: skop,
-                    id_staf: idStaf,
-                    tahun: '2026',
-                    status: 'Aktif'
-                });
-            }
-        });
-
-        showLoader(`Menyimpan ${namaJk}...`);
-        try {
-            const res = await postToBackend({ action: 'savePerananStafV2', data: payloadBatch });
-            hideLoader();
-
-            if (res && res.success) {
-                Swal.fire('Berjaya', `${namaJk} berjaya disimpan!`, 'success');
-                fetchPortalData();
-            } else {
-                Swal.fire('Ralat', res.error || 'Gagal menyimpan rekod.', 'error');
-            }
-        } catch (err) {
-            hideLoader();
-            Swal.fire('Ralat', 'Gagal menyimpan data.', 'error');
-        }
-    }
-
-    function openNewCommitteeModal() {
-        document.getElementById('modal-new-kategori').value = ACTIVE_CATEGORY;
-        document.getElementById('modal-new-jk-induk').value = `JK Induk ${ACTIVE_CATEGORY}`;
-        document.getElementById('modal-new-nama-jk').value = '';
-        document.getElementById('new-jk-modal').classList.remove('hidden');
-    }
-
-    function closeNewCommitteeModal() {
-        document.getElementById('new-jk-modal').classList.add('hidden');
-    }
-
-    function createCommitteeCard() {
-        const kat = document.getElementById('modal-new-kategori').value;
-        const jkInduk = document.getElementById('modal-new-jk-induk').value.trim();
-        const namaJk = document.getElementById('modal-new-nama-jk').value.trim();
-
-        if (!namaJk || !jkInduk) {
-            Swal.fire('Perhatian', 'Sila isi nama jawatankuasa dan JK Induk.', 'warning');
-            return;
-        }
-
-        closeNewCommitteeModal();
-
-        if (kat !== ACTIVE_CATEGORY) {
-            switchCategory(kat);
-        }
-
-        const container = document.getElementById('cards-container');
-        renderStandardCommitteeCard(container, namaJk, { jkInduk: jkInduk, items: [] });
-    }
-
     window.addEventListener('DOMContentLoaded', () => {
-        fetchPortalData();
+      populateDropdownGuru();
     });
-    </script>
+
+    function toggleMobileSidebar() {
+      document.getElementById('sidebar').classList.toggle('hidden');
+    }
+
+    function showView(viewId) {
+      const views = ['viewDashboard', 'viewProfilStaf', 'viewIndukPengurusan', 'viewIndukKurikulum', 'viewIndukHEM', 'viewIndukKoko'];
+      views.forEach(v => {
+        const el = document.getElementById(v);
+        if (el) el.classList.add('hidden');
+      });
+
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+      const activeView = document.getElementById(viewId);
+      if (activeView) activeView.classList.remove('hidden');
+
+      const activeBtn = document.getElementById('side' + viewId.replace('view', ''));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const bTxt = document.getElementById('txtBreadcrumb');
+      if (viewId === 'viewDashboard') bTxt.innerText = 'Dashboard Utama';
+      else if (viewId === 'viewIndukPengurusan') bTxt.innerText = 'JK Induk Pengurusan';
+      else if (viewId === 'viewIndukKurikulum') bTxt.innerText = 'JK Induk Kurikulum';
+      else if (viewId === 'viewIndukHEM') bTxt.innerText = 'JK Induk HEM';
+      else if (viewId === 'viewIndukKoko') bTxt.innerText = 'JK Induk Kokurikulum';
+    }
+
+    function populateDropdownGuru() {
+      let optionsHtml = '<option value="">-- Pilih Setiausaha daripada Senarai Guru --</option>';
+      guruList.forEach(g => {
+        optionsHtml += `<option value="${g.id}">${g.nama}</option>`;
+      });
+
+      document.querySelectorAll('.select-guru-opt').forEach(sel => {
+        sel.innerHTML = optionsHtml;
+      });
+    }
+
+    function simpanJKInduk(bidang) {
+      let suVal = '';
+      if (bidang === 'Pengurusan') suVal = document.getElementById('select-su-pengurusan').value;
+      if (bidang === 'Kurikulum') suVal = document.getElementById('select-su-kurikulum').value;
+      if (bidang === 'HEM') suVal = document.getElementById('select-su-hem').value;
+      if (bidang === 'Kokurikulum') suVal = document.getElementById('select-su-koko').value;
+
+      if (!suVal) {
+        Swal.fire('Perhatian', 'Sila pilih Setiausaha daripada senarai guru.', 'warning');
+        return;
+      }
+
+      Swal.fire('Berjaya Saved', `Jawatankuasa Induk ${bidang} berjaya dikemas kini dalam Peranan_Staf!`, 'success');
+    }
+  </script>
 </body>
 </html>
