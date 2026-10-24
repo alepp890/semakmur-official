@@ -68,6 +68,7 @@
       </div>
     </div>
 
+    <!-- MENU SIDEBAR -->
     <div class="flex-1 overflow-y-auto p-3 space-y-1 text-xs">
       
       <button onclick="showView('viewDashboard')" id="sideDashboard" class="nav-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition">
@@ -84,11 +85,12 @@
 
       <button onclick="showView('viewPengurusanJawatankuasa')" id="sidePengurusanJawatankuasa" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
         <i class="fa-solid fa-list-check w-4 text-center text-cyan-400"></i>
-        <span>Pengurusan Jawatankuasa</span>
+        <span>Pengurusan Master Jawatankuasa</span>
       </button>
 
       <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pengurusan Operasi</div>
 
+      <!-- STANDALONE: PENGURUSAN SEKOLAH -->
       <button onclick="showView('viewPengurusanSekolah')" id="sidePengurusanSekolah" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
         <i class="fa-solid fa-briefcase w-4 text-center text-amber-400"></i>
         <span>Pengurusan Sekolah</span>
@@ -141,7 +143,7 @@
 
     <main class="p-4 lg:p-8 space-y-6">
 
-      <!-- DASHBOARD -->
+      <!-- ================= 1. DASHBOARD UTAMA ================= -->
       <div id="viewDashboard" class="space-y-6">
         <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-md border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-5">
           <div class="flex items-center gap-4">
@@ -150,13 +152,13 @@
             </div>
             <div>
               <h1 class="font-display font-extrabold text-xl lg:text-2xl text-white">Manual Pengurusan Sekolah 2026</h1>
-              <p class="text-xs text-rose-300 font-semibold mt-0.5">Pilih Pengurusan Sekolah atau Jawatankuasa Induk untuk tetapan peranan.</p>
+              <p class="text-xs text-rose-300 font-semibold mt-0.5">Sistem Pengurusan Teratur Bagi Agihan Tugas & Jawatankuasa Sekolah.</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- PROFIL GURU & AKP -->
+      <!-- ================= 2. PROFIL GURU & AKP ================= -->
       <div id="viewProfilStaf" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -177,7 +179,7 @@
 
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <span class="font-bold text-xs text-slate-700"><i class="fa-solid fa-users mr-2 text-rose-600"></i>Senarai Staf Aktif (Hierarki & Abjad)</span>
+            <span class="font-bold text-xs text-slate-700"><i class="fa-solid fa-users mr-2 text-rose-600"></i>Senarai Staf Aktif</span>
             <span id="txtCountStaf" class="text-[11px] font-extrabold bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full">0 Staf</span>
           </div>
 
@@ -199,7 +201,7 @@
         </div>
       </div>
 
-      <!-- MASTER_JAWATANKUASA -->
+      <!-- ================= 3. MASTER JAWATANKUASA ================= -->
       <div id="viewPengurusanJawatankuasa" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-cyan-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -255,27 +257,31 @@
         </div>
       </div>
 
-      <!-- PENGURUSAN SEKOLAH -->
+      <!-- ================= 4. STANDALONE: PENGURUSAN SEKOLAH ================= -->
       <div id="viewPengurusanSekolah" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-amber-500">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
-              <h2 class="font-display font-extrabold text-xl text-slate-800">Modul Pengurusan Sekolah</h2>
-              <p class="text-xs text-slate-500">Pengurusan kelas, bilik khas, kumpulan bertugas dan pemantauan guru.</p>
+              <h2 class="font-display font-extrabold text-xl text-slate-800">Modul Pengurusan Sekolah (Stand-Alone)</h2>
+              <p class="text-xs text-slate-500">Pengurusan Guru Kelas, Bilik Khas, Kumpulan Bertugas, e-RPH, Pencerapan & Semakan Buku Tulis.</p>
             </div>
             <button onclick="simpanSemuaPengurusanSekolah()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2 self-start sm:self-auto">
               <i class="fa-solid fa-floppy-disk"></i> Simpan Pengurusan Sekolah
             </button>
           </div>
 
+          <!-- SUB TABS PENGURUSAN SEKOLAH -->
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="switchSubPengurusan('kelas')" id="subTabKelas" class="sub-tab-btn active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white transition">Guru Kelas & Aliran</button>
-            <button onclick="switchSubPengurusan('bilik')" id="subTabBilik" class="sub-tab-btn px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Penyelaras Bilik Khas</button>
-            <button onclick="switchSubPengurusan('bertugas')" id="subTabBertugas" class="sub-tab-btn px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Kumpulan Bertugas Mingguan</button>
-            <button onclick="switchSubPengurusan('pemantauan')" id="subTabPemantauan" class="sub-tab-btn px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Pemantauan & Pencerapan</button>
+            <button onclick="switchSubPengurusan('kelas')" id="subTabKelas" class="sub-tab-btn active px-3.5 py-2 rounded-xl font-bold text-xs bg-rose-600 text-white transition">Guru Kelas & Aliran</button>
+            <button onclick="switchSubPengurusan('bilik')" id="subTabBilik" class="sub-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Penyelaras Bilik Khas</button>
+            <button onclick="switchSubPengurusan('bertugas')" id="subTabBertugas" class="sub-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Kumpulan Bertugas Mingguan</button>
+            <button onclick="switchSubPengurusan('rph')" id="subTabRph" class="sub-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Penghantaran e-RPH</button>
+            <button onclick="switchSubPengurusan('pencerapan')" id="subTabPencerapan" class="sub-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Pencerapan PdP</button>
+            <button onclick="switchSubPengurusan('semakan')" id="subTabSemakan" class="sub-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Semakan Buku Tulis</button>
           </div>
         </div>
 
+        <!-- SUB-TAB 1: GURU KELAS & ALIRAN -->
         <div id="subSecKelas" class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700 flex items-center justify-between">
             <span><i class="fa-solid fa-chalkboard-user text-rose-600 mr-2"></i>Senarai Kelas, Guru Kelas, Guru Pembantu & Penyelaras Aliran</span>
@@ -298,6 +304,7 @@
           </div>
         </div>
 
+        <!-- SUB-TAB 2: PENYELARAS BILIK KHAS -->
         <div id="subSecBilik" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700">
             <i class="fa-solid fa-door-open text-blue-600 mr-2"></i>Senarai Bilik Khas & Guru Penyelaras
@@ -317,6 +324,7 @@
           </div>
         </div>
 
+        <!-- SUB-TAB 3: KUMPULAN BERTUGAS MINGGUAN -->
         <div id="subSecBertugas" class="hidden space-y-4">
           <div class="bg-slate-900 text-white p-4 rounded-2xl text-xs flex justify-between items-center">
             <span class="font-bold"><i class="fa-solid fa-users-rectangle mr-2 text-amber-400"></i>Agihan Kumpulan Bertugas Mingguan Guru (Kumpulan 1 - 4)</span>
@@ -374,13 +382,78 @@
           </div>
         </div>
 
-        <div id="subSecPemantauan" class="hidden bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
-          <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-clipboard-check text-purple-600 mr-2"></i>Pemantauan RPH, Pencerapan Pengajaran & Semakan Hasil Kerja Murid</h3>
-          <p class="text-xs text-slate-500 italic">Ruangan khas bagi modul penghantaran e-RPH, jadual pencerapan pengajaran, dan semakan hasil kerja murid.</p>
+        <!-- SUB-TAB 4: PENGHANTARAN E-RPH -->
+        <div id="subSecRph" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700 flex items-center justify-between">
+            <span><i class="fa-solid fa-file-signature text-purple-600 mr-2"></i>Penetapan Pegawai Penyemak e-RPH (Pentadbir Hingga Guru Akademik)</span>
+            <span class="text-[10px] text-slate-400 font-normal italic">* Guru Praktikal & AKP telah dikeluarkan daripada senarai ini.</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="p-3 w-12 text-center">BIL</th>
+                  <th class="p-3">Nama Guru</th>
+                  <th class="p-3 w-80">Pegawai Penyemak / Tindakan</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyPenghantaranRph" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
         </div>
+
+        <!-- SUB-TAB 5: PENCERAPAN PDP -->
+        <div id="subSecPencerapan" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700 flex items-center justify-between">
+            <span><i class="fa-solid fa-clipboard-check text-cyan-600 mr-2"></i>Jadual Pegawai Pencerapan Pengajaran & Pembelajaran (PdP)</span>
+            <span class="text-[10px] text-slate-400 font-normal italic">* Hanya senarai Pentadbir dipaparkan sebagai Pegawai Pencerap.</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="p-3 w-12 text-center">BIL</th>
+                  <th class="p-3">Nama Guru</th>
+                  <th class="p-3 w-64">Pencerapan 1</th>
+                  <th class="p-3 w-64">Pencerapan 2</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyPencerapanPdp" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SUB-TAB 6: SEMAKAN BUKU TULIS -->
+        <div id="subSecSemakan" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700 flex items-center justify-between">
+            <span><i class="fa-solid fa-book-open-reader text-emerald-600 mr-2"></i>Penetapan Pegawai Penyemak Buku Tulis / Latihan Murid Mengikut Subjek & Tahun</span>
+            <span class="text-[10px] text-slate-400 font-normal italic">* Merangkumi 9 Subjek Tahap 1 & 11 Subjek Tahap 2.</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="p-3 w-12 text-center">BIL</th>
+                  <th class="p-3 w-48">Mata Pelajaran</th>
+                  <th class="p-3">Tahun 1</th>
+                  <th class="p-3">Tahun 2</th>
+                  <th class="p-3">Tahun 3</th>
+                  <th class="p-3">Tahun 4</th>
+                  <th class="p-3">Tahun 5</th>
+                  <th class="p-3">Tahun 6</th>
+                </tr>
+              </thead>
+              <tbody id="tbodySemakanBuku" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
-      <!-- JK INDUK PENGURUSAN -->
+      <!-- ================= 5. JK INDUK PENGURUSAN ================= -->
       <div id="viewIndukPengurusan" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-amber-500">
           <div class="flex items-center justify-between border-b pb-3">
@@ -412,7 +485,7 @@
         </div>
       </div>
 
-      <!-- JK INDUK KURIKULUM -->
+      <!-- ================= 6. JK INDUK KURIKULUM ================= -->
       <div id="viewIndukKurikulum" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-emerald-600">
           <div class="flex items-center justify-between border-b pb-3">
@@ -444,7 +517,7 @@
         </div>
       </div>
 
-      <!-- JK INDUK HEM -->
+      <!-- ================= 7. JK INDUK HEM ================= -->
       <div id="viewIndukHEM" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-blue-600">
           <div class="flex items-center justify-between border-b pb-3">
@@ -476,7 +549,7 @@
         </div>
       </div>
 
-      <!-- JK INDUK KOKURIKULUM -->
+      <!-- ================= 8. JK INDUK KOKURIKULUM ================= -->
       <div id="viewIndukKoko" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-purple-600">
           <div class="flex items-center justify-between border-b pb-3">
@@ -671,11 +744,24 @@
   <script src="../../config.js"></script>
 
   <script>
-    // DIISYTIHARKAN TANPA DATA DUMMY (ARRAY KOSONG)
     let ALL_STAF = [];
     let ALL_LOKASI = [];
     let ALL_JAWATANKUASA = [];
     let ALL_PERANAN = [];
+    let ALL_SUBJEK = [
+      { Kod_Subjek: "BM", Nama_Subjek: "Bahasa Melayu" },
+      { Kod_Subjek: "BI", Nama_Subjek: "Bahasa Inggeris" },
+      { Kod_Subjek: "MT", Nama_Subjek: "Matematik" },
+      { Kod_Subjek: "SN", Nama_Subjek: "Sains" },
+      { Kod_Subjek: "PI", Nama_Subjek: "Pendidikan Islam" },
+      { Kod_Subjek: "PM", Nama_Subjek: "Pendidikan Moral" },
+      { Kod_Subjek: "PJ", Nama_Subjek: "Pendidikan Jasmani" },
+      { Kod_Subjek: "PK", Nama_Subjek: "Pendidikan Kesihatan" },
+      { Kod_Subjek: "PSV", Nama_Subjek: "Pendidikan Seni Visual" },
+      { Kod_Subjek: "MZ", Nama_Subjek: "Pendidikan Muzik" },
+      { Kod_Subjek: "SEJ", Nama_Subjek: "Sejarah" },
+      { Kod_Subjek: "RBT", Nama_Subjek: "Reka Bentuk & Teknologi" }
+    ];
 
     let CURRENT_STAF_FILTER = 'Semua';
     let CURRENT_JK_FILTER = 'Semua';
@@ -683,6 +769,9 @@
     let statePengurusanKelas = {}; 
     let stateBilikKhas = {};      
     let kumpulanBertugasState = { 1: [], 2: [], 3: [], 4: [] }; 
+    let statePenghantaranRph = {};
+    let statePencerapanPdp = {};
+    let stateSemakanBuku = {};
 
     function getNextStafID() {
       let maxNum = 0;
@@ -767,11 +856,9 @@
       statePengurusanKelas = {};
       stateBilikKhas = {};
       kumpulanBertugasState = { 1: [], 2: [], 3: [], 4: [] };
-
-      ['select-su-pengurusan', 'select-su-kurikulum', 'select-su-hem', 'select-su-koko'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = "";
-      });
+      statePenghantaranRph = {};
+      statePencerapanPdp = {};
+      stateSemakanBuku = {};
 
       if (!ALL_PERANAN || ALL_PERANAN.length === 0) return;
 
@@ -804,6 +891,21 @@
           }
         }
 
+        if (jk === 'Penghantaran e-RPH') {
+          statePenghantaranRph[idStaf] = skop; // skop menyimpan ID Pentadbir penyemak
+        }
+
+        if (jk === 'Pencerapan PdP') {
+          if (!statePencerapanPdp[idStaf]) statePencerapanPdp[idStaf] = { p1: '', p2: '' };
+          if (peranan === 'Pencerapan 1') statePencerapanPdp[idStaf].p1 = skop;
+          if (peranan === 'Pencerapan 2') statePencerapanPdp[idStaf].p2 = skop;
+        }
+
+        if (jk === 'Semakan Buku Tulis') {
+          // skop format: KodSubjek_Tahun (Contoh: BM_Tahun1)
+          stateSemakanBuku[skop] = idStaf;
+        }
+
         if (peranan === 'Setiausaha Pengurusan') setDropdownIfExist('select-su-pengurusan', idStaf);
         if (peranan === 'Setiausaha Kurikulum') setDropdownIfExist('select-su-kurikulum', idStaf);
         if (peranan === 'Setiausaha HEM') setDropdownIfExist('select-su-hem', idStaf);
@@ -827,12 +929,10 @@
           ALL_LOKASI = res.lokasi || [];
           ALL_PERANAN = res.peranan || [];
           ALL_JAWATANKUASA = res.jawatankuasa || [];
-        } else {
-          Swal.fire('Perhatian', res.error || 'Gagal mengambil data dari Google Sheets.', 'warning');
+          if (res.subjek && res.subjek.length > 0) ALL_SUBJEK = res.subjek;
         }
       } catch (err) {
         hideLoader();
-        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend Google Sheets.', 'error');
       }
 
       renderMasterStafTable();
@@ -865,7 +965,7 @@
       const bTxt = document.getElementById('txtBreadcrumb');
       if (viewId === 'viewDashboard') bTxt.innerText = 'Dashboard Utama';
       else if (viewId === 'viewProfilStaf') bTxt.innerText = 'Profil Guru & AKP';
-      else if (viewId === 'viewPengurusanJawatankuasa') bTxt.innerText = 'Pengurusan Jawatankuasa';
+      else if (viewId === 'viewPengurusanJawatankuasa') bTxt.innerText = 'Pengurusan Master Jawatankuasa';
       else if (viewId === 'viewPengurusanSekolah') bTxt.innerText = 'Pengurusan Sekolah';
       else if (viewId === 'viewIndukPengurusan') bTxt.innerText = 'JK Induk Pengurusan';
       else if (viewId === 'viewIndukKurikulum') bTxt.innerText = 'JK Induk Kurikulum';
@@ -874,8 +974,9 @@
     }
 
     function switchSubPengurusan(type) {
-      ['subSecKelas', 'subSecBilik', 'subSecBertugas', 'subSecPemantauan'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
+      ['subSecKelas', 'subSecBilik', 'subSecBertugas', 'subSecRph', 'subSecPencerapan', 'subSecSemakan'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
       });
       document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
 
@@ -888,10 +989,243 @@
       } else if (type === 'bertugas') {
         document.getElementById('subSecBertugas').classList.remove('hidden');
         document.getElementById('subTabBertugas').classList.add('active');
-      } else if (type === 'pemantauan') {
-        document.getElementById('subSecPemantauan').classList.remove('hidden');
-        document.getElementById('subTabPemantauan').classList.add('active');
+      } else if (type === 'rph') {
+        document.getElementById('subSecRph').classList.remove('hidden');
+        document.getElementById('subTabRph').classList.add('active');
+      } else if (type === 'pencerapan') {
+        document.getElementById('subSecPencerapan').classList.remove('hidden');
+        document.getElementById('subTabPencerapan').classList.add('active');
+      } else if (type === 'semakan') {
+        document.getElementById('subSecSemakan').classList.remove('hidden');
+        document.getElementById('subTabSemakan').classList.add('active');
       }
+    }
+
+    function renderPengurusanSekolahTables() {
+      renderTableKelas();
+      renderTableBilikKhas();
+      renderKumpulanBertugasUI();
+      renderTablePenghantaranRph();
+      renderTablePencerapanPdp();
+      renderTableSemakanBuku();
+    }
+
+    // 1. TENTUKAN SENARAI PENTADBIR SAHAJA UNTUK DROPDOWN
+    function getPentadbirList() {
+      return ALL_STAF.filter(s => 
+        ['Guru Besar', 'GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf) && 
+        (s.Status || 'Aktif').trim().toLowerCase() === 'aktif'
+      );
+    }
+
+    // 2. TENTUKAN SENARAI GURU AKADEMIK & PENTADBIR (TANPA PRAKTIKAL & AKP)
+    function getGuruTanpaPraktikalAKP() {
+      const guru = ALL_STAF.filter(s => 
+        s.Kategori_Staf !== 'AKP' && 
+        s.Kategori_Staf !== 'Guru Praktikal' && 
+        (s.Status || 'Aktif').trim().toLowerCase() === 'aktif'
+      );
+      return sortStafList(guru);
+    }
+
+    // RENDER: PENGHANTARAN E-RPH
+    function renderTablePenghantaranRph() {
+      const tbody = document.getElementById('tbodyPenghantaranRph');
+      if (!tbody) return;
+
+      const senaraiGuru = getGuruTanpaPraktikalAKP();
+      const senaraiPentadbir = getPentadbirList();
+
+      if (senaraiGuru.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="p-6 text-center text-slate-400 italic">Tiada rekod guru dijumpai.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      senaraiGuru.forEach((g, idx) => {
+        const isGuruBesar = g.Kategori_Staf === 'Guru Besar';
+        const currentPenyemak = statePenghantaranRph[g.ID_Staf] || '';
+
+        let selectHtml = '';
+        if (isGuruBesar) {
+          selectHtml = `<input type="text" value="PPD (Pejabat Pendidikan Daerah)" disabled class="w-full p-2 bg-slate-200 border border-slate-300 rounded-xl font-bold text-slate-700">`;
+        } else {
+          selectHtml = `<select onchange="updateStateRph('${g.ID_Staf}', this.value)" class="w-full p-2 border border-slate-200 rounded-xl bg-white font-semibold focus:border-purple-600 text-xs">`;
+          selectHtml += `<option value="">-- Pilih Pentadbir Penyemak --</option>`;
+          senaraiPentadbir.forEach(p => {
+            selectHtml += `<option value="${p.ID_Staf}" ${p.ID_Staf === currentPenyemak ? 'selected' : ''}>${p.Nama_Penuh} (${p.Kategori_Staf})</option>`;
+          });
+          selectHtml += `</select>`;
+        }
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="p-3 font-extrabold text-slate-800">${g.Nama_Penuh} <span class="text-[10px] text-rose-500 font-semibold">(${g.Kategori_Staf})</span></td>
+            <td class="p-2">${selectHtml}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function updateStateRph(idGuru, idPenyemak) {
+      statePenghantaranRph[idGuru] = idPenyemak;
+    }
+
+    // RENDER: PENCERAPAN PDP
+    function renderTablePencerapanPdp() {
+      const tbody = document.getElementById('tbodyPencerapanPdp');
+      if (!tbody) return;
+
+      const senaraiGuru = getGuruTanpaPraktikalAKP();
+      const senaraiPentadbir = getPentadbirList();
+
+      if (senaraiGuru.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 italic">Tiada rekod guru dijumpai.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      senaraiGuru.forEach((g, idx) => {
+        const st = statePencerapanPdp[g.ID_Staf] || { p1: '', p2: '' };
+
+        let opt1 = `<option value="">-- Pilih Pencerap 1 --</option>`;
+        let opt2 = `<option value="">-- Pilih Pencerap 2 --</option>`;
+
+        senaraiPentadbir.forEach(p => {
+          opt1 += `<option value="${p.ID_Staf}" ${p.ID_Staf === st.p1 ? 'selected' : ''}>${p.Nama_Penuh} (${p.Kategori_Staf})</option>`;
+          opt2 += `<option value="${p.ID_Staf}" ${p.ID_Staf === st.p2 ? 'selected' : ''}>${p.Nama_Penuh} (${p.Kategori_Staf})</option>`;
+        });
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="p-3 font-extrabold text-slate-800">${g.Nama_Penuh} <span class="text-[10px] text-rose-500 font-semibold">(${g.Kategori_Staf})</span></td>
+            <td class="p-2">
+              <select onchange="updateStatePencerapan('${g.ID_Staf}', 'p1', this.value)" class="w-full p-2 border border-slate-200 rounded-xl bg-white font-semibold focus:border-cyan-600 text-xs">
+                ${opt1}
+              </select>
+            </td>
+            <td class="p-2">
+              <select onchange="updateStatePencerapan('${g.ID_Staf}', 'p2', this.value)" class="w-full p-2 border border-slate-200 rounded-xl bg-white font-semibold focus:border-cyan-600 text-xs">
+                ${opt2}
+              </select>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function updateStatePencerapan(idGuru, field, idPencerap) {
+      if (!statePencerapanPdp[idGuru]) statePencerapanPdp[idGuru] = { p1: '', p2: '' };
+      statePencerapanPdp[idGuru][field] = idPencerap;
+    }
+
+    // RENDER: SEMAKAN BUKU TULIS
+    function renderTableSemakanBuku() {
+      const tbody = document.getElementById('tbodySemakanBuku');
+      if (!tbody) return;
+
+      const senaraiPentadbir = getPentadbirList();
+
+      tbody.innerHTML = '';
+      ALL_SUBJEK.forEach((sub, idx) => {
+        let cellsHtml = '';
+
+        for (let thn = 1; thn <= 6; thn++) {
+          const keySkop = `${sub.Kod_Subjek}_Tahun${thn}`;
+          const currentPenyemak = stateSemakanBuku[keySkop] || '';
+
+          let opt = `<option value="">-- Pilih --</option>`;
+          senaraiPentadbir.forEach(p => {
+            opt += `<option value="${p.ID_Staf}" ${p.ID_Staf === currentPenyemak ? 'selected' : ''}>${p.Nama_Samaran || p.Nama_Penuh} (${p.Kategori_Staf})</option>`;
+          });
+
+          cellsHtml += `
+            <td class="p-1">
+              <select onchange="updateStateSemakanBuku('${keySkop}', this.value)" class="w-full p-1.5 border border-slate-200 rounded-lg bg-white font-semibold text-[11px] focus:border-emerald-600">
+                ${opt}
+              </select>
+            </td>
+          `;
+        }
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="p-3 font-extrabold text-slate-800">${sub.Nama_Subjek} <span class="text-rose-600 font-bold">(${sub.Kod_Subjek})</span></td>
+            ${cellsHtml}
+          </tr>
+        `;
+      });
+    }
+
+    function updateStateSemakanBuku(keySkop, idPenyemak) {
+      stateSemakanBuku[keySkop] = idPenyemak;
+    }
+
+    // RENDER PROFIL GURU & AKP
+    function renderMasterStafTable(filterKat = CURRENT_STAF_FILTER) {
+      CURRENT_STAF_FILTER = filterKat;
+      const tbody = document.getElementById('tbodyMasterStaf');
+      if (!tbody) return;
+
+      const activeStafOnly = ALL_STAF.filter(s => (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+      const sortedStaf = sortStafList(activeStafOnly);
+      let filteredData = sortedStaf;
+
+      if (filterKat === 'Pentadbir') {
+        filteredData = sortedStaf.filter(s => ['Guru Besar', 'GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf));
+      } else if (filterKat === 'Guru Akademik') {
+        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'Guru Akademik');
+      } else if (filterKat === 'Guru Praktikal') {
+        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'Guru Praktikal');
+      } else if (filterKat === 'AKP') {
+        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'AKP');
+      }
+
+      document.getElementById('txtCountStaf').innerText = `${filteredData.length} Staf Aktif`;
+
+      if (filteredData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Tiada data staf dijumpai.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      filteredData.forEach((staf, idx) => {
+        let badgeClass = 'bg-slate-100 text-slate-700';
+        const kat = staf.Kategori_Staf || 'Guru Akademik';
+
+        if (kat === 'Guru Besar') badgeClass = 'bg-rose-100 text-rose-800 font-extrabold';
+        else if (kat.includes('GPK')) badgeClass = 'bg-amber-100 text-amber-800 font-extrabold';
+        else if (kat === 'Guru Akademik') badgeClass = 'bg-emerald-100 text-emerald-800 font-bold';
+        else if (kat === 'Guru Praktikal') badgeClass = 'bg-cyan-100 text-cyan-800 font-bold';
+        else if (kat === 'AKP') badgeClass = 'bg-blue-100 text-blue-800 font-bold';
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="p-3">
+              <p class="font-extrabold text-slate-800">${staf.Nama_Penuh || '-'}</p>
+              <p class="text-[10px] text-rose-600 font-semibold">"${staf.Nama_Samaran || '-'}"</p>
+            </td>
+            <td class="p-3"><span class="px-2.5 py-1 text-[10px] rounded-full ${badgeClass}">${kat}</span></td>
+            <td class="p-3 font-bold text-slate-700">${staf.Gred_Jawatan || '-'}</td>
+            <td class="p-3 text-slate-600">${staf.Opsyen_Utama || '-'}</td>
+            <td class="p-3 text-center">
+              <span class="px-2.5 py-1 text-[10px] rounded-full font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">${staf.Status || 'Aktif'}</span>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function filterStafTable(kat) {
+      document.querySelectorAll('.btn-filter-staf').forEach(btn => {
+        btn.className = 'btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700';
+      });
+      event.target.className = 'btn-filter-staf active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs';
+      renderMasterStafTable(kat);
     }
 
     function renderMasterJawatankuasaTable(filterKat = CURRENT_JK_FILTER) {
@@ -932,12 +1266,8 @@
             <td class="p-3 text-slate-600">${jenisSkop}</td>
             <td class="p-3 text-center font-bold ${adaPenyelaras === 'Ya' ? 'text-emerald-600' : 'text-slate-400'}">${adaPenyelaras}</td>
             <td class="p-3 text-center space-x-1">
-              <button onclick="editMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg transition" title="Edit">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-              <button onclick="deleteMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg transition" title="Padam">
-                <i class="fa-solid fa-trash"></i>
-              </button>
+              <button onclick="editMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg transition"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button onclick="deleteMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         `;
@@ -950,182 +1280,6 @@
       });
       event.target.className = 'btn-filter-jk active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-cyan-600 text-white shadow-xs';
       renderMasterJawatankuasaTable(kat);
-    }
-
-    function filterJkTableBySearch() {
-      const q = document.getElementById('searchJkInput').value.toLowerCase();
-      const rows = document.querySelectorAll('#tbodyMasterJawatankuasa tr');
-      rows.forEach(r => {
-        r.style.display = r.innerText.toLowerCase().includes(q) ? '' : 'none';
-      });
-    }
-
-    function openModalJawatankuasa(isEdit = false) {
-      document.getElementById('modalJkTitle').innerText = isEdit ? 'Edit Record Jawatankuasa' : 'Tambah Jawatankuasa Baharu';
-      if (!isEdit) {
-        document.getElementById('jk_ID_Tugasan').value = getNextJkID();
-        document.getElementById('jk_Kategori_Pengurusan').value = 'Pentadbiran';
-        document.getElementById('jk_JK_Induk').value = '';
-        document.getElementById('jk_Nama_Jawatankuasa').value = '';
-        document.getElementById('jk_Peranan').value = '';
-        document.getElementById('jk_Jenis_Skop').value = 'Induk';
-        document.getElementById('jk_Ada_Penyelaras').value = 'Tidak';
-      }
-      document.getElementById('modal-jawatankuasa').classList.remove('hidden');
-    }
-
-    function closeModalJawatankuasa() {
-      document.getElementById('modal-jawatankuasa').classList.add('hidden');
-    }
-
-    function editMasterJawatankuasa(idTugasan) {
-      const item = ALL_JAWATANKUASA.find(j => String(j.ID_Tugasan || j.id_tugasan || j.ID_Jawatankuasa) === String(idTugasan));
-      if (!item) return;
-
-      document.getElementById('jk_ID_Tugasan').value = item.ID_Tugasan || item.id_tugasan || item.ID_Jawatankuasa;
-      document.getElementById('jk_Kategori_Pengurusan').value = item.Kategori_Pengurusan || item.kategori_pengurusan || 'Pentadbiran';
-      document.getElementById('jk_JK_Induk').value = item.JK_Induk || item.jk_induk || '';
-      document.getElementById('jk_Nama_Jawatankuasa').value = item.Nama_Jawatankuasa || item.nama_jawatankuasa || '';
-      document.getElementById('jk_Peranan').value = item.Peranan || item.peranan || '';
-      document.getElementById('jk_Jenis_Skop').value = item.Jenis_Skop || item.jenis_skop || 'Induk';
-      document.getElementById('jk_Ada_Penyelaras').value = item.Ada_Penyelaras || item.ada_penyelaras || 'Tidak';
-
-      openModalJawatankuasa(true);
-    }
-
-    async function simpanMasterJawatankuasa(e) {
-      e.preventDefault();
-
-      const payloadData = {
-        id_tugasan: document.getElementById('jk_ID_Tugasan').value.trim(),
-        kategori_pengurusan: document.getElementById('jk_Kategori_Pengurusan').value,
-        jk_induk: document.getElementById('jk_JK_Induk').value.trim(),
-        nama_jawatankuasa: document.getElementById('jk_Nama_Jawatankuasa').value.trim(),
-        peranan: document.getElementById('jk_Peranan').value.trim(),
-        jenis_skop: document.getElementById('jk_Jenis_Skop').value,
-        ada_penyelaras: document.getElementById('jk_Ada_Penyelaras').value
-      };
-
-      closeModalJawatankuasa();
-      showLoader('Menyimpan Jawatankuasa ke Google Sheets...');
-
-      try {
-        const res = await postToBackend({
-          action: 'saveMasterJawatankuasaV2',
-          data: payloadData
-        });
-        hideLoader();
-
-        if (res && res.success) {
-          Swal.fire('Berjaya Saved', res.message, 'success');
-          fetchMasterStafData();
-        } else {
-          Swal.fire('Ralat', res.error || 'Gagal menyimpan rekod.', 'error');
-        }
-      } catch (err) {
-        hideLoader();
-        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
-      }
-    }
-
-    async function deleteMasterJawatankuasa(idTugasan) {
-      const confirm = await Swal.fire({
-        title: 'Padam Jawatankuasa?',
-        text: `Adakah anda pasti mahu memadam rekod master [${idTugasan}] ini?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#e11d48',
-        confirmButtonText: 'Ya, Padam'
-      });
-
-      if (!confirm.isConfirmed) return;
-
-      showLoader('Memadam Master Jawatankuasa...');
-      try {
-        const res = await postToBackend({
-          action: 'deleteMasterJawatankuasaV2',
-          data: { id_tugasan: idTugasan }
-        });
-        hideLoader();
-
-        if (res && res.success) {
-          Swal.fire('Dihapuskan', res.message, 'success');
-          fetchMasterStafData();
-        } else {
-          Swal.fire('Ralat', res.error, 'error');
-        }
-      } catch (e) {
-        hideLoader();
-        Swal.fire('Ralat Sambungan', 'Gagal memadam rekod.', 'error');
-      }
-    }
-
-    function renderMasterStafTable(filterKat = CURRENT_STAF_FILTER) {
-      CURRENT_STAF_FILTER = filterKat;
-      const tbody = document.getElementById('tbodyMasterStaf');
-      if (!tbody) return;
-
-      const activeStafOnly = ALL_STAF.filter(s => (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
-      const sortedStaf = sortStafList(activeStafOnly);
-      let filteredData = sortedStaf;
-
-      if (filterKat === 'Pentadbir') {
-        filteredData = sortedStaf.filter(s => ['Guru Besar', 'GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf));
-      } else if (filterKat === 'Guru Akademik') {
-        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'Guru Akademik');
-      } else if (filterKat === 'Guru Praktikal') {
-        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'Guru Praktikal');
-      } else if (filterKat === 'AKP') {
-        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'AKP');
-      }
-
-      document.getElementById('txtCountStaf').innerText = `${filteredData.length} Staf Aktif`;
-
-      if (filteredData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Tiada data staf aktif dijumpai untuk kategori ini.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = '';
-      filteredData.forEach((staf, idx) => {
-        let badgeClass = 'bg-slate-100 text-slate-700';
-        const kat = staf.Kategori_Staf || 'Guru Akademik';
-
-        if (kat === 'Guru Besar') badgeClass = 'bg-rose-100 text-rose-800 font-extrabold';
-        else if (kat.includes('GPK')) badgeClass = 'bg-amber-100 text-amber-800 font-extrabold';
-        else if (kat === 'Guru Akademik') badgeClass = 'bg-emerald-100 text-emerald-800 font-bold';
-        else if (kat === 'Guru Praktikal') badgeClass = 'bg-cyan-100 text-cyan-800 font-bold';
-        else if (kat === 'AKP') badgeClass = 'bg-blue-100 text-blue-800 font-bold';
-
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="p-3">
-              <p class="font-extrabold text-slate-800">${staf.Nama_Penuh || '-'}</p>
-              <p class="text-[10px] text-rose-600 font-semibold">"${staf.Nama_Samaran || '-'}"</p>
-            </td>
-            <td class="p-3">
-              <span class="px-2.5 py-1 text-[10px] rounded-full ${badgeClass}">${kat}</span>
-            </td>
-            <td class="p-3 font-bold text-slate-700">${staf.Gred_Jawatan || '-'}</td>
-            <td class="p-3 text-slate-600">${staf.Opsyen_Utama || '-'}</td>
-            <td class="p-3 text-center">
-              <span class="px-2.5 py-1 text-[10px] rounded-full font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
-                ${staf.Status || 'Aktif'}
-              </span>
-            </td>
-          </tr>
-        `;
-      });
-    }
-
-    function filterStafTable(kat) {
-      document.querySelectorAll('.btn-filter-staf').forEach(btn => {
-        btn.className = 'btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700';
-      });
-      event.target.className = 'btn-filter-staf active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs';
-      
-      renderMasterStafTable(kat);
     }
 
     function populateDropdownGuru() {
@@ -1145,12 +1299,6 @@
     function getStreamKey(namaKelas) {
       const match = String(namaKelas).trim().match(/^(\d+|\w+)/);
       return match ? match[1] : namaKelas;
-    }
-
-    function renderPengurusanSekolahTables() {
-      renderTableKelas();
-      renderTableBilikKhas();
-      renderKumpulanBertugasUI();
     }
 
     function renderTableKelas() {
@@ -1319,10 +1467,12 @@
       renderKumpulanBertugasUI();
     }
 
+    // SIMPAN SEMUA DATA STANDALONE PENGURUSAN SEKOLAH
     async function simpanSemuaPengurusanSekolah() {
       showLoader('Menyimpan Pengurusan Sekolah...');
       let payloadBatch = [];
 
+      // 1. Guru Kelas & Guru Pembantu
       const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'kelas');
       const streamMap = {};
       senaraiKelas.forEach(k => {
@@ -1362,6 +1512,7 @@
         }
       });
 
+      // 2. Penyelaras Aliran
       Object.keys(streamMap).forEach(stKey => {
         const kelasPertama = streamMap[stKey][0];
         const idGuruKelasPertama = (statePengurusanKelas[kelasPertama] || {}).gk;
@@ -1379,6 +1530,7 @@
         }
       });
 
+      // 3. Bilik Khas
       Object.keys(stateBilikKhas).forEach(namaBilik => {
         const idG = stateBilikKhas[namaBilik];
         if (idG) {
@@ -1395,6 +1547,7 @@
         }
       });
 
+      // 4. Kumpulan Bertugas
       [1, 2, 3, 4].forEach(grp => {
         kumpulanBertugasState[grp].forEach(idG => {
           payloadBatch.push({
@@ -1410,9 +1563,72 @@
         });
       });
 
+      // 5. Penghantaran e-RPH
+      Object.keys(statePenghantaranRph).forEach(idGuru => {
+        const idPenyemak = statePenghantaranRph[idGuru];
+        if (idPenyemak) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Penghantaran e-RPH',
+            peranan: 'Penyemak RPH',
+            skop_tugas_kelas: idPenyemak,
+            id_staf: idGuru,
+            tahun: '2026',
+            status: 'Aktif'
+          });
+        }
+      });
+
+      // 6. Pencerapan PdP
+      Object.keys(statePencerapanPdp).forEach(idGuru => {
+        const st = statePencerapanPdp[idGuru];
+        if (st.p1) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Pencerapan PdP',
+            peranan: 'Pencerapan 1',
+            skop_tugas_kelas: st.p1,
+            id_staf: idGuru,
+            tahun: '2026',
+            status: 'Aktif'
+          });
+        }
+        if (st.p2) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Pencerapan PdP',
+            peranan: 'Pencerapan 2',
+            skop_tugas_kelas: st.p2,
+            id_staf: idGuru,
+            tahun: '2026',
+            status: 'Aktif'
+          });
+        }
+      });
+
+      // 7. Semakan Buku Tulis
+      Object.keys(stateSemakanBuku).forEach(keySkop => {
+        const idPenyemak = stateSemakanBuku[keySkop];
+        if (idPenyemak) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Semakan Buku Tulis',
+            peranan: 'Penyemak Buku',
+            skop_tugas_kelas: keySkop,
+            id_staf: idPenyemak,
+            tahun: '2026',
+            status: 'Aktif'
+          });
+        }
+      });
+
       const payload = {
         action: 'savePerananStafV2',
-        scopes_to_clear: ['Pengurusan Kelas', 'Pengurusan Aliran', 'Pengurusan Bilik Khas', 'Kumpulan Bertugas Mingguan'],
+        scopes_to_clear: ['Pengurusan Kelas', 'Pengurusan Aliran', 'Pengurusan Bilik Khas', 'Kumpulan Bertugas Mingguan', 'Penghantaran e-RPH', 'Pencerapan PdP', 'Semakan Buku Tulis'],
         data: payloadBatch
       };
 
