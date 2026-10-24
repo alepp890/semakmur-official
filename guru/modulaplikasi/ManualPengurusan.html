@@ -584,7 +584,6 @@
   <script src="../../config.js"></script>
 
   <script>
-    // DATA MASTER_STAF SAMPLE
     let ALL_STAF = [
       { ID_Staf: "STF001", Nama_Penuh: "Syed Ahmad bin Hassan", Nama_Samaran: "Cikgu Syed", Kategori_Staf: "Guru Besar", Gred_Jawatan: "DG54", Opsyen_Utama: "Pengurusan", Email_Delima: "syed@moe-dl.edu.my", No_Telefon: "019-1111111", Status: "Aktif" },
       { ID_Staf: "STF002", Nama_Penuh: "Mohd Farhan bin Rozali", Nama_Samaran: "Cikgu Farhan", Kategori_Staf: "GPK Pentadbiran", Gred_Jawatan: "DG48", Opsyen_Utama: "Matematik", Email_Delima: "farhan@moe-dl.edu.my", No_Telefon: "019-2222222", Status: "Aktif" },
@@ -598,7 +597,6 @@
       { ID_Staf: "STF009", Nama_Penuh: "Suhaimi bin Ali", Nama_Samaran: "En. Suhaimi", Kategori_Staf: "AKP", Gred_Jawatan: "N19", Opsyen_Utama: "Pembantu Operasi", Email_Delima: "suhaimi@moe-dl.edu.my", No_Telefon: "013-4445556", Status: "Aktif" }
     ];
 
-    // DATA MASTER_KELAS_BILIK SAMPLE
     let ALL_LOKASI = [
       { ID_Lokasi: "LOK001", Nama_Lokasi: "1 Iris", Kategori: "Kelas", Tahap_Blok: "Tahun 1" },
       { ID_Lokasi: "LOK002", Nama_Lokasi: "1 Lavender", Kategori: "Kelas", Tahap_Blok: "Tahun 1" },
@@ -615,7 +613,6 @@
     let ALL_PERANAN = [];
     let CURRENT_STAF_FILTER = 'Semua';
 
-    // STORE SEMENTARA UI
     let statePengurusanKelas = {}; 
     let stateBilikKhas = {};      
     let kumpulanBertugasState = { 1: [], 2: [], 3: [], 4: [] }; 
@@ -686,20 +683,26 @@
       return await response.json();
     }
 
-    // PENYERAPAN DATA (DATA HYDRATION) BILA PAGE DIMUATKAN / REFRESH
+    // PENYERAPAN DATA (DATA HYDRATION) BERSIH DENGAN KOSONGKAN DAHULU STATE LOKAL
     function hydrateStateFromPerananData() {
       statePengurusanKelas = {};
       stateBilikKhas = {};
       kumpulanBertugasState = { 1: [], 2: [], 3: [], 4: [] };
 
+      // Kosongkan semula dropdown Setiausaha
+      ['select-su-pengurusan', 'select-su-kurikulum', 'select-su-hem', 'select-su-koko'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+      });
+
       if (!ALL_PERANAN || ALL_PERANAN.length === 0) return;
 
       ALL_PERANAN.forEach(p => {
-        const jk = String(p.Nama_Jawatankuasa || '').trim();
-        const peranan = String(p.Peranan || '').trim();
-        const skop = String(p.Skop_Tugas_Kelas || '').trim();
-        const idStaf = String(p.ID_Staf || '').trim();
-        const status = String(p.Status || 'Aktif').trim().toLowerCase();
+        const jk = String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim();
+        const peranan = String(p.Peranan || p.peranan || '').trim();
+        const skop = String(p.Skop_Tugas_Kelas || p.skop_tugas_kelas || '').trim();
+        const idStaf = String(p.ID_Staf || p.id_staf || '').trim();
+        const status = String(p.Status || p.status || 'Aktif').trim().toLowerCase();
 
         if (status !== 'aktif' || !idStaf) return;
 
@@ -758,7 +761,7 @@
       renderMasterStafTable();
       populateDropdownGuru();
       
-      // HYDRATE STATE SUPAYA DATA TAMPIL SELEPAS REFRESH
+      // Hydrate state terkini dari database
       hydrateStateFromPerananData();
       renderPengurusanSekolahTables();
     }
@@ -906,7 +909,6 @@
       renderKumpulanBertugasUI();
     }
 
-    // 1. RENDER JADUAL GURU KELAS, PEMBANTU & PENYELARAS ALIRAN
     function renderTableKelas() {
       const tbody = document.getElementById('tbodyPengurusanKelas');
       if (!tbody) return;
@@ -976,7 +978,6 @@
       renderTableKelas();
     }
 
-    // 2. RENDER BILIK KHAS
     function renderTableBilikKhas() {
       const tbody = document.getElementById('tbodyBilikKhas');
       if (!tbody) return;
@@ -1018,7 +1019,6 @@
       stateBilikKhas[namaBilik] = val;
     }
 
-    // 3. RENDER KUMPULAN BERTUGAS
     function renderKumpulanBertugasUI() {
       const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
       const sortedGuru = sortStafList(activeGuruOnly);
@@ -1075,7 +1075,6 @@
       renderKumpulanBertugasUI();
     }
 
-    // FUNGSI SIMPAN PENGURUSAN SEKOLAH DENGAN SCOPES TO CLEAR (SABAN TIADA DATA MELEKAT)
     async function simpanSemuaPengurusanSekolah() {
       showLoader('Menyimpan Pengurusan Sekolah...');
       let payloadBatch = [];
@@ -1171,7 +1170,7 @@
         });
       });
 
-      // Hantar skop yang perlu dibersihkan dahulu di backend
+      // Hantar skop menyeluruh untuk dibersihkan di backend
       const payload = {
         action: 'savePerananStafV2',
         scopes_to_clear: ['Pengurusan Kelas', 'Pengurusan Aliran', 'Pengurusan Bilik Khas', 'Kumpulan Bertugas Mingguan'],
@@ -1184,7 +1183,7 @@
 
         if (res && res.success) {
           Swal.fire('Berjaya Saved', 'Rekod Pengurusan Sekolah telah dikemas kini tanpa sebarang duplikasi!', 'success');
-          fetchMasterStafData(); // Refresh semula pangkalan data
+          fetchMasterStafData(); 
         } else {
           Swal.fire('Ralat', res.error || 'Gagal menyimpan rekod.', 'error');
         }
@@ -1194,7 +1193,6 @@
       }
     }
 
-    // MODAL POPUP STAF HANDLERS
     function openTambahGuruModal() {
       const nextId = getNextStafID();
       const inpId = document.getElementById('inp_ID_Staf');
@@ -1261,7 +1259,7 @@
       try {
         const payload = {
           action: 'savePerananStafV2',
-          scopes_to_clear: [`JK Induk ${bidang}`],
+          scopes_to_clear: [`JK Induk ${bidang}`, `Setiausaha ${bidang}`],
           data: [{
             kategori_pengurusan: bidang,
             jk_induk: `JK Induk ${bidang}`,
