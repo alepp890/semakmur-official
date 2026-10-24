@@ -70,7 +70,7 @@
 
     <!-- CONTAINER MENU SIDEBAR (DINAMIK) -->
     <div id="sidebarMenuContainer" class="flex-1 overflow-y-auto p-3 space-y-1 text-xs">
-      <!-- Menu utama/submenu ditarik melalui JS -->
+      <!-- Menu ditarik secara dinamik melalui JS -->
     </div>
 
     <div class="p-3 border-t border-slate-800 text-[11px] text-slate-500 text-center">
@@ -382,11 +382,11 @@
           </div>
         </div>
 
-        <!-- SUB-TAB 6: SEMAKAN HASIL KERJA MURID (MATA PELAJARAN INDUK SAHAJA) -->
+        <!-- SUB-TAB 6: SEMAKAN HASIL KERJA MURID (DYNAMIC SUBJEK INDUK) -->
         <div id="subSecSemakan" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700 flex items-center justify-between">
-            <span><i class="fa-solid fa-book-open-reader text-emerald-600 mr-2"></i>Semakan Hasil Kerja Murid (Mata Pelajaran Induk Sahaja)</span>
-            <span class="text-[10px] text-slate-400 font-normal italic">* Paparan disaring bagi mata pelajaran teras induk.</span>
+            <span><i class="fa-solid fa-book-open-reader text-emerald-600 mr-2"></i>Semakan Hasil Kerja Murid (Mengikut Master Subjek)</span>
+            <span class="text-[10px] text-slate-400 font-normal italic">* Petak N/A secara automatik dikunci bagi subjek khusus Tahap 2 sahaja.</span>
           </div>
 
           <div class="overflow-x-auto">
@@ -449,7 +449,7 @@
             </div>
           </div>
 
-          <!-- SENARAI PENYELARAS SUB-UNIT (MAPPING SAHAJA) -->
+          <!-- SENARAI PENYELARAS SUB-UNIT -->
           <div class="space-y-3">
             <h3 class="font-bold text-xs text-slate-500 uppercase tracking-wider">Senarai Penyelaras Jawatankuasa (Master Jawatankuasa)</h3>
             <div id="boxMappingSubJk" class="space-y-2 text-xs"></div>
@@ -561,7 +561,7 @@
         <div>
           <label class="block font-bold mb-1 text-slate-700">Peranan / Jawatan (Pilihan Checkbox) <span class="text-rose-500">*</span></label>
           <div id="boxPerananCheckboxes" class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-            <!-- Dynamic checkboxes injected by JS -->
+            <!-- Checkbox dimasukkan dinamik melalui JS -->
           </div>
         </div>
 
@@ -666,10 +666,12 @@
   <script src="../../config.js"></script>
 
   <script>
+    // Pembolehubah Global (Bermula Kosong Tanpa Dummy Data)
     let ALL_STAF = [];
     let ALL_LOKASI = [];
     let ALL_JAWATANKUASA = [];
     let ALL_PERANAN = [];
+    let ALL_SUBJEK = [];
 
     let CURRENT_STAF_FILTER = 'Semua';
     let CURRENT_JK_FILTER = 'Semua';
@@ -683,21 +685,6 @@
 
     let activeCategoryInduk = 'Pentadbiran';
     let activeSubJkName = '';
-
-    // MATA PELAJARAN INDUK TERAS
-    const CORE_SUBJECTS = [
-      { Kod: 'BM', Nama: 'Bahasa Melayu' },
-      { Kod: 'BI', Nama: 'Bahasa Inggeris' },
-      { Kod: 'MT', Nama: 'Matematik' },
-      { Kod: 'SN', Nama: 'Sains' },
-      { Kod: 'PI', Nama: 'Pendidikan Islam' },
-      { Kod: 'PM', Nama: 'Pendidikan Moral' },
-      { Kod: 'SEJ', Nama: 'Sejarah' },
-      { Kod: 'RBT', Nama: 'Reka Bentuk & Teknologi' },
-      { Kod: 'PSV', Nama: 'Pendidikan Seni Visual' },
-      { Kod: 'MZ', Nama: 'Pendidikan Muzik' },
-      { Kod: 'PJK', Nama: 'Pendidikan Jasmani & Kesihatan' }
-    ];
 
     // 1. PENETAPAN TAHUN AUTOMATIK (BERMULA 2027)
     function populateDropdownTahunAuto() {
@@ -999,7 +986,6 @@
 
       document.getElementById('txtSubJkDetailTitle').innerText = `${namaJk}`;
 
-      // Sesuaikan Label Mengikut Kategori
       const isKuri = (katName === 'Kurikulum');
       document.getElementById('lblSubPenyelarasTitle').innerText = isKuri ? 'Ketua Panitia:' : 'Penyelaras:';
       document.getElementById('lblSubSetiausahaTitle').innerText = isKuri ? 'Setiausaha Panitia:' : 'Setiausaha:';
@@ -1139,7 +1125,7 @@
           jk_induk: `JK Induk ${activeCategoryInduk}`,
           nama_jawatankuasa: activeSubJkName,
           peranan: rolePenyelarasText,
-          skop_tugas_kelas: activeSubJkName, // Menyimpan ringkasan nama JK yang tepat
+          skop_tugas_kelas: activeSubJkName,
           id_staf: penyelarasVal,
           tahun: tahunAktif,
           status: 'Aktif'
@@ -1267,6 +1253,7 @@
           ALL_LOKASI = res.lokasi || [];
           ALL_PERANAN = res.peranan || [];
           ALL_JAWATANKUASA = res.jawatankuasa || [];
+          ALL_SUBJEK = res.subjek || [];
         }
       } catch (err) {
         hideLoader();
@@ -1284,7 +1271,6 @@
       document.getElementById('sidebar').classList.toggle('hidden');
     }
 
-    // MEMPERBAIKI SOROTAN NAVIGASI
     function showView(viewId, evt = null) {
       const views = ['viewDashboard', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail'];
       views.forEach(v => {
@@ -1313,7 +1299,6 @@
       else if (viewId === 'viewSubJkDetail') bTxt.innerText = activeSubJkName;
     }
 
-    // MEMPERBAIKI SOROTAN SUB-TABS PENGURUSAN SEKOLAH
     function switchSubPengurusan(type, evt = null) {
       ['subSecKelas', 'subSecBilik', 'subSecBertugas', 'subSecRph', 'subSecPencerapan', 'subSecSemakan'].forEach(id => {
         const el = document.getElementById(id);
@@ -1461,19 +1446,57 @@
       statePencerapanPdp[idGuru][field] = idPencerap;
     }
 
-    // PEMBAIKAN SEMAKAN HASIL KERJA MURID (MATA PELAJARAN INDUK TERAS)
+    // SEMAKAN HASIL KERJA MURID (MENARIK TERUS DARI MASTER_SUBJEK)
     function renderTableSemakanBuku() {
       const tbody = document.getElementById('tbodySemakanBuku');
       if (!tbody) return;
 
       const senaraiPentadbir = getPentadbirList();
 
+      // Ekstrak senarai Subjek_Induk unik daripada ALL_SUBJEK
+      let subjekIndukList = [];
+      if (ALL_SUBJEK && ALL_SUBJEK.length > 0) {
+        const mapSub = {};
+        ALL_SUBJEK.forEach(s => {
+          const namaInduk = String(s.Subjek_Induk || s.subjek_induk || s['Nama_Subjek / Komponen'] || '').trim();
+          const kod = String(s.Kod_Subjek || s.kod_subjek || '').trim();
+          const tahap = String(s.Kategori_Tahap || s.kategori_tahap || '').trim();
+
+          if (namaInduk && !mapSub[namaInduk]) {
+            mapSub[namaInduk] = {
+              Nama: namaInduk,
+              Kod: kod || namaInduk,
+              Tahap: tahap
+            };
+          }
+        });
+        subjekIndukList = Object.values(mapSub);
+      }
+
+      if (subjekIndukList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400 italic">Tiada rekod subjek dijumpai dalam Master_Subjek.</td></tr>`;
+        return;
+      }
+
       tbody.innerHTML = '';
-      CORE_SUBJECTS.forEach((sub, idx) => {
+      subjekIndukList.forEach((sub, idx) => {
         let cellsHtml = '';
 
+        // Semak jika subjek khusus Tahap 2 sahaja (Sejarah / RBT)
+        const isTahap2Only = String(sub.Tahap).toLowerCase().includes('tahap 2') && !String(sub.Tahap).toLowerCase().includes('tahap 1');
+
         for (let thn = 1; thn <= 6; thn++) {
-          const keySkop = `${sub.Kod}_Tahun${thn}`;
+          // Kunci petak Tahun 1-3 bagi subjek Tahap 2 sahaja
+          if (isTahap2Only && thn <= 3) {
+            cellsHtml += `
+              <td class="p-1 text-center">
+                <span class="text-[10px] font-extrabold text-slate-400 bg-slate-100 px-2 py-1 rounded-md block">N/A</span>
+              </td>
+            `;
+            continue;
+          }
+
+          const keySkop = `${sub.Kod || sub.Nama}_Tahun${thn}`;
           const currentPenyemak = stateSemakanBuku[keySkop] || '';
 
           let opt = `<option value="">-- Pilih --</option>`;
@@ -1569,7 +1592,6 @@
       renderMasterStafTable(kat);
     }
 
-    // BORANG MODAL MASTER JAWATANKUASA
     function onCategoryChangeInModal() {
       const kat = document.getElementById('jk_Kategori_Pengurusan').value;
       document.getElementById('jk_JK_Induk').value = `JK Induk ${kat}`;
