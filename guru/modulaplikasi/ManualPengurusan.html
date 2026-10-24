@@ -892,7 +892,7 @@
         }
 
         if (jk === 'Penghantaran e-RPH') {
-          statePenghantaranRph[idStaf] = skop; // skop menyimpan ID Pentadbir penyemak
+          statePenghantaranRph[idStaf] = skop;
         }
 
         if (jk === 'Pencerapan PdP') {
@@ -902,7 +902,6 @@
         }
 
         if (jk === 'Semakan Buku Tulis') {
-          // skop format: KodSubjek_Tahun (Contoh: BM_Tahun1)
           stateSemakanBuku[skop] = idStaf;
         }
 
@@ -1010,7 +1009,6 @@
       renderTableSemakanBuku();
     }
 
-    // 1. TENTUKAN SENARAI PENTADBIR SAHAJA UNTUK DROPDOWN
     function getPentadbirList() {
       return ALL_STAF.filter(s => 
         ['Guru Besar', 'GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf) && 
@@ -1018,7 +1016,6 @@
       );
     }
 
-    // 2. TENTUKAN SENARAI GURU AKADEMIK & PENTADBIR (TANPA PRAKTIKAL & AKP)
     function getGuruTanpaPraktikalAKP() {
       const guru = ALL_STAF.filter(s => 
         s.Kategori_Staf !== 'AKP' && 
@@ -1028,7 +1025,6 @@
       return sortStafList(guru);
     }
 
-    // RENDER: PENGHANTARAN E-RPH
     function renderTablePenghantaranRph() {
       const tbody = document.getElementById('tbodyPenghantaranRph');
       if (!tbody) return;
@@ -1072,7 +1068,6 @@
       statePenghantaranRph[idGuru] = idPenyemak;
     }
 
-    // RENDER: PENCERAPAN PDP
     function renderTablePencerapanPdp() {
       const tbody = document.getElementById('tbodyPencerapanPdp');
       if (!tbody) return;
@@ -1121,7 +1116,6 @@
       statePencerapanPdp[idGuru][field] = idPencerap;
     }
 
-    // RENDER: SEMAKAN BUKU TULIS
     function renderTableSemakanBuku() {
       const tbody = document.getElementById('tbodySemakanBuku');
       if (!tbody) return;
@@ -1164,7 +1158,6 @@
       stateSemakanBuku[keySkop] = idPenyemak;
     }
 
-    // RENDER PROFIL GURU & AKP
     function renderMasterStafTable(filterKat = CURRENT_STAF_FILTER) {
       CURRENT_STAF_FILTER = filterKat;
       const tbody = document.getElementById('tbodyMasterStaf');
@@ -1226,6 +1219,146 @@
       });
       event.target.className = 'btn-filter-staf active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs';
       renderMasterStafTable(kat);
+    }
+
+    // MODAL & CARIAN MASTER JAWATANKUASA
+    function openModalJawatankuasa() {
+      document.getElementById('modalJkTitle').innerHTML = '<i class="fa-solid fa-list-check mr-2"></i>Tambah Jawatankuasa Baharu';
+      document.getElementById('jk_ID_Tugasan').value = getNextJkID();
+      document.getElementById('jk_Kategori_Pengurusan').value = 'Pentadbiran';
+      document.getElementById('jk_JK_Induk').value = '';
+      document.getElementById('jk_Nama_Jawatankuasa').value = '';
+      document.getElementById('jk_Peranan').value = '';
+      document.getElementById('jk_Jenis_Skop').value = 'Induk';
+      document.getElementById('jk_Ada_Penyelaras').value = 'Tidak';
+      document.getElementById('modal-jawatankuasa').classList.remove('hidden');
+    }
+
+    function closeModalJawatankuasa() {
+      document.getElementById('modal-jawatankuasa').classList.add('hidden');
+    }
+
+    function editMasterJawatankuasa(idTugasan) {
+      const item = ALL_JAWATANKUASA.find(j => (j.ID_Tugasan || j.id_tugasan || j.ID_Jawatankuasa) === idTugasan);
+      if (!item) return;
+
+      document.getElementById('modalJkTitle').innerHTML = '<i class="fa-solid fa-pen-to-square mr-2"></i>Kemaskini Jawatankuasa';
+      document.getElementById('jk_ID_Tugasan').value = idTugasan;
+      document.getElementById('jk_Kategori_Pengurusan').value = item.Kategori_Pengurusan || item.kategori_pengurusan || 'Pentadbiran';
+      document.getElementById('jk_JK_Induk').value = item.JK_Induk || item.jk_induk || '';
+      document.getElementById('jk_Nama_Jawatankuasa').value = item.Nama_Jawatankuasa || item.nama_jawatankuasa || '';
+      document.getElementById('jk_Peranan').value = item.Peranan || item.peranan || '';
+      document.getElementById('jk_Jenis_Skop').value = item.Jenis_Skop || item.jenis_skop || 'Induk';
+      document.getElementById('jk_Ada_Penyelaras').value = item.Ada_Penyelaras || item.ada_penyelaras || 'Tidak';
+      document.getElementById('modal-jawatankuasa').classList.remove('hidden');
+    }
+
+    async function simpanMasterJawatankuasa(e) {
+      e.preventDefault();
+      const payload = {
+        id_tugasan: document.getElementById('jk_ID_Tugasan').value,
+        kategori_pengurusan: document.getElementById('jk_Kategori_Pengurusan').value,
+        jk_induk: document.getElementById('jk_JK_Induk').value.trim(),
+        nama_jawatankuasa: document.getElementById('jk_Nama_Jawatankuasa').value.trim(),
+        peranan: document.getElementById('jk_Peranan').value.trim(),
+        jenis_skop: document.getElementById('jk_Jenis_Skop').value,
+        ada_penyelaras: document.getElementById('jk_Ada_Penyelaras').value
+      };
+
+      closeModalJawatankuasa();
+      showLoader('Menyimpan Master Jawatankuasa...');
+
+      try {
+        const res = await postToBackend({ action: 'saveMasterJawatankuasaV2', data: payload });
+        hideLoader();
+        if (res && res.success) {
+          Swal.fire('Berjaya!', res.message, 'success');
+          fetchMasterStafData();
+        } else {
+          Swal.fire('Ralat', res.error || 'Gagal menyimpan.', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+      }
+    }
+
+    async function deleteMasterJawatankuasa(idTugasan) {
+      const confirm = await Swal.fire({
+        title: 'Pengesahan Padam',
+        text: `Adakah anda pasti mahu menghapus Jawatankuasa ${idTugasan}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e11d48',
+        confirmButtonText: 'Ya, Padam',
+        cancelButtonText: 'Batal'
+      });
+
+      if (!confirm.isConfirmed) return;
+
+      showLoader('Menghapus Jawatankuasa...');
+      try {
+        const res = await postToBackend({ action: 'deleteMasterJawatankuasaV2', data: { id_tugasan: idTugasan } });
+        hideLoader();
+        if (res && res.success) {
+          Swal.fire('Dihapuskan!', res.message, 'success');
+          fetchMasterStafData();
+        } else {
+          Swal.fire('Ralat', res.error || 'Gagal menghapus.', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+      }
+    }
+
+    function filterJkTableBySearch() {
+      const txt = (document.getElementById('searchJkInput').value || '').toLowerCase().trim();
+      const tbody = document.getElementById('tbodyMasterJawatankuasa');
+      if (!tbody) return;
+
+      const filtered = ALL_JAWATANKUASA.filter(j => {
+        const idT = (j.ID_Tugasan || j.id_tugasan || '').toLowerCase();
+        const namaJk = (j.Nama_Jawatankuasa || j.nama_jawatankuasa || '').toLowerCase();
+        const peranan = (j.Peranan || j.peranan || '').toLowerCase();
+        const jkInduk = (j.JK_Induk || j.jk_induk || '').toLowerCase();
+        return idT.includes(txt) || namaJk.includes(txt) || peranan.includes(txt) || jkInduk.includes(txt);
+      });
+
+      document.getElementById('txtCountJk').innerText = `${filtered.length} Jawatankuasa`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Tiada carian yang sepadan.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      filtered.forEach((jk, idx) => {
+        const idTugasan = jk.ID_Tugasan || jk.id_tugasan || jk.ID_Jawatankuasa || '-';
+        const kat = jk.Kategori_Pengurusan || jk.kategori_pengurusan || '-';
+        const jkInduk = jk.JK_Induk || jk.jk_induk || '-';
+        const namaJk = jk.Nama_Jawatankuasa || jk.nama_jawatankuasa || '-';
+        const peranan = jk.Peranan || jk.peranan || '-';
+        const jenisSkop = jk.Jenis_Skop || jk.jenis_skop || 'Induk';
+        const adaPenyelaras = jk.Ada_Penyelaras || jk.ada_penyelaras || 'Tidak';
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="p-3 font-extrabold text-cyan-700">${idTugasan}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 font-bold">${kat}</span></td>
+            <td class="p-3 font-semibold text-slate-700">${jkInduk}</td>
+            <td class="p-3 font-extrabold text-slate-800">${namaJk}</td>
+            <td class="p-3 font-bold text-rose-600">${peranan}</td>
+            <td class="p-3 text-slate-600">${jenisSkop}</td>
+            <td class="p-3 text-center font-bold ${adaPenyelaras === 'Ya' ? 'text-emerald-600' : 'text-slate-400'}">${adaPenyelaras}</td>
+            <td class="p-3 text-center space-x-1">
+              <button onclick="editMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg transition"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button onclick="deleteMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
     }
 
     function renderMasterJawatankuasaTable(filterKat = CURRENT_JK_FILTER) {
@@ -1675,17 +1808,17 @@
       e.preventDefault();
       const newStaf = {
         ID_Staf: document.getElementById('inp_ID_Staf').value.trim(),
+        Email_Delima: document.getElementById('inp_Email_Delima').value.trim(),
         Nama_Penuh: document.getElementById('inp_Nama_Penuh').value.trim(),
-        Nama_Samaran: document.getElementById('inp_Nama_Samaran').value.trim(),
         No_KP: document.getElementById('inp_No_KP').value.trim(),
+        Nama_Samaran: document.getElementById('inp_Nama_Samaran').value.trim(),
         Kategori_Staf: document.getElementById('inp_Kategori_Staf').value,
         Gred_Jawatan: document.getElementById('inp_Gred_Jawatan').value.trim(),
         Opsyen_Utama: document.getElementById('inp_Opsyen_Utama').value.trim(),
-        Email_Delima: document.getElementById('inp_Email_Delima').value.trim(),
         No_Telefon: document.getElementById('inp_No_Telefon').value.trim(),
-        Status: document.getElementById('inp_Status').value,
         Tarikh_Masuk: document.getElementById('inp_Tarikh_Masuk').value,
         Tarikh_Keluar: '',
+        Status: document.getElementById('inp_Status').value,
         ID_Mentor: document.getElementById('inp_ID_Mentor').value
       };
 
