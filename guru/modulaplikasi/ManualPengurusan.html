@@ -347,8 +347,8 @@
       <form onsubmit="simpanStafBaharu(event)" class="p-6 space-y-4 text-xs">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block font-bold mb-1 text-slate-700">ID Staf <span class="text-rose-500">*</span></label>
-            <input type="text" id="inp_ID_Staf" placeholder="Contoh: STF010" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600">
+            <label class="block font-bold mb-1 text-slate-700">ID Staf (Automatik)</label>
+            <input type="text" id="inp_ID_Staf" readonly class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-200 font-extrabold text-slate-600 focus:outline-none">
           </div>
 
           <div>
@@ -413,13 +413,10 @@
           </div>
 
           <div>
-            <label class="block font-bold mb-1 text-slate-700">Tarikh Keluar</label>
-            <input type="date" id="inp_Tarikh_Keluar" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
-          </div>
-
-          <div class="md:col-span-2">
-            <label class="block font-bold mb-1 text-slate-700">ID Mentor</label>
-            <input type="text" id="inp_ID_Mentor" placeholder="ID Staf Pembimbing/Mentor (jika ada)" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+            <label class="block font-bold mb-1 text-slate-700">Mentor / Pembimbing</label>
+            <select id="inp_ID_Mentor" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600">
+              <!-- Auto Populated via JS -->
+            </select>
           </div>
         </div>
 
@@ -450,6 +447,22 @@
 
     let ALL_PERANAN = [];
     let CURRENT_STAF_FILTER = 'Semua';
+
+    // FUNGSI JANA ID STAF AUTOMATIK (EG. STF010)
+    function getNextStafID() {
+      let maxNum = 0;
+      ALL_STAF.forEach(s => {
+        if (s.ID_Staf) {
+          const match = s.ID_Staf.match(/^STF(\d+)/i);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxNum) maxNum = num;
+          }
+        }
+      });
+      const nextNum = maxNum + 1;
+      return 'STF' + String(nextNum).padStart(3, '0');
+    }
 
     // HIERARKI RANKING SUSUNAN STAF
     function getHierarchyRank(kategori) {
@@ -556,20 +569,16 @@
       else if (viewId === 'viewIndukKoko') bTxt.innerText = 'JK Induk Kokurikulum';
     }
 
-    // RENder JADUAL GURU & AKP (TAPIS AKTIF SAHAJA)
+    // RENDER JADUAL GURU & AKP (TAPIS AKTIF SAHAJA)
     function renderMasterStafTable(filterKat = CURRENT_STAF_FILTER) {
       CURRENT_STAF_FILTER = filterKat;
       const tbody = document.getElementById('tbodyMasterStaf');
       if (!tbody) return;
 
-      // 1. Tapis HANYA STAF AKTIF
       const activeStafOnly = ALL_STAF.filter(s => (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
-
-      // 2. Susun data ikut hierarki + abjad
       const sortedStaf = sortStafList(activeStafOnly);
       let filteredData = sortedStaf;
 
-      // 3. Tapis mengikut kategori tab
       if (filterKat === 'Pentadbir') {
         filteredData = sortedStaf.filter(s => ['Guru Besar', 'GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf));
       } else if (filterKat === 'Guru Akademik') {
@@ -645,6 +654,23 @@
 
     // MODAL POPUP STAF HANDLERS
     function openTambahGuruModal() {
+      // 1. Auto Isi ID Staf Baharu
+      const nextId = getNextStafID();
+      const inpId = document.getElementById('inp_ID_Staf');
+      if (inpId) inpId.value = nextId;
+
+      // 2. Auto Isi Dropdown ID Mentor (Guru Aktif Sahaja)
+      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+      const sortedGuru = sortStafList(activeGuruOnly);
+
+      let optMentor = '<option value="">-- Tiada Mentor / Pilih Mentor --</option>';
+      sortedGuru.forEach(g => {
+        optMentor += `<option value="${g.ID_Staf}">${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
+      });
+
+      const selMentor = document.getElementById('inp_ID_Mentor');
+      if (selMentor) selMentor.innerHTML = optMentor;
+
       document.getElementById('modal-tambah-staf').classList.remove('hidden');
     }
 
@@ -666,8 +692,8 @@
         No_Telefon: document.getElementById('inp_No_Telefon').value.trim(),
         Status: document.getElementById('inp_Status').value,
         Tarikh_Masuk: document.getElementById('inp_Tarikh_Masuk').value,
-        Tarikh_Keluar: document.getElementById('inp_Tarikh_Keluar').value,
-        ID_Mentor: document.getElementById('inp_ID_Mentor').value.trim()
+        Tarikh_Keluar: '',
+        ID_Mentor: document.getElementById('inp_ID_Mentor').value
       };
 
       ALL_STAF.push(newStaf);
@@ -675,7 +701,7 @@
       populateDropdownGuru();
       closeTambahGuruModal();
 
-      Swal.fire('Berjaya!', 'Rekod staf baharu telah ditambah ke dalam senarai.', 'success');
+      Swal.fire('Berjaya!', `Rekod staf baharu [${newStaf.ID_Staf}] telah disimpan.`, 'success');
     }
 
     async function simpanJKInduk(bidang) {
