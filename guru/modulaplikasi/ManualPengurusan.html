@@ -41,9 +41,18 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     .nav-btn.active { background-color: #e11d48; color: #ffffff; font-weight: 700; }
+    .loader-ring { display: inline-block; position: relative; width: 44px; height: 44px; }
+    .loader-ring div { box-sizing: border-box; display: block; position: absolute; width: 34px; height: 34px; margin: 5px; border: 3.5px solid #e11d48; border-radius: 50%; animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite; border-color: #e11d48 transparent transparent transparent; }
+    @keyframes loader-ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body class="min-h-screen flex text-slate-800 bg-slate-100">
+
+  <!-- GLOBAL LOADER -->
+  <div id="global-loader" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-[9999] flex flex-col items-center justify-center transition-all duration-200 hidden">
+    <div class="loader-ring mb-3"><div></div><div></div><div></div><div></div></div>
+    <p class="text-white font-bold text-sm tracking-wide" id="loader-text">Memuatkan Pangkalan Data...</p>
+  </div>
 
   <!-- SIDEBAR NAVIGASI KIRI -->
   <aside id="sidebar" class="w-72 bg-slate-900 text-slate-300 flex flex-col shrink-0 min-h-screen border-r border-slate-800 hidden md:flex">
@@ -140,10 +149,51 @@
 
       <!-- ================= 2. PROFIL GURU & AKP ================= -->
       <div id="viewProfilStaf" class="hidden space-y-6">
-        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-          <h2 class="font-display font-bold text-base text-slate-800">Senarai Guru Sekolah (Master_Staf)</h2>
-          <p class="text-xs text-slate-400">Nama-nama guru di bawah digunakan secara automatik dalam dropdown Setiausaha & AJK.</p>
+
+        <!-- HEADER & FILTER STAF -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="font-display font-extrabold text-lg text-slate-800">Pangkalan Data Profil Guru & AKP (Master_Staf)</h2>
+            <p class="text-xs text-slate-500">Susunan mengikut hierarki pentadbiran (GB, GPK Pentadbiran, GPK HEM, GPK Koko, Guru Akademik, Guru Praktikal & AKP).</p>
+          </div>
+          
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="filterStafTable('Semua')" class="btn-filter-staf active px-3 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs">Semua</button>
+            <button onclick="filterStafTable('Pentadbir')" class="btn-filter-staf px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Pentadbir</button>
+            <button onclick="filterStafTable('Guru Akademik')" class="btn-filter-staf px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Guru Akademik</button>
+            <button onclick="filterStafTable('Guru Praktikal')" class="btn-filter-staf px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Guru Praktikal</button>
+            <button onclick="filterStafTable('AKP')" class="btn-filter-staf px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">AKP</button>
+          </div>
         </div>
+
+        <!-- JADUAL UTAMA MASTER_STAF -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <span class="font-bold text-xs text-slate-700"><i class="fa-solid fa-users mr-2 text-rose-600"></i>Senarai Staf Terkini (Hierarki & Abjad)</span>
+            <span id="txtCountStaf" class="text-[11px] font-extrabold bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full">0 Staf</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="p-3 w-12 text-center">Bil</th>
+                  <th class="p-3">ID Staf</th>
+                  <th class="p-3">Nama Penuh & Samaran</th>
+                  <th class="p-3">Kategori Staf</th>
+                  <th class="p-3">Gred & Opsyen</th>
+                  <th class="p-3">E-mel DELIMa</th>
+                  <th class="p-3">No. Telefon</th>
+                  <th class="p-3 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyMasterStaf" class="divide-y divide-slate-100 font-medium">
+                <!-- Rendered dynamically by JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
       <!-- ================= 3. JK INDUK PENGURUSAN ================= -->
@@ -162,12 +212,12 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <label class="block font-bold text-slate-700">Pengerusi:</label>
-              <input type="text" value="Syed (Guru Besar)" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+              <input type="text" id="disp-pengerusi-pengurusan" value="Guru Besar" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
             </div>
 
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <label class="block font-bold text-slate-700">Timbalan Pengerusi:</label>
-              <input type="text" value="GPK Pentadbiran / Kurikulum" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+              <input type="text" id="disp-timbalan-pengurusan" value="GPK Pentadbiran" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
             </div>
 
             <div class="p-4 bg-amber-50 rounded-xl border border-amber-200 space-y-2 md:col-span-2">
@@ -196,12 +246,12 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <label class="block font-bold text-slate-700">Pengerusi:</label>
-              <input type="text" value="Syed (Guru Besar)" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+              <input type="text" value="Guru Besar" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
             </div>
 
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <label class="block font-bold text-slate-700">Timbalan Pengerusi:</label>
-              <input type="text" value="GPK Pentadbiran / Kurikulum" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+              <input type="text" value="GPK Pentadbiran" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
             </div>
 
             <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-200 space-y-2 md:col-span-2">
@@ -230,7 +280,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <label class="block font-bold text-slate-700">Pengerusi:</label>
-              <input type="text" value="Syed (Guru Besar)" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+              <input type="text" value="Guru Besar" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
             </div>
 
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
@@ -264,7 +314,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <label class="block font-bold text-slate-700">Pengerusi:</label>
-              <input type="text" value="Syed (Guru Besar)" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+              <input type="text" value="Guru Besar" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
             </div>
 
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
@@ -285,22 +335,103 @@
     </main>
   </div>
 
+  <script src="../../config.js"></script>
+
   <script>
-    // SENARAI GURU SEMENTARA (AKAN DITARIK DARI MASTER_STAF BACKEND)
-    let guruList = [
-      { id: "STF001", nama: "Syed (Guru Besar)" },
-      { id: "STF002", nama: "En. Mohd Farhan (GPK Pentadbiran)" },
-      { id: "STF003", nama: "Pn. Siti Hajar (GPK HEM)" },
-      { id: "STF004", nama: "En. Lim Chee Keong (GPK Koko)" },
-      { id: "STF005", nama: "Cikgu Nurul Aini" },
-      { id: "STF006", nama: "Cikgu Ahmad Razak" },
-      { id: "STF007", nama: "Cikgu Maria Abdullah" },
-      { id: "STF008", nama: "Cikgu Imran Zainal" }
+    let ALL_STAF = [
+      { ID_Staf: "STF001", Nama_Penuh: "Syed Ahmad bin Hassan", Nama_Samaran: "Cikgu Syed", Kategori_Staf: "Guru Besar", Gred_Jawatan: "DG54", Opsyen_Utama: "Pengurusan", Email_Delima: "syed@moe-dl.edu.my", No_Telefon: "019-1111111", Status: "Aktif" },
+      { ID_Staf: "STF002", Nama_Penuh: "Mohd Farhan bin Rozali", Nama_Samaran: "Cikgu Farhan", Kategori_Staf: "GPK Pentadbiran", Gred_Jawatan: "DG48", Opsyen_Utama: "Matematik", Email_Delima: "farhan@moe-dl.edu.my", No_Telefon: "019-2222222", Status: "Aktif" },
+      { ID_Staf: "STF003", Nama_Penuh: "Siti Hajar binti Yusof", Nama_Samaran: "Cikgu Hajar", Kategori_Staf: "GPK Hal Ehwal Murid", Gred_Jawatan: "DG48", Opsyen_Utama: "Pendidikan Islam", Email_Delima: "hajar@moe-dl.edu.my", No_Telefon: "019-3333333", Status: "Aktif" },
+      { ID_Staf: "STF004", Nama_Penuh: "Lim Chee Keong", Nama_Samaran: "Cikgu Lim", Kategori_Staf: "GPK Ko Kurikulum", Gred_Jawatan: "DG48", Opsyen_Utama: "PJK", Email_Delima: "lim@moe-dl.edu.my", No_Telefon: "019-4444444", Status: "Aktif" },
+      { ID_Staf: "STF005", Nama_Penuh: "Ahmad Razak bin Hashim", Nama_Samaran: "Cikgu Razak", Kategori_Staf: "Guru Akademik", Gred_Jawatan: "DG44", Opsyen_Utama: "Bahasa Melayu", Email_Delima: "razak@moe-dl.edu.my", No_Telefon: "012-6666666", Status: "Aktif" },
+      { ID_Staf: "STF006", Nama_Penuh: "Nurul Aini binti Zulkifli", Nama_Samaran: "Cikgu Aini", Kategori_Staf: "Guru Akademik", Gred_Jawatan: "DG44", Opsyen_Utama: "Sains", Email_Delima: "aini@moe-dl.edu.my", No_Telefon: "012-5555555", Status: "Aktif" },
+      { ID_Staf: "STF007", Nama_Penuh: "Maria binti Abdullah", Nama_Samaran: "Cikgu Maria", Kategori_Staf: "Guru Akademik", Gred_Jawatan: "DG41", Opsyen_Utama: "Bahasa Inggeris", Email_Delima: "maria@moe-dl.edu.my", No_Telefon: "012-7777777", Status: "Aktif" },
+      { ID_Staf: "STF008P", Nama_Penuh: "Siti Zulaikha binti Hassan", Nama_Samaran: "Cikgu Ika", Kategori_Staf: "Guru Praktikal", Gred_Jawatan: "Praktikal", Opsyen_Utama: "Sejarah", Email_Delima: "zulaikha@moe-dl.edu.my", No_Telefon: "011-2223334", Status: "Aktif" },
+      { ID_Staf: "STF008", Nama_Penuh: "Azlina binti Ahmad", Nama_Samaran: "Pn. Azlina", Kategori_Staf: "AKP", Gred_Jawatan: "N22", Opsyen_Utama: "Pembantu Tadbir", Email_Delima: "azlina@moe-dl.edu.my", No_Telefon: "013-1112223", Status: "Aktif" },
+      { ID_Staf: "STF009", Nama_Penuh: "Suhaimi bin Ali", Nama_Samaran: "En. Suhaimi", Kategori_Staf: "AKP", Gred_Jawatan: "N19", Opsyen_Utama: "Pembantu Operasi", Email_Delima: "suhaimi@moe-dl.edu.my", No_Telefon: "013-4445556", Status: "Aktif" }
     ];
 
+    let ALL_PERANAN = [];
+
+    // HIERARKI RANKING SUSUNAN STAF
+    function getHierarchyRank(kategori) {
+      const kat = (kategori || '').trim();
+      if (kat === 'Guru Besar') return 1;
+      if (kat === 'GPK Pentadbiran') return 2;
+      if (kat === 'GPK Hal Ehwal Murid') return 3;
+      if (kat === 'GPK Ko Kurikulum') return 4;
+      if (kat === 'Guru Akademik') return 5;
+      if (kat === 'Guru Praktikal') return 6;
+      if (kat === 'AKP') return 7;
+      return 8;
+    }
+
+    // FUNGSI SUSUNAN HIERARKI & ABJAD
+    function sortStafList(stafArray) {
+      return [...stafArray].sort((a, b) => {
+        const rankA = getHierarchyRank(a.Kategori_Staf);
+        const rankB = getHierarchyRank(b.Kategori_Staf);
+
+        // 1. Susun mengikut Keutamaan Hierarki Kategori_Staf
+        if (rankA !== rankB) {
+          return rankA - rankB;
+        }
+
+        // 2. Jika Kategori sama, susun ikut Abjad Nama_Penuh
+        const namaA = (a.Nama_Penuh || '').toLowerCase();
+        const namaB = (b.Nama_Penuh || '').toLowerCase();
+        return namaA.localeCompare(namaB, 'ms');
+      });
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
-      populateDropdownGuru();
+      fetchMasterStafData();
     });
+
+    function showLoader(txt = "Memuatkan...") {
+      document.getElementById('loader-text').innerText = txt;
+      document.getElementById('global-loader').classList.remove('hidden');
+    }
+
+    function hideLoader() {
+      document.getElementById('global-loader').classList.add('hidden');
+    }
+
+    async function postToBackend(payload) {
+      const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
+        ? WEB_APP_URL 
+        : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
+
+      const response = await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+        redirect: 'follow'
+      });
+
+      if (!response.ok) throw new Error('HTTP Error ' + response.status);
+      return await response.json();
+    }
+
+    async function fetchMasterStafData() {
+      showLoader('Menyelaraskan data Master_Staf...');
+      try {
+        const res = await postToBackend({ action: 'getManualV2Data' });
+        hideLoader();
+
+        if (res && res.success && res.staf && res.staf.length > 0) {
+          ALL_STAF = res.staf;
+          if (res.peranan) ALL_PERANAN = res.peranan;
+        }
+      } catch (err) {
+        hideLoader();
+        console.warn('Guna data staf tempatan.');
+      }
+
+      // Render awal jadual & dropdown
+      renderMasterStafTable();
+      populateDropdownGuru();
+    }
 
     function toggleMobileSidebar() {
       document.getElementById('sidebar').classList.toggle('hidden');
@@ -323,16 +454,93 @@
 
       const bTxt = document.getElementById('txtBreadcrumb');
       if (viewId === 'viewDashboard') bTxt.innerText = 'Dashboard Utama';
+      else if (viewId === 'viewProfilStaf') bTxt.innerText = 'Profil Guru & AKP';
       else if (viewId === 'viewIndukPengurusan') bTxt.innerText = 'JK Induk Pengurusan';
       else if (viewId === 'viewIndukKurikulum') bTxt.innerText = 'JK Induk Kurikulum';
       else if (viewId === 'viewIndukHEM') bTxt.innerText = 'JK Induk HEM';
       else if (viewId === 'viewIndukKoko') bTxt.innerText = 'JK Induk Kokurikulum';
     }
 
+    function renderMasterStafTable(filterKat = 'Semua') {
+      const tbody = document.getElementById('tbodyMasterStaf');
+      if (!tbody) return;
+
+      // Susun data ikut hierarki + abjad terlebih dahulu
+      const sortedStaf = sortStafList(ALL_STAF);
+      let filteredData = sortedStaf;
+
+      if (filterKat === 'Pentadbir') {
+        filteredData = sortedStaf.filter(s => ['Guru Besar', 'GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf));
+      } else if (filterKat === 'Guru Akademik') {
+        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'Guru Akademik');
+      } else if (filterKat === 'Guru Praktikal') {
+        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'Guru Praktikal');
+      } else if (filterKat === 'AKP') {
+        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'AKP');
+      }
+
+      document.getElementById('txtCountStaf').innerText = `${filteredData.length} Staf`;
+
+      if (filteredData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400 italic">Tiada data staf dijumpai untuk kategori ini.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      filteredData.forEach((staf, idx) => {
+        let badgeClass = 'bg-slate-100 text-slate-700';
+        const kat = staf.Kategori_Staf || 'Guru Akademik';
+
+        if (kat === 'Guru Besar') badgeClass = 'bg-rose-100 text-rose-800 font-extrabold';
+        else if (kat.includes('GPK')) badgeClass = 'bg-amber-100 text-amber-800 font-extrabold';
+        else if (kat === 'Guru Akademik') badgeClass = 'bg-emerald-100 text-emerald-800 font-bold';
+        else if (kat === 'Guru Praktikal') badgeClass = 'bg-cyan-100 text-cyan-800 font-bold';
+        else if (kat === 'AKP') badgeClass = 'bg-blue-100 text-blue-800 font-bold';
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="p-3 font-mono font-bold text-slate-600">${staf.ID_Staf || '-'}</td>
+            <td class="p-3">
+              <p class="font-extrabold text-slate-800">${staf.Nama_Penuh || '-'}</p>
+              <p class="text-[10px] text-rose-600 font-semibold">"${staf.Nama_Samaran || '-'}"</p>
+            </td>
+            <td class="p-3">
+              <span class="px-2.5 py-1 text-[10px] rounded-full ${badgeClass}">${kat}</span>
+            </td>
+            <td class="p-3">
+              <span class="font-bold">${staf.Gred_Jawatan || '-'}</span>
+              <span class="text-slate-400 text-[11px]">(${staf.Opsyen_Utama || '-'})</span>
+            </td>
+            <td class="p-3 font-mono text-slate-600">${staf.Email_Delima || '-'}</td>
+            <td class="p-3 font-mono text-slate-600">${staf.No_Telefon || '-'}</td>
+            <td class="p-3 text-center">
+              <span class="px-2 py-0.5 text-[10px] rounded font-bold ${staf.Status === 'Aktif' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}">
+                ${staf.Status || 'Aktif'}
+              </span>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function filterStafTable(kat) {
+      document.querySelectorAll('.btn-filter-staf').forEach(btn => {
+        btn.className = 'btn-filter-staf px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700';
+      });
+      event.target.className = 'btn-filter-staf active px-3 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs';
+      
+      renderMasterStafTable(kat);
+    }
+
     function populateDropdownGuru() {
+      // Tapis guru sahaja (Abaikan AKP untuk Setiausaha)
+      const guruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP');
+      const sortedGuru = sortStafList(guruOnly);
+
       let optionsHtml = '<option value="">-- Pilih Setiausaha daripada Senarai Guru --</option>';
-      guruList.forEach(g => {
-        optionsHtml += `<option value="${g.id}">${g.nama}</option>`;
+      sortedGuru.forEach(g => {
+        optionsHtml += `<option value="${g.ID_Staf}">${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
       });
 
       document.querySelectorAll('.select-guru-opt').forEach(sel => {
@@ -340,7 +548,7 @@
       });
     }
 
-    function simpanJKInduk(bidang) {
+    async function simpanJKInduk(bidang) {
       let suVal = '';
       if (bidang === 'Pengurusan') suVal = document.getElementById('select-su-pengurusan').value;
       if (bidang === 'Kurikulum') suVal = document.getElementById('select-su-kurikulum').value;
@@ -352,7 +560,34 @@
         return;
       }
 
-      Swal.fire('Berjaya Saved', `Jawatankuasa Induk ${bidang} berjaya dikemas kini dalam Peranan_Staf!`, 'success');
+      showLoader(`Menyimpan Setiausaha ${bidang}...`);
+      try {
+        const payload = {
+          action: 'savePerananStafV2',
+          data: [{
+            kategori_pengurusan: bidang,
+            jk_induk: `JK Induk ${bidang}`,
+            nama_jawatankuasa: `JK Induk ${bidang}`,
+            peranan: `Setiausaha ${bidang}`,
+            skop_tugas_kelas: 'Pengurusan Induk',
+            id_staf: suVal,
+            tahun: '2026',
+            status: 'Aktif'
+          }]
+        };
+
+        const res = await postToBackend(payload);
+        hideLoader();
+
+        if (res && res.success) {
+          Swal.fire('Berjaya Saved', `Jawatankuasa Induk ${bidang} berjaya disimpan ke Helaian Peranan_Staf!`, 'success');
+        } else {
+          Swal.fire('Ralat', res.error || 'Gagal menyimpan rekod.', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+      }
     }
   </script>
 </body>
