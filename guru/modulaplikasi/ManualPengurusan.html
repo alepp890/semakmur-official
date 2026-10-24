@@ -83,7 +83,7 @@
         <span>Profil Guru & AKP</span>
       </button>
 
-      <!-- MENU BARU: PENGURUSAN JAWATANKUASA -->
+      <!-- MENU: PENGURUSAN JAWATANKUASA -->
       <button onclick="showView('viewPengurusanJawatankuasa')" id="sidePengurusanJawatankuasa" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
         <i class="fa-solid fa-list-check w-4 text-center text-cyan-400"></i>
         <span>Pengurusan Jawatankuasa</span>
@@ -205,7 +205,7 @@
         </div>
       </div>
 
-      <!-- ================= 3. MODUL BAHARU: PENGURUSAN JAWATANKUASA (MASTER) ================= -->
+      <!-- ================= 3. PENGURUSAN JAWATANKUASA (MASTER_JAWATANKUASA) ================= -->
       <div id="viewPengurusanJawatankuasa" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-cyan-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -218,7 +218,6 @@
             </button>
           </div>
 
-          <!-- TAB KATEGORI MASTER JAWATANKUASA -->
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex flex-wrap items-center gap-2">
               <button onclick="filterJkTable('Semua')" class="btn-filter-jk active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-cyan-600 text-white shadow-xs">Semua</button>
@@ -235,7 +234,7 @@
           </div>
         </div>
 
-        <!-- JADUAL MASTER JAWATANKUASA -->
+        <!-- JADUAL MASTER JAWATANKUASA (EXACT 7 COLUMNS) -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
             <span class="font-bold text-xs text-slate-700"><i class="fa-solid fa-list-check mr-2 text-cyan-600"></i>Senarai Master Jawatankuasa</span>
@@ -247,12 +246,13 @@
               <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
                 <tr>
                   <th class="p-3 w-12 text-center">BIL</th>
-                  <th class="p-3 w-28">ID Kod</th>
-                  <th class="p-3">Kategori</th>
+                  <th class="p-3 w-28">ID Tugasan</th>
+                  <th class="p-3">Kategori Pengurusan</th>
                   <th class="p-3">JK Induk</th>
                   <th class="p-3">Nama Jawatankuasa</th>
                   <th class="p-3">Peranan</th>
                   <th class="p-3">Jenis Skop</th>
+                  <th class="p-3 text-center">Ada Penyelaras</th>
                   <th class="p-3 text-center">Tindakan</th>
                 </tr>
               </thead>
@@ -518,7 +518,7 @@
     </main>
   </div>
 
-  <!-- POPUP MODAL TAMBAH / EDIT MASTER JAWATANKUASA -->
+  <!-- POPUP MODAL TAMBAH / EDIT MASTER JAWATANKUASA (7 LAJUR) -->
   <div id="modal-jawatankuasa" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col my-8">
       <div class="px-6 py-4 bg-cyan-600 text-white flex items-center justify-between">
@@ -528,8 +528,8 @@
 
       <form onsubmit="simpanMasterJawatankuasa(event)" class="p-6 space-y-4 text-xs">
         <div>
-          <label class="block font-bold mb-1 text-slate-700">ID Jawatankuasa / Tugasan (Auto)</label>
-          <input type="text" id="jk_ID_Jawatankuasa" readonly class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-200 font-extrabold text-slate-600 focus:outline-none">
+          <label class="block font-bold mb-1 text-slate-700">ID Tugasan (Auto)</label>
+          <input type="text" id="jk_ID_Tugasan" readonly class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-200 font-extrabold text-slate-600 focus:outline-none">
         </div>
 
         <div>
@@ -543,7 +543,7 @@
         </div>
 
         <div>
-          <label class="block font-bold mb-1 text-slate-700">Jawatankuasa Induk <span class="text-rose-500">*</span></label>
+          <label class="block font-bold mb-1 text-slate-700">JK Induk <span class="text-rose-500">*</span></label>
           <input type="text" id="jk_JK_Induk" placeholder="Contoh: Pengurusan Sekolah / JK Induk Kurikulum" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-cyan-600">
         </div>
 
@@ -574,14 +574,6 @@
           <select id="jk_Ada_Penyelaras" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-cyan-600">
             <option value="Tidak">Tidak</option>
             <option value="Ya">Ya</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="block font-bold mb-1 text-slate-700">Status</label>
-          <select id="jk_Status" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-cyan-600">
-            <option value="Aktif" selected>Aktif</option>
-            <option value="Tidak Aktif">Tidak Aktif</option>
           </select>
         </div>
 
@@ -713,11 +705,11 @@
     ];
 
     let ALL_JAWATANKUASA = [
-      { ID_Jawatankuasa: "TGS001", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "Pengurusan Sekolah", Nama_Jawatankuasa: "Pengurusan Kelas", Peranan: "Guru Kelas", Jenis_Skop: "Mengikut Kelas", Ada_Penyelaras: "Ya", Status: "Aktif" },
-      { ID_Jawatankuasa: "TGS002", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "Pengurusan Sekolah", Nama_Jawatankuasa: "Pengurusan Kelas", Peranan: "Guru Pembantu", Jenis_Skop: "Mengikut Kelas", Ada_Penyelaras: "Ya", Status: "Aktif" },
-      { ID_Jawatankuasa: "TGS003", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "Pengurusan Sekolah", Nama_Jawatankuasa: "Kumpulan Bertugas Mingguan", Peranan: "Ahli Bertugas", Jenis_Skop: "Mengikut Kumpulan", Ada_Penyelaras: "Tidak", Status: "Aktif" },
-      { ID_Jawatankuasa: "TGS004", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "JK Induk Pengurusan", Nama_Jawatankuasa: "JK Strategik", Peranan: "Setiausaha", Jenis_Skop: "Induk", Ada_Penyelaras: "Ya", Status: "Aktif" },
-      { ID_Jawatankuasa: "TGS005", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "JK Induk Pengurusan", Nama_Jawatankuasa: "JK Digital", Peranan: "Penyelaras", Jenis_Skop: "Induk", Ada_Penyelaras: "Tidak", Status: "Aktif" }
+      { ID_Tugasan: "TGS001", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "Pengurusan Sekolah", Nama_Jawatankuasa: "Pengurusan Kelas", Peranan: "Guru Kelas", Jenis_Skop: "Mengikut Kelas", Ada_Penyelaras: "Ya" },
+      { ID_Tugasan: "TGS002", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "Pengurusan Sekolah", Nama_Jawatankuasa: "Pengurusan Kelas", Peranan: "Guru Pembantu", Jenis_Skop: "Mengikut Kelas", Ada_Penyelaras: "Ya" },
+      { ID_Tugasan: "TGS003", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "Pengurusan Sekolah", Nama_Jawatankuasa: "Kumpulan Bertugas Mingguan", Peranan: "Ahli Bertugas", Jenis_Skop: "Mengikut Kumpulan", Ada_Penyelaras: "Tidak" },
+      { ID_Tugasan: "TGS004", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "JK Induk Pengurusan", Nama_Jawatankuasa: "JK Strategik", Peranan: "Setiausaha", Jenis_Skop: "Induk", Ada_Penyelaras: "Ya" },
+      { ID_Tugasan: "TGS005", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "JK Induk Pengurusan", Nama_Jawatankuasa: "JK Digital", Peranan: "Penyelaras", Jenis_Skop: "Induk", Ada_Penyelaras: "Tidak" }
     ];
 
     let ALL_PERANAN = [];
@@ -745,7 +737,7 @@
     function getNextJkID() {
       let maxNum = 0;
       ALL_JAWATANKUASA.forEach(j => {
-        const id = j.ID_Jawatankuasa || j.id_jawatankuasa || '';
+        const id = j.ID_Tugasan || j.id_tugasan || j.ID_Jawatankuasa || '';
         const match = id.match(/^TGS(\d+)/i);
         if (match) {
           const num = parseInt(match[1], 10);
@@ -937,7 +929,7 @@
     }
 
     // =========================================================================
-    // LOGIK JAWATANKUASA MASTER (TAMBAH, EDIT, DELETE & RENDER)
+    // LOGIK MASTER JAWATANKUASA (7 LAJUR TEPAT)
     // =========================================================================
 
     function renderMasterJawatankuasaTable(filterKat = CURRENT_JK_FILTER) {
@@ -953,33 +945,35 @@
       document.getElementById('txtCountJk').innerText = `${filtered.length} Jawatankuasa`;
 
       if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400 italic">Tiada rekod jawatankuasa untuk kategori ini.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400 italic">Tiada rekod jawatankuasa untuk kategori ini.</td></tr>`;
         return;
       }
 
       tbody.innerHTML = '';
       filtered.forEach((jk, idx) => {
-        const idJk = jk.ID_Jawatankuasa || jk.id_jawatankuasa || '-';
+        const idTugasan = jk.ID_Tugasan || jk.id_tugasan || jk.ID_Jawatankuasa || '-';
         const kat = jk.Kategori_Pengurusan || jk.kategori_pengurusan || '-';
         const jkInduk = jk.JK_Induk || jk.jk_induk || '-';
         const namaJk = jk.Nama_Jawatankuasa || jk.nama_jawatankuasa || '-';
         const peranan = jk.Peranan || jk.peranan || '-';
         const jenisSkop = jk.Jenis_Skop || jk.jenis_skop || 'Induk';
+        const adaPenyelaras = jk.Ada_Penyelaras || jk.ada_penyelaras || 'Tidak';
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
             <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="p-3 font-extrabold text-cyan-700">${idJk}</td>
+            <td class="p-3 font-extrabold text-cyan-700">${idTugasan}</td>
             <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 font-bold">${kat}</span></td>
             <td class="p-3 font-semibold text-slate-700">${jkInduk}</td>
             <td class="p-3 font-extrabold text-slate-800">${namaJk}</td>
             <td class="p-3 font-bold text-rose-600">${peranan}</td>
             <td class="p-3 text-slate-600">${jenisSkop}</td>
+            <td class="p-3 text-center font-bold ${adaPenyelaras === 'Ya' ? 'text-emerald-600' : 'text-slate-400'}">${adaPenyelaras}</td>
             <td class="p-3 text-center space-x-1">
-              <button onclick="editMasterJawatankuasa('${idJk}')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg transition" title="Edit">
+              <button onclick="editMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg transition" title="Edit">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
-              <button onclick="deleteMasterJawatankuasa('${idJk}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg transition" title="Padam">
+              <button onclick="deleteMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg transition" title="Padam">
                 <i class="fa-solid fa-trash"></i>
               </button>
             </td>
@@ -1008,14 +1002,13 @@
     function openModalJawatankuasa(isEdit = false) {
       document.getElementById('modalJkTitle').innerText = isEdit ? 'Edit Record Jawatankuasa' : 'Tambah Jawatankuasa Baharu';
       if (!isEdit) {
-        document.getElementById('jk_ID_Jawatankuasa').value = getNextJkID();
+        document.getElementById('jk_ID_Tugasan').value = getNextJkID();
         document.getElementById('jk_Kategori_Pengurusan').value = 'Pentadbiran';
         document.getElementById('jk_JK_Induk').value = '';
         document.getElementById('jk_Nama_Jawatankuasa').value = '';
         document.getElementById('jk_Peranan').value = '';
         document.getElementById('jk_Jenis_Skop').value = 'Induk';
         document.getElementById('jk_Ada_Penyelaras').value = 'Tidak';
-        document.getElementById('jk_Status').value = 'Aktif';
       }
       document.getElementById('modal-jawatankuasa').classList.remove('hidden');
     }
@@ -1024,18 +1017,17 @@
       document.getElementById('modal-jawatankuasa').classList.add('hidden');
     }
 
-    function editMasterJawatankuasa(idJk) {
-      const item = ALL_JAWATANKUASA.find(j => String(j.ID_Jawatankuasa || j.id_jawatankuasa) === String(idJk));
+    function editMasterJawatankuasa(idTugasan) {
+      const item = ALL_JAWATANKUASA.find(j => String(j.ID_Tugasan || j.id_tugasan || j.ID_Jawatankuasa) === String(idTugasan));
       if (!item) return;
 
-      document.getElementById('jk_ID_Jawatankuasa').value = item.ID_Jawatankuasa || item.id_jawatankuasa;
+      document.getElementById('jk_ID_Tugasan').value = item.ID_Tugasan || item.id_tugasan || item.ID_Jawatankuasa;
       document.getElementById('jk_Kategori_Pengurusan').value = item.Kategori_Pengurusan || item.kategori_pengurusan || 'Pentadbiran';
       document.getElementById('jk_JK_Induk').value = item.JK_Induk || item.jk_induk || '';
       document.getElementById('jk_Nama_Jawatankuasa').value = item.Nama_Jawatankuasa || item.nama_jawatankuasa || '';
       document.getElementById('jk_Peranan').value = item.Peranan || item.peranan || '';
       document.getElementById('jk_Jenis_Skop').value = item.Jenis_Skop || item.jenis_skop || 'Induk';
       document.getElementById('jk_Ada_Penyelaras').value = item.Ada_Penyelaras || item.ada_penyelaras || 'Tidak';
-      document.getElementById('jk_Status').value = item.Status || item.status || 'Aktif';
 
       openModalJawatankuasa(true);
     }
@@ -1044,14 +1036,13 @@
       e.preventDefault();
 
       const payloadData = {
-        id_jawatankuasa: document.getElementById('jk_ID_Jawatankuasa').value.trim(),
+        id_tugasan: document.getElementById('jk_ID_Tugasan').value.trim(),
         kategori_pengurusan: document.getElementById('jk_Kategori_Pengurusan').value,
         jk_induk: document.getElementById('jk_JK_Induk').value.trim(),
         nama_jawatankuasa: document.getElementById('jk_Nama_Jawatankuasa').value.trim(),
         peranan: document.getElementById('jk_Peranan').value.trim(),
         jenis_skop: document.getElementById('jk_Jenis_Skop').value,
-        ada_penyelaras: document.getElementById('jk_Ada_Penyelaras').value,
-        status: document.getElementById('jk_Status').value
+        ada_penyelaras: document.getElementById('jk_Ada_Penyelaras').value
       };
 
       closeModalJawatankuasa();
@@ -1076,10 +1067,10 @@
       }
     }
 
-    async function deleteMasterJawatankuasa(idJk) {
+    async function deleteMasterJawatankuasa(idTugasan) {
       const confirm = await Swal.fire({
         title: 'Padam Jawatankuasa?',
-        text: `Adakah anda pasti mahu memadam rekod master [${idJk}] ini?`,
+        text: `Adakah anda pasti mahu memadam rekod master [${idTugasan}] ini?`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#e11d48',
@@ -1092,7 +1083,7 @@
       try {
         const res = await postToBackend({
           action: 'deleteMasterJawatankuasaV2',
-          data: { id_jawatankuasa: idJk }
+          data: { id_tugasan: idTugasan }
         });
         hideLoader();
 
@@ -1108,7 +1099,6 @@
       }
     }
 
-    // RENDER PROFIL GURU & AKP
     function renderMasterStafTable(filterKat = CURRENT_STAF_FILTER) {
       CURRENT_STAF_FILTER = filterKat;
       const tbody = document.getElementById('tbodyMasterStaf');
