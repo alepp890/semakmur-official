@@ -68,7 +68,6 @@
       </div>
     </div>
 
-    <!-- SIDEBAR MENU LIST -->
     <div class="flex-1 overflow-y-auto p-3 space-y-1 text-xs">
       
       <button onclick="showView('viewDashboard')" id="sideDashboard" class="nav-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition">
@@ -83,13 +82,11 @@
         <span>Profil Guru & AKP</span>
       </button>
 
-      <!-- MENU: PENGURUSAN JAWATANKUASA -->
       <button onclick="showView('viewPengurusanJawatankuasa')" id="sidePengurusanJawatankuasa" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
         <i class="fa-solid fa-list-check w-4 text-center text-cyan-400"></i>
         <span>Pengurusan Jawatankuasa</span>
       </button>
 
-      <!-- MENU PENGURUSAN SEKOLAH -->
       <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pengurusan Operasi</div>
 
       <button onclick="showView('viewPengurusanSekolah')" id="sidePengurusanSekolah" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
@@ -97,7 +94,6 @@
         <span>Pengurusan Sekolah</span>
       </button>
 
-      <!-- SEKSYEN JAWATANKUASA INDUK -->
       <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-rose-400 uppercase tracking-wider">Jawatankuasa Induk</div>
 
       <button onclick="showView('viewIndukPengurusan')" id="sideIndukPengurusan" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
@@ -130,7 +126,6 @@
   <!-- CONTENT MAIN CONTAINER -->
   <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
 
-    <!-- TOP NAVBAR HEADER -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 lg:px-8 py-3 flex items-center justify-between shadow-xs">
       <div class="flex items-center gap-3">
         <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-lg bg-slate-100 text-slate-700">
@@ -144,10 +139,9 @@
       </div>
     </header>
 
-    <!-- MAIN BODY CONTENT -->
     <main class="p-4 lg:p-8 space-y-6">
 
-      <!-- ================= 1. DASHBOARD UTAMA ================= -->
+      <!-- DASHBOARD -->
       <div id="viewDashboard" class="space-y-6">
         <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-md border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-5">
           <div class="flex items-center gap-4">
@@ -162,7 +156,7 @@
         </div>
       </div>
 
-      <!-- ================= 2. PROFIL GURU & AKP ================= -->
+      <!-- PROFIL GURU & AKP -->
       <div id="viewProfilStaf" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -205,7 +199,7 @@
         </div>
       </div>
 
-      <!-- ================= 3. PENGURUSAN JAWATANKUASA (MASTER_JAWATANKUASA) ================= -->
+      <!-- MASTER_JAWATANKUASA -->
       <div id="viewPengurusanJawatankuasa" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-cyan-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -234,7 +228,6 @@
           </div>
         </div>
 
-        <!-- JADUAL MASTER JAWATANKUASA (EXACT 7 COLUMNS) -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
             <span class="font-bold text-xs text-slate-700"><i class="fa-solid fa-list-check mr-2 text-cyan-600"></i>Senarai Master Jawatankuasa</span>
@@ -262,7 +255,7 @@
         </div>
       </div>
 
-      <!-- ================= 4. MODUL PENGURUSAN SEKOLAH ================= -->
+      <!-- PENGURUSAN SEKOLAH -->
       <div id="viewPengurusanSekolah" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-amber-500">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -387,7 +380,7 @@
         </div>
       </div>
 
-      <!-- ================= 5. JK INDUK PENGURUSAN ================= -->
+      <!-- JK INDUK PENGURUSAN -->
       <div id="viewIndukPengurusan" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-amber-500">
           <div class="flex items-center justify-between border-b pb-3">
@@ -403,12 +396,12 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <label class="block font-bold text-slate-700">Pengerusi:</label>
-              <input type="text" id="disp-pengerusi-pengurusan" value="Guru Besar" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+              <input type="text" value="Guru Besar" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
             </div>
 
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
               <label class="block font-bold text-slate-700">Timbalan Pengerusi:</label>
-              <input type="text" id="disp-timbalan-pengurusan" value="GPK Pentadbiran" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
+              <input type="text" value="GPK Pentadbiran" disabled class="w-full p-2 bg-slate-200 rounded-lg font-bold text-slate-700">
             </div>
 
             <div class="p-4 bg-amber-50 rounded-xl border border-amber-200 space-y-2 md:col-span-2">
@@ -419,7 +412,7 @@
         </div>
       </div>
 
-      <!-- ================= 6. JK INDUK KURIKULUM ================= -->
+      <!-- JK INDUK KURIKULUM -->
       <div id="viewIndukKurikulum" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-emerald-600">
           <div class="flex items-center justify-between border-b pb-3">
@@ -451,7 +444,7 @@
         </div>
       </div>
 
-      <!-- ================= 7. JK INDUK HAL EHWAL MURID ================= -->
+      <!-- JK INDUK HEM -->
       <div id="viewIndukHEM" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-blue-600">
           <div class="flex items-center justify-between border-b pb-3">
@@ -483,7 +476,7 @@
         </div>
       </div>
 
-      <!-- ================= 8. JK INDUK KOKURIKULUM ================= -->
+      <!-- JK INDUK KOKURIKULUM -->
       <div id="viewIndukKoko" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-4 border-l-8 border-l-purple-600">
           <div class="flex items-center justify-between border-b pb-3">
@@ -518,7 +511,7 @@
     </main>
   </div>
 
-  <!-- POPUP MODAL TAMBAH / EDIT MASTER JAWATANKUASA (7 LAJUR) -->
+  <!-- POPUP MODAL MASTER JAWATANKUASA -->
   <div id="modal-jawatankuasa" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col my-8">
       <div class="px-6 py-4 bg-cyan-600 text-white flex items-center justify-between">
@@ -585,7 +578,7 @@
     </div>
   </div>
 
-  <!-- POPUP MODAL TAMBAH STAF BAHARU -->
+  <!-- POPUP MODAL STAF -->
   <div id="modal-tambah-staf" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col my-8">
       <div class="px-6 py-4 bg-rose-600 text-white flex items-center justify-between">
@@ -678,41 +671,12 @@
   <script src="../../config.js"></script>
 
   <script>
-    let ALL_STAF = [
-      { ID_Staf: "STF001", Nama_Penuh: "Syed Ahmad bin Hassan", Nama_Samaran: "Cikgu Syed", Kategori_Staf: "Guru Besar", Gred_Jawatan: "DG54", Opsyen_Utama: "Pengurusan", Email_Delima: "syed@moe-dl.edu.my", No_Telefon: "019-1111111", Status: "Aktif" },
-      { ID_Staf: "STF002", Nama_Penuh: "Mohd Farhan bin Rozali", Nama_Samaran: "Cikgu Farhan", Kategori_Staf: "GPK Pentadbiran", Gred_Jawatan: "DG48", Opsyen_Utama: "Matematik", Email_Delima: "farhan@moe-dl.edu.my", No_Telefon: "019-2222222", Status: "Aktif" },
-      { ID_Staf: "STF003", Nama_Penuh: "Siti Hajar binti Yusof", Nama_Samaran: "Cikgu Hajar", Kategori_Staf: "GPK Hal Ehwal Murid", Gred_Jawatan: "DG48", Opsyen_Utama: "Pendidikan Islam", Email_Delima: "hajar@moe-dl.edu.my", No_Telefon: "019-3333333", Status: "Aktif" },
-      { ID_Staf: "STF004", Nama_Penuh: "Lim Chee Keong", Nama_Samaran: "Cikgu Lim", Kategori_Staf: "GPK Ko Kurikulum", Gred_Jawatan: "DG48", Opsyen_Utama: "PJK", Email_Delima: "lim@moe-dl.edu.my", No_Telefon: "019-4444444", Status: "Aktif" },
-      { ID_Staf: "STF005", Nama_Penuh: "Ahmad Razak bin Hashim", Nama_Samaran: "Cikgu Razak", Kategori_Staf: "Guru Akademik", Gred_Jawatan: "DG44", Opsyen_Utama: "Bahasa Melayu", Email_Delima: "razak@moe-dl.edu.my", No_Telefon: "012-6666666", Status: "Aktif" },
-      { ID_Staf: "STF006", Nama_Penuh: "Nurul Aini binti Zulkifli", Nama_Samaran: "Cikgu Aini", Kategori_Staf: "Guru Akademik", Gred_Jawatan: "DG44", Opsyen_Utama: "Sains", Email_Delima: "aini@moe-dl.edu.my", No_Telefon: "012-5555555", Status: "Aktif" },
-      { ID_Staf: "STF007", Nama_Penuh: "Maria binti Abdullah", Nama_Samaran: "Cikgu Maria", Kategori_Staf: "Guru Akademik", Gred_Jawatan: "DG41", Opsyen_Utama: "Bahasa Inggeris", Email_Delima: "maria@moe-dl.edu.my", No_Telefon: "012-7777777", Status: "Aktif" },
-      { ID_Staf: "STF008P", Nama_Penuh: "Siti Zulaikha binti Hassan", Nama_Samaran: "Cikgu Ika", Kategori_Staf: "Guru Praktikal", Gred_Jawatan: "Praktikal", Opsyen_Utama: "Sejarah", Email_Delima: "zulaikha@moe-dl.edu.my", No_Telefon: "011-2223334", Status: "Aktif" },
-      { ID_Staf: "STF008", Nama_Penuh: "Azlina binti Ahmad", Nama_Samaran: "Pn. Azlina", Kategori_Staf: "AKP", Gred_Jawatan: "N22", Opsyen_Utama: "Pembantu Tadbir", Email_Delima: "azlina@moe-dl.edu.my", No_Telefon: "013-1112223", Status: "Aktif" },
-      { ID_Staf: "STF009", Nama_Penuh: "Suhaimi bin Ali", Nama_Samaran: "En. Suhaimi", Kategori_Staf: "AKP", Gred_Jawatan: "N19", Opsyen_Utama: "Pembantu Operasi", Email_Delima: "suhaimi@moe-dl.edu.my", No_Telefon: "013-4445556", Status: "Aktif" }
-    ];
-
-    let ALL_LOKASI = [
-      { ID_Lokasi: "LOK001", Nama_Lokasi: "1 Iris", Kategori: "Kelas", Tahap_Blok: "Tahun 1" },
-      { ID_Lokasi: "LOK002", Nama_Lokasi: "1 Lavender", Kategori: "Kelas", Tahap_Blok: "Tahun 1" },
-      { ID_Lokasi: "LOK003", Nama_Lokasi: "1 Violet", Kategori: "Kelas", Tahap_Blok: "Tahun 1" },
-      { ID_Lokasi: "LOK004", Nama_Lokasi: "2 Iris", Kategori: "Kelas", Tahap_Blok: "Tahun 2" },
-      { ID_Lokasi: "LOK005", Nama_Lokasi: "2 Lavender", Kategori: "Kelas", Tahap_Blok: "Tahun 2" },
-      { ID_Lokasi: "LOK006", Nama_Lokasi: "3 Iris", Kategori: "Kelas", Tahap_Blok: "Tahun 3" },
-      { ID_Lokasi: "LOK007", Nama_Lokasi: "Pusat Sumber Sekolah", Kategori: "Bilik Khas", Tahap_Blok: "Blok A" },
-      { ID_Lokasi: "LOK008", Nama_Lokasi: "Makmal Sains", Kategori: "Bilik Khas", Tahap_Blok: "Blok B" },
-      { ID_Lokasi: "LOK009", Nama_Lokasi: "Bilik Komputer", Kategori: "Bilik Khas", Tahap_Blok: "Blok A" },
-      { ID_Lokasi: "LOK010", Nama_Lokasi: "Bengkel RBT", Kategori: "Bilik Khas", Tahap_Blok: "Blok C" }
-    ];
-
-    let ALL_JAWATANKUASA = [
-      { ID_Tugasan: "TGS001", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "Pengurusan Sekolah", Nama_Jawatankuasa: "Pengurusan Kelas", Peranan: "Guru Kelas", Jenis_Skop: "Mengikut Kelas", Ada_Penyelaras: "Ya" },
-      { ID_Tugasan: "TGS002", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "Pengurusan Sekolah", Nama_Jawatankuasa: "Pengurusan Kelas", Peranan: "Guru Pembantu", Jenis_Skop: "Mengikut Kelas", Ada_Penyelaras: "Ya" },
-      { ID_Tugasan: "TGS003", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "Pengurusan Sekolah", Nama_Jawatankuasa: "Kumpulan Bertugas Mingguan", Peranan: "Ahli Bertugas", Jenis_Skop: "Mengikut Kumpulan", Ada_Penyelaras: "Tidak" },
-      { ID_Tugasan: "TGS004", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "JK Induk Pengurusan", Nama_Jawatankuasa: "JK Strategik", Peranan: "Setiausaha", Jenis_Skop: "Induk", Ada_Penyelaras: "Ya" },
-      { ID_Tugasan: "TGS005", Kategori_Pengurusan: "Pentadbiran", JK_Induk: "JK Induk Pengurusan", Nama_Jawatankuasa: "JK Digital", Peranan: "Penyelaras", Jenis_Skop: "Induk", Ada_Penyelaras: "Tidak" }
-    ];
-
+    // DIISYTIHARKAN TANPA DATA DUMMY (ARRAY KOSONG)
+    let ALL_STAF = [];
+    let ALL_LOKASI = [];
+    let ALL_JAWATANKUASA = [];
     let ALL_PERANAN = [];
+
     let CURRENT_STAF_FILTER = 'Semua';
     let CURRENT_JK_FILTER = 'Semua';
 
@@ -853,20 +817,22 @@
     }
 
     async function fetchMasterStafData() {
-      showLoader('Menyelaraskan pangkalan data V2...');
+      showLoader('Menyelaraskan pangkalan data V2 dari Google Sheets...');
       try {
         const res = await postToBackend({ action: 'getManualV2Data' });
         hideLoader();
 
         if (res && res.success) {
-          if (res.staf && res.staf.length > 0) ALL_STAF = res.staf;
-          if (res.lokasi && res.lokasi.length > 0) ALL_LOKASI = res.lokasi;
-          if (res.peranan) ALL_PERANAN = res.peranan;
-          if (res.jawatankuasa && res.jawatankuasa.length > 0) ALL_JAWATANKUASA = res.jawatankuasa;
+          ALL_STAF = res.staf || [];
+          ALL_LOKASI = res.lokasi || [];
+          ALL_PERANAN = res.peranan || [];
+          ALL_JAWATANKUASA = res.jawatankuasa || [];
+        } else {
+          Swal.fire('Perhatian', res.error || 'Gagal mengambil data dari Google Sheets.', 'warning');
         }
       } catch (err) {
         hideLoader();
-        console.warn('Guna data tempatan.');
+        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend Google Sheets.', 'error');
       }
 
       renderMasterStafTable();
@@ -928,10 +894,6 @@
       }
     }
 
-    // =========================================================================
-    // LOGIK MASTER JAWATANKUASA (7 LAJUR TEPAT)
-    // =========================================================================
-
     function renderMasterJawatankuasaTable(filterKat = CURRENT_JK_FILTER) {
       CURRENT_JK_FILTER = filterKat;
       const tbody = document.getElementById('tbodyMasterJawatankuasa');
@@ -987,7 +949,6 @@
         btn.className = 'btn-filter-jk px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700';
       });
       event.target.className = 'btn-filter-jk active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-cyan-600 text-white shadow-xs';
-      
       renderMasterJawatankuasaTable(kat);
     }
 
@@ -1494,7 +1455,7 @@
       document.getElementById('modal-tambah-staf').classList.add('hidden');
     }
 
-    function simpanStafBaharu(e) {
+    async function simpanStafBaharu(e) {
       e.preventDefault();
       const newStaf = {
         ID_Staf: document.getElementById('inp_ID_Staf').value.trim(),
@@ -1512,13 +1473,26 @@
         ID_Mentor: document.getElementById('inp_ID_Mentor').value
       };
 
-      ALL_STAF.push(newStaf);
-      renderMasterStafTable();
-      populateDropdownGuru();
-      renderPengurusanSekolahTables();
       closeTambahGuruModal();
+      showLoader('Menyimpan rekod Staf baharu...');
 
-      Swal.fire('Berjaya!', `Rekod staf baharu [${newStaf.ID_Staf}] telah disimpan.`, 'success');
+      try {
+        const res = await postToBackend({
+          action: 'saveMasterStafV2',
+          data: newStaf
+        });
+        hideLoader();
+
+        if (res && res.success) {
+          Swal.fire('Berjaya!', res.message, 'success');
+          fetchMasterStafData();
+        } else {
+          Swal.fire('Ralat', res.error || 'Gagal menyimpan staf.', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+      }
     }
 
     async function simpanJKInduk(bidang) {
