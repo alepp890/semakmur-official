@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buku Manual Pengurusan Sekolah - SeMAKMUR</title>
+    <title>Manual Pengurusan Sekolah 2026 - SeMAKMUR</title>
 
-    <!-- Google Fonts: Plus Jakarta Sans -->
+    <!-- Google Fonts & FontAwesome -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- FontAwesome Icons & SweetAlert2 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SweetAlert2 & Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
@@ -34,7 +32,7 @@
     </script>
 
     <style>
-        html, body { height: 100%; margin: 0; background-color: #EEF6F9; font-family: 'Plus Jakarta Sans', sans-serif; color: #2D3748; }
+        html, body { height: 100%; margin: 0; background-color: #EEF6F9; font-family: 'Plus Jakarta Sans', sans-serif; color: #1E293B; }
         .card-book { background: #FFFFFF; border-radius: 1rem; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.04); }
         .loader-ring { display: inline-block; position: relative; width: 44px; height: 44px; }
         .loader-ring div { box-sizing: border-box; display: block; position: absolute; width: 34px; height: 34px; margin: 5px; border: 3.5px solid #1f7a9c; border-radius: 50%; animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite; border-color: #1f7a9c transparent transparent transparent; }
@@ -49,10 +47,10 @@
         <p class="text-white font-bold text-sm tracking-wide" id="loader-text">Memuatkan Buku Pengurusan...</p>
     </div>
 
-    <!-- HEADER NAVIGATION BAR -->
+    <!-- HEADER NAVIGATION -->
     <header class="h-20 bg-white border-b border-slate-200 shrink-0 flex items-center justify-between px-6 z-20 shadow-xs">
         <div class="flex items-center gap-3">
-            <a href="../DashboardGuru.html" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center" title="Kembali ke Dashboard">
+            <a href="../DashboardGuru.html" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center">
                 <i class="fa-solid fa-arrow-left text-base"></i>
             </a>
             <div class="flex items-center gap-2.5">
@@ -60,8 +58,8 @@
                     📖
                 </div>
                 <div>
-                    <h1 class="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight leading-tight">Buku Manual Pengurusan Sekolah</h1>
-                    <p class="text-[11px] text-[#1f7a9c] font-bold tracking-wide uppercase">Interactive Management Book & Roles Assignment</p>
+                    <h1 class="text-base sm:text-lg font-extrabold text-slate-800 tracking-tight leading-tight">Manual Pengurusan Sekolah 2026</h1>
+                    <p class="text-[11px] text-[#1f7a9c] font-bold tracking-wide uppercase">Interactive Portal - 4 Bidang Pengurusan</p>
                 </div>
             </div>
         </div>
@@ -74,56 +72,56 @@
         </div>
     </header>
 
-    <!-- KANDUNGAN UTAMA PORTAL -->
+    <!-- KANDUNGAN UTAMA -->
     <main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 max-w-7xl mx-auto w-full">
 
-        <!-- NAVIGASI TAB BAB (CHAPTERS) -->
+        <!-- NAVIGASI TAB 4 BIDANG UTAMA -->
         <div class="flex flex-wrap items-center gap-2 border-b border-slate-300 pb-3">
             <button onclick="switchCategory('Pentadbiran')" id="tab-Pentadbiran" class="chap-btn px-5 py-2.5 rounded-xl font-extrabold text-xs transition bg-[#1f7a9c] text-white shadow-xs flex items-center gap-2">
-                <i class="fa-solid fa-building-columns"></i> Bab 1: Pentadbiran
+                <i class="fa-solid fa-building-columns"></i> 1. Pengurusan Pentadbiran
             </button>
             <button onclick="switchCategory('Kurikulum')" id="tab-Kurikulum" class="chap-btn px-5 py-2.5 rounded-xl font-extrabold text-xs text-slate-600 hover:bg-slate-200 transition flex items-center gap-2">
-                <i class="fa-solid fa-book-open"></i> Bab 2: Kurikulum
+                <i class="fa-solid fa-book-open"></i> 2. Pengurusan Kurikulum
             </button>
             <button onclick="switchCategory('HEM')" id="tab-HEM" class="chap-btn px-5 py-2.5 rounded-xl font-extrabold text-xs text-slate-600 hover:bg-slate-200 transition flex items-center gap-2">
-                <i class="fa-solid fa-people-roof"></i> Bab 3: Hal Ehwal Murid
+                <i class="fa-solid fa-people-roof"></i> 3. Hal Ehwal Murid
             </button>
             <button onclick="switchCategory('Kokurikulum')" id="tab-Kokurikulum" class="chap-btn px-5 py-2.5 rounded-xl font-extrabold text-xs text-slate-600 hover:bg-slate-200 transition flex items-center gap-2">
-                <i class="fa-solid fa-trophy"></i> Bab 4: Ko-Kurikulum
+                <i class="fa-solid fa-trophy"></i> 4. Pengurusan Kokurikulum
             </button>
         </div>
 
-        <!-- BEKAS KAD JAWATANKUASA DINAMIK -->
+        <!-- BEKAS KAD KANDUNGAN DINAMIK -->
         <div id="cards-container" class="space-y-6">
-            <!-- Kad Jawatankuasa akan dijana secara dinamik oleh JavaScript di sini -->
+            <!-- Kad-kad dijana oleh JavaScript -->
         </div>
 
     </main>
 
-    <!-- MODAL PENAMBAHAN JAWATANKUASA BAHARU -->
+    <!-- MODAL PENAMBAHAN JAWATANKUASA -->
     <div id="new-jk-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
             <div class="px-6 py-4 bg-[#1f7a9c] text-white flex items-center justify-between">
-                <h3 class="font-extrabold text-sm sm:text-base">Tambah Kad Jawatankuasa Baharu</h3>
+                <h3 class="font-extrabold text-sm sm:text-base">Tambah Jawatankuasa Baharu</h3>
                 <button onclick="closeNewCommitteeModal()" class="text-white/80 hover:text-white text-lg font-bold">&times;</button>
             </div>
             <div class="p-6 space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Kategori Pengurusan Bab</label>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Bidang Utama</label>
                     <select id="modal-new-kategori" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg bg-slate-50 font-bold focus:outline-none focus:border-[#1f7a9c]">
-                        <option value="Pentadbiran">Pentadbiran</option>
-                        <option value="Kurikulum">Kurikulum</option>
+                        <option value="Pentadbiran">Pengurusan Pentadbiran</option>
+                        <option value="Kurikulum">Pengurusan Kurikulum</option>
                         <option value="HEM">Hal Ehwal Murid (HEM)</option>
-                        <option value="Kokurikulum">Ko-Kurikulum</option>
+                        <option value="Kokurikulum">Pengurusan Kokurikulum</option>
                     </select>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">JK Induk / Payung <span class="text-red-500">*</span></label>
-                    <input type="text" id="modal-new-jk-induk" placeholder="Contoh: JK Induk Kurikulum" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#1f7a9c]">
+                    <input type="text" id="modal-new-jk-induk" placeholder="Contoh: JK Induk Pengurusan Sekolah" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#1f7a9c]">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Jawatankuasa Baharu <span class="text-red-500">*</span></label>
-                    <input type="text" id="modal-new-nama-jk" placeholder="Contoh: JK Keceriaan & Mampan" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#1f7a9c]">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Nama Jawatankuasa / Unit <span class="text-red-500">*</span></label>
+                    <input type="text" id="modal-new-nama-jk" placeholder="Contoh: JK Digital & Internet" class="w-full p-2.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-[#1f7a9c]">
                 </div>
                 <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
                     <button type="button" onclick="closeNewCommitteeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition">Batal</button>
@@ -133,15 +131,20 @@
         </div>
     </div>
 
-    <!-- PAUTAN KE CONFIG.JS DUA PARAS KELUAR FOLDER -->
     <script src="../../config.js"></script>
 
-    <!-- LOGIK JAVASCRIPT UTAMA PORTAL BUKU INTERAKTIF -->
     <script>
     let ALL_STAF = [];
     let ALL_PERANAN = [];
     let ALL_LOKASI = [];
+    let ALL_SUBJEK = [];
     let ACTIVE_CATEGORY = 'Pentadbiran';
+
+    // Senarai Preset Jawatankuasa Induk Pentadbiran
+    const PENTADBIRAN_PRESETS = [
+        "JK Strategik", "JK Risiko", "JK Digital", "JK BYOD & Internet",
+        "JK Mampan", "JK Surau", "JK Kewangan", "JK Papan Kenyataan"
+    ];
 
     function showLoader(txt = "Memuatkan...") {
         document.getElementById('loader-text').innerText = txt;
@@ -169,7 +172,7 @@
     }
 
     async function fetchPortalData() {
-        showLoader('Menyelaraskan data pangkalan V2...');
+        showLoader('Menyelaraskan pangkalan data V2...');
         try {
             const res = await postToBackend({ action: 'getManualV2Data' });
             hideLoader();
@@ -178,14 +181,14 @@
                 ALL_STAF = res.staf || [];
                 ALL_PERANAN = res.peranan || [];
                 ALL_LOKASI = res.lokasi || [];
+                ALL_SUBJEK = res.subjek || [];
                 
                 renderChapter();
             } else {
-                Swal.fire('Ralat', res.error || 'Gagal menarik data jawatankuasa.', 'error');
+                Swal.fire('Ralat', res.error || 'Gagal menarik data.', 'error');
             }
         } catch (err) {
             hideLoader();
-            console.error('Fetch error:', err);
             Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
         }
     }
@@ -208,73 +211,51 @@
         const container = document.getElementById('cards-container');
         container.innerHTML = '';
 
-        // Tentukan data bagi Kategori (Bab) yang sedang aktif
-        const filteredPeranan = ALL_PERANAN.filter(p => String(p.Kategori_Pengurusan).toLowerCase().trim() === ACTIVE_CATEGORY.toLowerCase().trim());
-
-        // Kumpulkan mengikut Nama_Jawatankuasa
-        const groupedMap = new Map();
-
-        // 1. Jika Bab Kurikulum, pastikan 'Pengurusan Kelas' diwujudkan dengan mengambil lokasi dari Master_Kelas_Bilik
-        if (ACTIVE_CATEGORY === 'Kurikulum') {
-            groupedMap.set('Pengurusan Kelas', {
-                jkInduk: 'JK Induk Kurikulum',
-                isSpecialClassCard: true,
-                items: filteredPeranan.filter(p => p.Nama_Jawatankuasa === 'Pengurusan Kelas')
-            });
+        if (ACTIVE_CATEGORY === 'Pentadbiran') {
+            renderPentadbiranSection(container);
+        } else if (ACTIVE_CATEGORY === 'Kurikulum') {
+            renderKurikulumSection(container);
+        } else if (ACTIVE_CATEGORY === 'HEM') {
+            renderHEMSection(container);
+        } else if (ACTIVE_CATEGORY === 'Kokurikulum') {
+            renderKokurikulumSection(container);
         }
-
-        // 2. Kumpulkan jawatankuasa lain yang wujud dalam Peranan_Staf
-        filteredPeranan.forEach(item => {
-            const namaJk = item.Nama_Jawatankuasa || 'Jawatankuasa Am';
-            if (!groupedMap.has(namaJk)) {
-                groupedMap.set(namaJk, {
-                    jkInduk: item.JK_Induk || `JK Induk ${ACTIVE_CATEGORY}`,
-                    isSpecialClassCard: false,
-                    items: []
-                });
-            }
-            groupedMap.get(namaJk).items.push(item);
-        });
-
-        if (groupedMap.size === 0) {
-            container.innerHTML = `
-                <div class="card-book p-10 text-center space-y-3">
-                    <p class="text-slate-400 font-extrabold text-sm">Tiada Kad Jawatankuasa di bawah Bab ${ACTIVE_CATEGORY} lagi.</p>
-                    <button onclick="openNewCommitteeModal()" class="px-4 py-2 bg-[#1f7a9c] text-white font-bold text-xs rounded-xl shadow-xs">
-                        + Cipta Jawatankuasa Pertama Bab Ini
-                    </button>
-                </div>
-            `;
-            return;
-        }
-
-        // Lukis Setiap Kad Jawatankuasa
-        groupedMap.forEach((groupData, namaJk) => {
-            if (groupData.isSpecialClassCard) {
-                renderPengurusanKelasCard(container, namaJk, groupData);
-            } else {
-                renderStandardCommitteeCard(container, namaJk, groupData);
-            }
-        });
     }
 
-    // A. KAD KHAS: PENGURUSAN KELAS (DARI MASTER_KELAS_BILIK)
-    function renderPengurusanKelasCard(container, namaJk, groupData) {
-        const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas');
-        const cleanCardId = 'card-' + namaJk.replace(/\s+/g, '_');
+    // =========================================================================
+    // 1. SECTION PENGURUSAN PENTADBIRAN
+    // =========================================================================
+    function renderPentadbiranSection(container) {
+        // A. Pengurusan Kelas, Penyelaras Aliran & Guru Pembantu
+        renderPengurusanKelasCard(container);
 
-        let cardHtml = `
-            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-[#1f7a9c]" data-jk="${namaJk}" data-jkinduk="${groupData.jkInduk}">
+        // B. Penyelaras Bilik Khas
+        renderBilikKhasCard(container);
+
+        // C. Kumpulan Bertugas Mingguan (4 Kumpulan)
+        renderKumpulanBertugasCard(container);
+
+        // D. Pemantauan & Pencerapan (RPH, PdPc, Semakan Buku Tulis)
+        renderPemantauanCard(container);
+
+        // E. Jawatankuasa Induk Pengurusan Sekolah (Preset Items)
+        renderJKIndukPengurusanCard(container);
+    }
+
+    // A. KAD GURU KELAS, ALIRAN & PEMBANTU
+    function renderPengurusanKelasCard(container) {
+        const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas');
+        const cleanCardId = 'card-pengurusan-kelas';
+
+        let html = `
+            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-[#1f7a9c]" data-jk="Pengurusan Kelas" data-jkinduk="JK Induk Pentadbiran">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <h2 class="font-extrabold text-lg text-slate-800">${namaJk}</h2>
-                            <span class="px-2.5 py-0.5 bg-teal-100 text-[#1f7a9c] font-bold text-[10px] rounded-full">${groupData.jkInduk}</span>
-                        </div>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">Penetapan Guru Kelas & Pembantu terus mengikut Master_Kelas_Bilik.</p>
+                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-chalkboard-user text-[#1f7a9c] mr-2"></i>Guru Kelas, Penyelaras Aliran & Guru Pembantu</h2>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Penetapan susunan sebelah-sebelah mengikut senarai Master_Kelas_Bilik.</p>
                     </div>
                     <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                        <i class="fa-solid fa-floppy-disk"></i> Simpan Kad Ini
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Pengurusan Kelas
                     </button>
                 </div>
 
@@ -283,10 +264,10 @@
 
         senaraiKelas.forEach(kelas => {
             const namaKelas = kelas.Nama_Lokasi;
-            const gk = groupData.items.find(p => p.Peranan === 'Guru Kelas' && p.Skop_Tugas_Kelas === namaKelas);
-            const gpk = groupData.items.find(p => p.Peranan === 'Guru Pembantu' && p.Skop_Tugas_Kelas === namaKelas);
+            const gk = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Pengurusan Kelas' && p.Peranan === 'Guru Kelas' && p.Skop_Tugas_Kelas === namaKelas);
+            const gpk = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Pengurusan Kelas' && p.Peranan === 'Guru Pembantu' && p.Skop_Tugas_Kelas === namaKelas);
 
-            cardHtml += `
+            html += `
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-200 pb-2">
                         <span class="font-extrabold text-sm text-[#1f7a9c]"><i class="fa-solid fa-door-open mr-1.5"></i>${namaKelas}</span>
@@ -312,30 +293,286 @@
             `;
         });
 
-        cardHtml += `</div></div>`;
-        container.insertAdjacentHTML('beforeend', cardHtml);
+        html += `</div></div>`;
+        container.insertAdjacentHTML('beforeend', html);
     }
 
-    // B. KAD STANDARD: JAWATANKUASA AM (CTH: JK DIGITAL, JK PBD, JK PSS)
+    // B. KAD PENYELARAS BILIK KHAS
+    function renderBilikKhasCard(container) {
+        const bilikKhas = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'bilik khas');
+        const cleanCardId = 'card-penyelaras-bilik-khas';
+
+        let html = `
+            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-blue-600" data-jk="Penyelaras Bilik Khas" data-jkinduk="JK Induk Pentadbiran">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
+                    <div>
+                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-building text-blue-600 mr-2"></i>Penyelaras Bilik-Bilik Khas</h2>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Tarik senarai bilik khas terus dari Master_Kelas_Bilik.</p>
+                    </div>
+                    <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Penyelaras Bilik
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        `;
+
+        bilikKhas.forEach(bilik => {
+            const namaBilik = bilik.Nama_Lokasi;
+            const penyelaras = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Penyelaras Bilik Khas' && p.Skop_Tugas_Kelas === namaBilik);
+
+            html += `
+                <div class="p-4 bg-blue-50/40 rounded-xl border border-blue-200 space-y-3">
+                    <div class="font-extrabold text-sm text-blue-900 border-b border-blue-200 pb-2">
+                        <i class="fa-solid fa-key mr-1.5"></i>${namaBilik}
+                    </div>
+
+                    <div class="card-row-item" data-peranan="Penyelaras Bilik" data-skop="${namaBilik}">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Guru Penyelaras:</label>
+                        <select class="select-staf w-full p-2 text-xs border border-blue-300 rounded-lg bg-white font-semibold">
+                            ${buildStafOptions(penyelaras ? penyelaras.ID_Staf : '')}
+                        </select>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    // C. KAD KUMPULAN BERTUGAS (4 KUMPULAN)
+    function renderKumpulanBertugasCard(container) {
+        const kumpulanList = ['Kumpulan A', 'Kumpulan B', 'Kumpulan C', 'Kumpulan D'];
+        const cleanCardId = 'card-kumpulan-bertugas';
+
+        let html = `
+            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-amber-500" data-jk="Jadual Bertugas Mingguan" data-jkinduk="JK Induk Pentadbiran">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
+                    <div>
+                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-users-rectangle text-amber-600 mr-2"></i>Kumpulan Bertugas Mingguan (4 Kumpulan)</h2>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Penetapan Ketua Kumpulan Bertugas bagi Kumpulan A, B, C dan D.</p>
+                    </div>
+                    <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Jadual Bertugas
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        `;
+
+        kumpulanList.forEach(kumpulan => {
+            const ketua = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Jadual Bertugas Mingguan' && p.Peranan === 'Ketua Kumpulan' && p.Skop_Tugas_Kelas === kumpulan);
+
+            html += `
+                <div class="p-4 bg-amber-50/50 rounded-xl border border-amber-200 space-y-3">
+                    <div class="font-extrabold text-sm text-amber-800 border-b border-amber-200 pb-2">
+                        <i class="fa-solid fa-calendar-week mr-2"></i>${kumpulan}
+                    </div>
+
+                    <div class="card-row-item" data-peranan="Ketua Kumpulan" data-skop="${kumpulan}">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Ketua Kumpulan Bertugas:</label>
+                        <select class="select-staf w-full p-2 text-xs border border-amber-300 rounded-lg bg-white font-semibold">
+                            ${buildStafOptions(ketua ? ketua.ID_Staf : '')}
+                        </select>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    // D. KAD PEMANTAUAN (RPH, PDPC, SEMAKAN BUKU TULIS)
+    function renderPemantauanCard(container) {
+        const senaraiPemantauan = [
+            { nama: "Penghantaran RPH / e-RPH", id: "RPH" },
+            { nama: "Pencerapan PdPc", id: "PDPC" },
+            { nama: "Semakan Hasil Kerja Murid", id: "SEMAKAN_BUKU" }
+        ];
+
+        const cleanCardId = 'card-pemantauan-pencerapan';
+
+        let html = `
+            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-purple-600" data-jk="Jawatankuasa Pemantauan & Pencerapan" data-jkinduk="JK Induk Pentadbiran">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
+                    <div>
+                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-clipboard-check text-purple-600 mr-2"></i>Pemantauan RPH, Pencerapan PdPc & Semakan Buku</h2>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Penetapan Pegawai Penilai / Penyelaras Pemantauan Guru.</p>
+                    </div>
+                    <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Pemantauan
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        `;
+
+        senaraiPemantauan.forEach(item => {
+            const penyelaras = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Jawatankuasa Pemantauan & Pencerapan' && p.Skop_Tugas_Kelas === item.nama);
+
+            html += `
+                <div class="p-4 bg-purple-50/40 rounded-xl border border-purple-200 space-y-3">
+                    <div class="font-extrabold text-xs text-purple-900 border-b border-purple-200 pb-2">
+                        <i class="fa-solid fa-circle-check mr-1.5"></i>${item.nama}
+                    </div>
+
+                    <div class="card-row-item" data-peranan="Penyelaras" data-skop="${item.nama}">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Penyelaras / Pegawai Penilai:</label>
+                        <select class="select-staf w-full p-2 text-xs border border-purple-300 rounded-lg bg-white font-semibold">
+                            ${buildStafOptions(penyelaras ? penyelaras.ID_Staf : '')}
+                        </select>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    // E. KAD JAWATANKUASA INDUK PENGURUSAN SEKOLAH (PRESET)
+    function renderJKIndukPengurusanCard(container) {
+        const cleanCardId = 'card-jk-induk-pengurusan-sekolah';
+
+        let html = `
+            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-rose-600" data-jk="Jawatankuasa Induk Pengurusan Sekolah" data-jkinduk="JK Induk Pentadbiran">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
+                    <div>
+                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-sitemap text-rose-600 mr-2"></i>Jawatankuasa Induk Pengurusan Sekolah</h2>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Penetapan Penyelaras & AJK bagi unit-unit pengurusan strategik.</p>
+                    </div>
+                    <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan JK Induk
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        `;
+
+        PENTADBIRAN_PRESETS.forEach(unitName => {
+            const penyelaras = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Jawatankuasa Induk Pengurusan Sekolah' && p.Skop_Tugas_Kelas === unitName);
+
+            html += `
+                <div class="p-4 bg-rose-50/40 rounded-xl border border-rose-200 space-y-3">
+                    <div class="font-extrabold text-xs text-rose-900 border-b border-rose-200 pb-2">
+                        <i class="fa-solid fa-shield-halved mr-1.5"></i>${unitName}
+                    </div>
+
+                    <div class="card-row-item" data-peranan="Penyelaras" data-skop="${unitName}">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Penyelaras / Setiausaha:</label>
+                        <select class="select-staf w-full p-2 text-xs border border-rose-300 rounded-lg bg-white font-semibold">
+                            ${buildStafOptions(penyelaras ? penyelaras.ID_Staf : '')}
+                        </select>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    // =========================================================================
+    // 2. SECTION PENGURUSAN KURIKULUM
+    // =========================================================================
+    function renderKurikulumSection(container) {
+        renderPanitiaCard(container);
+        renderStandardCommitteeCard(container, "Pentaksiran & Peperiksaan (PBD / UASA)", { jkInduk: "JK Induk Kurikulum", items: [] });
+        renderStandardCommitteeCard(container, "Jadual Waktu & MBR", { jkInduk: "JK Induk Kurikulum", items: [] });
+        renderStandardCommitteeCard(container, "Pusat Sumber Sekolah (PSS)", { jkInduk: "JK Induk Kurikulum", items: [] });
+    }
+
+    function renderPanitiaCard(container) {
+        const cleanCardId = 'card-panitia-mata-pelajaran';
+        let subjekList = ALL_SUBJEK.filter(s => !s.ID_Subjek_Induk); // Subjek Induk sahaja
+
+        if (subjekList.length === 0) {
+            subjekList = [
+                { Nama_Subjek: "Bahasa Melayu" }, { Nama_Subjek: "Bahasa Inggeris" },
+                { Nama_Subjek: "Matematik" }, { Nama_Subjek: "Sains" },
+                { Nama_Subjek: "Pendidikan Islam" }, { Nama_Subjek: "Sejarah" }
+            ];
+        }
+
+        let html = `
+            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-emerald-600" data-jk="Panitia Mata Pelajaran" data-jkinduk="JK Induk Kurikulum">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
+                    <div>
+                        <h2 class="font-extrabold text-lg text-slate-800"><i class="fa-solid fa-book-open-reader text-emerald-600 mr-2"></i>Ketua Panitia Mata Pelajaran</h2>
+                        <p class="text-xs text-slate-500 font-medium mt-0.5">Penetapan Ketua Panitia mengikut senarai subjek sekolah.</p>
+                    </div>
+                    <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Panitia
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        `;
+
+        subjekList.forEach(sub => {
+            const namaSubjek = sub.Nama_Subjek;
+            const kp = ALL_PERANAN.find(p => p.Nama_Jawatankuasa === 'Panitia Mata Pelajaran' && p.Peranan === 'Ketua Panitia' && p.Skop_Tugas_Kelas === namaSubjek);
+
+            html += `
+                <div class="p-4 bg-emerald-50/40 rounded-xl border border-emerald-200 space-y-3">
+                    <div class="font-extrabold text-xs text-emerald-900 border-b border-emerald-200 pb-2">
+                        <i class="fa-solid fa-book mr-1.5"></i>${namaSubjek}
+                    </div>
+
+                    <div class="card-row-item" data-peranan="Ketua Panitia" data-skop="${namaSubjek}">
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">Ketua Panitia:</label>
+                        <select class="select-staf w-full p-2 text-xs border border-emerald-300 rounded-lg bg-white font-semibold">
+                            ${buildStafOptions(kp ? kp.ID_Staf : '')}
+                        </select>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+        container.insertAdjacentHTML('beforeend', html);
+    }
+
+    // =========================================================================
+    // 3. SECTION HAL EHWAL MURID (HEM)
+    // =========================================================================
+    function renderHEMSection(container) {
+        renderStandardCommitteeCard(container, "Disiplin & Badan Pengawas", { jkInduk: "JK Induk HEM", items: [] });
+        renderStandardCommitteeCard(container, "Pengurusan Kantin, RMT & Susu", { jkInduk: "JK Induk HEM", items: [] });
+        renderStandardCommitteeCard(container, "Kebersihan, Kesihatan & Keselamatan (3K)", { jkInduk: "JK Induk HEM", items: [] });
+        renderStandardCommitteeCard(container, "Pengurusan Data Murid (idMe)", { jkInduk: "JK Induk HEM", items: [] });
+    }
+
+    // =========================================================================
+    // 4. SECTION KOKURIKULUM
+    // =========================================================================
+    function renderKokurikulumSection(container) {
+        renderStandardCommitteeCard(container, "Badan Beruniform", { jkInduk: "JK Induk Kokurikulum", items: [] });
+        renderStandardCommitteeCard(container, "Kelab & Persatuan", { jkInduk: "JK Induk Kokurikulum", items: [] });
+        renderStandardCommitteeCard(container, "Sukan & Permainan", { jkInduk: "JK Induk Kokurikulum", items: [] });
+    }
+
+    // KAD STANDARD (DENGAN TANGGA TAMBAH BARIS)
     function renderStandardCommitteeCard(container, namaJk, groupData) {
-        const cleanCardId = 'card-' + namaJk.replace(/\s+/g, '_');
+        const cleanCardId = 'card-' + namaJk.replace(/[^a-zA-Z0-9]/g, '_');
 
         let cardHtml = `
-            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-amber-500" data-jk="${namaJk}" data-jkinduk="${groupData.jkInduk}">
+            <div id="${cleanCardId}" class="card-book p-6 space-y-4 border-l-8 border-l-slate-600" data-jk="${namaJk}" data-jkinduk="${groupData.jkInduk}">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
                     <div>
                         <div class="flex items-center gap-2">
                             <h2 class="font-extrabold text-lg text-slate-800">${namaJk}</h2>
-                            <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 font-bold text-[10px] rounded-full">${groupData.jkInduk}</span>
+                            <span class="px-2.5 py-0.5 bg-slate-100 text-slate-700 font-bold text-[10px] rounded-full">${groupData.jkInduk}</span>
                         </div>
-                        <p class="text-xs text-slate-500 font-medium mt-0.5">Senarai peranan dan pegawai dilantik dalam jawatankuasa.</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick="addCardRow('${cleanCardId}')" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5">
                             <i class="fa-solid fa-plus text-xs"></i> Tambah Peranan
                         </button>
                         <button onclick="saveCardData('${cleanCardId}')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                            <i class="fa-solid fa-floppy-disk"></i> Simpan Kad Ini
+                            <i class="fa-solid fa-floppy-disk"></i> Simpan
                         </button>
                     </div>
                 </div>
@@ -345,23 +582,13 @@
                         <thead>
                             <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
                                 <th class="p-2.5 w-1/4">Peranan / Jawatan</th>
-                                <th class="p-2.5 w-1/4">Skop / Sub-Unit / Bilik</th>
-                                <th class="p-2.5 w-2/5">Pegawai Dilantik (Master_Staf)</th>
+                                <th class="p-2.5 w-1/4">Skop / Unit / Catatan</th>
+                                <th class="p-2.5 w-2/5">Pegawai Dilantik</th>
                                 <th class="p-2.5 text-center w-12">Tindakan</th>
                             </tr>
                         </thead>
                         <tbody class="rows-holder divide-y divide-slate-100 font-medium">
-        `;
-
-        if (groupData.items.length === 0) {
-            cardHtml += generateRowHtml('', '', '');
-        } else {
-            groupData.items.forEach(item => {
-                cardHtml += generateRowHtml(item.Peranan, item.Skop_Tugas_Kelas, item.ID_Staf, item.ID_Peranan);
-            });
-        }
-
-        cardHtml += `
+                            ${generateRowHtml('', '', '')}
                         </tbody>
                     </table>
                 </div>
@@ -375,10 +602,10 @@
         return `
             <tr class="card-row-item hover:bg-slate-50 transition" data-idperanan="${idPeranan}">
                 <td class="p-2">
-                    <input type="text" class="input-peranan w-full p-2 text-xs border border-slate-200 rounded-lg font-bold focus:border-[#1f7a9c]" value="${peranan}" placeholder="Contoh: Setiausaha / Penyelaras">
+                    <input type="text" class="input-peranan w-full p-2 text-xs border border-slate-200 rounded-lg font-bold focus:border-[#1f7a9c]" value="${peranan}" placeholder="Contoh: Penyelaras / AJK">
                 </td>
                 <td class="p-2">
-                    <input type="text" class="input-skop w-full p-2 text-xs border border-slate-200 rounded-lg focus:border-[#1f7a9c]" value="${skop}" placeholder="Contoh: PBD / Laman Web / Makmal ICT">
+                    <input type="text" class="input-skop w-full p-2 text-xs border border-slate-200 rounded-lg focus:border-[#1f7a9c]" value="${skop}" placeholder="Contoh: Pengakap / Unit 1">
                 </td>
                 <td class="p-2">
                     <select class="select-staf w-full p-2 text-xs border border-slate-200 rounded-lg bg-white font-semibold focus:border-[#1f7a9c]">
@@ -401,7 +628,7 @@
             const nama = staf.Nama_Penuh || staf.Nama_Samaran || id;
             const isSelected = String(id).toLowerCase() === String(selectedId).toLowerCase() ? 'selected' : '';
             if (id) {
-                optHtml += `<option value="${id}" ${isSelected}>${nama} (${id})</option>`;
+                optHtml += `<option value="${id}" ${isSelected}>${nama}</option>`;
             }
         });
         return optHtml;
@@ -421,7 +648,6 @@
         if (row) row.remove();
     }
 
-    // PROSES SIMPAN DATA SATU KAD KE BACKEND
     async function saveCardData(cardId) {
         const card = document.getElementById(cardId);
         if (!card) return;
@@ -435,15 +661,12 @@
         rowItems.forEach(row => {
             let peranan = '';
             let skop = '';
-            let idStaf = '';
             let idPeranan = row.getAttribute('data-idperanan') || '';
 
             if (row.hasAttribute('data-peranan')) {
-                // Mod Kad Pengurusan Kelas
                 peranan = row.getAttribute('data-peranan');
                 skop = row.getAttribute('data-skop');
             } else {
-                // Mod Kad Standard
                 const perananInput = row.querySelector('.input-peranan');
                 const skopInput = row.querySelector('.input-skop');
                 peranan = perananInput ? perananInput.value.trim() : '';
@@ -451,7 +674,7 @@
             }
 
             const selectStaf = row.querySelector('.select-staf');
-            idStaf = selectStaf ? selectStaf.value : '';
+            const idStaf = selectStaf ? selectStaf.value : '';
 
             if (peranan || idStaf) {
                 payloadBatch.push({
@@ -468,24 +691,23 @@
             }
         });
 
-        showLoader(`Menyimpan Kad ${namaJk}...`);
+        showLoader(`Menyimpan ${namaJk}...`);
         try {
             const res = await postToBackend({ action: 'savePerananStafV2', data: payloadBatch });
             hideLoader();
 
             if (res && res.success) {
-                Swal.fire('Berjaya', `Jawatankuasa ${namaJk} berjaya disimpan!`, 'success');
+                Swal.fire('Berjaya', `${namaJk} berjaya disimpan!`, 'success');
                 fetchPortalData();
             } else {
                 Swal.fire('Ralat', res.error || 'Gagal menyimpan rekod.', 'error');
             }
         } catch (err) {
             hideLoader();
-            Swal.fire('Ralat', 'Gagal menyimpan data ke pangkalan data.', 'error');
+            Swal.fire('Ralat', 'Gagal menyimpan data.', 'error');
         }
     }
 
-    // PENAMBAHAN KAD JAWATANKUASA BAHARU
     function openNewCommitteeModal() {
         document.getElementById('modal-new-kategori').value = ACTIVE_CATEGORY;
         document.getElementById('modal-new-jk-induk').value = `JK Induk ${ACTIVE_CATEGORY}`;
@@ -509,7 +731,6 @@
 
         closeNewCommitteeModal();
 
-        // Jika kategori berbeza dengan tab aktif, tukar ke tab tersebut
         if (kat !== ACTIVE_CATEGORY) {
             switchCategory(kat);
         }
