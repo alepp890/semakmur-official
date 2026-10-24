@@ -150,26 +150,29 @@
       <!-- ================= 2. PROFIL GURU & AKP ================= -->
       <div id="viewProfilStaf" class="hidden space-y-6">
 
-        <!-- HEADER & FILTER STAF -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 class="font-display font-extrabold text-lg text-slate-800">Pangkalan Data Profil Guru & AKP (Master_Staf)</h2>
-            <p class="text-xs text-slate-500">Susunan mengikut hierarki pentadbiran (GB, GPK Pentadbiran, GPK HEM, GPK Koko, Guru Akademik, Guru Praktikal & AKP).</p>
+        <!-- HEADER BANNER, BUTTON & TAB KATEGORI -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <h2 class="font-display font-extrabold text-xl text-slate-800">Pangkalan Data Profil Guru & AKP</h2>
+            <button onclick="openTambahGuruModal()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2 self-start sm:self-auto">
+              <i class="fa-solid fa-user-plus"></i> + Guru
+            </button>
           </div>
-          
+
+          <!-- TAB KATEGORI DI BAWAH TAJUK -->
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="filterStafTable('Semua')" class="btn-filter-staf active px-3 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs">Semua</button>
-            <button onclick="filterStafTable('Pentadbir')" class="btn-filter-staf px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Pentadbir</button>
-            <button onclick="filterStafTable('Guru Akademik')" class="btn-filter-staf px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Guru Akademik</button>
-            <button onclick="filterStafTable('Guru Praktikal')" class="btn-filter-staf px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Guru Praktikal</button>
-            <button onclick="filterStafTable('AKP')" class="btn-filter-staf px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">AKP</button>
+            <button onclick="filterStafTable('Semua')" class="btn-filter-staf active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs">Semua</button>
+            <button onclick="filterStafTable('Pentadbir')" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Pentadbir</button>
+            <button onclick="filterStafTable('Guru Akademik')" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Guru Akademik</button>
+            <button onclick="filterStafTable('Guru Praktikal')" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Guru Praktikal</button>
+            <button onclick="filterStafTable('AKP')" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">AKP</button>
           </div>
         </div>
 
-        <!-- JADUAL UTAMA MASTER_STAF -->
+        <!-- JADUAL UTAMA MASTER_STAF (AKTIF SAHAJA) -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <span class="font-bold text-xs text-slate-700"><i class="fa-solid fa-users mr-2 text-rose-600"></i>Senarai Staf Terkini (Hierarki & Abjad)</span>
+            <span class="font-bold text-xs text-slate-700"><i class="fa-solid fa-users mr-2 text-rose-600"></i>Senarai Staf Aktif (Hierarki & Abjad)</span>
             <span id="txtCountStaf" class="text-[11px] font-extrabold bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full">0 Staf</span>
           </div>
 
@@ -178,12 +181,10 @@
               <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
                 <tr>
                   <th class="p-3 w-12 text-center">Bil</th>
-                  <th class="p-3">ID Staf</th>
                   <th class="p-3">Nama Penuh & Samaran</th>
-                  <th class="p-3">Kategori Staf</th>
-                  <th class="p-3">Gred & Opsyen</th>
-                  <th class="p-3">E-mel DELIMa</th>
-                  <th class="p-3">No. Telefon</th>
+                  <th class="p-3">Jawatan</th>
+                  <th class="p-3">Gred</th>
+                  <th class="p-3">Opsyen</th>
                   <th class="p-3 text-center">Status</th>
                 </tr>
               </thead>
@@ -335,6 +336,101 @@
     </main>
   </div>
 
+  <!-- POPUP MODAL TAMBAH STAF BAHARU (+ GURU) -->
+  <div id="modal-tambah-staf" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col my-8">
+      <div class="px-6 py-4 bg-rose-600 text-white flex items-center justify-between">
+        <h3 class="font-extrabold text-base"><i class="fa-solid fa-user-plus mr-2"></i>Tambah Rekod Staf Baharu</h3>
+        <button onclick="closeTambahGuruModal()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <form onsubmit="simpanStafBaharu(event)" class="p-6 space-y-4 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">ID Staf <span class="text-rose-500">*</span></label>
+            <input type="text" id="inp_ID_Staf" placeholder="Contoh: STF010" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Nama Penuh <span class="text-rose-500">*</span></label>
+            <input type="text" id="inp_Nama_Penuh" placeholder="Nama mengikut KP" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Nama Samaran / Panggilan</label>
+            <input type="text" id="inp_Nama_Samaran" placeholder="Contoh: Cikgu Aini" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">No. Kad Pengenalan</label>
+            <input type="text" id="inp_No_KP" placeholder="880101-14-1234" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Kategori / Jawatan <span class="text-rose-500">*</span></label>
+            <select id="inp_Kategori_Staf" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600">
+              <option value="Guru Besar">Guru Besar</option>
+              <option value="GPK Pentadbiran">GPK Pentadbiran</option>
+              <option value="GPK Hal Ehwal Murid">GPK Hal Ehwal Murid</option>
+              <option value="GPK Ko Kurikulum">GPK Ko Kurikulum</option>
+              <option value="Guru Akademik" selected>Guru Akademik</option>
+              <option value="Guru Praktikal">Guru Praktikal</option>
+              <option value="AKP">AKP</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Gred Jawatan</label>
+            <input type="text" id="inp_Gred_Jawatan" placeholder="Contoh: DG44 / N22" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Opsyen Utama</label>
+            <input type="text" id="inp_Opsyen_Utama" placeholder="Contoh: Bahasa Melayu / Sains" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Email DELIMa</label>
+            <input type="email" id="inp_Email_Delima" placeholder="g-1234567@moe-dl.edu.my" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">No. Telefon</label>
+            <input type="text" id="inp_No_Telefon" placeholder="012-3456789" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Status <span class="text-rose-500">*</span></label>
+            <select id="inp_Status" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600">
+              <option value="Aktif" selected>Aktif</option>
+              <option value="Tidak Aktif">Tidak Aktif</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Tarikh Masuk</label>
+            <input type="date" id="inp_Tarikh_Masuk" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Tarikh Keluar</label>
+            <input type="date" id="inp_Tarikh_Keluar" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block font-bold mb-1 text-slate-700">ID Mentor</label>
+            <input type="text" id="inp_ID_Mentor" placeholder="ID Staf Pembimbing/Mentor (jika ada)" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeTambahGuruModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">Batal</button>
+          <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-xl transition shadow-xs">Simpan Staf</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="../../config.js"></script>
 
   <script>
@@ -348,10 +444,12 @@
       { ID_Staf: "STF007", Nama_Penuh: "Maria binti Abdullah", Nama_Samaran: "Cikgu Maria", Kategori_Staf: "Guru Akademik", Gred_Jawatan: "DG41", Opsyen_Utama: "Bahasa Inggeris", Email_Delima: "maria@moe-dl.edu.my", No_Telefon: "012-7777777", Status: "Aktif" },
       { ID_Staf: "STF008P", Nama_Penuh: "Siti Zulaikha binti Hassan", Nama_Samaran: "Cikgu Ika", Kategori_Staf: "Guru Praktikal", Gred_Jawatan: "Praktikal", Opsyen_Utama: "Sejarah", Email_Delima: "zulaikha@moe-dl.edu.my", No_Telefon: "011-2223334", Status: "Aktif" },
       { ID_Staf: "STF008", Nama_Penuh: "Azlina binti Ahmad", Nama_Samaran: "Pn. Azlina", Kategori_Staf: "AKP", Gred_Jawatan: "N22", Opsyen_Utama: "Pembantu Tadbir", Email_Delima: "azlina@moe-dl.edu.my", No_Telefon: "013-1112223", Status: "Aktif" },
-      { ID_Staf: "STF009", Nama_Penuh: "Suhaimi bin Ali", Nama_Samaran: "En. Suhaimi", Kategori_Staf: "AKP", Gred_Jawatan: "N19", Opsyen_Utama: "Pembantu Operasi", Email_Delima: "suhaimi@moe-dl.edu.my", No_Telefon: "013-4445556", Status: "Aktif" }
+      { ID_Staf: "STF009", Nama_Penuh: "Suhaimi bin Ali", Nama_Samaran: "En. Suhaimi", Kategori_Staf: "AKP", Gred_Jawatan: "N19", Opsyen_Utama: "Pembantu Operasi", Email_Delima: "suhaimi@moe-dl.edu.my", No_Telefon: "013-4445556", Status: "Aktif" },
+      { ID_Staf: "STF010X", Nama_Penuh: "Zainal bin Abidin", Nama_Samaran: "Cikgu Zainal", Kategori_Staf: "Guru Akademik", Gred_Jawatan: "DG44", Opsyen_Utama: "Matematik", Email_Delima: "zainal@moe-dl.edu.my", No_Telefon: "019-9998887", Status: "Tidak Aktif" }
     ];
 
     let ALL_PERANAN = [];
+    let CURRENT_STAF_FILTER = 'Semua';
 
     // HIERARKI RANKING SUSUNAN STAF
     function getHierarchyRank(kategori) {
@@ -372,12 +470,10 @@
         const rankA = getHierarchyRank(a.Kategori_Staf);
         const rankB = getHierarchyRank(b.Kategori_Staf);
 
-        // 1. Susun mengikut Keutamaan Hierarki Kategori_Staf
         if (rankA !== rankB) {
           return rankA - rankB;
         }
 
-        // 2. Jika Kategori sama, susun ikut Abjad Nama_Penuh
         const namaA = (a.Nama_Penuh || '').toLowerCase();
         const namaB = (b.Nama_Penuh || '').toLowerCase();
         return namaA.localeCompare(namaB, 'ms');
@@ -428,7 +524,6 @@
         console.warn('Guna data staf tempatan.');
       }
 
-      // Render awal jadual & dropdown
       renderMasterStafTable();
       populateDropdownGuru();
     }
@@ -461,14 +556,20 @@
       else if (viewId === 'viewIndukKoko') bTxt.innerText = 'JK Induk Kokurikulum';
     }
 
-    function renderMasterStafTable(filterKat = 'Semua') {
+    // RENder JADUAL GURU & AKP (TAPIS AKTIF SAHAJA)
+    function renderMasterStafTable(filterKat = CURRENT_STAF_FILTER) {
+      CURRENT_STAF_FILTER = filterKat;
       const tbody = document.getElementById('tbodyMasterStaf');
       if (!tbody) return;
 
-      // Susun data ikut hierarki + abjad terlebih dahulu
-      const sortedStaf = sortStafList(ALL_STAF);
+      // 1. Tapis HANYA STAF AKTIF
+      const activeStafOnly = ALL_STAF.filter(s => (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+
+      // 2. Susun data ikut hierarki + abjad
+      const sortedStaf = sortStafList(activeStafOnly);
       let filteredData = sortedStaf;
 
+      // 3. Tapis mengikut kategori tab
       if (filterKat === 'Pentadbir') {
         filteredData = sortedStaf.filter(s => ['Guru Besar', 'GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf));
       } else if (filterKat === 'Guru Akademik') {
@@ -479,10 +580,10 @@
         filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'AKP');
       }
 
-      document.getElementById('txtCountStaf').innerText = `${filteredData.length} Staf`;
+      document.getElementById('txtCountStaf').innerText = `${filteredData.length} Staf Aktif`;
 
       if (filteredData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-slate-400 italic">Tiada data staf dijumpai untuk kategori ini.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 italic">Tiada data staf aktif dijumpai untuk kategori ini.</td></tr>`;
         return;
       }
 
@@ -500,7 +601,6 @@
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
             <td class="p-3 text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="p-3 font-mono font-bold text-slate-600">${staf.ID_Staf || '-'}</td>
             <td class="p-3">
               <p class="font-extrabold text-slate-800">${staf.Nama_Penuh || '-'}</p>
               <p class="text-[10px] text-rose-600 font-semibold">"${staf.Nama_Samaran || '-'}"</p>
@@ -508,14 +608,10 @@
             <td class="p-3">
               <span class="px-2.5 py-1 text-[10px] rounded-full ${badgeClass}">${kat}</span>
             </td>
-            <td class="p-3">
-              <span class="font-bold">${staf.Gred_Jawatan || '-'}</span>
-              <span class="text-slate-400 text-[11px]">(${staf.Opsyen_Utama || '-'})</span>
-            </td>
-            <td class="p-3 font-mono text-slate-600">${staf.Email_Delima || '-'}</td>
-            <td class="p-3 font-mono text-slate-600">${staf.No_Telefon || '-'}</td>
+            <td class="p-3 font-bold text-slate-700">${staf.Gred_Jawatan || '-'}</td>
+            <td class="p-3 text-slate-600">${staf.Opsyen_Utama || '-'}</td>
             <td class="p-3 text-center">
-              <span class="px-2 py-0.5 text-[10px] rounded font-bold ${staf.Status === 'Aktif' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}">
+              <span class="px-2.5 py-1 text-[10px] rounded-full font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">
                 ${staf.Status || 'Aktif'}
               </span>
             </td>
@@ -526,17 +622,16 @@
 
     function filterStafTable(kat) {
       document.querySelectorAll('.btn-filter-staf').forEach(btn => {
-        btn.className = 'btn-filter-staf px-3 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700';
+        btn.className = 'btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700';
       });
-      event.target.className = 'btn-filter-staf active px-3 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs';
+      event.target.className = 'btn-filter-staf active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs';
       
       renderMasterStafTable(kat);
     }
 
     function populateDropdownGuru() {
-      // Tapis guru sahaja (Abaikan AKP untuk Setiausaha)
-      const guruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP');
-      const sortedGuru = sortStafList(guruOnly);
+      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+      const sortedGuru = sortStafList(activeGuruOnly);
 
       let optionsHtml = '<option value="">-- Pilih Setiausaha daripada Senarai Guru --</option>';
       sortedGuru.forEach(g => {
@@ -546,6 +641,41 @@
       document.querySelectorAll('.select-guru-opt').forEach(sel => {
         sel.innerHTML = optionsHtml;
       });
+    }
+
+    // MODAL POPUP STAF HANDLERS
+    function openTambahGuruModal() {
+      document.getElementById('modal-tambah-staf').classList.remove('hidden');
+    }
+
+    function closeTambahGuruModal() {
+      document.getElementById('modal-tambah-staf').classList.add('hidden');
+    }
+
+    function simpanStafBaharu(e) {
+      e.preventDefault();
+      const newStaf = {
+        ID_Staf: document.getElementById('inp_ID_Staf').value.trim(),
+        Nama_Penuh: document.getElementById('inp_Nama_Penuh').value.trim(),
+        Nama_Samaran: document.getElementById('inp_Nama_Samaran').value.trim(),
+        No_KP: document.getElementById('inp_No_KP').value.trim(),
+        Kategori_Staf: document.getElementById('inp_Kategori_Staf').value,
+        Gred_Jawatan: document.getElementById('inp_Gred_Jawatan').value.trim(),
+        Opsyen_Utama: document.getElementById('inp_Opsyen_Utama').value.trim(),
+        Email_Delima: document.getElementById('inp_Email_Delima').value.trim(),
+        No_Telefon: document.getElementById('inp_No_Telefon').value.trim(),
+        Status: document.getElementById('inp_Status').value,
+        Tarikh_Masuk: document.getElementById('inp_Tarikh_Masuk').value,
+        Tarikh_Keluar: document.getElementById('inp_Tarikh_Keluar').value,
+        ID_Mentor: document.getElementById('inp_ID_Mentor').value.trim()
+      };
+
+      ALL_STAF.push(newStaf);
+      renderMasterStafTable();
+      populateDropdownGuru();
+      closeTambahGuruModal();
+
+      Swal.fire('Berjaya!', 'Rekod staf baharu telah ditambah ke dalam senarai.', 'success');
     }
 
     async function simpanJKInduk(bidang) {
