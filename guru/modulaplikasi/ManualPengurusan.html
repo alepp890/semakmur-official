@@ -203,10 +203,9 @@
 
       </div>
 
-      <!-- ================= 3. MODUL PENGURUSAN SEKOLAH (BAHARU) ================= -->
+      <!-- ================= 3. MODUL PENGURUSAN SEKOLAH ================= -->
       <div id="viewPengurusanSekolah" class="hidden space-y-6">
 
-        <!-- HEADER & SUB TABS -->
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-amber-500">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
@@ -226,7 +225,7 @@
           </div>
         </div>
 
-        <!-- SUB-SECTION 1: SENARAI KELAS / GURU KELAS / GURU PEMBANTU / PENYELARAS ALIRAN -->
+        <!-- SUB-SECTION 1: GURU KELAS & ALIRAN -->
         <div id="subSecKelas" class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700 flex items-center justify-between">
             <span><i class="fa-solid fa-chalkboard-user text-rose-600 mr-2"></i>Senarai Kelas, Guru Kelas, Guru Pembantu & Penyelaras Aliran</span>
@@ -616,12 +615,11 @@
     let ALL_PERANAN = [];
     let CURRENT_STAF_FILTER = 'Semua';
 
-    // STORE SEMENTARA BAGI PENGURUSAN SEKOLAH
-    let statePengurusanKelas = {}; // { '1 Iris': { gk: 'STF005', gpk: 'STF006' } }
-    let stateBilikKhas = {};      // { 'Pusat Sumber Sekolah': 'STF007' }
-    let kumpulanBertugasState = { 1: [], 2: [], 3: [], 4: [] }; // { 1: ['STF005'], 2: ['STF006'] }
+    // STORE SEMENTARA UI
+    let statePengurusanKelas = {}; 
+    let stateBilikKhas = {};      
+    let kumpulanBertugasState = { 1: [], 2: [], 3: [], 4: [] }; 
 
-    // FUNGSI JANA ID STAF AUTOMATIK (EG. STF010)
     function getNextStafID() {
       let maxNum = 0;
       ALL_STAF.forEach(s => {
@@ -688,6 +686,59 @@
       return await response.json();
     }
 
+    // PENYERAPAN DATA (DATA HYDRATION) BILA PAGE DIMUATKAN / REFRESH
+    function hydrateStateFromPerananData() {
+      statePengurusanKelas = {};
+      stateBilikKhas = {};
+      kumpulanBertugasState = { 1: [], 2: [], 3: [], 4: [] };
+
+      if (!ALL_PERANAN || ALL_PERANAN.length === 0) return;
+
+      ALL_PERANAN.forEach(p => {
+        const jk = String(p.Nama_Jawatankuasa || '').trim();
+        const peranan = String(p.Peranan || '').trim();
+        const skop = String(p.Skop_Tugas_Kelas || '').trim();
+        const idStaf = String(p.ID_Staf || '').trim();
+        const status = String(p.Status || 'Aktif').trim().toLowerCase();
+
+        if (status !== 'aktif' || !idStaf) return;
+
+        // 1. Pengurusan Kelas
+        if (jk === 'Pengurusan Kelas') {
+          if (!statePengurusanKelas[skop]) statePengurusanKelas[skop] = { gk: '', gpk: '' };
+          if (peranan === 'Guru Kelas') statePengurusanKelas[skop].gk = idStaf;
+          if (peranan === 'Guru Pembantu') statePengurusanKelas[skop].gpk = idStaf;
+        }
+
+        // 2. Bilik Khas
+        if (jk === 'Pengurusan Bilik Khas') {
+          stateBilikKhas[skop] = idStaf;
+        }
+
+        // 3. Kumpulan Bertugas Mingguan
+        if (jk === 'Kumpulan Bertugas Mingguan') {
+          const match = skop.match(/\d+/);
+          if (match) {
+            const grpNum = parseInt(match[0], 10);
+            if (kumpulanBertugasState[grpNum] && !kumpulanBertugasState[grpNum].includes(idStaf)) {
+              kumpulanBertugasState[grpNum].push(idStaf);
+            }
+          }
+        }
+
+        // 4. Setiausaha JK Induk
+        if (peranan === 'Setiausaha Pengurusan') setDropdownIfExist('select-su-pengurusan', idStaf);
+        if (peranan === 'Setiausaha Kurikulum') setDropdownIfExist('select-su-kurikulum', idStaf);
+        if (peranan === 'Setiausaha HEM') setDropdownIfExist('select-su-hem', idStaf);
+        if (peranan === 'Setiausaha Kokurikulum') setDropdownIfExist('select-su-koko', idStaf);
+      });
+    }
+
+    function setDropdownIfExist(elemId, val) {
+      const el = document.getElementById(elemId);
+      if (el) el.value = val;
+    }
+
     async function fetchMasterStafData() {
       showLoader('Menyelaraskan pangkalan data V2...');
       try {
@@ -706,6 +757,9 @@
 
       renderMasterStafTable();
       populateDropdownGuru();
+      
+      // HYDRATE STATE SUPAYA DATA TAMPIL SELEPAS REFRESH
+      hydrateStateFromPerananData();
       renderPengurusanSekolahTables();
     }
 
@@ -759,7 +813,6 @@
       }
     }
 
-    // RENDER JADUAL PROFIL STAF (AKTIF SAHAJA)
     function renderMasterStafTable(filterKat = CURRENT_STAF_FILTER) {
       CURRENT_STAF_FILTER = filterKat;
       const tbody = document.getElementById('tbodyMasterStaf');
@@ -842,10 +895,6 @@
       });
     }
 
-    // =========================================================================
-    // LOGIK MODUL PENGURUSAN SEKOLAH (KELAS, BILIK KHAS, KUMPULAN BERTUGAS)
-    // =========================================================================
-
     function getStreamKey(namaKelas) {
       const match = String(namaKelas).trim().match(/^(\d+|\w+)/);
       return match ? match[1] : namaKelas;
@@ -857,7 +906,7 @@
       renderKumpulanBertugasUI();
     }
 
-    // 1. RENDER JADUAL GURU KELAS, PEMBANTU & PENYELARAS ALIRAN (AUTO)
+    // 1. RENDER JADUAL GURU KELAS, PEMBANTU & PENYELARAS ALIRAN
     function renderTableKelas() {
       const tbody = document.getElementById('tbodyPengurusanKelas');
       if (!tbody) return;
@@ -871,7 +920,6 @@
         return;
       }
 
-      // Kumpulan kelas mengikut Aliran (Stream)
       const streamMap = {};
       senaraiKelas.forEach(k => {
         const streamKey = getStreamKey(k.Nama_Lokasi);
@@ -883,9 +931,8 @@
       senaraiKelas.forEach((k, idx) => {
         const namaKelas = k.Nama_Lokasi;
         const streamKey = getStreamKey(namaKelas);
-        const kelasPertamaAliran = streamMap[streamKey][0]; // Kelas 1st Aliran (cth: 1 Iris)
+        const kelasPertamaAliran = streamMap[streamKey][0];
 
-        // Penyelaras Aliran = Guru Kelas kepada kelas pertama aliran tersebut
         const idGuruKelasPertama = (statePengurusanKelas[kelasPertamaAliran] || {}).gk || '';
         const objGuruPenyelaras = sortedGuru.find(g => g.ID_Staf === idGuruKelasPertama);
         const namaPenyelarasAliran = objGuruPenyelaras ? `${objGuruPenyelaras.Nama_Penuh}` : '<span class="text-slate-400 italic">Auto: Guru Kelas ' + kelasPertamaAliran + '</span>';
@@ -926,10 +973,10 @@
     function updateStateKelas(namaKelas, field, val) {
       if (!statePengurusanKelas[namaKelas]) statePengurusanKelas[namaKelas] = { gk: '', gpk: '' };
       statePengurusanKelas[namaKelas][field] = val;
-      renderTableKelas(); // Kemaskini automatik Penyelaras Aliran!
+      renderTableKelas();
     }
 
-    // 2. RENDER JADUAL PENYELARAS BILIK KHAS
+    // 2. RENDER BILIK KHAS
     function renderTableBilikKhas() {
       const tbody = document.getElementById('tbodyBilikKhas');
       if (!tbody) return;
@@ -971,12 +1018,11 @@
       stateBilikKhas[namaBilik] = val;
     }
 
-    // 3. RENDER KUMPULAN BERTUGAS MINGGUAN (1 - 4) DENGAN ELAK PERTINDIHAN
+    // 3. RENDER KUMPULAN BERTUGAS
     function renderKumpulanBertugasUI() {
       const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
       const sortedGuru = sortStafList(activeGuruOnly);
 
-      // Kumpul semua guru yang TELAH dimasukkan ke dalam mana-mana Kumpulan 1-4
       const usedTeacherIDs = new Set();
       [1, 2, 3, 4].forEach(grp => {
         kumpulanBertugasState[grp].forEach(id => usedTeacherIDs.add(id));
@@ -989,7 +1035,6 @@
 
         if (badge) badge.innerText = `${kumpulanBertugasState[grp].length} Guru`;
 
-        // Render senarai ahli kumpulan
         if (box) {
           box.innerHTML = '';
           kumpulanBertugasState[grp].forEach(idStaf => {
@@ -1005,7 +1050,6 @@
           });
         }
 
-        // Dropdown tapis guru yang BELUM berada dalam mana-mana kumpulan
         if (sel) {
           let opt = `<option value="">-- Pilih Guru Tambah ke K${grp} --</option>`;
           sortedGuru.forEach(g => {
@@ -1031,12 +1075,12 @@
       renderKumpulanBertugasUI();
     }
 
-    // SIMPAN SEMUA DATA PENGURUSAN SEKOLAH KE BACKEND
+    // FUNGSI SIMPAN PENGURUSAN SEKOLAH DENGAN SCOPES TO CLEAR (SABAN TIADA DATA MELEKAT)
     async function simpanSemuaPengurusanSekolah() {
       showLoader('Menyimpan Pengurusan Sekolah...');
       let payloadBatch = [];
 
-      // A. Simpan Guru Kelas, Guru Pembantu & Penyelaras Aliran
+      // A. Guru Kelas & Pembantu
       const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'kelas');
       const streamMap = {};
       senaraiKelas.forEach(k => {
@@ -1076,7 +1120,7 @@
         }
       });
 
-      // Penyelaras Aliran (1 per Aliran)
+      // Penyelaras Aliran (Auto)
       Object.keys(streamMap).forEach(stKey => {
         const kelasPertama = streamMap[stKey][0];
         const idGuruKelasPertama = (statePengurusanKelas[kelasPertama] || {}).gk;
@@ -1094,7 +1138,7 @@
         }
       });
 
-      // B. Simpan Penyelaras Bilik Khas
+      // B. Bilik Khas
       Object.keys(stateBilikKhas).forEach(namaBilik => {
         const idG = stateBilikKhas[namaBilik];
         if (idG) {
@@ -1111,7 +1155,7 @@
         }
       });
 
-      // C. Simpan Kumpulan Bertugas Mingguan
+      // C. Kumpulan Bertugas Mingguan
       [1, 2, 3, 4].forEach(grp => {
         kumpulanBertugasState[grp].forEach(idG => {
           payloadBatch.push({
@@ -1127,12 +1171,20 @@
         });
       });
 
+      // Hantar skop yang perlu dibersihkan dahulu di backend
+      const payload = {
+        action: 'savePerananStafV2',
+        scopes_to_clear: ['Pengurusan Kelas', 'Pengurusan Aliran', 'Pengurusan Bilik Khas', 'Kumpulan Bertugas Mingguan'],
+        data: payloadBatch
+      };
+
       try {
-        const res = await postToBackend({ action: 'savePerananStafV2', data: payloadBatch });
+        const res = await postToBackend(payload);
         hideLoader();
 
         if (res && res.success) {
-          Swal.fire('Berjaya Saved', 'Rekod Pengurusan Sekolah telah dikemas kini dalam Peranan_Staf!', 'success');
+          Swal.fire('Berjaya Saved', 'Rekod Pengurusan Sekolah telah dikemas kini tanpa sebarang duplikasi!', 'success');
+          fetchMasterStafData(); // Refresh semula pangkalan data
         } else {
           Swal.fire('Ralat', res.error || 'Gagal menyimpan rekod.', 'error');
         }
@@ -1209,6 +1261,7 @@
       try {
         const payload = {
           action: 'savePerananStafV2',
+          scopes_to_clear: [`JK Induk ${bidang}`],
           data: [{
             kategori_pengurusan: bidang,
             jk_induk: `JK Induk ${bidang}`,
@@ -1226,6 +1279,7 @@
 
         if (res && res.success) {
           Swal.fire('Berjaya Saved', `Jawatankuasa Induk ${bidang} berjaya disimpan ke Helaian Peranan_Staf!`, 'success');
+          fetchMasterStafData();
         } else {
           Swal.fire('Ralat', res.error || 'Gagal menyimpan rekod.', 'error');
         }
