@@ -207,7 +207,7 @@
                   <th class="p-3">Kategori Pengurusan</th>
                   <th class="p-3">JK Induk</th>
                   <th class="p-3">Nama Jawatankuasa</th>
-                  <th class="p-3">Peranan / Jawatan</th>
+                  <th class="p-3">Jawatan Pimpinan Utama</th>
                   <th class="p-3 text-center">Tindakan</th>
                 </tr>
               </thead>
@@ -419,7 +419,7 @@
               <p class="text-xs text-slate-500">Pemetaan Penuh Barisan Kepimpinan & Penyelaras Sub-Unit</p>
             </div>
             <button onclick="simpanSetiausahaInduk()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-              <i class="fa-solid fa-floppy-disk"></i> Simpan Setiausaha Induk
+              <i class="fa-solid fa-floppy-disk"></i> Simpan Setiausaha & Naib Setiausaha
             </button>
           </div>
 
@@ -442,9 +442,15 @@
               <span id="mapNaib3" class="font-extrabold text-slate-800 flex-1"></span>
             </div>
             <div class="flex items-center justify-between pt-1">
-              <span class="font-bold text-rose-600 w-40">Setiausaha (Pilih):</span>
+              <span class="font-bold text-rose-600 w-40">Setiausaha:</span>
               <div class="flex-1">
                 <select id="selSetiausahaInduk" class="select-guru-opt w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-rose-600"></select>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span class="font-bold text-slate-600 w-40">Naib Setiausaha:</span>
+              <div class="flex-1">
+                <select id="selNaibSetiausahaInduk" class="select-guru-opt w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:outline-none"></select>
               </div>
             </div>
           </div>
@@ -504,6 +510,14 @@
                 <select id="selSubSetiausaha" class="select-guru-opt w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:outline-none"></select>
               </div>
             </div>
+
+            <!-- DROPDOWN NAIB SETIAUSAHA -->
+            <div class="flex items-center justify-between pt-1">
+              <span id="lblSubNaibSetiausahaTitle" class="font-bold text-slate-700 w-40">Naib Setiausaha:</span>
+              <div class="flex-1">
+                <select id="selSubNaibSetiausaha" class="select-guru-opt w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:outline-none"></select>
+              </div>
+            </div>
           </div>
 
           <!-- SENARAI AJK DINAMIK -->
@@ -559,9 +573,9 @@
         </div>
 
         <div>
-          <label class="block font-bold mb-1 text-slate-700">Peranan / Jawatan (Pilihan Checkbox) <span class="text-rose-500">*</span></label>
-          <div id="boxPerananCheckboxes" class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-            <!-- Checkbox dimasukkan dinamik melalui JS -->
+          <label class="block font-bold mb-1 text-slate-700">Jawatan Pimpinan Utama <span class="text-rose-500">*</span></label>
+          <div id="boxPerananCheckboxes" class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <!-- Pilihan Jawatan Dinamik Diberi di sini -->
           </div>
         </div>
 
@@ -685,6 +699,15 @@
 
     let activeCategoryInduk = 'Pentadbiran';
     let activeSubJkName = '';
+
+    // SENARAI KUMPULAN KHAS UNTUK DROPDOWN
+    const SPECIAL_GROUPS = [
+      { ID_Staf: 'GRP001', Nama_Penuh: 'Semua Guru', Kategori_Staf: 'Kumpulan Khas' },
+      { ID_Staf: 'GRP002', Nama_Penuh: 'Semua Ketua Panitia', Kategori_Staf: 'Kumpulan Khas' },
+      { ID_Staf: 'GRP003', Nama_Penuh: 'Semua Guru Mata Pelajaran', Kategori_Staf: 'Kumpulan Khas' },
+      { ID_Staf: 'GRP004', Nama_Penuh: 'Semua Guru Kelas', Kategori_Staf: 'Kumpulan Khas' },
+      { ID_Staf: 'GRP005', Nama_Penuh: 'Semua Guru Bertugas Mingguan', Kategori_Staf: 'Kumpulan Khas' }
+    ];
 
     // 1. PENETAPAN TAHUN AUTOMATIK (BERMULA 2027)
     function populateDropdownTahunAuto() {
@@ -926,16 +949,19 @@
         document.getElementById('mapNaib3').innerText = nameGpkHem;
       }
 
+      // Setiausaha Induk
       const suPeranan = ALL_PERANAN.find(p => 
         String(p.Peranan || p.peranan || '').trim() === `Setiausaha ${katName}` &&
         String(p.Status || 'Aktif').toLowerCase() === 'aktif'
       );
+      document.getElementById('selSetiausahaInduk').value = suPeranan ? (suPeranan.ID_Staf || suPeranan.id_staf || '') : '';
 
-      if (suPeranan) {
-        document.getElementById('selSetiausahaInduk').value = suPeranan.ID_Staf || suPeranan.id_staf || '';
-      } else {
-        document.getElementById('selSetiausahaInduk').value = '';
-      }
+      // Naib Setiausaha Induk
+      const nsuPeranan = ALL_PERANAN.find(p => 
+        String(p.Peranan || p.peranan || '').trim() === `Naib Setiausaha ${katName}` &&
+        String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+      );
+      document.getElementById('selNaibSetiausahaInduk').value = nsuPeranan ? (nsuPeranan.ID_Staf || nsuPeranan.id_staf || '') : '';
 
       renderMappingSubJkList(katName);
     }
@@ -956,7 +982,8 @@
       box.innerHTML = '';
       subList.forEach(item => {
         const namaJk = item.Nama_Jawatankuasa || item.nama_jawatankuasa || '';
-        const titleLabel = (katName === 'Kurikulum') ? `Ketua Panitia ${namaJk}` : `Penyelaras ${namaJk}`;
+        const roleType = item.Peranan || item.peranan || 'Penyelaras';
+        const titleLabel = `${roleType} ${namaJk}`;
 
         const penyelarasRec = ALL_PERANAN.find(p => 
           String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
@@ -966,8 +993,12 @@
 
         let namaPenyelaras = '<span class="text-slate-400 italic">Belum Diisi</span>';
         if (penyelarasRec) {
-          const stObj = ALL_STAF.find(s => s.ID_Staf === (penyelarasRec.ID_Staf || penyelarasRec.id_staf));
-          if (stObj) namaPenyelaras = `<span class="font-bold text-slate-800">${stObj.Nama_Penuh}</span>`;
+          const idS = penyelarasRec.ID_Staf || penyelarasRec.id_staf;
+          const grpObj = SPECIAL_GROUPS.find(g => g.ID_Staf === idS);
+          const stObj = ALL_STAF.find(s => s.ID_Staf === idS);
+          
+          if (grpObj) namaPenyelaras = `<span class="font-extrabold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-200">${grpObj.Nama_Penuh}</span>`;
+          else if (stObj) namaPenyelaras = `<span class="font-bold text-slate-800">${stObj.Nama_Penuh}</span>`;
         }
 
         box.innerHTML += `
@@ -986,10 +1017,14 @@
 
       document.getElementById('txtSubJkDetailTitle').innerText = `${namaJk}`;
 
-      const isKuri = (katName === 'Kurikulum');
-      document.getElementById('lblSubPenyelarasTitle').innerText = isKuri ? 'Ketua Panitia:' : 'Penyelaras:';
-      document.getElementById('lblSubSetiausahaTitle').innerText = isKuri ? 'Setiausaha Panitia:' : 'Setiausaha:';
-      document.getElementById('lblSubAjkTitle').innerText = isKuri ? 'Senarai AJK Panitia' : 'Senarai Ahli Jawatankuasa (AJK)';
+      // Cari tetapan role daripada Master Jawatankuasa
+      const jkMaster = ALL_JAWATANKUASA.find(j => String(j.Nama_Jawatankuasa || j.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase());
+      const roleText = jkMaster ? (jkMaster.Peranan || jkMaster.peranan || 'Penyelaras') : 'Penyelaras';
+
+      document.getElementById('lblSubPenyelarasTitle').innerText = `${roleText}:`;
+      document.getElementById('lblSubSetiausahaTitle').innerText = (roleText === 'Ketua Panitia') ? 'Setiausaha Panitia:' : 'Setiausaha:';
+      document.getElementById('lblSubNaibSetiausahaTitle').innerText = (roleText === 'Ketua Panitia') ? 'Naib Setiausaha Panitia:' : 'Naib Setiausaha:';
+      document.getElementById('lblSubAjkTitle').innerText = (roleText === 'Ketua Panitia') ? 'Senarai AJK Panitia' : 'Senarai Ahli Jawatankuasa (AJK)';
 
       const gb = ALL_STAF.find(s => s.Kategori_Staf === 'Guru Besar');
       const gpk1 = ALL_STAF.find(s => s.Kategori_Staf === 'GPK Pentadbiran');
@@ -1010,11 +1045,19 @@
       const suRec = ALL_PERANAN.find(p => 
         String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
         String(p.Peranan || p.peranan || '').toLowerCase().includes('setiausaha') &&
+        !String(p.Peranan || p.peranan || '').toLowerCase().includes('naib') &&
+        String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+      );
+
+      const nsuRec = ALL_PERANAN.find(p => 
+        String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
+        String(p.Peranan || p.peranan || '').toLowerCase().includes('naib setiausaha') &&
         String(p.Status || 'Aktif').toLowerCase() === 'aktif'
       );
 
       document.getElementById('selSubPenyelaras').value = penyelarasRec ? (penyelarasRec.ID_Staf || penyelarasRec.id_staf) : '';
       document.getElementById('selSubSetiausaha').value = suRec ? (suRec.ID_Staf || suRec.id_staf) : '';
+      document.getElementById('selSubNaibSetiausaha').value = nsuRec ? (nsuRec.ID_Staf || nsuRec.id_staf) : '';
 
       const ajkList = ALL_PERANAN.filter(p => 
         String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
@@ -1041,10 +1084,19 @@
       const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
       const sortedGuru = sortStafList(activeGuruOnly);
 
-      let options = '<option value="">-- Pilih Guru AJK --</option>';
+      let options = '<option value="">-- Pilih Guru / Kumpulan Khas AJK --</option>';
+      
+      options += '<optgroup label="-- KUMPULAN KHAS --">';
+      SPECIAL_GROUPS.forEach(g => {
+        options += `<option value="${g.ID_Staf}" ${g.ID_Staf === selectedId ? 'selected' : ''}>${g.Nama_Penuh}</option>`;
+      });
+      options += '</optgroup>';
+
+      options += '<optgroup label="-- SENARAI GURU INDIVIDU --">';
       sortedGuru.forEach(g => {
         options += `<option value="${g.ID_Staf}" ${g.ID_Staf === selectedId ? 'selected' : ''}>${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
       });
+      options += '</optgroup>';
 
       const rowId = 'ajkRow_' + new Date().getTime() + Math.floor(Math.random() * 100);
 
@@ -1069,18 +1121,15 @@
 
     async function simpanSetiausahaInduk() {
       const suVal = document.getElementById('selSetiausahaInduk').value;
-      if (!suVal) {
-        Swal.fire('Perhatian', 'Sila pilih Setiausaha Induk.', 'warning');
-        return;
-      }
+      const nsuVal = document.getElementById('selNaibSetiausahaInduk').value;
 
       showLoader(`Menyimpan Setiausaha JK Induk ${activeCategoryInduk}...`);
       const tahunAktif = document.getElementById('selTahunAktif')?.value || '2027';
 
-      const payload = {
-        action: 'savePerananStafV2',
-        scopes_to_clear: [`JK Induk ${activeCategoryInduk}`],
-        data: [{
+      const payloadBatch = [];
+
+      if (suVal) {
+        payloadBatch.push({
           kategori_pengurusan: activeCategoryInduk,
           jk_induk: `JK Induk ${activeCategoryInduk}`,
           nama_jawatankuasa: `JK Induk ${activeCategoryInduk}`,
@@ -1089,14 +1138,33 @@
           id_staf: suVal,
           tahun: tahunAktif,
           status: 'Aktif'
-        }]
+        });
+      }
+
+      if (nsuVal) {
+        payloadBatch.push({
+          kategori_pengurusan: activeCategoryInduk,
+          jk_induk: `JK Induk ${activeCategoryInduk}`,
+          nama_jawatankuasa: `JK Induk ${activeCategoryInduk}`,
+          peranan: `Naib Setiausaha ${activeCategoryInduk}`,
+          skop_tugas_kelas: `JK Induk ${activeCategoryInduk}`,
+          id_staf: nsuVal,
+          tahun: tahunAktif,
+          status: 'Aktif'
+        });
+      }
+
+      const payload = {
+        action: 'savePerananStafV2',
+        scopes_to_clear: [`JK Induk ${activeCategoryInduk}`],
+        data: payloadBatch
       };
 
       try {
         const res = await postToBackend(payload);
         hideLoader();
         if (res && res.success) {
-          Swal.fire('Berjaya Saved', `Setiausaha Induk ${activeCategoryInduk} berjaya dikemaskini!`, 'success');
+          Swal.fire('Berjaya Saved', `Setiausaha & Naib Setiausaha Induk ${activeCategoryInduk} berjaya dikemaskini!`, 'success');
           fetchMasterStafData();
         } else {
           Swal.fire('Ralat', res.error || 'Gagal menyimpan.', 'error');
@@ -1110,12 +1178,15 @@
     async function simpanDetailSubJk() {
       const penyelarasVal = document.getElementById('selSubPenyelaras').value;
       const suVal = document.getElementById('selSubSetiausaha').value;
+      const nsuVal = document.getElementById('selSubNaibSetiausaha').value;
       const tahunAktif = document.getElementById('selTahunAktif')?.value || '2027';
 
-      const isKuri = (activeCategoryInduk === 'Kurikulum');
-      const rolePenyelarasText = isKuri ? 'Ketua Panitia' : 'Penyelaras';
-      const roleSuText = isKuri ? 'Setiausaha Panitia' : 'Setiausaha';
-      const roleAjkText = isKuri ? 'AJK Panitia' : 'AJK';
+      const jkMaster = ALL_JAWATANKUASA.find(j => String(j.Nama_Jawatankuasa || j.nama_jawatankuasa || '').trim().toLowerCase() === activeSubJkName.toLowerCase());
+      const roleText = jkMaster ? (jkMaster.Peranan || jkMaster.peranan || 'Penyelaras') : 'Penyelaras';
+
+      const roleSuText = (roleText === 'Ketua Panitia') ? 'Setiausaha Panitia' : 'Setiausaha';
+      const roleNsuText = (roleText === 'Ketua Panitia') ? 'Naib Setiausaha Panitia' : 'Naib Setiausaha';
+      const roleAjkText = (roleText === 'Ketua Panitia') ? 'AJK Panitia' : 'AJK';
 
       let payloadBatch = [];
 
@@ -1124,7 +1195,7 @@
           kategori_pengurusan: activeCategoryInduk,
           jk_induk: `JK Induk ${activeCategoryInduk}`,
           nama_jawatankuasa: activeSubJkName,
-          peranan: rolePenyelarasText,
+          peranan: roleText,
           skop_tugas_kelas: activeSubJkName,
           id_staf: penyelarasVal,
           tahun: tahunAktif,
@@ -1140,6 +1211,19 @@
           peranan: roleSuText,
           skop_tugas_kelas: activeSubJkName,
           id_staf: suVal,
+          tahun: tahunAktif,
+          status: 'Aktif'
+        });
+      }
+
+      if (nsuVal) {
+        payloadBatch.push({
+          kategori_pengurusan: activeCategoryInduk,
+          jk_induk: `JK Induk ${activeCategoryInduk}`,
+          nama_jawatankuasa: activeSubJkName,
+          peranan: roleNsuText,
+          skop_tugas_kelas: activeSubJkName,
+          id_staf: nsuVal,
           tahun: tahunAktif,
           status: 'Aktif'
         });
@@ -1446,28 +1530,35 @@
       statePencerapanPdp[idGuru][field] = idPencerap;
     }
 
-    // SEMAKAN HASIL KERJA MURID (MENARIK TERUS DARI MASTER_SUBJEK)
+    // SEMAKAN HASIL KERJA MURID (LOGIK KOD PI DAN TAHAP 2 DISAMBUNG DENGAN TEPAT)
     function renderTableSemakanBuku() {
       const tbody = document.getElementById('tbodySemakanBuku');
       if (!tbody) return;
 
       const senaraiPentadbir = getPentadbirList();
 
-      // Ekstrak senarai Subjek_Induk unik daripada ALL_SUBJEK
       let subjekIndukList = [];
       if (ALL_SUBJEK && ALL_SUBJEK.length > 0) {
         const mapSub = {};
+        
         ALL_SUBJEK.forEach(s => {
           const namaInduk = String(s.Subjek_Induk || s.subjek_induk || s['Nama_Subjek / Komponen'] || '').trim();
           const kod = String(s.Kod_Subjek || s.kod_subjek || '').trim();
           const tahap = String(s.Kategori_Tahap || s.kategori_tahap || '').trim();
 
-          if (namaInduk && !mapSub[namaInduk]) {
-            mapSub[namaInduk] = {
-              Nama: namaInduk,
-              Kod: kod || namaInduk,
-              Tahap: tahap
-            };
+          if (namaInduk) {
+            if (!mapSub[namaInduk]) {
+              mapSub[namaInduk] = {
+                Nama: namaInduk,
+                Kod: kod,
+                Tahap: tahap
+              };
+            } else {
+              // Jika kod asal ialah komponen (PI-T), utamakan kod teras (PI)
+              if (mapSub[namaInduk].Kod.includes('-') && !kod.includes('-')) {
+                mapSub[namaInduk].Kod = kod;
+              }
+            }
           }
         });
         subjekIndukList = Object.values(mapSub);
@@ -1482,11 +1573,9 @@
       subjekIndukList.forEach((sub, idx) => {
         let cellsHtml = '';
 
-        // Semak jika subjek khusus Tahap 2 sahaja (Sejarah / RBT)
         const isTahap2Only = String(sub.Tahap).toLowerCase().includes('tahap 2') && !String(sub.Tahap).toLowerCase().includes('tahap 1');
 
         for (let thn = 1; thn <= 6; thn++) {
-          // Kunci petak Tahun 1-3 bagi subjek Tahap 2 sahaja
           if (isTahap2Only && thn <= 3) {
             cellsHtml += `
               <td class="p-1 text-center">
@@ -1599,27 +1688,16 @@
       const box = document.getElementById('boxPerananCheckboxes');
       if (kat === 'Kurikulum') {
         box.innerHTML = `
-          <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
-            <input type="checkbox" name="chk_peranan" value="Ketua Panitia" checked class="rounded text-cyan-600"> Ketua Panitia
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
-            <input type="checkbox" name="chk_peranan" value="Setiausaha Panitia" checked class="rounded text-cyan-600"> Setiausaha Panitia
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
-            <input type="checkbox" name="chk_peranan" value="AJK Panitia" checked class="rounded text-cyan-600"> AJK Panitia
-          </label>
+          <select id="jk_Peranan_Select" class="w-full p-2 border border-slate-300 rounded-xl bg-white font-bold text-slate-800 focus:outline-none">
+            <option value="Penyelaras">Penyelaras</option>
+            <option value="Ketua Panitia">Ketua Panitia</option>
+          </select>
+          <p class="text-[10px] text-slate-400 mt-1 italic">* Setiausaha & AJK akan diwujudkan secara automatik dalam jawatankuasa ini.</p>
         `;
       } else {
         box.innerHTML = `
-          <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
-            <input type="checkbox" name="chk_peranan" value="Penyelaras" checked class="rounded text-cyan-600"> Penyelaras
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
-            <input type="checkbox" name="chk_peranan" value="Setiausaha" checked class="rounded text-cyan-600"> Setiausaha
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700">
-            <input type="checkbox" name="chk_peranan" value="Ahli Jawatankuasa" checked class="rounded text-cyan-600"> Ahli Jawatankuasa (AJK)
-          </label>
+          <input type="text" id="jk_Peranan_Select" value="Penyelaras" readonly class="w-full p-2 border border-slate-300 rounded-xl bg-slate-200 font-bold text-slate-700 focus:outline-none">
+          <p class="text-[10px] text-slate-400 mt-1 italic">* Jawatan pimpinan dikunci kepada Penyelaras untuk unit ini.</p>
         `;
       }
     }
@@ -1650,10 +1728,8 @@
 
       onCategoryChangeInModal();
 
-      const selectedPeranan = String(item.Peranan || item.peranan || '').split(',').map(s => s.trim());
-      document.querySelectorAll('input[name="chk_peranan"]').forEach(chk => {
-        chk.checked = selectedPeranan.includes(chk.value);
-      });
+      const el = document.getElementById('jk_Peranan_Select');
+      if (el) el.value = item.Peranan || item.peranan || 'Penyelaras';
 
       document.getElementById('modal-jawatankuasa').classList.remove('hidden');
     }
@@ -1661,22 +1737,14 @@
     async function simpanMasterJawatankuasa(e) {
       e.preventDefault();
 
-      const selectedRoles = [];
-      document.querySelectorAll('input[name="chk_peranan"]:checked').forEach(chk => {
-        selectedRoles.push(chk.value);
-      });
-
-      if (selectedRoles.length === 0) {
-        Swal.fire('Perhatian', 'Sila pilih sekurang-kurangnya satu peranan/jawatan.', 'warning');
-        return;
-      }
+      const selectedRole = document.getElementById('jk_Peranan_Select').value;
 
       const payload = {
         id_tugasan: document.getElementById('jk_ID_Tugasan').value,
         kategori_pengurusan: document.getElementById('jk_Kategori_Pengurusan').value,
         jk_induk: document.getElementById('jk_JK_Induk').value,
         nama_jawatankuasa: document.getElementById('jk_Nama_Jawatankuasa').value.trim(),
-        peranan: selectedRoles.join(', ')
+        peranan: selectedRole
       };
 
       closeModalJawatankuasa();
@@ -1827,10 +1895,19 @@
       const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
       const sortedGuru = sortStafList(activeGuruOnly);
 
-      let optionsHtml = '<option value="">-- Pilih Guru --</option>';
+      let optionsHtml = '<option value="">-- Tiada / Pilih Guru --</option>';
+
+      optionsHtml += '<optgroup label="-- KUMPULAN KHAS --">';
+      SPECIAL_GROUPS.forEach(g => {
+        optionsHtml += `<option value="${g.ID_Staf}">${g.Nama_Penuh}</option>`;
+      });
+      optionsHtml += '</optgroup>';
+
+      optionsHtml += '<optgroup label="-- SENARAI GURU INDIVIDU --">';
       sortedGuru.forEach(g => {
         optionsHtml += `<option value="${g.ID_Staf}">${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
       });
+      optionsHtml += '</optgroup>';
 
       document.querySelectorAll('.select-guru-opt').forEach(sel => {
         sel.innerHTML = optionsHtml;
