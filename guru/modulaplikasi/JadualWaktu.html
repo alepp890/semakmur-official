@@ -264,7 +264,7 @@
                 <tr>
                   <th class="table-cell-std w-12 text-center">BIL</th>
                   <th class="table-cell-std w-64 sticky-col-guru">Nama Guru Utama</th>
-                  <th class="table-cell-std w-48">Subjek Mengajar</th>
+                  <th class="table-cell-std min-w-[240px]">Subjek Mengajar</th>
                   <th class="table-cell-std min-w-[200px]">Senarai Kelas Diajar (Checkbox)</th>
                   <th class="table-cell-std w-48 text-center">Guru Pasangan / Co-Teacher</th>
                   <th class="table-cell-std w-28 text-center">Waktu Subjek</th>
@@ -912,7 +912,7 @@
       }
     }
 
-    // ================= 3. AGIHAN TUGAS BERPUSATKAN GURU (ROWSPAN & VERTICAL STACKED CLASSES) =================
+    // ================= 3. AGIHAN TUGAS BERPUSATKAN GURU (ROWSPAN & UNIQUE SUBJECT DROPDOWN) =================
     function parseFlatAgihanToGuruView() {
       STATE_AGIHAN_GURU = [];
       const sortedStaf = getSortedStafList();
@@ -958,7 +958,12 @@
       STATE_AGIHAN_GURU.forEach(row => {
         if (row.idGuruUtama === namaGuru) {
           const selectedCount = (row.senaraiKelas || []).length;
-          const sub = STATE_SUBJEK.find(s => (s.Kod_Subjek || s.ID_Subjek) === row.idSubjek) || {};
+          let sub = {};
+          if (row.subjekIndex !== undefined && row.subjekIndex !== null && STATE_SUBJEK[row.subjekIndex]) {
+            sub = STATE_SUBJEK[row.subjekIndex];
+          } else {
+            sub = STATE_SUBJEK.find(s => (s.Kod_Subjek || s.ID_Subjek) === row.idSubjek) || {};
+          }
           const bilWaktu = parseInt(sub.Bil_Waktu_Seminggu || 0, 10);
           total += (selectedCount * bilWaktu);
         }
@@ -970,14 +975,21 @@
       const flatList = [];
       STATE_AGIHAN_GURU.forEach(row => {
         if (row.idGuruUtama && row.idSubjek && row.senaraiKelas && row.senaraiKelas.length > 0) {
-          const sub = STATE_SUBJEK.find(s => (s.Kod_Subjek || s.ID_Subjek) === row.idSubjek) || {};
+          let sub = {};
+          if (row.subjekIndex !== undefined && row.subjekIndex !== null && STATE_SUBJEK[row.subjekIndex]) {
+            sub = STATE_SUBJEK[row.subjekIndex];
+          } else {
+            sub = STATE_SUBJEK.find(s => (s.Kod_Subjek || s.ID_Subjek) === row.idSubjek) || {};
+          }
+
+          const kodSubjek = sub.Kod_Subjek || sub.ID_Subjek || row.idSubjek;
           const bilWaktu = sub.Bil_Waktu_Seminggu || 6;
 
           row.senaraiKelas.forEach(kelas => {
             flatList.push({
               ID_Kelas: kelas,
-              ID_Subjek: row.idSubjek,
-              Nama_Subjek: sub.Nama_Subjek || row.idSubjek,
+              ID_Subjek: kodSubjek,
+              Nama_Subjek: sub.Nama_Subjek || kodSubjek,
               ID_Guru_Utama: row.idGuruUtama,
               ID_Guru_Pair: row.idGuruPair || '',
               Bil_Waktu: parseInt(bilWaktu, 10)
@@ -1000,12 +1012,16 @@
         optGuru += `<option value="${g.Nama_Penuh}">${g.Nama_Penuh}</option>`;
       });
 
+      // BINA OPTION SUBJEK UNIK DENGAN MAKLUMAT WAKTU & MOD BLOK
       let optSubjek = '<option value="">-- Pilih Subjek --</option>';
       const sourceSubjek = (STATE_SUBJEK && STATE_SUBJEK.length > 0) ? STATE_SUBJEK : ALL_MASTER_SUBJEK_LIST;
-      sourceSubjek.forEach(s => {
-        const kod = s.Kod_Subjek || s.ID_Subjek;
+      sourceSubjek.forEach((s, subIdx) => {
+        const kod = s.Kod_Subjek || s.ID_Subjek || '';
         const nama = s.Nama_Subjek || s['Nama_Subjek / Komponen'] || kod;
-        optSubjek += `<option value="${kod}">${kod} - ${nama}</option>`;
+        const bilWaktu = s.Bil_Waktu_Seminggu || 0;
+        const mode = s.Mode_Block || 'Single Slot (30 Minit)';
+        const uniqueKey = `${kod}__${subIdx}`;
+        optSubjek += `<option value="${uniqueKey}">${kod} - ${nama} [${bilWaktu}W | ${mode}]</option>`;
       });
 
       const senaraiKelasMaster = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas').map(k => k.Nama_Lokasi);
@@ -1051,13 +1067,23 @@
           const isLast = (subIdx === rowspanCount - 1);
 
           const selectedCount = (row.senaraiKelas || []).length;
-          const sub = STATE_SUBJEK.find(s => (s.Kod_Subjek || s.ID_Subjek) === row.idSubjek) || {};
+          
+          let sub = {};
+          if (row.subjekIndex !== undefined && row.subjekIndex !== null && STATE_SUBJEK[row.subjekIndex]) {
+            sub = STATE_SUBJEK[row.subjekIndex];
+          } else if (row.idSubjek) {
+            sub = STATE_SUBJEK.find(s => (s.Kod_Subjek || s.ID_Subjek) === row.idSubjek) || {};
+          }
+
           const isCoTeaching = String(sub.Flag_CoTeaching || '').toUpperCase() === 'TRUE';
           const rowHours = selectedCount * (parseInt(sub.Bil_Waktu_Seminggu, 10) || 0);
 
           let optG1 = optGuru.replace(`value="${row.idGuruUtama}"`, `value="${row.idGuruUtama}" selected`);
           let optG2 = optGuru.replace(`value="${row.idGuruPair}"`, `value="${row.idGuruPair}" selected`);
-          let optSub = optSubjek.replace(`value="${row.idSubjek}"`, `value="${row.idSubjek}" selected`);
+
+          const currentSelectedVal = (row.idSubjekUnique) ? row.idSubjekUnique :
+            (row.idSubjek ? `${row.idSubjek}__${STATE_SUBJEK.findIndex(s => (s.Kod_Subjek || s.ID_Subjek) === row.idSubjek)}` : '');
+          let optSub = optSubjek.replace(`value="${currentSelectedVal}"`, `value="${currentSelectedVal}" selected`);
 
           let checkboxListHtml = '';
           senaraiKelasMaster.forEach(kelas => {
@@ -1102,8 +1128,8 @@
           }
 
           trHtml += `
-            <td class="p-2 align-top w-48">
-              <select onchange="STATE_AGIHAN_GURU[${idx}].idSubjek = this.value; renderAgihanGuruMatrix();" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white focus:outline-none">
+            <td class="p-2 align-top min-w-[240px]">
+              <select onchange="onSelectAgihanSubjekUnique(this.value, ${idx})" class="w-full p-1.5 border border-amber-200 rounded-lg text-xs font-bold bg-white focus:outline-none text-slate-800">
                 ${optSub}
               </select>
             </td>
@@ -1155,6 +1181,20 @@
       }
 
       renderClassCoverageSummary();
+    }
+
+    function onSelectAgihanSubjekUnique(val, idx) {
+      if (!val) {
+        STATE_AGIHAN_GURU[idx].idSubjek = '';
+        STATE_AGIHAN_GURU[idx].idSubjekUnique = '';
+        STATE_AGIHAN_GURU[idx].subjekIndex = null;
+      } else {
+        const parts = val.split('__');
+        STATE_AGIHAN_GURU[idx].idSubjek = parts[0];
+        STATE_AGIHAN_GURU[idx].subjekIndex = parseInt(parts[1], 10);
+        STATE_AGIHAN_GURU[idx].idSubjekUnique = val;
+      }
+      renderAgihanGuruMatrix();
     }
 
     function tambahSubjekUntukGuru(guruName, idx) {
@@ -1338,7 +1378,7 @@
       }
     }
 
-    // ================= 5. ENJIN GENERATOR & GRID JADUAL PENUH (aSc STYLE) =================
+    // ================= 5. ENJIN GENERATOR & GRID JADUAL PENUH (CLEAN PRINT CODE) =================
     async function janaJadualWaktuAuto() {
       showLoader('Enjin Penjadualan Automatik Sedang Beroperasi...');
       try {
@@ -1460,11 +1500,14 @@
 
                 if (matched) {
                   dayCount++;
-                  const subj = matched.ID_Subjek || matched.idSubjek || '';
+                  const rawSubj = matched.ID_Subjek || matched.idSubjek || '';
+                  // Potong imbulan untuk cetakan bersih (contoh: BM-DBL -> BM)
+                  let cleanSubj = String(rawSubj).split('-')[0].split('_')[0].trim();
                   const kls = matched.ID_Kelas || matched.idKelas || '';
+
                   html += `
                     <td class="asc-grid-td bg-sky-50/80 font-bold text-slate-800">
-                      <div class="text-xs font-extrabold text-brand-700">${subj}</div>
+                      <div class="text-xs font-extrabold text-brand-700">${cleanSubj}</div>
                       <div class="text-[10px] text-slate-600 font-semibold">${kls}</div>
                     </td>
                   `;
@@ -1531,11 +1574,14 @@
 
                 if (matched) {
                   dayCount++;
-                  const subj = matched.ID_Subjek || matched.idSubjek || '';
+                  const rawSubj = matched.ID_Subjek || matched.idSubjek || '';
+                  // Potong imbulan untuk cetakan bersih (contoh: BM-DBL -> BM)
+                  let cleanSubj = String(rawSubj).split('-')[0].split('_')[0].trim();
                   const guru = matched.ID_Guru_Utama || matched.idGuruUtama || '';
+
                   html += `
                     <td class="asc-grid-td bg-emerald-50/80 font-bold text-slate-800">
-                      <div class="text-xs font-extrabold text-emerald-700">${subj}</div>
+                      <div class="text-xs font-extrabold text-emerald-700">${cleanSubj}</div>
                       <div class="text-[10px] text-slate-600 font-semibold truncate max-w-[80px]" title="${guru}">${guru}</div>
                     </td>
                   `;
