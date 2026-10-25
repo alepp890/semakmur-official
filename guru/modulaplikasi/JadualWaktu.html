@@ -1378,7 +1378,7 @@
       }
     }
 
-    // ================= 5. ENJIN GENERATOR & GRID JADUAL PENUH (CLEAN PRINT CODE) =================
+    // ================= 5. ENJIN GENERATOR & GRID JADUAL PENUH (DINAMIK) =================
     async function janaJadualWaktuAuto() {
       showLoader('Enjin Penjadualan Automatik Sedang Beroperasi...');
       try {
@@ -1424,44 +1424,143 @@
       } catch (err) {}
     }
 
+    /**
+     * MEMBINA PAPARAN GRID JADUAL WAKTU HASIL SECARA DINAMIK
+     */
     function renderJadualHasilView() {
       const container = document.getElementById('containerHasilJadualView');
       if (!container) return;
 
-      if (STATE_HASIL_JADUAL.length === 0) {
+      if (!STATE_HASIL_JADUAL || STATE_HASIL_JADUAL.length === 0) {
         container.innerHTML = `<div class="p-6 text-center text-slate-400 italic">Belum ada jadual waktu yang dijana. Klik "Jana Jadual Automatik" di atas.</div>`;
         return;
       }
 
       const mode = document.getElementById('selFilterViewJadual').value;
       const days = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
-      const slotHeaders = [
-        { label: '1', time: '07:40-08:10' },
-        { label: '2', time: '08:10-08:40' },
-        { label: '3', time: '08:40-09:10' },
-        { label: '4', time: '09:10-09:40' },
-        { label: 'REHAT 1', time: '09:40-10:00', isRehat: true },
-        { label: '5', time: '10:00-10:30' },
-        { label: 'REHAT 2', time: '10:10-10:30', isRehat: true },
-        { label: '6', time: '10:30-11:00' },
-        { label: '7', time: '11:00-11:30' },
-        { label: '8', time: '11:30-12:00' },
-        { label: '9', time: '12:00-12:30' },
-        { label: '10', time: '12:30-13:00' },
-        { label: '11', time: '13:00-13:30' },
-        { label: 'PK', time: '13:30-13:45' }
-      ];
+
+      // 1. ESTRAK SENARAI SLOT HEADER DINAMIK DARIPADA STATE_GRID_MASA
+      let slotHeaders = [];
+      if (STATE_GRID_MASA && STATE_GRID_MASA.length > 0) {
+        const seenKeys = new Set();
+        STATE_GRID_MASA.forEach(row => {
+          const noW = String(row.No_Waktu || row.noWaktu || '').trim();
+          const mula = formatTimeString(row.Jam_Mula || row.jamMula);
+          const tamat = formatTimeString(row.Jam_Tamat || row.jamTamat);
+          const jenis = String(row.Jenis_Slot || row.jenisSlot || '').trim();
+          const isRehat = jenis.toLowerCase().includes('rehat');
+
+          const key = noW || (mula + '-' + tamat);
+          if (key && !seenKeys.has(key)) {
+            seenKeys.add(key);
+            slotHeaders.push({
+              noWaktu: noW,
+              label: noW ? (isRehat ? `REHAT (${noW})` : noW) : jenis,
+              time: (mula && tamat) ? `${mula}-${tamat}` : '',
+              isRehat: isRehat,
+              jenisSlot: jenis,
+              key: key
+            });
+          }
+        });
+      }
+
+      // 2. JIKA STATE_GRID_MASA KOSONG, EKSTRAK SLOT DINAMIK DARI HASIL JADUAL
+      if (slotHeaders.length === 0) {
+        const seenSlots = new Set();
+        STATE_HASIL_JADUAL.forEach(item => {
+          let rawSlot = String(item.Slot_ID || item.slotId || '').trim();
+          if (rawSlot && !rawSlot.startsWith('FIXED-PERHIMPUNAN')) {
+            let cleanLabel = rawSlot.replace(/^(ISN|SEL|RAB|KHM|JUM)-/i, '').replace(/^SLOT-/i, '');
+            if (!seenSlots.has(cleanLabel)) {
+              seenSlots.add(cleanLabel);
+              slotHeaders.push({
+                noWaktu: cleanLabel,
+                label: cleanLabel,
+                time: '',
+                isRehat: cleanLabel.toLowerCase().includes('rehat'),
+                key: cleanLabel
+              });
+            }
+          }
+        });
+      }
+
+      // FALLBACK KECEMASAN
+      if (slotHeaders.length === 0) {
+        slotHeaders = [
+          { noWaktu: '1', label: '1', time: '07:40-08:10', isRehat: false },
+          { noWaktu: '2', label: '2', time: '08:10-08:40', isRehat: false },
+          { noWaktu: '3', label: '3', time: '08:40-09:10', isRehat: false },
+          { noWaktu: '4', label: '4', time: '09:10-09:40', isRehat: false }
+        ];
+      }
 
       let html = '';
 
+      // HELPER MATCHING REKOD JADUAL SANGAT PADU
+      function getMatchedRecord(items, day, slotHeader) {
+        const targetGridRow = (STATE_GRID_MASA || []).find(g => 
+          String(g.Hari || g.hari).toLowerCase() === day.toLowerCase() && 
+          String(g.No_Waktu || g.noWaktu).trim() === String(slotHeader.noWaktu).trim()
+        );
+
+        const targetSlotId = targetGridRow ? String(targetGridRow.Slot_ID || targetGridRow.slotId || '').trim() : '';
+
+        return items.find(it => {
+          const itemDay = String(it.Hari || it.hari || '').trim();
+          const itemSlot = String(it.Slot_ID || it.slotId || '').trim();
+          const itemKey = String(it.slotKey || '').trim();
+
+          // Semak slot perhimpunan khas
+          if (itemSlot.startsWith('FIXED-PERHIMPUNAN') || itemKey.startsWith('FIXED-PERHIMPUNAN')) {
+            const isPerhimpunanSlot = (targetGridRow && String(targetGridRow.Jenis_Slot || '').toLowerCase().includes('perhimpunan'));
+            if (isPerhimpunanSlot) return true;
+          }
+
+          // 1. Padanan terus Slot_ID unik (cth: ISN-SLOT-01)
+          if (targetSlotId && (itemSlot === targetSlotId || itemKey.endsWith(targetSlotId) || itemKey === (day + '_' + targetSlotId))) {
+            return true;
+          }
+
+          // 2. Padanan format Day + No_Waktu
+          if (itemSlot === (day + '_' + slotHeader.noWaktu) || itemKey === (day + '_' + slotHeader.noWaktu)) {
+            return true;
+          }
+
+          // 3. Padanan terus No_Waktu
+          if (itemSlot === slotHeader.noWaktu) {
+            if (!itemDay || itemDay.toLowerCase() === day.toLowerCase()) return true;
+          }
+
+          return false;
+        });
+      }
+
+      // MODE 1: PAPARAN MENGIKUT GURU
       if (mode === 'guru') {
-        const guruList = [...new Set(STATE_HASIL_JADUAL.map(j => j.ID_Guru_Utama || j.idGuruUtama))].filter(Boolean);
-        
+        const guruSet = new Set();
+        STATE_HASIL_JADUAL.forEach(j => {
+          const g1 = j.ID_Guru_Utama || j.idGuruUtama;
+          const g2 = j.ID_Guru_Pair || j.idGuruPair;
+          if (g1 && g1 !== 'ALL_GURU') guruSet.add(g1);
+          if (g2 && g2 !== 'ALL_GURU') guruSet.add(g2);
+        });
+
+        const guruList = Array.from(guruSet).sort((a, b) => a.localeCompare(b, 'ms'));
+
+        if (guruList.length === 0) {
+          container.innerHTML = `<div class="p-6 text-center text-slate-400 italic">Tiada data guru dijumpai dalam hasil jadual.</div>`;
+          return;
+        }
+
         guruList.forEach(guruName => {
-          const teacherItems = STATE_HASIL_JADUAL.filter(j => (j.ID_Guru_Utama || j.idGuruUtama) === guruName || (j.ID_Guru_Pair || j.idGuruPair) === guruName);
+          const teacherItems = STATE_HASIL_JADUAL.filter(j => 
+            (j.ID_Guru_Utama || j.idGuruUtama) === guruName || (j.ID_Guru_Pair || j.idGuruPair) === guruName
+          );
 
           html += `
-            <div class="bg-white border border-slate-300 rounded-xl overflow-hidden shadow-xs space-y-2 p-4">
+            <div class="bg-white border border-slate-300 rounded-xl overflow-hidden shadow-xs space-y-2 p-4 mb-6">
               <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
                 <div>
                   <h4 class="font-display font-extrabold text-sm text-slate-900"><i class="fa-solid fa-user-tie text-brand-600 mr-2"></i>Jadual Waktu Guru: ${guruName}</h4>
@@ -1477,7 +1576,12 @@
                   <thead>
                     <tr>
                       <th class="asc-grid-th w-20">HARI</th>
-                      ${slotHeaders.map(s => `<th class="asc-grid-th">${s.label}<br><span class="text-[9px] font-normal opacity-80">${s.time}</span></th>`).join('')}
+                      ${slotHeaders.map(s => `
+                        <th class="asc-grid-th ${s.isRehat ? 'bg-amber-600 text-white' : ''}">
+                          <div>${s.label}</div>
+                          ${s.time ? `<span class="text-[9px] font-normal opacity-80 block">${s.time}</span>` : ''}
+                        </th>
+                      `).join('')}
                       <th class="asc-grid-th w-16">JUMLAH</th>
                     </tr>
                   </thead>
@@ -1490,18 +1594,13 @@
 
             slotHeaders.forEach(slot => {
               if (slot.isRehat) {
-                html += `<td class="asc-grid-td asc-rehat-cell">${slot.label}</td>`;
+                html += `<td class="asc-grid-td asc-rehat-cell">REHAT</td>`;
               } else {
-                const matched = teacherItems.find(it => {
-                  const h = it.Hari || it.hari;
-                  const w = String(it.No_Waktu || it.noWaktu || it.Slot_ID || '').replace('SLOT-', '').replace('WAKTU-', '');
-                  return h === day && (w === slot.label || it.slotId === slot.label);
-                });
+                const matched = getMatchedRecord(teacherItems, day, slot);
 
                 if (matched) {
                   dayCount++;
                   const rawSubj = matched.ID_Subjek || matched.idSubjek || '';
-                  // Potong imbulan untuk cetakan bersih (contoh: BM-DBL -> BM)
                   let cleanSubj = String(rawSubj).split('-')[0].split('_')[0].trim();
                   const kls = matched.ID_Kelas || matched.idKelas || '';
 
@@ -1529,20 +1628,32 @@
         });
 
       } else {
-        const kelasList = [...new Set(STATE_HASIL_JADUAL.map(j => j.ID_Kelas || j.idKelas))].filter(Boolean);
+        // MODE 2: PAPARAN MENGIKUT KELAS
+        const classSet = new Set();
+        STATE_HASIL_JADUAL.forEach(j => {
+          const k = j.ID_Kelas || j.idKelas;
+          if (k && k !== 'ALL') classSet.add(k);
+        });
+
+        const kelasList = Array.from(classSet).sort((a, b) => a.localeCompare(b, 'ms', { numeric: true }));
+
+        if (kelasList.length === 0) {
+          container.innerHTML = `<div class="p-6 text-center text-slate-400 italic">Tiada data kelas dijumpai dalam hasil jadual.</div>`;
+          return;
+        }
 
         kelasList.forEach(kelasName => {
-          const classItems = STATE_HASIL_JADUAL.filter(j => (j.ID_Kelas || j.idKelas) === kelasName);
+          const classItems = STATE_HASIL_JADUAL.filter(j => (j.ID_Kelas || j.idKelas) === kelasName || j.ID_Kelas === 'ALL');
 
           html += `
-            <div class="bg-white border border-slate-300 rounded-xl overflow-hidden shadow-xs space-y-2 p-4">
+            <div class="bg-white border border-slate-300 rounded-xl overflow-hidden shadow-xs space-y-2 p-4 mb-6">
               <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-2 gap-2">
                 <div>
                   <h4 class="font-display font-extrabold text-sm text-slate-900"><i class="fa-solid fa-chalkboard-user text-emerald-600 mr-2"></i>Jadual Waktu Kelas: ${kelasName}</h4>
                   <p class="text-[11px] text-slate-500 font-semibold">SK SEGAMBUT MAKMUR | aSc Timetable Grid View</p>
                 </div>
                 <div class="bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-lg text-emerald-800 font-extrabold text-xs">
-                  Jumlah: ${classItems.length} Waktu / Minggu
+                  Jumlah: ${classItems.filter(ci => ci.ID_Kelas !== 'ALL').length} Waktu / Minggu
                 </div>
               </div>
 
@@ -1551,7 +1662,12 @@
                   <thead>
                     <tr>
                       <th class="asc-grid-th w-20">HARI</th>
-                      ${slotHeaders.map(s => `<th class="asc-grid-th">${s.label}<br><span class="text-[9px] font-normal opacity-80">${s.time}</span></th>`).join('')}
+                      ${slotHeaders.map(s => `
+                        <th class="asc-grid-th ${s.isRehat ? 'bg-amber-600 text-white' : ''}">
+                          <div>${s.label}</div>
+                          ${s.time ? `<span class="text-[9px] font-normal opacity-80 block">${s.time}</span>` : ''}
+                        </th>
+                      `).join('')}
                       <th class="asc-grid-th w-16">JUMLAH</th>
                     </tr>
                   </thead>
@@ -1564,25 +1680,22 @@
 
             slotHeaders.forEach(slot => {
               if (slot.isRehat) {
-                html += `<td class="asc-grid-td asc-rehat-cell">${slot.label}</td>`;
+                html += `<td class="asc-grid-td asc-rehat-cell">REHAT</td>`;
               } else {
-                const matched = classItems.find(it => {
-                  const h = it.Hari || it.hari;
-                  const w = String(it.No_Waktu || it.noWaktu || it.Slot_ID || '').replace('SLOT-', '').replace('WAKTU-', '');
-                  return h === day && (w === slot.label || it.slotId === slot.label);
-                });
+                const matched = getMatchedRecord(classItems, day, slot);
 
                 if (matched) {
-                  dayCount++;
+                  if (matched.ID_Kelas !== 'ALL') dayCount++;
                   const rawSubj = matched.ID_Subjek || matched.idSubjek || '';
-                  // Potong imbulan untuk cetakan bersih (contoh: BM-DBL -> BM)
                   let cleanSubj = String(rawSubj).split('-')[0].split('_')[0].trim();
                   const guru = matched.ID_Guru_Utama || matched.idGuruUtama || '';
+                  const guruPair = matched.ID_Guru_Pair || matched.idGuruPair || '';
+                  const displayGuru = guruPair ? `${guru} / ${guruPair}` : guru;
 
                   html += `
                     <td class="asc-grid-td bg-emerald-50/80 font-bold text-slate-800">
                       <div class="text-xs font-extrabold text-emerald-700">${cleanSubj}</div>
-                      <div class="text-[10px] text-slate-600 font-semibold truncate max-w-[80px]" title="${guru}">${guru}</div>
+                      <div class="text-[10px] text-slate-600 font-semibold truncate max-w-[90px]" title="${displayGuru}">${displayGuru}</div>
                     </td>
                   `;
                 } else {
