@@ -129,8 +129,8 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-brand-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
-              <h2 class="font-display font-extrabold text-xl text-slate-800">1. Tetapan Grid Masa & Slot Rehat (Boleh Disesuaikan)</h2>
-              <p class="text-xs text-slate-500">Tentukan durasi 1 waktu, bilangan waktu sehari/seminggu, dan kedudukan slot rehat secara bebas.</p>
+              <h2 class="font-display font-extrabold text-xl text-slate-800">1. Tetapan Grid Masa & Slot Rehat (Mengikut Tahap)</h2>
+              <p class="text-xs text-slate-500">Pilih Jam Mula, Jam Tamat akan dikira secara automatik (+20 minit Rehat / +30 minit PdP).</p>
             </div>
             <div class="flex gap-2">
               <button onclick="tambahBarisGridMasa()" class="px-3 py-2 bg-brand-50 hover:bg-brand-100 text-brand-700 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
@@ -148,11 +148,11 @@
                 <tr>
                   <th class="table-cell-std w-12 text-center">BIL</th>
                   <th class="table-cell-std w-32">Slot ID</th>
-                  <th class="table-cell-std w-32">Tahap</th>
-                  <th class="table-cell-std w-32">Hari</th>
-                  <th class="table-cell-std w-24">No. Waktu</th>
+                  <th class="table-cell-std w-44">Tahap / Kohort</th>
+                  <th class="table-cell-std w-28">Hari</th>
+                  <th class="table-cell-std w-24 text-center">No. Waktu</th>
                   <th class="table-cell-std w-32">Jam Mula</th>
-                  <th class="table-cell-std w-32">Jam Tamat</th>
+                  <th class="table-cell-std w-32">Jam Tamat (Auto)</th>
                   <th class="table-cell-std">Jenis Slot</th>
                   <th class="table-cell-std w-16 text-center">Tindakan</th>
                 </tr>
@@ -169,7 +169,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h2 class="font-display font-extrabold text-xl text-slate-800">2. Master Tetapan Subjek & Kurikulum (KP2027)</h2>
-              <p class="text-xs text-slate-500">Tetapkan bilangan waktu seminggu, mod blok (Single/Double), dan peranan Co-Teaching.</p>
+              <p class="text-xs text-slate-500">Termasuk peruntukan waktu Pembentukan Karakter & Co-Teaching Alam dan Manusia.</p>
             </div>
             <div class="flex gap-2">
               <button onclick="tambahBarisSubjek()" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
@@ -208,7 +208,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h2 class="font-display font-extrabold text-xl text-slate-800">3. Matriks Agihan Tugas Mengajar Guru & Co-Teacher</h2>
-              <p class="text-xs text-slate-500">Memetakan Guru Utama dan Guru Pasangan bagi setiap mata pelajaran dan kelas.</p>
+              <p class="text-xs text-slate-500">Pilihan Nama Guru, Subjek dan Kelas ditarik secara terus dari Pangkalan Data Master.</p>
             </div>
             <div class="flex gap-2">
               <button onclick="tambahBarisAgihan()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
@@ -225,10 +225,10 @@
               <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
                 <tr>
                   <th class="table-cell-std w-12 text-center">BIL</th>
-                  <th class="table-cell-std w-36">Kelas</th>
+                  <th class="table-cell-std w-40">Kelas</th>
                   <th class="table-cell-std w-56">Subjek</th>
-                  <th class="table-cell-std">Guru Utama</th>
-                  <th class="table-cell-std">Guru Pasangan (Co-Teacher)</th>
+                  <th class="table-cell-std">Guru Utama (Dropdown)</th>
+                  <th class="table-cell-std">Guru Pasangan / Co-Teacher (Dropdown)</th>
                   <th class="table-cell-std w-24 text-center">Bil. Waktu</th>
                   <th class="table-cell-std w-16 text-center">Tindakan</th>
                 </tr>
@@ -262,7 +262,7 @@
               <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
                 <tr>
                   <th class="table-cell-std w-12 text-center">BIL</th>
-                  <th class="table-cell-std w-64">Nama Guru</th>
+                  <th class="table-cell-std w-64">Nama Guru (Dropdown Master)</th>
                   <th class="table-cell-std w-32 text-center">Max Sehari</th>
                   <th class="table-cell-std w-32 text-center">Max Berturut-turut</th>
                   <th class="table-cell-std">Slot Dikunci / Pelepasan (Pisahkan dengan koma)</th>
@@ -326,12 +326,19 @@
     let STATE_GURU_CONSTRAINT = [];
     let STATE_HASIL_JADUAL = [];
 
+    // Master Data Dari Backend Manual Pengurusan
+    let ALL_STAF = [];
+    let ALL_LOKASI = [];
+    let ALL_MASTER_SUBJEK_LIST = [];
+
     const SCRIPT_TARGET_URL = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
       ? WEB_APP_URL 
       : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
 
     window.addEventListener('DOMContentLoaded', () => {
-      loadAllJWData();
+      loadMasterPangkalanData().then(() => {
+        loadAllJWData();
+      });
     });
 
     function showLoader(txt = "Memuatkan...") {
@@ -369,6 +376,54 @@
 
       const target = document.getElementById(viewId);
       if (target) target.classList.remove('hidden');
+    }
+
+    // MEMUATKAN DATA MASTER STAF, LOKASI & SUBJEK
+    async function loadMasterPangkalanData() {
+      try {
+        const res = await postToBackend({ action: 'getManualV2Data' });
+        if (res && res.success) {
+          ALL_STAF = res.staf || [];
+          ALL_LOKASI = res.lokasi || [];
+          ALL_MASTER_SUBJEK_LIST = res.subjek || [];
+        }
+      } catch (err) {
+        console.warn('Gagal memuatkan Master Data:', err);
+      }
+    }
+
+    // UTILITI PENGIRAAN JAM TAMAT AUTOMATIK
+    function calculateJamTamat(jamMula, jenisSlot) {
+      if (!jamMula) return '';
+      let parts = jamMula.split(':');
+      let h = parseInt(parts[0], 10);
+      let m = parseInt(parts[1], 10);
+
+      // Rehat = 20 Minit, Selainnya = 30 Minit
+      let duration = (jenisSlot === 'Rehat') ? 20 : 30;
+      m += duration;
+
+      if (m >= 60) {
+        h += Math.floor(m / 60);
+        m = m % 60;
+      }
+
+      let hh = String(h).padStart(2, '0');
+      let mm = String(m).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+
+    function onGridMasaTimeChange(element) {
+      const tr = element.closest('tr');
+      if (!tr) return;
+
+      const jamMulaEl = tr.querySelector('[data-field="Jam_Mula"]');
+      const jenisSlotEl = tr.querySelector('[data-field="Jenis_Slot"]');
+      const jamTamatEl = tr.querySelector('[data-field="Jam_Tamat"]');
+
+      if (jamMulaEl && jenisSlotEl && jamTamatEl) {
+        jamTamatEl.value = calculateJamTamat(jamMulaEl.value, jenisSlotEl.value);
+      }
     }
 
     async function jalankanInitDatabase() {
@@ -416,6 +471,8 @@
       const tbody = document.getElementById('tbodyGridMasa');
       if (!tbody) return;
 
+      const timeOptions = ['07:40','08:10','08:40','09:10','09:40','10:00','10:10','10:30','11:00','11:30','12:00','12:30','01:00'];
+
       tbody.innerHTML = '';
       if (STATE_GRID_MASA.length === 0) {
         tbody.innerHTML = `<tr><td colspan="9" class="table-cell-std text-center text-slate-400 italic">Tiada slot grid masa. Klik "+ Slot Masa" untuk menambah.</td></tr>`;
@@ -423,14 +480,18 @@
       }
 
       STATE_GRID_MASA.forEach((row, idx) => {
+        let optMula = timeOptions.map(t => `<option value="${t}" ${row.Jam_Mula === t ? 'selected' : ''}>${t}</option>`).join('');
+        const jamTamatAuto = calculateJamTamat(row.Jam_Mula || '07:40', row.Jenis_Slot || 'PdP');
+
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
             <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
             <td class="p-1.5"><input type="text" data-field="Slot_ID" value="${row.Slot_ID || ''}" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-brand-700 bg-white"></td>
             <td class="p-1.5">
               <select data-field="Tahap" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
-                <option value="Tahap 1" ${row.Tahap === 'Tahap 1' ? 'selected' : ''}>Tahap 1</option>
-                <option value="Tahap 2" ${row.Tahap === 'Tahap 2' ? 'selected' : ''}>Tahap 2</option>
+                <option value="Tahun 1 (KP2027)" ${row.Tahap === 'Tahun 1 (KP2027)' ? 'selected' : ''}>Tahun 1 (KP2027)</option>
+                <option value="Tahap 1 (Tahun 2 & 3)" ${row.Tahap === 'Tahap 1 (Tahun 2 & 3)' ? 'selected' : ''}>Tahap 1 (T2 & T3)</option>
+                <option value="Tahap 2 (Tahun 4, 5 & 6)" ${row.Tahap === 'Tahap 2 (Tahun 4, 5 & 6)' ? 'selected' : ''}>Tahap 2 (T4, T5 & T6)</option>
               </select>
             </td>
             <td class="p-1.5">
@@ -439,10 +500,16 @@
               </select>
             </td>
             <td class="p-1.5"><input type="number" data-field="No_Waktu" value="${row.No_Waktu || 1}" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
-            <td class="p-1.5"><input type="text" data-field="Jam_Mula" value="${row.Jam_Mula || '07:40'}" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white"></td>
-            <td class="p-1.5"><input type="text" data-field="Jam_Tamat" value="${row.Jam_Tamat || '08:10'}" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white"></td>
             <td class="p-1.5">
-              <select data-field="Jenis_Slot" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
+              <select data-field="Jam_Mula" onchange="onGridMasaTimeChange(this)" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
+                ${optMula}
+              </select>
+            </td>
+            <td class="p-1.5">
+              <input type="text" data-field="Jam_Tamat" value="${jamTamatAuto}" readonly class="w-full p-1.5 border rounded-lg text-xs font-bold text-slate-500 bg-slate-100 cursor-not-allowed">
+            </td>
+            <td class="p-1.5">
+              <select data-field="Jenis_Slot" onchange="onGridMasaTimeChange(this)" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
                 <option value="PdP" ${row.Jenis_Slot === 'PdP' ? 'selected' : ''}>PdP</option>
                 <option value="Rehat" ${row.Jenis_Slot === 'Rehat' ? 'selected' : ''}>Rehat</option>
                 <option value="Perhimpunan" ${row.Jenis_Slot === 'Perhimpunan' ? 'selected' : ''}>Perhimpunan</option>
@@ -459,7 +526,7 @@
     function tambahBarisGridMasa() {
       STATE_GRID_MASA.push({
         Slot_ID: 'T1-ISN-W' + (STATE_GRID_MASA.length + 1),
-        Tahap: 'Tahap 1',
+        Tahap: 'Tahun 1 (KP2027)',
         Hari: 'Isnin',
         No_Waktu: STATE_GRID_MASA.length + 1,
         Jam_Mula: '07:40',
@@ -501,9 +568,19 @@
       if (!tbody) return;
 
       tbody.innerHTML = '';
-      if (STATE_SUBJEK.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="table-cell-std text-center text-slate-400 italic">Tiada tetapan subjek. Klik "+ Subjek Baharu".</td></tr>`;
-        return;
+      
+      // TAMBAH PENETAPAN DEFAULT UNTUK PEMBENTUKAN KARAKTER KP2027 JIKA BELUM WUJUD
+      const hasPK = STATE_SUBJEK.some(s => String(s.Nama_Subjek).toLowerCase().includes('pembentukan karakter'));
+      if (!hasPK && STATE_SUBJEK.length === 0) {
+        STATE_SUBJEK.push({
+          ID_Subjek: 'SUB-PK-T1',
+          Nama_Subjek: 'Pembentukan Karakter',
+          Kohort_Tahun: 'Tahun 1',
+          Bil_Waktu_Seminggu: 2,
+          Mode_Block: 'Double',
+          Flag_CoTeaching: 'FALSE',
+          Max_Waktu_Harian: 2
+        });
       }
 
       STATE_SUBJEK.forEach((row, idx) => {
@@ -517,7 +594,7 @@
             <td class="p-1.5">
               <select data-field="Mode_Block" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
                 <option value="Single" ${row.Mode_Block === 'Single' ? 'selected' : ''}>Single Slot</option>
-                <option value="Double" ${row.Mode_Block === 'Double' ? 'selected' : ''}>Double Slot</option>
+                <option value="Double" ${row.Mode_Block === 'Double' ? 'selected' : ''}>Double Slot (60 min)</option>
               </select>
             </td>
             <td class="p-1.5 text-center">
@@ -574,7 +651,7 @@
       }
     }
 
-    // ================= 3. RENDER & MANAGE AGIHAN TUGAS =================
+    // ================= 3. RENDER & MANAGE AGIHAN TUGAS (DROPDOWN MASTER) =================
     function renderAgihanTable() {
       const tbody = document.getElementById('tbodyAgihanTugas');
       if (!tbody) return;
@@ -585,14 +662,40 @@
         return;
       }
 
+      // 1. Dapatkan Senarai Kelas
+      let optKelas = '<option value="">-- Pilih Kelas --</option>';
+      const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas');
+      senaraiKelas.forEach(k => {
+        optKelas += `<option value="${k.Nama_Lokasi}">${k.Nama_Lokasi}</option>`;
+      });
+
+      // 2. Dapatkan Senarai Subjek
+      let optSubjek = '<option value="">-- Pilih Subjek --</option>';
+      STATE_SUBJEK.forEach(s => {
+        optSubjek += `<option value="${s.ID_Subjek || s.Nama_Subjek}">${s.Nama_Subjek} (${s.Kohort_Tahun || 'Tahun 1'})</option>`;
+      });
+
+      // 3. Dapatkan Senarai Guru Aktif
+      const guruAktif = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && String(s.Status || 'Aktif').toLowerCase() === 'aktif');
+      let optGuru = '<option value="">-- Pilih Guru --</option>';
+      guruAktif.forEach(g => {
+        optGuru += `<option value="${g.ID_Staf}">${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
+      });
+
       STATE_AGIHAN.forEach((row, idx) => {
+        // Build option list with selected value
+        let optK = optKelas.replace(`value="${row.ID_Kelas}"`, `value="${row.ID_Kelas}" selected`);
+        let optS = optSubjek.replace(`value="${row.ID_Subjek}"`, `value="${row.ID_Subjek}" selected`);
+        let optG1 = optGuru.replace(`value="${row.ID_Guru_Utama}"`, `value="${row.ID_Guru_Utama}" selected`);
+        let optG2 = optGuru.replace(`value="${row.ID_Guru_Pair}"`, `value="${row.ID_Guru_Pair}" selected`);
+
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
             <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="p-1.5"><input type="text" data-field="ID_Kelas" value="${row.ID_Kelas || ''}" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-amber-800 bg-white"></td>
-            <td class="p-1.5"><input type="text" data-field="ID_Subjek" value="${row.ID_Subjek || ''}" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white"></td>
-            <td class="p-1.5"><input type="text" data-field="ID_Guru_Utama" value="${row.ID_Guru_Utama || ''}" placeholder="ID Guru Utama" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white"></td>
-            <td class="p-1.5"><input type="text" data-field="ID_Guru_Pair" value="${row.ID_Guru_Pair || ''}" placeholder="ID Co-Teacher (Optional)" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white"></td>
+            <td class="p-1.5"><select data-field="ID_Kelas" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-amber-800 bg-white">${optK}</select></td>
+            <td class="p-1.5"><select data-field="ID_Subjek" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">${optS}</select></td>
+            <td class="p-1.5"><select data-field="ID_Guru_Utama" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white">${optG1}</select></td>
+            <td class="p-1.5"><select data-field="ID_Guru_Pair" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white">${optG2}</select></td>
             <td class="p-1.5"><input type="number" data-field="Bil_Waktu" value="${row.Bil_Waktu || 6}" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
             <td class="table-cell-std text-center">
               <button onclick="padamBaris(this)" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
@@ -604,10 +707,10 @@
 
     function tambahBarisAgihan() {
       STATE_AGIHAN.push({
-        ID_Kelas: '1 VIOLET',
-        ID_Subjek: 'SUB-AM-T1',
-        ID_Guru_Utama: 'STF004',
-        ID_Guru_Pair: 'STF012',
+        ID_Kelas: '',
+        ID_Subjek: '',
+        ID_Guru_Utama: '',
+        ID_Guru_Pair: '',
         Bil_Waktu: 6
       });
       renderAgihanTable();
@@ -639,7 +742,7 @@
       }
     }
 
-    // ================= 4. RENDER GURU CONSTRAINTS =================
+    // ================= 4. RENDER GURU CONSTRAINTS (DROPDOWN GURU) =================
     function renderGuruConstraintTable() {
       const tbody = document.getElementById('tbodyGuruConstraint');
       if (!tbody) return;
@@ -650,11 +753,19 @@
         return;
       }
 
+      const guruAktif = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && String(s.Status || 'Aktif').toLowerCase() === 'aktif');
+      let optGuru = '<option value="">-- Pilih Guru --</option>';
+      guruAktif.forEach(g => {
+        optGuru += `<option value="${g.Nama_Penuh}">${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
+      });
+
       STATE_GURU_CONSTRAINT.forEach((row, idx) => {
+        let optG = optGuru.replace(`value="${row.Nama_Guru}"`, `value="${row.Nama_Guru}" selected`);
+
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
             <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="p-1.5"><input type="text" data-field="Nama_Guru" value="${row.Nama_Guru || ''}" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-purple-800 bg-white"></td>
+            <td class="p-1.5"><select data-field="Nama_Guru" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-purple-800 bg-white">${optG}</select></td>
             <td class="p-1.5"><input type="number" data-field="Max_Waktu_Sehari" value="${row.Max_Waktu_Sehari || 6}" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
             <td class="p-1.5"><input type="number" data-field="Max_Waktu_Berturut" value="${row.Max_Waktu_Berturut || 3}" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
             <td class="p-1.5"><input type="text" data-field="Slot_Dikunci_Off" value="${row.Slot_Dikunci_Off || ''}" placeholder="e.g. T1-ISN-W1, T1-ISN-W2" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white"></td>
@@ -668,10 +779,10 @@
 
     function tambahBarisGuruConstraint() {
       STATE_GURU_CONSTRAINT.push({
-        Nama_Guru: 'Guru Besar',
+        Nama_Guru: '',
         Max_Waktu_Sehari: 4,
         Max_Waktu_Berturut: 2,
-        Slot_Dikunci_Off: 'T1-ISN-W2, T1-ISN-W3'
+        Slot_Dikunci_Off: ''
       });
       renderGuruConstraintTable();
     }
@@ -763,7 +874,6 @@
       }
 
       const mode = document.getElementById('selFilterViewJadual').value;
-      
       let html = '<div class="space-y-6">';
 
       if (mode === 'kelas') {
