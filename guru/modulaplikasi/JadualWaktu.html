@@ -176,15 +176,18 @@
         </div>
       </div>
 
-      <!-- ================= 2. TETAPAN SUBJEK ================= -->
+      <!-- ================= 2. TETAPAN SUBJEK & BILANGAN WAKTU (DROPDOWN MASTER SUBJEK) ================= -->
       <div id="viewMasterSubjek" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-emerald-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h2 class="font-display font-extrabold text-xl text-slate-800">2. Tetapan Subjek & Bilangan Waktu Seminggu</h2>
-              <p class="text-xs text-slate-500">Tetapan bilangan waktu ini akan digunakan secara automatik semasa pengagihan mengikut kelas.</p>
+              <p class="text-xs text-slate-500">Pilih Kod Subjek daripada Master. Nama subjek akan ditarik automatik dari pangkalan data.</p>
             </div>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
+              <button onclick="tarikSemuaMasterSubjek()" class="px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-extrabold text-xs rounded-xl transition flex items-center gap-1 shadow-2xs">
+                <i class="fa-solid fa-cloud-arrow-down"></i> Tarik Semua Dari Master
+              </button>
               <button onclick="tambahBarisSubjek()" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
                 <i class="fa-solid fa-plus"></i> + Subjek Baharu
               </button>
@@ -199,8 +202,8 @@
               <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
                 <tr>
                   <th class="table-cell-std w-12 text-center">BIL</th>
-                  <th class="table-cell-std w-32">Kod Subjek</th>
-                  <th class="table-cell-std">Nama Subjek / Komponen</th>
+                  <th class="table-cell-std w-48">Kod Subjek (Dropdown Master)</th>
+                  <th class="table-cell-std">Nama Subjek / Komponen (Auto)</th>
                   <th class="table-cell-std w-36">Kategori / Tahap</th>
                   <th class="table-cell-std w-28 text-center">Bil. Waktu / Minggu</th>
                   <th class="table-cell-std w-32">Mod Blok</th>
@@ -214,7 +217,7 @@
         </div>
       </div>
 
-      <!-- ================= 3. MATRIKS AGIHAN TUGAS BERPUSATKAN GURU (MULTI-SELECT KELAS) ================= -->
+      <!-- ================= 3. MATRIKS AGIHAN TUGAS BERPUSATKAN GURU ================= -->
       <div id="viewAgihanTugas" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-amber-500">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -242,9 +245,7 @@
                 <i class="fa-solid fa-eye mr-1"></i> Tunjuk / Sembunyi Status
               </button>
             </div>
-            <div id="boxClassCoverageSummary" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 text-[11px] font-semibold pt-1">
-              <!-- Summary pills rendered dynamically -->
-            </div>
+            <div id="boxClassCoverageSummary" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 text-[11px] font-semibold pt-1"></div>
           </div>
 
           <!-- TABLE AGIHAN GURU -->
@@ -619,23 +620,39 @@
       }
     }
 
-    // ================= 2. RENDER & MANAGE SUBJEK =================
+    // ================= 2. RENDER & MANAGE SUBJEK (DROPDOWN KOD SUBJEK + AUTO NAMA) =================
     function renderSubjekTable() {
       const tbody = document.getElementById('tbodyMasterSubjek');
       if (!tbody) return;
 
       tbody.innerHTML = '';
+
+      let optMasterSubjek = '<option value="">-- Pilih Kod Subjek --</option>';
+      ALL_MASTER_SUBJEK_LIST.forEach(m => {
+        const id = m.ID_Subjek || m.Kod_Subjek;
+        const nama = m['Nama_Subjek / Komponen'] || m.Nama_Subjek || id;
+        optMasterSubjek += `<option value="${id}" data-nama="${nama}">${id} - ${nama}</option>`;
+      });
+
       if (STATE_SUBJEK.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="table-cell-std text-center text-slate-400 italic">Tiada subjek. Klik "+ Subjek Baharu".</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="table-cell-std text-center text-slate-400 italic">Tiada subjek. Klik "+ Subjek Baharu" atau "Tarik Semua Dari Master".</td></tr>`;
         return;
       }
 
       STATE_SUBJEK.forEach((row, idx) => {
+        let optS = optMasterSubjek.replace(`value="${row.ID_Subjek}"`, `value="${row.ID_Subjek}" selected`);
+
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
             <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="p-1.5"><input type="text" data-field="ID_Subjek" value="${row.ID_Subjek || ''}" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-emerald-800 bg-white"></td>
-            <td class="p-1.5"><input type="text" data-field="Nama_Subjek" value="${row.Nama_Subjek || ''}" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white"></td>
+            <td class="p-1.5">
+              <select data-field="ID_Subjek" onchange="onSelectMasterSubjekCode(this, ${idx})" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-emerald-800 bg-white">
+                ${optS}
+              </select>
+            </td>
+            <td class="p-1.5">
+              <input type="text" data-field="Nama_Subjek" value="${row.Nama_Subjek || ''}" readonly class="w-full p-1.5 border rounded-lg text-xs font-bold text-slate-700 bg-slate-100 cursor-not-allowed">
+            </td>
             <td class="p-1.5">
               <select data-field="Kategori_Tahap" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white">
                 <option value="Tahap 1 & 2" ${row.Kategori_Tahap === 'Tahap 1 & 2' ? 'selected' : ''}>Tahap 1 & 2</option>
@@ -665,10 +682,71 @@
       });
     }
 
+    function onSelectMasterSubjekCode(el, idx) {
+      const selectedOpt = el.options[el.selectedIndex];
+      const nama = selectedOpt.getAttribute('data-nama') || '';
+      const code = el.value;
+
+      STATE_SUBJEK[idx].ID_Subjek = code;
+      STATE_SUBJEK[idx].Nama_Subjek = nama;
+
+      const tr = el.closest('tr');
+      if (tr) {
+        const namaInput = tr.querySelector('[data-field="Nama_Subjek"]');
+        if (namaInput) namaInput.value = nama;
+      }
+    }
+
+    function tarikSemuaMasterSubjek() {
+      if (!ALL_MASTER_SUBJEK_LIST || ALL_MASTER_SUBJEK_LIST.length === 0) {
+        Swal.fire('Info', 'Tiada data Master Subjek dijumpai dari pangkalan data.', 'info');
+        return;
+      }
+
+      STATE_SUBJEK = ALL_MASTER_SUBJEK_LIST.map(s => ({
+        ID_Subjek: s.ID_Subjek || s.Kod_Subjek || '',
+        Nama_Subjek: s['Nama_Subjek / Komponen'] || s.Nama_Subjek || s.Nama || '',
+        Kategori_Tahap: s.Kategori_Tahap || 'Tahap 1 & 2',
+        Bil_Waktu_Seminggu: parseInt(s.Bil_Waktu_Seminggu || 6, 10),
+        Mode_Block: s.Mode_Block || 'Single',
+        Flag_CoTeaching: s.Flag_CoTeaching || 'FALSE'
+      }));
+
+      renderSubjekTable();
+      Swal.fire('Berjaya', `Berjaya menarik ${STATE_SUBJEK.length} subjek dari Master Subjek!`, 'success');
+    }
+
+    function syncSubjekDOM() {
+      const rows = document.querySelectorAll('#tbodyMasterSubjek tr');
+      if (rows.length === 0) return;
+      const updated = [];
+      rows.forEach(r => {
+        const idSubjek = r.querySelector('[data-field="ID_Subjek"]')?.value || '';
+        const namaSubjek = r.querySelector('[data-field="Nama_Subjek"]')?.value || '';
+        const kategoriTahap = r.querySelector('[data-field="Kategori_Tahap"]')?.value || 'Tahap 1 & 2';
+        const bilWaktu = r.querySelector('[data-field="Bil_Waktu_Seminggu"]')?.value || 6;
+        const modeBlock = r.querySelector('[data-field="Mode_Block"]')?.value || 'Single';
+        const flagCoTeaching = r.querySelector('[data-field="Flag_CoTeaching"]')?.value || 'FALSE';
+
+        if (idSubjek) {
+          updated.push({
+            ID_Subjek: idSubjek,
+            Nama_Subjek: namaSubjek,
+            Kategori_Tahap: kategoriTahap,
+            Bil_Waktu_Seminggu: parseInt(bilWaktu, 10),
+            Mode_Block: modeBlock,
+            Flag_CoTeaching: flagCoTeaching
+          });
+        }
+      });
+      if (updated.length > 0) STATE_SUBJEK = updated;
+    }
+
     function tambahBarisSubjek() {
+      syncSubjekDOM();
       STATE_SUBJEK.push({
-        ID_Subjek: 'SUB-' + (STATE_SUBJEK.length + 1),
-        Nama_Subjek: 'Mata Pelajaran Baharu',
+        ID_Subjek: '',
+        Nama_Subjek: '',
         Kategori_Tahap: 'Tahap 1 & 2',
         Bil_Waktu_Seminggu: 6,
         Mode_Block: 'Single',
@@ -678,11 +756,13 @@
     }
 
     function padamBarisSubjek(idx) {
+      syncSubjekDOM();
       STATE_SUBJEK.splice(idx, 1);
       renderSubjekTable();
     }
 
     async function simpanTetapanSubjek() {
+      syncSubjekDOM();
       showLoader('Menyimpan Tetapan Subjek...');
       try {
         const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'subjek', data: STATE_SUBJEK } });
@@ -697,9 +777,7 @@
       }
     }
 
-    // ================= 3. AGIHAN TUGAS BERPUSATKAN GURU (MULTI-SELECT CHECKBOX KELAS) =================
-    
-    // Tukar Flat Agihan dari Backend Sheet kepada struktur UI Guru
+    // ================= 3. AGIHAN TUGAS BERPUSATKAN GURU =================
     function parseFlatAgihanToGuruView() {
       STATE_AGIHAN_GURU = [];
       if (!STATE_AGIHAN || STATE_AGIHAN.length === 0) return;
@@ -723,7 +801,6 @@
       Object.values(grouped).forEach(g => STATE_AGIHAN_GURU.push(g));
     }
 
-    // Tukar Struktur UI Guru Kembali ke Flat List untuk Simpan di Google Sheet
     function prepareFlatAgihanForBackend() {
       const flatList = [];
       STATE_AGIHAN_GURU.forEach(row => {
@@ -782,7 +859,6 @@
         let optG2 = optGuru.replace(`value="${row.idGuruPair}"`, `value="${row.idGuruPair}" selected`);
         let optSub = optSubjek.replace(`value="${row.idSubjek}"`, `value="${row.idSubjek}" selected`);
 
-        // Wujudkan Dropdown Checkbox untuk Kelas
         let checkboxListHtml = '';
         senaraiKelasMaster.forEach(kelas => {
           const isChecked = (row.senaraiKelas || []).includes(kelas) ? 'checked' : '';
@@ -879,7 +955,6 @@
       renderAgihanGuruMatrix();
     }
 
-    // DASHBOARD RINGKASAN & STATUS AGIHAN KELAS
     function renderClassCoverageSummary() {
       const container = document.getElementById('boxClassCoverageSummary');
       if (!container) return;
