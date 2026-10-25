@@ -169,7 +169,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h2 class="font-display font-extrabold text-xl text-slate-800">2. Master Tetapan Subjek & Kurikulum (KP2027)</h2>
-              <p class="text-xs text-slate-500">Termasuk peruntukan waktu Pembentukan Karakter & Co-Teaching Alam dan Manusia.</p>
+              <p class="text-xs text-slate-500">Ditarik daripada Master Subjek: ID/Kod, Nama Komponen, Subjek Induk & Kategori Tahap.</p>
             </div>
             <div class="flex gap-2">
               <button onclick="tambahBarisSubjek()" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
@@ -186,13 +186,14 @@
               <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
                 <tr>
                   <th class="table-cell-std w-12 text-center">BIL</th>
-                  <th class="table-cell-std w-32">ID Subjek</th>
-                  <th class="table-cell-std">Nama Mata Pelajaran</th>
-                  <th class="table-cell-std w-28">Kohort Tahun</th>
-                  <th class="table-cell-std w-28 text-center">Waktu / Seminggu</th>
+                  <th class="table-cell-std w-32">ID / Kod Subjek</th>
+                  <th class="table-cell-std">Nama Subjek / Komponen</th>
+                  <th class="table-cell-std w-32">Subjek Induk</th>
+                  <th class="table-cell-std w-32">Kategori Tahap</th>
+                  <th class="table-cell-std w-24 text-center">Waktu / Seminggu</th>
                   <th class="table-cell-std w-32">Mod Blok</th>
-                  <th class="table-cell-std w-36 text-center">Flag Co-Teaching</th>
-                  <th class="table-cell-std w-28 text-center">Max Harian</th>
+                  <th class="table-cell-std w-28 text-center">Co-Teaching</th>
+                  <th class="table-cell-std w-24 text-center">Max Harian</th>
                   <th class="table-cell-std w-16 text-center">Tindakan</th>
                 </tr>
               </thead>
@@ -226,9 +227,9 @@
                 <tr>
                   <th class="table-cell-std w-12 text-center">BIL</th>
                   <th class="table-cell-std w-40">Kelas</th>
-                  <th class="table-cell-std w-56">Subjek</th>
+                  <th class="table-cell-std w-64">Subjek (Daripada Master)</th>
                   <th class="table-cell-std">Guru Utama (Dropdown)</th>
-                  <th class="table-cell-std">Guru Pasangan / Co-Teacher (Dropdown)</th>
+                  <th class="table-cell-std">Guru Pasangan / Co-Teacher</th>
                   <th class="table-cell-std w-24 text-center">Bil. Waktu</th>
                   <th class="table-cell-std w-16 text-center">Tindakan</th>
                 </tr>
@@ -392,6 +393,67 @@
       }
     }
 
+    // SYNC DOM INPUTS KE STATE SEBELUM UPDATE / RE-RENDER (MENGELAKKAN LOSS & RESET MASA)
+    function syncGridMasaDOM() {
+      const rows = document.querySelectorAll('#tbodyGridMasa tr');
+      if (rows.length === 0) return;
+      const updated = [];
+      rows.forEach(r => {
+        const inputs = r.querySelectorAll('[data-field]');
+        if (inputs.length > 0) {
+          const item = {};
+          inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
+          updated.push(item);
+        }
+      });
+      if (updated.length > 0) STATE_GRID_MASA = updated;
+    }
+
+    function syncSubjekDOM() {
+      const rows = document.querySelectorAll('#tbodyMasterSubjek tr');
+      if (rows.length === 0) return;
+      const updated = [];
+      rows.forEach(r => {
+        const inputs = r.querySelectorAll('[data-field]');
+        if (inputs.length > 0) {
+          const item = {};
+          inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
+          updated.push(item);
+        }
+      });
+      if (updated.length > 0) STATE_SUBJEK = updated;
+    }
+
+    function syncAgihanDOM() {
+      const rows = document.querySelectorAll('#tbodyAgihanTugas tr');
+      if (rows.length === 0) return;
+      const updated = [];
+      rows.forEach(r => {
+        const inputs = r.querySelectorAll('[data-field]');
+        if (inputs.length > 0) {
+          const item = {};
+          inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
+          updated.push(item);
+        }
+      });
+      if (updated.length > 0) STATE_AGIHAN = updated;
+    }
+
+    function syncGuruConstraintDOM() {
+      const rows = document.querySelectorAll('#tbodyGuruConstraint tr');
+      if (rows.length === 0) return;
+      const updated = [];
+      rows.forEach(r => {
+        const inputs = r.querySelectorAll('[data-field]');
+        if (inputs.length > 0) {
+          const item = {};
+          inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
+          updated.push(item);
+        }
+      });
+      if (updated.length > 0) STATE_GURU_CONSTRAINT = updated;
+    }
+
     // UTILITI PENGIRAAN JAM TAMAT AUTOMATIK
     function calculateJamTamat(jamMula, jenisSlot) {
       if (!jamMula) return '';
@@ -471,7 +533,7 @@
       const tbody = document.getElementById('tbodyGridMasa');
       if (!tbody) return;
 
-      const timeOptions = ['07:40','08:10','08:40','09:10','09:40','10:00','10:10','10:30','11:00','11:30','12:00','12:30','01:00'];
+      const timeOptions = ['07:40','08:10','08:40','09:10','09:40','10:00','10:10','10:30','11:00','11:30','12:00','12:30','13:00','13:30'];
 
       tbody.innerHTML = '';
       if (STATE_GRID_MASA.length === 0) {
@@ -481,6 +543,10 @@
 
       STATE_GRID_MASA.forEach((row, idx) => {
         let optMula = timeOptions.map(t => `<option value="${t}" ${row.Jam_Mula === t ? 'selected' : ''}>${t}</option>`).join('');
+        if (row.Jam_Mula && !timeOptions.includes(row.Jam_Mula)) {
+          optMula += `<option value="${row.Jam_Mula}" selected>${row.Jam_Mula}</option>`;
+        }
+        
         const jamTamatAuto = calculateJamTamat(row.Jam_Mula || '07:40', row.Jenis_Slot || 'PdP');
 
         tbody.innerHTML += `
@@ -516,7 +582,7 @@
               </select>
             </td>
             <td class="table-cell-std text-center">
-              <button onclick="padamBaris(this)" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="padamBaris(this, 'grid')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         `;
@@ -524,33 +590,43 @@
     }
 
     function tambahBarisGridMasa() {
+      syncGridMasaDOM();
+
+      let nextMula = '07:40';
+      let nextNoWaktu = 1;
+      let lastHari = 'Isnin';
+      let lastTahap = 'Tahun 1 (KP2027)';
+
+      if (STATE_GRID_MASA.length > 0) {
+        const lastRow = STATE_GRID_MASA[STATE_GRID_MASA.length - 1];
+        lastTahap = lastRow.Tahap || lastTahap;
+        lastHari = lastRow.Hari || lastHari;
+        nextNoWaktu = (parseInt(lastRow.No_Waktu, 10) || 0) + 1;
+
+        const calculatedLastTamat = calculateJamTamat(lastRow.Jam_Mula || '07:40', lastRow.Jenis_Slot || 'PdP');
+        if (calculatedLastTamat) {
+          nextMula = calculatedLastTamat;
+        }
+      }
+
       STATE_GRID_MASA.push({
-        Slot_ID: 'T1-ISN-W' + (STATE_GRID_MASA.length + 1),
-        Tahap: 'Tahun 1 (KP2027)',
-        Hari: 'Isnin',
-        No_Waktu: STATE_GRID_MASA.length + 1,
-        Jam_Mula: '07:40',
-        Jam_Tamat: '08:10',
+        Slot_ID: `SLOT-${STATE_GRID_MASA.length + 1}`,
+        Tahap: lastTahap,
+        Hari: lastHari,
+        No_Waktu: nextNoWaktu,
+        Jam_Mula: nextMula,
+        Jam_Tamat: calculateJamTamat(nextMula, 'PdP'),
         Jenis_Slot: 'PdP'
       });
+
       renderGridMasaTable();
     }
 
     async function simpanGridMasa() {
-      const rows = document.querySelectorAll('#tbodyGridMasa tr');
-      const data = [];
-      rows.forEach(r => {
-        const inputs = r.querySelectorAll('[data-field]');
-        if (inputs.length > 0) {
-          const item = {};
-          inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
-          data.push(item);
-        }
-      });
-
+      syncGridMasaDOM();
       showLoader('Menyimpan Grid Masa...');
       try {
-        const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'grid', data: data } });
+        const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'grid', data: STATE_GRID_MASA } });
         hideLoader();
         if (res && res.success) {
           Swal.fire('Berjaya', res.message, 'success');
@@ -562,34 +638,40 @@
       }
     }
 
-    // ================= 2. RENDER & MANAGE SUBJEK =================
+    // ================= 2. RENDER & MANAGE SUBJEK (TARIK MASTER DATA) =================
     function renderSubjekTable() {
       const tbody = document.getElementById('tbodyMasterSubjek');
       if (!tbody) return;
 
       tbody.innerHTML = '';
       
-      // TAMBAH PENETAPAN DEFAULT UNTUK PEMBENTUKAN KARAKTER KP2027 JIKA BELUM WUJUD
-      const hasPK = STATE_SUBJEK.some(s => String(s.Nama_Subjek).toLowerCase().includes('pembentukan karakter'));
-      if (!hasPK && STATE_SUBJEK.length === 0) {
-        STATE_SUBJEK.push({
-          ID_Subjek: 'SUB-PK-T1',
-          Nama_Subjek: 'Pembentukan Karakter',
-          Kohort_Tahun: 'Tahun 1',
-          Bil_Waktu_Seminggu: 2,
-          Mode_Block: 'Double',
-          Flag_CoTeaching: 'FALSE',
-          Max_Waktu_Harian: 2
-        });
+      // Jika STATE_SUBJEK kosong, ambil dan padankan dari ALL_MASTER_SUBJEK_LIST
+      if (STATE_SUBJEK.length === 0 && ALL_MASTER_SUBJEK_LIST.length > 0) {
+        STATE_SUBJEK = ALL_MASTER_SUBJEK_LIST.map(s => ({
+          ID_Subjek: s.ID_Subjek || s.Kod_Subjek || '',
+          Nama_Subjek: s['Nama_Subjek / Komponen'] || s.Nama_Subjek || s.Nama || '',
+          Subjek_Induk: s.Subjek_Induk || '-',
+          Kategori_Tahap: s.Kategori_Tahap || s.Kohort_Tahun || 'Tahap 1',
+          Bil_Waktu_Seminggu: s.Bil_Waktu_Seminggu || 6,
+          Mode_Block: s.Mode_Block || 'Single',
+          Flag_CoTeaching: s.Flag_CoTeaching || 'FALSE',
+          Max_Waktu_Harian: s.Max_Waktu_Harian || 2
+        }));
+      }
+
+      if (STATE_SUBJEK.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="table-cell-std text-center text-slate-400 italic">Tiada subjek dijumpai. Klik "+ Subjek Baharu".</td></tr>`;
+        return;
       }
 
       STATE_SUBJEK.forEach((row, idx) => {
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
             <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="p-1.5"><input type="text" data-field="ID_Subjek" value="${row.ID_Subjek || ''}" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-emerald-700 bg-white"></td>
-            <td class="p-1.5"><input type="text" data-field="Nama_Subjek" value="${row.Nama_Subjek || ''}" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white"></td>
-            <td class="p-1.5"><input type="text" data-field="Kohort_Tahun" value="${row.Kohort_Tahun || 'Tahun 1'}" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white"></td>
+            <td class="p-1.5"><input type="text" data-field="ID_Subjek" value="${row.ID_Subjek || row.Kod_Subjek || ''}" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-emerald-700 bg-white"></td>
+            <td class="p-1.5"><input type="text" data-field="Nama_Subjek" value="${row.Nama_Subjek || row['Nama_Subjek / Komponen'] || ''}" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white"></td>
+            <td class="p-1.5"><input type="text" data-field="Subjek_Induk" value="${row.Subjek_Induk || '-'}" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white"></td>
+            <td class="p-1.5"><input type="text" data-field="Kategori_Tahap" value="${row.Kategori_Tahap || row.Kohort_Tahun || 'Tahap 1'}" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white"></td>
             <td class="p-1.5"><input type="number" data-field="Bil_Waktu_Seminggu" value="${row.Bil_Waktu_Seminggu || 6}" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
             <td class="p-1.5">
               <select data-field="Mode_Block" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
@@ -605,7 +687,7 @@
             </td>
             <td class="p-1.5"><input type="number" data-field="Max_Waktu_Harian" value="${row.Max_Waktu_Harian || 2}" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
             <td class="table-cell-std text-center">
-              <button onclick="padamBaris(this)" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="padamBaris(this, 'subjek')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         `;
@@ -613,33 +695,25 @@
     }
 
     function tambahBarisSubjek() {
+      syncSubjekDOM();
       STATE_SUBJEK.push({
-        ID_Subjek: 'SUB-BM-T1',
-        Nama_Subjek: 'Bahasa Melayu',
-        Kohort_Tahun: 'Tahun 1',
-        Bil_Waktu_Seminggu: 12,
+        ID_Subjek: 'SUB-' + (STATE_SUBJEK.length + 1),
+        Nama_Subjek: 'Mata Pelajaran Baharu',
+        Subjek_Induk: 'Teras',
+        Kategori_Tahap: 'Tahap 1',
+        Bil_Waktu_Seminggu: 6,
         Mode_Block: 'Single',
         Flag_CoTeaching: 'FALSE',
-        Max_Waktu_Harian: 3
+        Max_Waktu_Harian: 2
       });
       renderSubjekTable();
     }
 
     async function simpanTetapanSubjek() {
-      const rows = document.querySelectorAll('#tbodyMasterSubjek tr');
-      const data = [];
-      rows.forEach(r => {
-        const inputs = r.querySelectorAll('[data-field]');
-        if (inputs.length > 0) {
-          const item = {};
-          inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
-          data.push(item);
-        }
-      });
-
+      syncSubjekDOM();
       showLoader('Menyimpan Tetapan Subjek...');
       try {
-        const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'subjek', data: data } });
+        const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'subjek', data: STATE_SUBJEK } });
         hideLoader();
         if (res && res.success) {
           Swal.fire('Berjaya', res.message, 'success');
@@ -651,17 +725,13 @@
       }
     }
 
-    // ================= 3. RENDER & MANAGE AGIHAN TUGAS (DROPDOWN MASTER) =================
+    // ================= 3. RENDER & MANAGE AGIHAN TUGAS (DROPDOWN MASTER SUBJEK) =================
     function renderAgihanTable() {
       const tbody = document.getElementById('tbodyAgihanTugas');
       if (!tbody) return;
 
       tbody.innerHTML = '';
-      if (STATE_AGIHAN.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="table-cell-std text-center text-slate-400 italic">Tiada agihan tugas guru. Klik "+ Tugasan Kelas".</td></tr>`;
-        return;
-      }
-
+      
       // 1. Dapatkan Senarai Kelas
       let optKelas = '<option value="">-- Pilih Kelas --</option>';
       const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas');
@@ -669,10 +739,16 @@
         optKelas += `<option value="${k.Nama_Lokasi}">${k.Nama_Lokasi}</option>`;
       });
 
-      // 2. Dapatkan Senarai Subjek
+      // 2. Dapatkan Senarai Subjek Lengkap Daripada Master
       let optSubjek = '<option value="">-- Pilih Subjek --</option>';
-      STATE_SUBJEK.forEach(s => {
-        optSubjek += `<option value="${s.ID_Subjek || s.Nama_Subjek}">${s.Nama_Subjek} (${s.Kohort_Tahun || 'Tahun 1'})</option>`;
+      const sourceSubjek = (ALL_MASTER_SUBJEK_LIST && ALL_MASTER_SUBJEK_LIST.length > 0) ? ALL_MASTER_SUBJEK_LIST : STATE_SUBJEK;
+      
+      sourceSubjek.forEach(s => {
+        const id = s.ID_Subjek || s.Kod_Subjek || s.Nama_Subjek;
+        const nama = s['Nama_Subjek / Komponen'] || s.Nama_Subjek || s.Nama || id;
+        const induk = s.Subjek_Induk ? ` [${s.Subjek_Induk}]` : '';
+        const tahap = s.Kategori_Tahap || s.Kohort_Tahun || '';
+        optSubjek += `<option value="${id}">${nama}${induk} ${tahap ? `(${tahap})` : ''}</option>`;
       });
 
       // 3. Dapatkan Senarai Guru Aktif
@@ -682,8 +758,12 @@
         optGuru += `<option value="${g.ID_Staf}">${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
       });
 
+      if (STATE_AGIHAN.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-cell-std text-center text-slate-400 italic">Tiada agihan tugas guru. Klik "+ Tugasan Kelas".</td></tr>`;
+        return;
+      }
+
       STATE_AGIHAN.forEach((row, idx) => {
-        // Build option list with selected value
         let optK = optKelas.replace(`value="${row.ID_Kelas}"`, `value="${row.ID_Kelas}" selected`);
         let optS = optSubjek.replace(`value="${row.ID_Subjek}"`, `value="${row.ID_Subjek}" selected`);
         let optG1 = optGuru.replace(`value="${row.ID_Guru_Utama}"`, `value="${row.ID_Guru_Utama}" selected`);
@@ -698,7 +778,7 @@
             <td class="p-1.5"><select data-field="ID_Guru_Pair" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white">${optG2}</select></td>
             <td class="p-1.5"><input type="number" data-field="Bil_Waktu" value="${row.Bil_Waktu || 6}" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
             <td class="table-cell-std text-center">
-              <button onclick="padamBaris(this)" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="padamBaris(this, 'agihan')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         `;
@@ -706,6 +786,7 @@
     }
 
     function tambahBarisAgihan() {
+      syncAgihanDOM();
       STATE_AGIHAN.push({
         ID_Kelas: '',
         ID_Subjek: '',
@@ -717,20 +798,10 @@
     }
 
     async function simpanAgihanTugas() {
-      const rows = document.querySelectorAll('#tbodyAgihanTugas tr');
-      const data = [];
-      rows.forEach(r => {
-        const inputs = r.querySelectorAll('[data-field]');
-        if (inputs.length > 0) {
-          const item = {};
-          inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
-          data.push(item);
-        }
-      });
-
+      syncAgihanDOM();
       showLoader('Menyimpan Agihan Tugas...');
       try {
-        const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'agihan', data: data } });
+        const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'agihan', data: STATE_AGIHAN } });
         hideLoader();
         if (res && res.success) {
           Swal.fire('Berjaya', res.message, 'success');
@@ -770,7 +841,7 @@
             <td class="p-1.5"><input type="number" data-field="Max_Waktu_Berturut" value="${row.Max_Waktu_Berturut || 3}" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
             <td class="p-1.5"><input type="text" data-field="Slot_Dikunci_Off" value="${row.Slot_Dikunci_Off || ''}" placeholder="e.g. T1-ISN-W1, T1-ISN-W2" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white"></td>
             <td class="table-cell-std text-center">
-              <button onclick="padamBaris(this)" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="padamBaris(this, 'guru')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         `;
@@ -778,6 +849,7 @@
     }
 
     function tambahBarisGuruConstraint() {
+      syncGuruConstraintDOM();
       STATE_GURU_CONSTRAINT.push({
         Nama_Guru: '',
         Max_Waktu_Sehari: 4,
@@ -788,20 +860,10 @@
     }
 
     async function simpanGuruConstraints() {
-      const rows = document.querySelectorAll('#tbodyGuruConstraint tr');
-      const data = [];
-      rows.forEach(r => {
-        const inputs = r.querySelectorAll('[data-field]');
-        if (inputs.length > 0) {
-          const item = {};
-          inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
-          data.push(item);
-        }
-      });
-
+      syncGuruConstraintDOM();
       showLoader('Menyimpan Had Guru...');
       try {
-        const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'guru', data: data } });
+        const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'guru', data: STATE_GURU_CONSTRAINT } });
         hideLoader();
         if (res && res.success) {
           Swal.fire('Berjaya', res.message, 'success');
@@ -813,9 +875,19 @@
       }
     }
 
-    function padamBaris(btn) {
+    function padamBaris(btn, type) {
+      if (type === 'grid') syncGridMasaDOM();
+      else if (type === 'subjek') syncSubjekDOM();
+      else if (type === 'agihan') syncAgihanDOM();
+      else if (type === 'guru') syncGuruConstraintDOM();
+
       const tr = btn.closest('tr');
       if (tr) tr.remove();
+
+      if (type === 'grid') syncGridMasaDOM();
+      else if (type === 'subjek') syncSubjekDOM();
+      else if (type === 'agihan') syncAgihanDOM();
+      else if (type === 'guru') syncGuruConstraintDOM();
     }
 
     // ================= 5. ENJIN GENERATOR & VIEW HASIL =================
