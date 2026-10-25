@@ -227,11 +227,11 @@
                                     <span class="w-2 h-2 rounded-full bg-[#1f7a9c]"></span>
                                     <h2 class="font-extrabold text-sm text-slate-800">Modul & Aplikasi Utama Guru</h2>
                                 </div>
-                                <span class="text-[11px] text-slate-400 font-semibold px-2 py-0.5 bg-slate-100 rounded-full">6 Modul</span>
+                                <span class="text-[11px] text-slate-400 font-semibold px-2 py-0.5 bg-slate-100 rounded-full">7 Modul</span>
                             </div>
 
-                            <!-- GRID 6 KAD PETAK UTAMA -->
-                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                            <!-- GRID KAD PETAK UTAMA -->
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
                                 
                                 <!-- MODUL 1: e-RPH Digital -->
                                 <div onclick="bukaErphModule()" class="group cursor-pointer bg-slate-50 hover:bg-teal-50/60 border border-slate-200 hover:border-teal-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
@@ -247,6 +247,14 @@
                                         <i class="fa-solid fa-book-bookmark"></i>
                                     </div>
                                     <h3 class="font-bold text-xs text-slate-800 group-hover:text-blue-700 transition-colors leading-tight">Manual Pengurusan</h3>
+                                </div>
+
+                                <!-- MODUL BAHARU: Jadual Waktu -->
+                                <div onclick="bukaAplikasi('Jadual Waktu', 'modulaplikasi/JadualWaktu.html')" class="group cursor-pointer bg-slate-50 hover:bg-sky-50/60 border border-slate-200 hover:border-sky-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
+                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
+                                        <i class="fa-solid fa-calendar-days"></i>
+                                    </div>
+                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-sky-700 transition-colors leading-tight">Jadual Waktu</h3>
                                 </div>
 
                                 <!-- MODUL 3: SSDM Disiplin -->
@@ -521,7 +529,7 @@
         'kurikulum': [
             { id: 'erph', title: 'e-RPH Digital', icon: 'fa-book-open', color: 'from-teal-600 to-teal-400', action: 'bukaErphModule()' },
             { id: 'panitia', title: 'Pengurusan Panitia', icon: 'fa-chalkboard-user', color: 'from-blue-600 to-sky-400', action: 'bukaAplikasi("Pengurusan Panitia", "#")' },
-            { id: 'jadual', title: 'Jadual Waktu', icon: 'fa-calendar-days', color: 'from-purple-600 to-indigo-400', action: 'bukaAplikasi("Jadual Waktu", "#")' },
+            { id: 'jadual', title: 'Jadual Waktu', icon: 'fa-calendar-days', color: 'from-purple-600 to-indigo-400', action: 'bukaAplikasi("Jadual Waktu", "modulaplikasi/JadualWaktu.html")' },
             { id: 'pentaksiran', title: 'Pentaksiran & PBS', icon: 'fa-pen-to-square', color: 'from-amber-500 to-yellow-400', action: 'bukaAplikasi("Pentaksiran & PBS", "#")' }
         ],
         'hem': [
