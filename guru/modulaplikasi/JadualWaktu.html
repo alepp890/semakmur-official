@@ -126,7 +126,7 @@
 
     <main class="p-4 lg:p-8 space-y-6">
 
-      <!-- ================= 1. TETAPAN GRID MASA & REHAT (DENGAN DROPDOWN HARI) ================= -->
+      <!-- ================= 1. TETAPAN GRID MASA ================= -->
       <div id="viewGridMasa" class="space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-brand-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -144,7 +144,6 @@
             </div>
           </div>
 
-          <!-- DROPDOWN Tapis MENGIKUT HARI -->
           <div class="flex items-center gap-3 bg-brand-50/50 p-3 rounded-xl border border-brand-200/60">
             <label class="text-xs font-bold text-brand-900 shrink-0"><i class="fa-solid fa-calendar-day text-brand-600 mr-1"></i> Pilih Hari Grid Masa:</label>
             <select id="selHariGridMasa" onchange="onHariGridMasaChange()" class="p-2 border border-brand-300 rounded-lg bg-white font-extrabold text-xs text-brand-900 focus:outline-none shrink-0 min-w-[160px]">
@@ -154,7 +153,6 @@
               <option value="Khamis">Khamis</option>
               <option value="Jumaat">Jumaat</option>
             </select>
-            <span class="text-[11px] text-brand-700 font-medium hidden sm:inline">| Menguruskan slot masa berasingan mengikut hari terpilih.</span>
           </div>
 
           <div class="overflow-x-auto">
@@ -178,7 +176,7 @@
         </div>
       </div>
 
-      <!-- ================= 2. TETAPAN SUBJEK & BILANGAN WAKTU ================= -->
+      <!-- ================= 2. TETAPAN SUBJEK ================= -->
       <div id="viewMasterSubjek" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-emerald-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -216,40 +214,54 @@
         </div>
       </div>
 
-      <!-- ================= 3. MATRIKS AGIHAN TUGAS MENGIKUT KELAS ================= -->
+      <!-- ================= 3. MATRIKS AGIHAN TUGAS BERPUSATKAN GURU (MULTI-SELECT KELAS) ================= -->
       <div id="viewAgihanTugas" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-amber-500">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
-              <h2 class="font-display font-extrabold text-xl text-slate-800">3. Matriks Agihan Tugas Guru (Mengikut Kelas)</h2>
-              <p class="text-xs text-slate-500">Pilih kelas di bawah. Semua subjek & bilangan waktu telah disenaraikan secara automatik!</p>
+              <h2 class="font-display font-extrabold text-xl text-slate-800">3. Matriks Agihan Tugas Mengikut Guru (Multiple Class Picker)</h2>
+              <p class="text-xs text-slate-500">Pilih nama Guru, Subjek dan tandakan **Checkbox Kelas** bagi kelas-kelas yang diajar.</p>
             </div>
-            <button onclick="simpanAgihanTugas()" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2 self-start sm:self-auto">
-              <i class="fa-solid fa-floppy-disk"></i> Simpan Keseluruhan Agihan
-            </button>
+            <div class="flex gap-2">
+              <button onclick="tambahBarisAgihanGuru()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
+                <i class="fa-solid fa-user-plus"></i> + Tugasan Guru
+              </button>
+              <button onclick="simpanAgihanTugas()" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+                <i class="fa-solid fa-floppy-disk"></i> Simpan Agihan Ke Sheet
+              </button>
+            </div>
           </div>
 
-          <div class="flex items-center gap-3 bg-amber-50/50 p-3 rounded-xl border border-amber-200/60">
-            <label class="text-xs font-bold text-amber-900 shrink-0"><i class="fa-solid fa-chalkboard text-amber-600 mr-1"></i> Pilih Kelas:</label>
-            <select id="selKelasAgihan" onchange="renderAgihanClassMatrix()" class="p-2 border border-amber-300 rounded-lg bg-white font-extrabold text-xs text-amber-900 focus:outline-none shrink-0 min-w-[180px]">
-              <!-- Options loaded dynamically -->
-            </select>
-            <span class="text-[11px] text-amber-700 font-medium hidden sm:inline">| Hanya masukkan nama Guru Utama & Guru Pasangan sahaja.</span>
+          <!-- SUMMARY & DASHBOARD STATUS AGIHAN KELAS -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-list-check text-amber-500"></i> Ringkasan Agihan Subjek Bagi Setiap Kelas:
+              </span>
+              <button onclick="toggleClassCoverageSummary()" class="text-[11px] font-bold text-amber-700 hover:underline">
+                <i class="fa-solid fa-eye mr-1"></i> Tunjuk / Sembunyi Status
+              </button>
+            </div>
+            <div id="boxClassCoverageSummary" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 text-[11px] font-semibold pt-1">
+              <!-- Summary pills rendered dynamically -->
+            </div>
           </div>
 
-          <div class="overflow-x-auto">
+          <!-- TABLE AGIHAN GURU -->
+          <div class="overflow-x-auto min-h-[300px]">
             <table class="w-full text-left text-xs border-collapse">
               <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
                 <tr>
                   <th class="table-cell-std w-12 text-center">BIL</th>
-                  <th class="table-cell-std w-32">Kod Subjek</th>
-                  <th class="table-cell-std">Nama Subjek / Komponen</th>
-                  <th class="table-cell-std w-28 text-center">Waktu Seminggu</th>
-                  <th class="table-cell-std">Guru Utama</th>
-                  <th class="table-cell-std">Guru Pasangan / Co-Teacher (KP2027)</th>
+                  <th class="table-cell-std w-56">Nama Guru Utama</th>
+                  <th class="table-cell-std w-48">Subjek Mengajar</th>
+                  <th class="table-cell-std">Senarai Kelas Diajar (Pilih Checkbox Multiple)</th>
+                  <th class="table-cell-std w-44">Guru Pasangan / Co-Teacher</th>
+                  <th class="table-cell-std w-24 text-center">Jml Waktu</th>
+                  <th class="table-cell-std w-16 text-center">Padam</th>
                 </tr>
               </thead>
-              <tbody id="tbodyAgihanClassMatrix" class="divide-y divide-slate-100 font-medium"></tbody>
+              <tbody id="tbodyAgihanGuruMatrix" class="divide-y divide-slate-100 font-medium"></tbody>
             </table>
           </div>
         </div>
@@ -335,7 +347,8 @@
   <script>
     let STATE_GRID_MASA = [];
     let STATE_SUBJEK = [];
-    let STATE_AGIHAN = [];
+    let STATE_AGIHAN = []; // Flat list untuk backend Sheet
+    let STATE_AGIHAN_GURU = []; // UI View Structure per Teacher Assignment
     let STATE_GURU_CONSTRAINT = [];
     let STATE_HASIL_JADUAL = [];
 
@@ -411,7 +424,7 @@
       let h = parseInt(parts[0], 10);
       let m = parseInt(parts[1], 10);
 
-      let duration = 30; // PdP / Perhimpunan
+      let duration = 30; // PdP
       if (jenisSlot === 'Rehat') duration = 20;
       else if (jenisSlot === 'Pembentukan Karakter') duration = 15;
 
@@ -425,56 +438,6 @@
       let hh = String(h).padStart(2, '0');
       let mm = String(m).padStart(2, '0');
       return `${hh}:${mm}`;
-    }
-
-    function syncCurrentDayGridMasaDOM(dayToSync) {
-      const day = dayToSync || LAST_GRID_HARI || 'Isnin';
-      const rows = document.querySelectorAll('#tbodyGridMasa tr');
-
-      // Buang data hari ini dari STATE_GRID_MASA, simpan semula dari DOM
-      STATE_GRID_MASA = STATE_GRID_MASA.filter(r => r.Hari !== day);
-
-      const updatedForDay = [];
-      rows.forEach(r => {
-        const inputs = r.querySelectorAll('[data-field]');
-        if (inputs.length > 0) {
-          const item = { Hari: day };
-          inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
-          updatedForDay.push(item);
-        }
-      });
-
-      STATE_GRID_MASA = STATE_GRID_MASA.concat(updatedForDay);
-    }
-
-    function syncSubjekDOM() {
-      const rows = document.querySelectorAll('#tbodyMasterSubjek tr');
-      if (rows.length === 0) return;
-      const updated = [];
-      rows.forEach(r => {
-        const inputs = r.querySelectorAll('[data-field]');
-        if (inputs.length > 0) {
-          const item = {};
-          inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
-          updated.push(item);
-        }
-      });
-      if (updated.length > 0) STATE_SUBJEK = updated;
-    }
-
-    function syncGuruConstraintDOM() {
-      const rows = document.querySelectorAll('#tbodyGuruConstraint tr');
-      if (rows.length === 0) return;
-      const updated = [];
-      rows.forEach(r => {
-        const inputs = r.querySelectorAll('[data-field]');
-        if (inputs.length > 0) {
-          const item = {};
-          inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
-          updated.push(item);
-        }
-      });
-      if (updated.length > 0) STATE_GURU_CONSTRAINT = updated;
     }
 
     async function jalankanInitDatabase() {
@@ -506,9 +469,10 @@
           STATE_AGIHAN = res.agihanTugas || [];
           STATE_GURU_CONSTRAINT = res.guruConstraints || [];
 
+          parseFlatAgihanToGuruView();
           renderGridMasaTable();
           renderSubjekTable();
-          setupAgihanKelasDropdown();
+          renderAgihanGuruMatrix();
           renderGuruConstraintTable();
           loadJadualHasil();
         }
@@ -517,17 +481,11 @@
       }
     }
 
-    // ================= 1. RENDER & MANAGE GRID MASA (ASINGKAN HARI) =================
+    // ================= 1. RENDER & MANAGE GRID MASA =================
     function onHariGridMasaChange() {
       const sel = document.getElementById('selHariGridMasa');
       if (!sel) return;
-      const newHari = sel.value;
-
-      // Simpan data hari sebelum ini ke dalam state
-      syncCurrentDayGridMasaDOM(LAST_GRID_HARI);
-      LAST_GRID_HARI = newHari;
-
-      // Papar data hari baharu
+      LAST_GRID_HARI = sel.value;
       renderGridMasaTable();
     }
 
@@ -536,14 +494,12 @@
       if (!tbody) return;
 
       const selHari = document.getElementById('selHariGridMasa')?.value || LAST_GRID_HARI || 'Isnin';
-      LAST_GRID_HARI = selHari;
-
       const rowsForDay = STATE_GRID_MASA.filter(r => r.Hari === selHari);
       const timeOptions = ['07:40','08:10','08:40','09:10','09:40','10:00','10:10','10:30','11:00','11:30','12:00','12:30','13:00','13:30'];
 
       tbody.innerHTML = '';
       if (rowsForDay.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="table-cell-std text-center text-slate-400 italic">Tiada slot masa untuk hari ${selHari}. Klik "+ Slot Masa" di atas.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="table-cell-std text-center text-slate-400 italic">Tiada slot masa untuk hari ${selHari}. Klik "+ Slot Masa".</td></tr>`;
         return;
       }
 
@@ -608,8 +564,6 @@
 
     function tambahBarisGridMasa() {
       const selHari = document.getElementById('selHariGridMasa')?.value || LAST_GRID_HARI || 'Isnin';
-      syncCurrentDayGridMasaDOM(selHari);
-
       const rowsForDay = STATE_GRID_MASA.filter(r => r.Hari === selHari);
 
       let nextMula = '07:40';
@@ -619,10 +573,8 @@
       if (rowsForDay.length > 0) {
         const lastRow = rowsForDay[rowsForDay.length - 1];
         lastTahap = lastRow.Tahap || lastTahap;
-        
         let numW = parseInt(lastRow.No_Waktu, 10);
         nextNoWaktu = isNaN(numW) ? '1' : String(numW + 1);
-
         const calculatedLastTamat = calculateJamTamat(lastRow.Jam_Mula || '07:40', lastRow.Jenis_Slot || 'PdP');
         if (calculatedLastTamat) nextMula = calculatedLastTamat;
       }
@@ -642,8 +594,6 @@
 
     function padamBarisGridMasa(filteredIdx) {
       const selHari = document.getElementById('selHariGridMasa')?.value || LAST_GRID_HARI || 'Isnin';
-      syncCurrentDayGridMasaDOM(selHari);
-
       let dayCount = 0;
       for (let i = 0; i < STATE_GRID_MASA.length; i++) {
         if (STATE_GRID_MASA[i].Hari === selHari) {
@@ -658,9 +608,6 @@
     }
 
     async function simpanGridMasa() {
-      const selHari = document.getElementById('selHariGridMasa')?.value || LAST_GRID_HARI || 'Isnin';
-      syncCurrentDayGridMasaDOM(selHari);
-
       showLoader('Menyimpan Grid Masa...');
       try {
         const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'grid', data: STATE_GRID_MASA } });
@@ -711,7 +658,7 @@
               </select>
             </td>
             <td class="table-cell-std text-center">
-              <button onclick="padamBaris(this, 'subjek', ${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="padamBarisSubjek(${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         `;
@@ -719,7 +666,6 @@
     }
 
     function tambahBarisSubjek() {
-      syncSubjekDOM();
       STATE_SUBJEK.push({
         ID_Subjek: 'SUB-' + (STATE_SUBJEK.length + 1),
         Nama_Subjek: 'Mata Pelajaran Baharu',
@@ -731,15 +677,19 @@
       renderSubjekTable();
     }
 
+    function padamBarisSubjek(idx) {
+      STATE_SUBJEK.splice(idx, 1);
+      renderSubjekTable();
+    }
+
     async function simpanTetapanSubjek() {
-      syncSubjekDOM();
       showLoader('Menyimpan Tetapan Subjek...');
       try {
         const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'subjek', data: STATE_SUBJEK } });
         hideLoader();
         if (res && res.success) {
           Swal.fire('Berjaya', res.message, 'success');
-          setupAgihanKelasDropdown();
+          renderAgihanGuruMatrix();
         }
       } catch (err) {
         hideLoader();
@@ -747,63 +697,60 @@
       }
     }
 
-    // ================= 3. RENDER AGIHAN TUGAS (MATRIKS BERPUSATKAN KELAS) =================
-    function setupAgihanKelasDropdown() {
-      const sel = document.getElementById('selKelasAgihan');
-      if (!sel) return;
+    // ================= 3. AGIHAN TUGAS BERPUSATKAN GURU (MULTI-SELECT CHECKBOX KELAS) =================
+    
+    // Tukar Flat Agihan dari Backend Sheet kepada struktur UI Guru
+    function parseFlatAgihanToGuruView() {
+      STATE_AGIHAN_GURU = [];
+      if (!STATE_AGIHAN || STATE_AGIHAN.length === 0) return;
 
-      const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas');
-      let opt = '';
-      senaraiKelas.forEach(k => {
-        opt += `<option value="${k.Nama_Lokasi}">${k.Nama_Lokasi}</option>`;
+      const grouped = {};
+      STATE_AGIHAN.forEach(item => {
+        const key = `${item.ID_Guru_Utama}_${item.ID_Subjek}_${item.ID_Guru_Pair || ''}`;
+        if (!grouped[key]) {
+          grouped[key] = {
+            idGuruUtama: item.ID_Guru_Utama,
+            idSubjek: item.ID_Subjek,
+            idGuruPair: item.ID_Guru_Pair || '',
+            senaraiKelas: []
+          };
+        }
+        if (item.ID_Kelas && !grouped[key].senaraiKelas.includes(item.ID_Kelas)) {
+          grouped[key].senaraiKelas.push(item.ID_Kelas);
+        }
       });
 
-      if (senaraiKelas.length === 0) {
-        opt = `<option value="1 Iris">1 Iris</option><option value="1 Violet">1 Violet</option><option value="2 Iris">2 Iris</option>`;
-      }
-
-      sel.innerHTML = opt;
-      renderAgihanClassMatrix();
+      Object.values(grouped).forEach(g => STATE_AGIHAN_GURU.push(g));
     }
 
-    function syncCurrentClassAgihanDOM() {
-      const currentKelas = document.getElementById('selKelasAgihan')?.value;
-      if (!currentKelas) return;
+    // Tukar Struktur UI Guru Kembali ke Flat List untuk Simpan di Google Sheet
+    function prepareFlatAgihanForBackend() {
+      const flatList = [];
+      STATE_AGIHAN_GURU.forEach(row => {
+        if (row.idGuruUtama && row.idSubjek && row.senaraiKelas && row.senaraiKelas.length > 0) {
+          const sub = STATE_SUBJEK.find(s => s.ID_Subjek === row.idSubjek) || {};
+          const bilWaktu = sub.Bil_Waktu_Seminggu || 6;
 
-      STATE_AGIHAN = STATE_AGIHAN.filter(a => a.ID_Kelas !== currentKelas);
-
-      const rows = document.querySelectorAll('#tbodyAgihanClassMatrix tr');
-      rows.forEach(r => {
-        const idSubjek = r.getAttribute('data-subjek-id');
-        const namaSubjek = r.getAttribute('data-subjek-nama');
-        const bilWaktu = r.getAttribute('data-bil-waktu');
-        const gUtama = r.querySelector('[data-field="ID_Guru_Utama"]')?.value || '';
-        const gPair = r.querySelector('[data-field="ID_Guru_Pair"]')?.value || '';
-
-        if (gUtama) {
-          STATE_AGIHAN.push({
-            ID_Kelas: currentKelas,
-            ID_Subjek: idSubjek,
-            Nama_Subjek: namaSubjek,
-            ID_Guru_Utama: gUtama,
-            ID_Guru_Pair: gPair,
-            Bil_Waktu: parseInt(bilWaktu, 10) || 6
+          row.senaraiKelas.forEach(kelas => {
+            flatList.push({
+              ID_Kelas: kelas,
+              ID_Subjek: row.idSubjek,
+              Nama_Subjek: sub.Nama_Subjek || row.idSubjek,
+              ID_Guru_Utama: row.idGuruUtama,
+              ID_Guru_Pair: row.idGuruPair || '',
+              Bil_Waktu: parseInt(bilWaktu, 10)
+            });
           });
         }
       });
+      return flatList;
     }
 
-    function renderAgihanClassMatrix() {
-      const currentKelas = document.getElementById('selKelasAgihan')?.value;
-      const tbody = document.getElementById('tbodyAgihanClassMatrix');
-      if (!tbody || !currentKelas) return;
+    function renderAgihanGuruMatrix() {
+      const tbody = document.getElementById('tbodyAgihanGuruMatrix');
+      if (!tbody) return;
 
       tbody.innerHTML = '';
-
-      if (STATE_SUBJEK.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="table-cell-std text-center text-slate-400 italic">Sila tetapkan senarai subjek di Langkah 2 terlebih dahulu.</td></tr>`;
-        return;
-      }
 
       const guruAktif = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && String(s.Status || 'Aktif').toLowerCase() === 'aktif');
       let optGuru = '<option value="">-- Pilih Guru --</option>';
@@ -811,30 +758,168 @@
         optGuru += `<option value="${g.Nama_Penuh}">${g.Nama_Penuh}</option>`;
       });
 
-      STATE_SUBJEK.forEach((sub, idx) => {
-        const existing = STATE_AGIHAN.find(a => a.ID_Kelas === currentKelas && a.ID_Subjek === sub.ID_Subjek) || {};
-        
-        let optG1 = optGuru.replace(`value="${existing.ID_Guru_Utama || ''}"`, `value="${existing.ID_Guru_Utama || ''}" selected`);
-        let optG2 = optGuru.replace(`value="${existing.ID_Guru_Pair || ''}"`, `value="${existing.ID_Guru_Pair || ''}" selected`);
+      let optSubjek = '<option value="">-- Pilih Subjek --</option>';
+      const sourceSubjek = (STATE_SUBJEK && STATE_SUBJEK.length > 0) ? STATE_SUBJEK : ALL_MASTER_SUBJEK_LIST;
+      sourceSubjek.forEach(s => {
+        const id = s.ID_Subjek || s.Kod_Subjek || s.Nama_Subjek;
+        const nama = s.Nama_Subjek || s['Nama_Subjek / Komponen'] || id;
+        optSubjek += `<option value="${id}">${id} - ${nama}</option>`;
+      });
+
+      const senaraiKelasMaster = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas').map(k => k.Nama_Lokasi);
+      if (senaraiKelasMaster.length === 0) {
+        ['1 Iris', '1 Violet', '2 Iris', '2 Violet', '3 Iris', '4 Iris', '5 Iris', '6 Iris'].forEach(k => senaraiKelasMaster.push(k));
+      }
+
+      if (STATE_AGIHAN_GURU.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-cell-std text-center text-slate-400 italic">Tiada agihan guru. Klik "+ Tugasan Guru" di atas.</td></tr>`;
+        renderClassCoverageSummary();
+        return;
+      }
+
+      STATE_AGIHAN_GURU.forEach((row, idx) => {
+        let optG1 = optGuru.replace(`value="${row.idGuruUtama}"`, `value="${row.idGuruUtama}" selected`);
+        let optG2 = optGuru.replace(`value="${row.idGuruPair}"`, `value="${row.idGuruPair}" selected`);
+        let optSub = optSubjek.replace(`value="${row.idSubjek}"`, `value="${row.idSubjek}" selected`);
+
+        // Wujudkan Dropdown Checkbox untuk Kelas
+        let checkboxListHtml = '';
+        senaraiKelasMaster.forEach(kelas => {
+          const isChecked = (row.senaraiKelas || []).includes(kelas) ? 'checked' : '';
+          checkboxListHtml += `
+            <label class="flex items-center gap-2 p-1 hover:bg-slate-100 rounded cursor-pointer text-xs font-semibold text-slate-700">
+              <input type="checkbox" value="${kelas}" ${isChecked} onchange="onClassCheckboxToggle(${idx}, '${kelas}', this.checked)" class="rounded text-amber-600 focus:ring-amber-500 w-4 h-4">
+              <span>${kelas}</span>
+            </label>
+          `;
+        });
+
+        const selectedCount = (row.senaraiKelas || []).length;
+        const sub = STATE_SUBJEK.find(s => s.ID_Subjek === row.idSubjek) || {};
+        const totalHours = selectedCount * (parseInt(sub.Bil_Waktu_Seminggu, 10) || 6);
 
         tbody.innerHTML += `
-          <tr class="hover:bg-slate-50 transition" data-subjek-id="${sub.ID_Subjek}" data-subjek-nama="${sub.Nama_Subjek}" data-bil-waktu="${sub.Bil_Waktu_Seminggu || 6}">
+          <tr class="hover:bg-slate-50 transition">
             <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="p-1.5 font-extrabold text-amber-800">${sub.ID_Subjek}</td>
-            <td class="p-1.5 font-bold text-slate-800">${sub.Nama_Subjek}</td>
-            <td class="p-1.5 text-center font-extrabold text-emerald-700 bg-emerald-50/50 rounded-lg">${sub.Bil_Waktu_Seminggu || 6} Waktu</td>
-            <td class="p-1.5"><select data-field="ID_Guru_Utama" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white">${optG1}</select></td>
-            <td class="p-1.5"><select data-field="ID_Guru_Pair" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white">${optG2}</select></td>
+            <td class="p-1.5">
+              <select onchange="STATE_AGIHAN_GURU[${idx}].idGuruUtama = this.value; renderClassCoverageSummary();" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-amber-900 bg-white">
+                ${optG1}
+              </select>
+            </td>
+            <td class="p-1.5">
+              <select onchange="STATE_AGIHAN_GURU[${idx}].idSubjek = this.value; renderAgihanGuruMatrix();" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
+                ${optSub}
+              </select>
+            </td>
+            <td class="p-1.5 relative">
+              <button type="button" onclick="toggleMultiSelectDropdown(${idx})" class="w-full p-1.5 border rounded-lg text-xs font-extrabold bg-white text-left flex items-center justify-between shadow-2xs">
+                <span class="truncate text-amber-800">${selectedCount > 0 ? row.senaraiKelas.join(', ') : '-- Pilih Checkbox Kelas --'}</span>
+                <span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full shrink-0 font-bold ml-1">${selectedCount} Kelas</span>
+              </button>
+
+              <div id="ddClassList_${idx}" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-slate-300 rounded-xl shadow-xl z-50 p-2 max-h-48 overflow-y-auto space-y-1">
+                <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-1 pb-1 border-b">Tandakan Kelas:</div>
+                ${checkboxListHtml}
+              </div>
+            </td>
+            <td class="p-1.5">
+              <select onchange="STATE_AGIHAN_GURU[${idx}].idGuruPair = this.value" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white">
+                ${optG2}
+              </select>
+            </td>
+            <td class="p-1.5 text-center font-extrabold text-amber-700 bg-amber-50/50 rounded-lg">
+              ${totalHours} W
+            </td>
+            <td class="table-cell-std text-center">
+              <button onclick="padamBarisAgihanGuru(${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+            </td>
           </tr>
         `;
       });
+
+      renderClassCoverageSummary();
+    }
+
+    function toggleMultiSelectDropdown(idx) {
+      document.querySelectorAll('[id^="ddClassList_"]').forEach((el, i) => {
+        if (i !== idx) el.classList.add('hidden');
+      });
+      const target = document.getElementById(`ddClassList_${idx}`);
+      if (target) target.classList.toggle('hidden');
+    }
+
+    function onClassCheckboxToggle(rowIdx, kelas, isChecked) {
+      if (!STATE_AGIHAN_GURU[rowIdx].senaraiKelas) {
+        STATE_AGIHAN_GURU[rowIdx].senaraiKelas = [];
+      }
+      
+      if (isChecked) {
+        if (!STATE_AGIHAN_GURU[rowIdx].senaraiKelas.includes(kelas)) {
+          STATE_AGIHAN_GURU[rowIdx].senaraiKelas.push(kelas);
+        }
+      } else {
+        STATE_AGIHAN_GURU[rowIdx].senaraiKelas = STATE_AGIHAN_GURU[rowIdx].senaraiKelas.filter(k => k !== kelas);
+      }
+
+      renderAgihanGuruMatrix();
+    }
+
+    function tambahBarisAgihanGuru() {
+      STATE_AGIHAN_GURU.push({
+        idGuruUtama: '',
+        idSubjek: '',
+        idGuruPair: '',
+        senaraiKelas: []
+      });
+      renderAgihanGuruMatrix();
+    }
+
+    function padamBarisAgihanGuru(idx) {
+      STATE_AGIHAN_GURU.splice(idx, 1);
+      renderAgihanGuruMatrix();
+    }
+
+    // DASHBOARD RINGKASAN & STATUS AGIHAN KELAS
+    function renderClassCoverageSummary() {
+      const container = document.getElementById('boxClassCoverageSummary');
+      if (!container) return;
+
+      const senaraiKelasMaster = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas').map(k => k.Nama_Lokasi);
+      if (senaraiKelasMaster.length === 0) {
+        ['1 Iris', '1 Violet', '2 Iris', '2 Violet', '3 Iris', '4 Iris', '5 Iris', '6 Iris'].forEach(k => senaraiKelasMaster.push(k));
+      }
+
+      const flatList = prepareFlatAgihanForBackend();
+
+      let html = '';
+      senaraiKelasMaster.forEach(kelas => {
+        const classItems = flatList.filter(f => f.ID_Kelas === kelas);
+        const totalSubj = classItems.length;
+
+        let badgeClass = "bg-rose-100 text-rose-800 border-rose-300";
+        if (totalSubj >= 8) badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+        else if (totalSubj > 0) badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+
+        html += `
+          <div class="p-2 border rounded-xl flex items-center justify-between ${badgeClass}">
+            <span class="font-extrabold">${kelas}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-md font-black bg-white/80">${totalSubj} Subjek</span>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function toggleClassCoverageSummary() {
+      document.getElementById('boxClassCoverageSummary').classList.toggle('hidden');
     }
 
     async function simpanAgihanTugas() {
-      syncCurrentClassAgihanDOM();
-      showLoader('Menyimpan Agihan Tugas Semua Kelas...');
+      const flatList = prepareFlatAgihanForBackend();
+      showLoader('Menyimpan Agihan Tugas Ke Google Sheet...');
       try {
-        const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'agihan', data: STATE_AGIHAN } });
+        const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'agihan', data: flatList } });
         hideLoader();
         if (res && res.success) {
           Swal.fire('Berjaya', res.message, 'success');
@@ -874,7 +959,7 @@
             <td class="p-1.5"><input type="number" data-field="Max_Waktu_Berturut" value="${row.Max_Waktu_Berturut || 3}" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
             <td class="p-1.5"><input type="text" data-field="Slot_Dikunci_Off" value="${row.Slot_Dikunci_Off || ''}" placeholder="e.g. Isnin-W1, Isnin-W2" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white"></td>
             <td class="table-cell-std text-center">
-              <button onclick="padamBaris(this, 'guru', ${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="padamBarisGuruConstraint(${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         `;
@@ -882,7 +967,6 @@
     }
 
     function tambahBarisGuruConstraint() {
-      syncGuruConstraintDOM();
       STATE_GURU_CONSTRAINT.push({
         Nama_Guru: '',
         Max_Waktu_Sehari: 6,
@@ -892,8 +976,12 @@
       renderGuruConstraintTable();
     }
 
+    function padamBarisGuruConstraint(idx) {
+      STATE_GURU_CONSTRAINT.splice(idx, 1);
+      renderGuruConstraintTable();
+    }
+
     async function simpanGuruConstraints() {
-      syncGuruConstraintDOM();
       showLoader('Menyimpan Had Guru...');
       try {
         const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'guru', data: STATE_GURU_CONSTRAINT } });
@@ -902,18 +990,6 @@
       } catch (err) {
         hideLoader();
         Swal.fire('Ralat', String(err), 'error');
-      }
-    }
-
-    function padamBaris(btn, type, index) {
-      if (type === 'subjek') {
-        syncSubjekDOM();
-        STATE_SUBJEK.splice(index, 1);
-        renderSubjekTable();
-      } else if (type === 'guru') {
-        syncGuruConstraintDOM();
-        STATE_GURU_CONSTRAINT.splice(index, 1);
-        renderGuruConstraintTable();
       }
     }
 
