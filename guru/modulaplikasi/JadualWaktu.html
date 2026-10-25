@@ -126,13 +126,13 @@
 
     <main class="p-4 lg:p-8 space-y-6">
 
-      <!-- ================= 1. TETAPAN GRID MASA & REHAT ================= -->
+      <!-- ================= 1. TETAPAN GRID MASA & REHAT (DENGAN DROPDOWN HARI) ================= -->
       <div id="viewGridMasa" class="space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-brand-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
-              <h2 class="font-display font-extrabold text-xl text-slate-800">1. Tetapan Grid Masa (PdP, Rehat & Pembentukan Karakter)</h2>
-              <p class="text-xs text-slate-500">Durasi slot: PdP (+30m), Rehat (+20m), Pembentukan Karakter (+15m).</p>
+              <h2 class="font-display font-extrabold text-xl text-slate-800">1. Tetapan Grid Masa Mengikut Hari</h2>
+              <p class="text-xs text-slate-500">Pilih hari untuk menguruskan slot masa secara khusus (PdP +30m, Rehat +20m, PK +15m).</p>
             </div>
             <div class="flex gap-2">
               <button onclick="tambahBarisGridMasa()" class="px-3 py-2 bg-brand-50 hover:bg-brand-100 text-brand-700 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
@@ -144,6 +144,19 @@
             </div>
           </div>
 
+          <!-- DROPDOWN Tapis MENGIKUT HARI -->
+          <div class="flex items-center gap-3 bg-brand-50/50 p-3 rounded-xl border border-brand-200/60">
+            <label class="text-xs font-bold text-brand-900 shrink-0"><i class="fa-solid fa-calendar-day text-brand-600 mr-1"></i> Pilih Hari Grid Masa:</label>
+            <select id="selHariGridMasa" onchange="onHariGridMasaChange()" class="p-2 border border-brand-300 rounded-lg bg-white font-extrabold text-xs text-brand-900 focus:outline-none shrink-0 min-w-[160px]">
+              <option value="Isnin">Isnin</option>
+              <option value="Selasa">Selasa</option>
+              <option value="Rabu">Rabu</option>
+              <option value="Khamis">Khamis</option>
+              <option value="Jumaat">Jumaat</option>
+            </select>
+            <span class="text-[11px] text-brand-700 font-medium hidden sm:inline">| Menguruskan slot masa berasingan mengikut hari terpilih.</span>
+          </div>
+
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
@@ -151,7 +164,7 @@
                   <th class="table-cell-std w-12 text-center">BIL</th>
                   <th class="table-cell-std w-32">Slot ID</th>
                   <th class="table-cell-std w-44">Tahap / Kohort</th>
-                  <th class="table-cell-std w-28">Hari</th>
+                  <th class="table-cell-std w-24 text-center">Hari</th>
                   <th class="table-cell-std w-24 text-center">No. Waktu</th>
                   <th class="table-cell-std w-32">Jam Mula</th>
                   <th class="table-cell-std w-32">Jam Tamat</th>
@@ -216,7 +229,6 @@
             </button>
           </div>
 
-          <!-- FILTERS & KELAS TABS -->
           <div class="flex items-center gap-3 bg-amber-50/50 p-3 rounded-xl border border-amber-200/60">
             <label class="text-xs font-bold text-amber-900 shrink-0"><i class="fa-solid fa-chalkboard text-amber-600 mr-1"></i> Pilih Kelas:</label>
             <select id="selKelasAgihan" onchange="renderAgihanClassMatrix()" class="p-2 border border-amber-300 rounded-lg bg-white font-extrabold text-xs text-amber-900 focus:outline-none shrink-0 min-w-[180px]">
@@ -327,6 +339,8 @@
     let STATE_GURU_CONSTRAINT = [];
     let STATE_HASIL_JADUAL = [];
 
+    let LAST_GRID_HARI = 'Isnin';
+
     let ALL_STAF = [];
     let ALL_LOKASI = [];
     let ALL_MASTER_SUBJEK_LIST = [];
@@ -391,7 +405,6 @@
       }
     }
 
-    // UTILITI PENGIRAAN MASA AUTOMATIK
     function calculateJamTamat(jamMula, jenisSlot) {
       if (!jamMula) return '';
       let parts = jamMula.split(':');
@@ -414,19 +427,24 @@
       return `${hh}:${mm}`;
     }
 
-    function syncGridMasaDOM() {
+    function syncCurrentDayGridMasaDOM(dayToSync) {
+      const day = dayToSync || LAST_GRID_HARI || 'Isnin';
       const rows = document.querySelectorAll('#tbodyGridMasa tr');
-      if (rows.length === 0) return;
-      const updated = [];
+
+      // Buang data hari ini dari STATE_GRID_MASA, simpan semula dari DOM
+      STATE_GRID_MASA = STATE_GRID_MASA.filter(r => r.Hari !== day);
+
+      const updatedForDay = [];
       rows.forEach(r => {
         const inputs = r.querySelectorAll('[data-field]');
         if (inputs.length > 0) {
-          const item = {};
+          const item = { Hari: day };
           inputs.forEach(i => item[i.getAttribute('data-field')] = i.value);
-          updated.push(item);
+          updatedForDay.push(item);
         }
       });
-      if (updated.length > 0) STATE_GRID_MASA = updated;
+
+      STATE_GRID_MASA = STATE_GRID_MASA.concat(updatedForDay);
     }
 
     function syncSubjekDOM() {
@@ -499,20 +517,37 @@
       }
     }
 
-    // ================= 1. RENDER & MANAGE GRID MASA =================
+    // ================= 1. RENDER & MANAGE GRID MASA (ASINGKAN HARI) =================
+    function onHariGridMasaChange() {
+      const sel = document.getElementById('selHariGridMasa');
+      if (!sel) return;
+      const newHari = sel.value;
+
+      // Simpan data hari sebelum ini ke dalam state
+      syncCurrentDayGridMasaDOM(LAST_GRID_HARI);
+      LAST_GRID_HARI = newHari;
+
+      // Papar data hari baharu
+      renderGridMasaTable();
+    }
+
     function renderGridMasaTable() {
       const tbody = document.getElementById('tbodyGridMasa');
       if (!tbody) return;
 
+      const selHari = document.getElementById('selHariGridMasa')?.value || LAST_GRID_HARI || 'Isnin';
+      LAST_GRID_HARI = selHari;
+
+      const rowsForDay = STATE_GRID_MASA.filter(r => r.Hari === selHari);
       const timeOptions = ['07:40','08:10','08:40','09:10','09:40','10:00','10:10','10:30','11:00','11:30','12:00','12:30','13:00','13:30'];
 
       tbody.innerHTML = '';
-      if (STATE_GRID_MASA.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="table-cell-std text-center text-slate-400 italic">Tiada slot grid masa. Klik "+ Slot Masa" atau "Cipta / Reset Tab Sheet".</td></tr>`;
+      if (rowsForDay.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="table-cell-std text-center text-slate-400 italic">Tiada slot masa untuk hari ${selHari}. Klik "+ Slot Masa" di atas.</td></tr>`;
         return;
       }
 
-      STATE_GRID_MASA.forEach((row, idx) => {
+      rowsForDay.forEach((row, idx) => {
         let optMula = timeOptions.map(t => `<option value="${t}" ${row.Jam_Mula === t ? 'selected' : ''}>${t}</option>`).join('');
         if (row.Jam_Mula && !timeOptions.includes(row.Jam_Mula)) {
           optMula += `<option value="${row.Jam_Mula}" selected>${row.Jam_Mula}</option>`;
@@ -532,12 +567,10 @@
                 <option value="Tahap 2 (T4, T5 & T6)" ${row.Tahap === 'Tahap 2 (T4, T5 & T6)' ? 'selected' : ''}>Tahap 2 (T4, T5 & T6)</option>
               </select>
             </td>
-            <td class="p-1.5">
-              <select data-field="Hari" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
-                ${['Isnin','Selasa','Rabu','Khamis','Jumaat'].map(h => `<option value="${h}" ${row.Hari === h ? 'selected' : ''}>${h}</option>`).join('')}
-              </select>
+            <td class="p-1.5 font-extrabold text-brand-800 text-center bg-brand-50/50 rounded-lg">
+              <input type="hidden" data-field="Hari" value="${selHari}">${selHari}
             </td>
-            <td class="p-1.5"><input type="text" data-field="No_Waktu" value="${row.No_Waktu || '1'}" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
+            <td class="p-1.5"><input type="text" data-field="No_Waktu" value="${row.No_Waktu || String(idx+1)}" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
             <td class="p-1.5">
               <select data-field="Jam_Mula" onchange="onGridMasaTimeChange(this)" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
                 ${optMula}
@@ -555,7 +588,7 @@
               </select>
             </td>
             <td class="table-cell-std text-center">
-              <button onclick="padamBaris(this, 'grid', ${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="padamBarisGridMasa(${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>
         `;
@@ -574,17 +607,18 @@
     }
 
     function tambahBarisGridMasa() {
-      syncGridMasaDOM();
+      const selHari = document.getElementById('selHariGridMasa')?.value || LAST_GRID_HARI || 'Isnin';
+      syncCurrentDayGridMasaDOM(selHari);
+
+      const rowsForDay = STATE_GRID_MASA.filter(r => r.Hari === selHari);
 
       let nextMula = '07:40';
       let nextNoWaktu = '1';
-      let lastHari = 'Isnin';
       let lastTahap = 'Tahap 1 & 2';
 
-      if (STATE_GRID_MASA.length > 0) {
-        const lastRow = STATE_GRID_MASA[STATE_GRID_MASA.length - 1];
+      if (rowsForDay.length > 0) {
+        const lastRow = rowsForDay[rowsForDay.length - 1];
         lastTahap = lastRow.Tahap || lastTahap;
-        lastHari = lastRow.Hari || lastHari;
         
         let numW = parseInt(lastRow.No_Waktu, 10);
         nextNoWaktu = isNaN(numW) ? '1' : String(numW + 1);
@@ -594,9 +628,9 @@
       }
 
       STATE_GRID_MASA.push({
-        Slot_ID: `SLOT-${String(STATE_GRID_MASA.length + 1).padStart(2, '0')}`,
+        Slot_ID: `SLOT-${String(rowsForDay.length + 1).padStart(2, '0')}`,
         Tahap: lastTahap,
-        Hari: lastHari,
+        Hari: selHari,
         No_Waktu: nextNoWaktu,
         Jam_Mula: nextMula,
         Jam_Tamat: calculateJamTamat(nextMula, 'PdP'),
@@ -606,8 +640,27 @@
       renderGridMasaTable();
     }
 
+    function padamBarisGridMasa(filteredIdx) {
+      const selHari = document.getElementById('selHariGridMasa')?.value || LAST_GRID_HARI || 'Isnin';
+      syncCurrentDayGridMasaDOM(selHari);
+
+      let dayCount = 0;
+      for (let i = 0; i < STATE_GRID_MASA.length; i++) {
+        if (STATE_GRID_MASA[i].Hari === selHari) {
+          if (dayCount === filteredIdx) {
+            STATE_GRID_MASA.splice(i, 1);
+            break;
+          }
+          dayCount++;
+        }
+      }
+      renderGridMasaTable();
+    }
+
     async function simpanGridMasa() {
-      syncGridMasaDOM();
+      const selHari = document.getElementById('selHariGridMasa')?.value || LAST_GRID_HARI || 'Isnin';
+      syncCurrentDayGridMasaDOM(selHari);
+
       showLoader('Menyimpan Grid Masa...');
       try {
         const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'grid', data: STATE_GRID_MASA } });
@@ -717,10 +770,8 @@
       const currentKelas = document.getElementById('selKelasAgihan')?.value;
       if (!currentKelas) return;
 
-      // Buang data agihan lama bagi kelas ini dari STATE_AGIHAN
       STATE_AGIHAN = STATE_AGIHAN.filter(a => a.ID_Kelas !== currentKelas);
 
-      // Ambil data baharu dari jadual HTML
       const rows = document.querySelectorAll('#tbodyAgihanClassMatrix tr');
       rows.forEach(r => {
         const idSubjek = r.getAttribute('data-subjek-id');
@@ -855,11 +906,7 @@
     }
 
     function padamBaris(btn, type, index) {
-      if (type === 'grid') {
-        syncGridMasaDOM();
-        STATE_GRID_MASA.splice(index, 1);
-        renderGridMasaTable();
-      } else if (type === 'subjek') {
+      if (type === 'subjek') {
         syncSubjekDOM();
         STATE_SUBJEK.splice(index, 1);
         renderSubjekTable();
