@@ -265,11 +265,10 @@
                   <th class="table-cell-std w-12 text-center">BIL</th>
                   <th class="table-cell-std w-64 sticky-col-guru">Nama Guru Utama</th>
                   <th class="table-cell-std w-48">Subjek Mengajar</th>
-                  <th class="table-cell-std">Senarai Kelas Diajar (Checkbox Multiple)</th>
+                  <th class="table-cell-std min-w-[200px]">Senarai Kelas Diajar (Checkbox)</th>
                   <th class="table-cell-std w-48 text-center">Guru Pasangan / Co-Teacher</th>
-                  <th class="table-cell-std w-24 text-center">Waktu Subjek</th>
-                  <th class="table-cell-std w-28 text-center bg-amber-100/60 text-amber-900">Jml Waktu Guru</th>
-                  <th class="table-cell-std w-28 text-center">Tindakan</th>
+                  <th class="table-cell-std w-28 text-center">Waktu Subjek</th>
+                  <th class="table-cell-std w-32 text-center">Tindakan</th>
                 </tr>
               </thead>
               <tbody id="tbodyAgihanGuruMatrix" class="divide-y divide-slate-100 font-medium"></tbody>
@@ -369,6 +368,8 @@
     let ALL_LOKASI = [];
     let ALL_MASTER_SUBJEK_LIST = [];
 
+    window.currentOpenDropdownIdx = null;
+
     const SCRIPT_TARGET_URL = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
       ? WEB_APP_URL 
       : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
@@ -376,6 +377,14 @@
     window.addEventListener('DOMContentLoaded', () => {
       loadMasterPangkalanData().then(() => {
         loadAllJWData();
+      });
+
+      // Close class dropdown when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.class-dropdown-container')) {
+          document.querySelectorAll('[id^="ddClassList_"]').forEach(el => el.classList.add('hidden'));
+          window.currentOpenDropdownIdx = null;
+        }
       });
     });
 
@@ -431,7 +440,7 @@
 
     // HELPER: Susun Senarai Staf/Guru Mengikut Hierarki
     // 1. Pentadbir (GB, GPK Pentadbiran, GPK HEM, GPK Koku)
-    // 2. Guru Akdemik disusun ikut Abjad (A-Z)
+    // 2. Guru Akademik disusun ikut Abjad (A-Z)
     // 3. Guru Praktikal / Pelatih di bawah sekali
     function getSortedStafList() {
       const guruAktif = ALL_STAF.filter(s => 
@@ -457,7 +466,6 @@
       });
     }
 
-    // HELPER: Awalan Singkatan Hari untuk Slot_ID Unik
     function getPrefixHari(hari) {
       switch (String(hari).toLowerCase()) {
         case 'isnin': return 'ISN';
@@ -469,7 +477,6 @@
       }
     }
 
-    // HELPER: Tapis format masa dari Google Sheet (e.g. "1899-12-30T00:44:35.000Z") ke HH:mm
     function formatTimeString(val) {
       if (!val) return '';
       let str = String(val).trim();
@@ -905,7 +912,7 @@
       }
     }
 
-    // ================= 3. AGIHAN TUGAS BERPUSATKAN GURU (HIERARKI & JUMLAH WAKTU) =================
+    // ================= 3. AGIHAN TUGAS BERPUSATKAN GURU (ROWSPAN & VERTICAL STACKED CLASSES) =================
     function parseFlatAgihanToGuruView() {
       STATE_AGIHAN_GURU = [];
       const sortedStaf = getSortedStafList();
@@ -1007,84 +1014,145 @@
       }
 
       if (STATE_AGIHAN_GURU.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="table-cell-std text-center text-slate-400 italic">Tiada agihan guru.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="table-cell-std text-center text-slate-400 italic">Tiada agihan guru.</td></tr>`;
         renderClassCoverageSummary();
         return;
       }
 
+      // Pengelompokan baris mengikut Guru Utama (Rowspan)
+      const teacherGroups = [];
+      let currentTeacher = null;
+      let currentGroup = null;
+
       STATE_AGIHAN_GURU.forEach((row, idx) => {
-        let optG1 = optGuru.replace(`value="${row.idGuruUtama}"`, `value="${row.idGuruUtama}" selected`);
-        let optG2 = optGuru.replace(`value="${row.idGuruPair}"`, `value="${row.idGuruPair}" selected`);
-        let optSub = optSubjek.replace(`value="${row.idSubjek}"`, `value="${row.idSubjek}" selected`);
-
-        let checkboxListHtml = '';
-        senaraiKelasMaster.forEach(kelas => {
-          const isChecked = (row.senaraiKelas || []).includes(kelas) ? 'checked' : '';
-          checkboxListHtml += `
-            <label class="flex items-center gap-2 p-1 hover:bg-slate-100 rounded cursor-pointer text-xs font-semibold text-slate-700">
-              <input type="checkbox" value="${kelas}" ${isChecked} onchange="onClassCheckboxToggle(${idx}, '${kelas}', this.checked)" class="rounded text-amber-600 focus:ring-amber-500 w-4 h-4">
-              <span>${kelas}</span>
-            </label>
-          `;
-        });
-
-        const selectedCount = (row.senaraiKelas || []).length;
-        const sub = STATE_SUBJEK.find(s => (s.Kod_Subjek || s.ID_Subjek) === row.idSubjek) || {};
-        const isCoTeaching = String(sub.Flag_CoTeaching || '').toUpperCase() === 'TRUE';
-        
-        const rowHours = selectedCount * (parseInt(sub.Bil_Waktu_Seminggu, 10) || 0);
-        const totalTeacherHours = calculateTotalWaktuGuru(row.idGuruUtama);
-
-        // Hanya paparkan dropdown guru pasangan jika Co-Teaching = TRUE
-        let cellCoTeachingHtml = '<span class="text-slate-400 font-extrabold text-center block">-</span>';
-        if (isCoTeaching) {
-          cellCoTeachingHtml = `
-            <select onchange="STATE_AGIHAN_GURU[${idx}].idGuruPair = this.value" class="w-full p-1.5 border border-amber-300 rounded-lg text-xs font-semibold bg-white text-amber-900">
-              ${optG2}
-            </select>
-          `;
+        const tName = row.idGuruUtama || '';
+        if (!currentGroup || currentTeacher !== tName || !tName) {
+          currentTeacher = tName;
+          currentGroup = {
+            guruName: tName,
+            rows: [{ data: row, originalIndex: idx }]
+          };
+          teacherGroups.push(currentGroup);
+        } else {
+          currentGroup.rows.push({ data: row, originalIndex: idx });
         }
+      });
 
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="p-1.5 sticky-col-guru">
-              <select onchange="STATE_AGIHAN_GURU[${idx}].idGuruUtama = this.value; renderAgihanGuruMatrix();" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-amber-900 bg-white">
-                ${optG1}
+      let bilCounter = 1;
+
+      teacherGroups.forEach((group) => {
+        const rowspanCount = group.rows.length;
+        const totalTeacherHours = calculateTotalWaktuGuru(group.guruName);
+
+        group.rows.forEach((rowObj, subIdx) => {
+          const idx = rowObj.originalIndex;
+          const row = rowObj.data;
+          const isFirst = (subIdx === 0);
+          const isLast = (subIdx === rowspanCount - 1);
+
+          const selectedCount = (row.senaraiKelas || []).length;
+          const sub = STATE_SUBJEK.find(s => (s.Kod_Subjek || s.ID_Subjek) === row.idSubjek) || {};
+          const isCoTeaching = String(sub.Flag_CoTeaching || '').toUpperCase() === 'TRUE';
+          const rowHours = selectedCount * (parseInt(sub.Bil_Waktu_Seminggu, 10) || 0);
+
+          let optG1 = optGuru.replace(`value="${row.idGuruUtama}"`, `value="${row.idGuruUtama}" selected`);
+          let optG2 = optGuru.replace(`value="${row.idGuruPair}"`, `value="${row.idGuruPair}" selected`);
+          let optSub = optSubjek.replace(`value="${row.idSubjek}"`, `value="${row.idSubjek}" selected`);
+
+          let checkboxListHtml = '';
+          senaraiKelasMaster.forEach(kelas => {
+            const isChecked = (row.senaraiKelas || []).includes(kelas) ? 'checked' : '';
+            checkboxListHtml += `
+              <label class="flex items-center gap-2 p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer text-xs font-semibold text-slate-700">
+                <input type="checkbox" value="${kelas}" ${isChecked} onchange="onClassCheckboxToggle(${idx}, '${kelas}', this.checked, event)" class="rounded text-amber-600 focus:ring-amber-500 w-4 h-4">
+                <span>${kelas}</span>
+              </label>
+            `;
+          });
+
+          // Paparan Senarai Kelas Secara Menegak (Stacked)
+          let classesDisplayHtml = '';
+          if (row.senaraiKelas && row.senaraiKelas.length > 0) {
+            classesDisplayHtml = row.senaraiKelas.map(c => `<div class="font-extrabold text-slate-800 text-[11px] leading-tight py-0.5"><i class="fa-solid fa-chalkboard-user text-amber-500 mr-1 text-[10px]"></i>${c}</div>`).join('');
+          } else {
+            classesDisplayHtml = `<span class="text-slate-400 italic text-[11px]">-- Pilih Checkbox Kelas --</span>`;
+          }
+
+          let cellCoTeachingHtml = '<span class="text-slate-400 font-extrabold text-center block pt-2">-</span>';
+          if (isCoTeaching) {
+            cellCoTeachingHtml = `
+              <select onchange="STATE_AGIHAN_GURU[${idx}].idGuruPair = this.value" class="w-full p-1.5 border border-amber-300 rounded-lg text-xs font-semibold bg-white text-amber-900">
+                ${optG2}
               </select>
-            </td>
-            <td class="p-1.5">
-              <select onchange="STATE_AGIHAN_GURU[${idx}].idSubjek = this.value; renderAgihanGuruMatrix();" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
+            `;
+          }
+
+          let trHtml = `<tr class="hover:bg-slate-50 transition border-b border-slate-200">`;
+
+          if (isFirst) {
+            trHtml += `
+              <td rowspan="${rowspanCount}" class="table-cell-std text-center font-bold text-slate-400 align-top pt-3 bg-slate-50/50">${bilCounter}</td>
+              <td rowspan="${rowspanCount}" class="p-2 sticky-col-guru align-top min-w-[220px] w-64 bg-white border-r border-slate-200">
+                <select onchange="STATE_AGIHAN_GURU[${idx}].idGuruUtama = this.value; renderAgihanGuruMatrix();" class="w-full p-2 border border-amber-300 rounded-xl text-xs font-extrabold text-amber-900 bg-amber-50/30 focus:outline-none shadow-2xs">
+                  ${optG1}
+                </select>
+              </td>
+            `;
+            bilCounter++;
+          }
+
+          trHtml += `
+            <td class="p-2 align-top w-48">
+              <select onchange="STATE_AGIHAN_GURU[${idx}].idSubjek = this.value; renderAgihanGuruMatrix();" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white focus:outline-none">
                 ${optSub}
               </select>
             </td>
-            <td class="p-1.5 relative">
-              <button type="button" onclick="toggleMultiSelectDropdown(${idx})" class="w-full p-1.5 border rounded-lg text-xs font-extrabold bg-white text-left flex items-center justify-between shadow-2xs">
-                <span class="truncate text-amber-800">${selectedCount > 0 ? row.senaraiKelas.join(', ') : '-- Pilih Checkbox Kelas --'}</span>
-                <span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full shrink-0 font-bold ml-1">${selectedCount} Kelas</span>
+
+            <td class="p-2 align-top relative class-dropdown-container min-w-[180px]">
+              <button type="button" onclick="toggleMultiSelectDropdown(${idx}, event)" class="w-full p-2 border border-slate-300 rounded-xl bg-white text-left flex items-start justify-between shadow-2xs hover:bg-slate-50 transition">
+                <div class="space-y-0.5 flex-1">${classesDisplayHtml}</div>
+                <span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full shrink-0 font-extrabold ml-2 mt-0.5">${selectedCount} Kelas</span>
               </button>
 
-              <div id="ddClassList_${idx}" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-slate-300 rounded-xl shadow-xl z-50 p-2 max-h-48 overflow-y-auto space-y-1">
-                <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-1 pb-1 border-b">Tandakan Kelas:</div>
+              <div id="ddClassList_${idx}" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-slate-300 rounded-2xl shadow-2xl z-50 p-2.5 max-h-56 overflow-y-auto space-y-1">
+                <div class="flex items-center justify-between px-1 pb-1.5 border-b border-slate-100">
+                  <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Tandakan Kelas:</span>
+                  <button type="button" onclick="closeMultiSelectDropdown(${idx}, event)" class="text-[10px] bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-2 py-0.5 rounded-md transition">Selesai</button>
+                </div>
                 ${checkboxListHtml}
               </div>
             </td>
-            <td class="p-1.5">
+
+            <td class="p-2 align-top w-48">
               ${cellCoTeachingHtml}
             </td>
-            <td class="p-1.5 text-center font-extrabold text-slate-700 bg-slate-50 rounded-lg">
-              ${rowHours} W
+
+            <td class="p-2 align-top text-center w-28">
+              <div class="font-extrabold text-slate-700 bg-slate-100 px-2 py-1 rounded-lg text-xs inline-block min-w-[45px]">
+                ${rowHours} w
+              </div>
+              ${isLast ? `
+                <div class="mt-2 pt-1 border-t border-amber-200 font-black text-xs text-amber-900 bg-amber-100/90 py-1 px-1.5 rounded-lg border border-amber-300 shadow-2xs">
+                  (${totalTeacherHours} w)
+                </div>
+              ` : ''}
             </td>
-            <td class="p-1.5 text-center font-black text-amber-900 bg-amber-100/60 rounded-lg border border-amber-200">
-              ${totalTeacherHours} W
+
+            <td class="p-2 align-top text-center w-32 space-x-1">
+              <button onclick="tambahSubjekUntukGuru('${row.idGuruUtama}', ${idx})" title="Tambah Subjek untuk guru ini" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-[11px] rounded-lg transition border border-amber-300 inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-plus text-[10px]"></i> Subjek</button>
+              <button onclick="padamBarisAgihanGuru(${idx})" title="Padam Baris" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-[11px] rounded-lg transition border border-rose-200 inline-flex items-center"><i class="fa-solid fa-trash"></i></button>
             </td>
-            <td class="table-cell-std text-center space-x-1">
-              <button onclick="tambahSubjekUntukGuru('${row.idGuruUtama}', ${idx})" title="Tambah Subjek untuk guru ini" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold rounded-lg transition border border-amber-300"><i class="fa-solid fa-plus"></i> Subjek</button>
-              <button onclick="padamBarisAgihanGuru(${idx})" title="Padam Baris" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
-            </td>
-          </tr>
-        `;
+          </tr>`;
+
+          tbody.innerHTML += trHtml;
+        });
       });
+
+      // Buka semula dropdown kelas jika ada sesi aktif
+      if (window.currentOpenDropdownIdx !== null && window.currentOpenDropdownIdx !== undefined) {
+        const activeDd = document.getElementById(`ddClassList_${window.currentOpenDropdownIdx}`);
+        if (activeDd) activeDd.classList.remove('hidden');
+      }
 
       renderClassCoverageSummary();
     }
@@ -1109,15 +1177,33 @@
       renderAgihanGuruMatrix();
     }
 
-    function toggleMultiSelectDropdown(idx) {
+    function toggleMultiSelectDropdown(idx, event) {
+      if (event) event.stopPropagation();
       document.querySelectorAll('[id^="ddClassList_"]').forEach((el, i) => {
         if (i !== idx) el.classList.add('hidden');
       });
       const target = document.getElementById(`ddClassList_${idx}`);
-      if (target) target.classList.toggle('hidden');
+      if (target) {
+        const isHidden = target.classList.contains('hidden');
+        if (isHidden) {
+          target.classList.remove('hidden');
+          window.currentOpenDropdownIdx = idx;
+        } else {
+          target.classList.add('hidden');
+          window.currentOpenDropdownIdx = null;
+        }
+      }
     }
 
-    function onClassCheckboxToggle(rowIdx, kelas, isChecked) {
+    function closeMultiSelectDropdown(idx, event) {
+      if (event) event.stopPropagation();
+      const target = document.getElementById(`ddClassList_${idx}`);
+      if (target) target.classList.add('hidden');
+      window.currentOpenDropdownIdx = null;
+    }
+
+    function onClassCheckboxToggle(rowIdx, kelas, isChecked, event) {
+      if (event) event.stopPropagation();
       if (!STATE_AGIHAN_GURU[rowIdx].senaraiKelas) {
         STATE_AGIHAN_GURU[rowIdx].senaraiKelas = [];
       }
@@ -1130,6 +1216,7 @@
         STATE_AGIHAN_GURU[rowIdx].senaraiKelas = STATE_AGIHAN_GURU[rowIdx].senaraiKelas.filter(k => k !== kelas);
       }
 
+      window.currentOpenDropdownIdx = rowIdx;
       renderAgihanGuruMatrix();
     }
 
