@@ -132,7 +132,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h2 class="font-display font-extrabold text-xl text-slate-800">1. Tetapan Grid Masa Mengikut Hari</h2>
-              <p class="text-xs text-slate-500">Pilih hari untuk menguruskan slot masa secara khusus (PdP +30m, Rehat +20m, PK +15m).</p>
+              <p class="text-xs text-slate-500">Pilih hari untuk menguruskan slot masa secara khusus (Single 30m, Double 60m, PK 15m, Rehat 20m).</p>
             </div>
             <div class="flex gap-2">
               <button onclick="tambahBarisGridMasa()" class="px-3 py-2 bg-brand-50 hover:bg-brand-100 text-brand-700 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
@@ -166,7 +166,7 @@
                   <th class="table-cell-std w-24 text-center">No. Waktu</th>
                   <th class="table-cell-std w-32">Jam Mula</th>
                   <th class="table-cell-std w-32">Jam Tamat</th>
-                  <th class="table-cell-std">Jenis Slot</th>
+                  <th class="table-cell-std">Jenis Slot / Tempoh Masa</th>
                   <th class="table-cell-std w-16 text-center">Padam</th>
                 </tr>
               </thead>
@@ -176,7 +176,7 @@
         </div>
       </div>
 
-      <!-- ================= 2. TETAPAN SUBJEK & BILANGAN WAKTU (DROPDOWN MASTER SUBJEK) ================= -->
+      <!-- ================= 2. TETAPAN SUBJEK & BILANGAN WAKTU ================= -->
       <div id="viewMasterSubjek" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-emerald-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -419,15 +419,45 @@
       }
     }
 
+    // HELPER: Tapis string format tarikh dari Google Sheet (e.g. "1899-12-30T07:40:00.000Z") kepada HH:mm
+    function formatTimeString(val) {
+      if (!val) return '';
+      let str = String(val).trim();
+      if (str.includes('T')) {
+        let timePart = str.split('T')[1];
+        if (timePart) {
+          let parts = timePart.split(':');
+          return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+        }
+      }
+      let match = str.match(/(\d{1,2}):(\d{2})/);
+      if (match) {
+        return `${match[1].padStart(2, '0')}:${match[2]}`;
+      }
+      return str;
+    }
+
     function calculateJamTamat(jamMula, jenisSlot) {
+      jamMula = formatTimeString(jamMula);
       if (!jamMula) return '';
       let parts = jamMula.split(':');
       let h = parseInt(parts[0], 10);
       let m = parseInt(parts[1], 10);
 
-      let duration = 30; // PdP
-      if (jenisSlot === 'Rehat') duration = 20;
-      else if (jenisSlot === 'Pembentukan Karakter') duration = 15;
+      if (isNaN(h) || isNaN(m)) return '';
+
+      let duration = 30; // Default Single Slot
+      const slotStr = String(jenisSlot || '');
+
+      if (slotStr.includes('60') || slotStr.includes('Double')) {
+        duration = 60;
+      } else if (slotStr.includes('15') || slotStr.includes('Karakter')) {
+        duration = 15;
+      } else if (slotStr.includes('20') || slotStr.includes('Rehat')) {
+        duration = 20;
+      } else if (slotStr.includes('30') || slotStr.includes('Single') || slotStr.includes('Perhimpunan')) {
+        duration = 30;
+      }
 
       m += duration;
 
@@ -505,12 +535,14 @@
       }
 
       rowsForDay.forEach((row, idx) => {
-        let optMula = timeOptions.map(t => `<option value="${t}" ${row.Jam_Mula === t ? 'selected' : ''}>${t}</option>`).join('');
-        if (row.Jam_Mula && !timeOptions.includes(row.Jam_Mula)) {
-          optMula += `<option value="${row.Jam_Mula}" selected>${row.Jam_Mula}</option>`;
+        let cleanJamMula = formatTimeString(row.Jam_Mula) || '07:40';
+        let optMula = timeOptions.map(t => `<option value="${t}" ${cleanJamMula === t ? 'selected' : ''}>${t}</option>`).join('');
+        if (cleanJamMula && !timeOptions.includes(cleanJamMula)) {
+          optMula += `<option value="${cleanJamMula}" selected>${cleanJamMula}</option>`;
         }
         
-        const jamTamatAuto = calculateJamTamat(row.Jam_Mula || '07:40', row.Jenis_Slot || 'PdP');
+        let jenis = row.Jenis_Slot || 'Single Slot (30 Minit)';
+        const jamTamatAuto = calculateJamTamat(cleanJamMula, jenis);
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
@@ -538,10 +570,11 @@
             </td>
             <td class="p-1.5">
               <select data-field="Jenis_Slot" onchange="onGridMasaTimeChange(this)" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
-                <option value="PdP" ${row.Jenis_Slot === 'PdP' ? 'selected' : ''}>PdP (30 Minit)</option>
-                <option value="Rehat" ${row.Jenis_Slot === 'Rehat' ? 'selected' : ''}>Rehat (20 Minit)</option>
-                <option value="Pembentukan Karakter" ${row.Jenis_Slot === 'Pembentukan Karakter' ? 'selected' : ''}>Pembentukan Karakter (15 Minit)</option>
-                <option value="Perhimpunan" ${row.Jenis_Slot === 'Perhimpunan' ? 'selected' : ''}>Perhimpunan (30 Minit)</option>
+                <option value="Single Slot (30 Minit)" ${jenis.includes('Single') || jenis === 'PdP' ? 'selected' : ''}>Single Slot (30 Minit)</option>
+                <option value="Double Slot (60 Minit)" ${jenis.includes('Double') || jenis.includes('60') ? 'selected' : ''}>Double Slot (60 Minit)</option>
+                <option value="Pembentukan Karakter (15 Minit)" ${jenis.includes('Karakter') || jenis.includes('15') ? 'selected' : ''}>Pembentukan Karakter (15 Minit)</option>
+                <option value="Rehat (20 Minit)" ${jenis.includes('Rehat') ? 'selected' : ''}>Rehat (20 Minit)</option>
+                <option value="Perhimpunan (30 Minit)" ${jenis.includes('Perhimpunan') ? 'selected' : ''}>Perhimpunan (30 Minit)</option>
               </select>
             </td>
             <td class="table-cell-std text-center">
@@ -576,7 +609,7 @@
         lastTahap = lastRow.Tahap || lastTahap;
         let numW = parseInt(lastRow.No_Waktu, 10);
         nextNoWaktu = isNaN(numW) ? '1' : String(numW + 1);
-        const calculatedLastTamat = calculateJamTamat(lastRow.Jam_Mula || '07:40', lastRow.Jenis_Slot || 'PdP');
+        const calculatedLastTamat = calculateJamTamat(lastRow.Jam_Mula || '07:40', lastRow.Jenis_Slot || 'Single Slot (30 Minit)');
         if (calculatedLastTamat) nextMula = calculatedLastTamat;
       }
 
@@ -586,8 +619,8 @@
         Hari: selHari,
         No_Waktu: nextNoWaktu,
         Jam_Mula: nextMula,
-        Jam_Tamat: calculateJamTamat(nextMula, 'PdP'),
-        Jenis_Slot: 'PdP'
+        Jam_Tamat: calculateJamTamat(nextMula, 'Single Slot (30 Minit)'),
+        Jenis_Slot: 'Single Slot (30 Minit)'
       });
 
       renderGridMasaTable();
@@ -620,7 +653,7 @@
       }
     }
 
-    // ================= 2. RENDER & MANAGE SUBJEK (DROPDOWN KOD SUBJEK + AUTO NAMA) =================
+    // ================= 2. RENDER & MANAGE SUBJEK =================
     function renderSubjekTable() {
       const tbody = document.getElementById('tbodyMasterSubjek');
       if (!tbody) return;
