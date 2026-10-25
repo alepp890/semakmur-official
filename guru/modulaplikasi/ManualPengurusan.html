@@ -409,7 +409,7 @@
         </div>
       </div>
 
-      <!-- ================= 5. OVERVIEW MAP: JK INDUK (TAMBAH JAWATAN KHAS DI BAWAH JK INDUK) ================= -->
+      <!-- ================= 5. OVERVIEW MAP: JK INDUK ================= -->
       <div id="viewIndukOverview" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
           <div class="flex items-center justify-between border-b pb-4">
@@ -465,7 +465,7 @@
         </div>
       </div>
 
-      <!-- ================= 6. DETAIL SUB-JAWATANKUASA (NAIB PENGERUSI FLEKSIBEL & TUGAS KHAS) ================= -->
+      <!-- ================= 6. DETAIL SUB-JAWATANKUASA (MENGANDUNGI BORDER ROW PADA SETIAP NAIB PENGERUSI 1, 2, 3) ================= -->
       <div id="viewSubJkDetail" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
           <div class="flex items-center justify-between border-b pb-4">
@@ -479,35 +479,32 @@
           </div>
 
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
+            <!-- PENGERUSI ROW -->
             <div class="flex items-center justify-between border-b border-slate-200 pb-2">
               <span class="font-bold text-slate-600 w-40">Pengerusi:</span>
               <span id="subMapPengerusi" class="font-extrabold text-slate-800 flex-1"></span>
             </div>
 
-            <!-- NAIB PENGERUSI UNTUK SUB-UNIT (FLEKSIBEL BAGI PENTADBIRAN / TERKUNCI BAGI LAIN-LAIN) -->
-            <div id="boxNaibPengerusiContainer" class="space-y-2 border-b border-slate-200 pb-2">
-              <div id="rowNaibStatic1" class="flex items-center justify-between">
-                <span class="font-bold text-slate-600 w-40">Naib Pengerusi 1:</span>
-                <span id="subMapNaib1" class="font-extrabold text-slate-800 flex-1"></span>
-              </div>
-              <div id="rowNaibStatic2" class="flex items-center justify-between">
-                <span class="font-bold text-slate-600 w-40">Naib Pengerusi 2:</span>
-                <span id="subMapNaib2" class="font-extrabold text-slate-800 flex-1"></span>
-              </div>
-              <div id="rowNaibStatic3" class="flex items-center justify-between">
-                <span class="font-bold text-slate-600 w-40">Naib Pengerusi 3:</span>
-                <span id="subMapNaib3" class="font-extrabold text-slate-800 flex-1"></span>
-              </div>
-              <div id="rowNaibDynamicPentadbiran" class="hidden flex items-center justify-between">
-                <span class="font-bold text-rose-600 w-40">Naib Pengerusi:</span>
-                <div class="flex-1">
-                  <select id="selSubNaibPengerusi" class="w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>
-                </div>
-              </div>
+            <!-- NAIB PENGERUSI 1 ROW (WITH SEPARATOR LINE) -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-600 w-40">Naib Pengerusi 1:</span>
+              <div id="wrapperNaib1" class="flex-1"></div>
+            </div>
+
+            <!-- NAIB PENGERUSI 2 ROW (WITH SEPARATOR LINE) -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-600 w-40">Naib Pengerusi 2:</span>
+              <div id="wrapperNaib2" class="flex-1"></div>
+            </div>
+
+            <!-- NAIB PENGERUSI 3 ROW (WITH SEPARATOR LINE) -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-600 w-40">Naib Pengerusi 3:</span>
+              <div id="wrapperNaib3" class="flex-1"></div>
             </div>
 
             <!-- DROPDOWN PENYELARAS / KP + TUGAS KHAS -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-b border-slate-200 pb-2">
               <span id="lblSubPenyelarasTitle" class="font-bold text-slate-700 w-40">Penyelaras:</span>
               <div class="flex-1 flex gap-2">
                 <select id="selSubPenyelaras" class="select-guru-opt w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>
@@ -1045,7 +1042,7 @@
       openIndukOverview(katName);
     }
 
-    // ================= 5. OVERVIEW MAP: JK INDUK (BUTANG PEGAWAI KHAS DI BAWAH JK INDUK) =================
+    // ================= 5. OVERVIEW MAP: JK INDUK =================
     function openIndukOverview(katName) {
       activeCategoryInduk = katName;
       showView('viewIndukOverview');
@@ -1156,7 +1153,6 @@
         });
       }
 
-      // Simpan Pegawai Tambahan di JK Induk
       const customOfficerRows = document.querySelectorAll('#containerIndukCustomOfficers > div');
       customOfficerRows.forEach(row => {
         const titleInp = row.querySelector('input[data-induk-officer-title="true"]');
@@ -1242,7 +1238,46 @@
       });
     }
 
-    // ================= 6. DETAIL SUB-JAWATANKUASA (NAIB PENGERUSI FLEKSIBEL & TUGAS KHAS) =================
+    // ================= 6. DETAIL SUB-JAWATANKUASA =================
+    function populatePentadbiranNaibDropdowns(selectedVal1 = '', selectedVal2 = '', selectedVal3 = '') {
+      const el1 = document.getElementById('selSubNaib1');
+      const el2 = document.getElementById('selSubNaib2');
+      const el3 = document.getElementById('selSubNaib3');
+      if (!el1 || !el2 || !el3) return;
+
+      const currentVal1 = selectedVal1 || el1.value;
+      const currentVal2 = selectedVal2 || el2.value;
+      const currentVal3 = selectedVal3 || el3.value;
+
+      const pentadbirList = ALL_STAF.filter(s => 
+        ['GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum', 'Guru Besar'].includes(s.Kategori_Staf) &&
+        (s.Status || 'Aktif').trim().toLowerCase() === 'aktif'
+      );
+      const sorted = sortStafList(pentadbirList);
+
+      function generateOptions(curVal, otherValA, otherValB) {
+        let opt = '<option value="">-- Pilih Naib Pengerusi --</option>';
+        sorted.forEach(p => {
+          if (p.ID_Staf !== otherValA && p.ID_Staf !== otherValB) {
+            opt += `<option value="${p.ID_Staf}" ${p.ID_Staf === curVal ? 'selected' : ''}>${p.Nama_Penuh} (${p.Kategori_Staf})</option>`;
+          }
+        });
+        return opt;
+      }
+
+      el1.innerHTML = generateOptions(currentVal1, currentVal2, currentVal3);
+      el2.innerHTML = generateOptions(currentVal2, currentVal1, currentVal3);
+      el3.innerHTML = generateOptions(currentVal3, currentVal1, currentVal2);
+
+      el1.value = currentVal1;
+      el2.value = currentVal2;
+      el3.value = currentVal3;
+    }
+
+    function filterPentadbiranNaibDropdowns() {
+      populatePentadbiranNaibDropdowns();
+    }
+
     function openSubJkDetail(katName, namaJk) {
       activeCategoryInduk = katName;
       activeSubJkName = namaJk;
@@ -1262,44 +1297,57 @@
       const gpkHem = ALL_STAF.find(s => s.Kategori_Staf === 'GPK Hal Ehwal Murid');
       const gpkKoko = ALL_STAF.find(s => s.Kategori_Staf === 'GPK Ko Kurikulum');
 
-      document.getElementById('subMapPengerusi').innerText = gb ? gb.Nama_Penuh : 'Guru Besar';
+      document.getElementById('subMapPengerusi').innerText = gb ? `${gb.Nama_Penuh} (Guru Besar)` : 'Guru Besar';
 
-      // Naib Pengerusi Fleksibel Khas Pentadbiran vs Terkunci
-      const rowNaib1 = document.getElementById('rowNaibStatic1');
-      const rowNaib2 = document.getElementById('rowNaibStatic2');
-      const rowNaib3 = document.getElementById('rowNaibStatic3');
-      const rowNaibDyn = document.getElementById('rowNaibDynamicPentadbiran');
+      const wrapper1 = document.getElementById('wrapperNaib1');
+      const wrapper2 = document.getElementById('wrapperNaib2');
+      const wrapper3 = document.getElementById('wrapperNaib3');
 
       if (katName === 'Pentadbiran') {
-        rowNaib1.classList.add('hidden');
-        rowNaib2.classList.add('hidden');
-        rowNaib3.classList.add('hidden');
-        rowNaibDyn.classList.remove('hidden');
+        wrapper1.innerHTML = `<select id="selSubNaib1" onchange="filterPentadbiranNaibDropdowns()" class="w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>`;
+        wrapper2.innerHTML = `<select id="selSubNaib2" onchange="filterPentadbiranNaibDropdowns()" class="w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>`;
+        wrapper3.innerHTML = `<select id="selSubNaib3" onchange="filterPentadbiranNaibDropdowns()" class="w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>`;
 
-        const pentadbirList = ALL_STAF.filter(s => ['GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf));
-        let optNaib = `<option value="">-- Pilih Naib Pengerusi --</option>`;
-        pentadbirList.forEach(p => {
-          optNaib += `<option value="${p.ID_Staf}">${p.Nama_Penuh} (${p.Kategori_Staf})</option>`;
-        });
-
-        const selNaib = document.getElementById('selSubNaibPengerusi');
-        selNaib.innerHTML = optNaib;
-
-        const naibRec = ALL_PERANAN.find(p => 
+        const np1Rec = ALL_PERANAN.find(p => 
           String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
-          String(p.Peranan || p.peranan || '').toLowerCase().includes('naib pengerusi') &&
+          (String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi 1' || String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi') &&
           String(p.Status || 'Aktif').toLowerCase() === 'aktif'
         );
-        if (naibRec) selNaib.value = naibRec.ID_Staf || naibRec.id_staf;
-      } else {
-        rowNaib1.classList.remove('hidden');
-        rowNaib2.classList.remove('hidden');
-        rowNaib3.classList.remove('hidden');
-        rowNaibDyn.classList.add('hidden');
+        const np2Rec = ALL_PERANAN.find(p => 
+          String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
+          String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi 2' &&
+          String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+        );
+        const np3Rec = ALL_PERANAN.find(p => 
+          String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
+          String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi 3' &&
+          String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+        );
 
-        document.getElementById('subMapNaib1').innerText = gpk1 ? gpk1.Nama_Penuh : 'GPK Pentadbiran';
-        document.getElementById('subMapNaib2').innerText = gpkHem ? gpkHem.Nama_Penuh : 'GPK HEM';
-        document.getElementById('subMapNaib3').innerText = gpkKoko ? gpkKoko.Nama_Penuh : 'GPK Koko';
+        const v1 = np1Rec ? (np1Rec.ID_Staf || np1Rec.id_staf) : '';
+        const v2 = np2Rec ? (np2Rec.ID_Staf || np2Rec.id_staf) : '';
+        const v3 = np3Rec ? (np3Rec.ID_Staf || np3Rec.id_staf) : '';
+
+        populatePentadbiranNaibDropdowns(v1, v2, v3);
+      } else {
+        let nameN1 = '', nameN2 = '', nameN3 = '';
+        if (katName === 'Kurikulum') {
+          nameN1 = gpk1 ? `${gpk1.Nama_Penuh} (GPK Pentadbiran)` : 'GPK Pentadbiran';
+          nameN2 = gpkHem ? `${gpkHem.Nama_Penuh} (GPK HEM)` : 'GPK Hal Ehwal Murid';
+          nameN3 = gpkKoko ? `${gpkKoko.Nama_Penuh} (GPK Koko)` : 'GPK Kokurikulum';
+        } else if (katName === 'Hal Ehwal Murid') {
+          nameN1 = gpkHem ? `${gpkHem.Nama_Penuh} (GPK HEM)` : 'GPK Hal Ehwal Murid';
+          nameN2 = gpk1 ? `${gpk1.Nama_Penuh} (GPK Pentadbiran)` : 'GPK Pentadbiran';
+          nameN3 = gpkKoko ? `${gpkKoko.Nama_Penuh} (GPK Koko)` : 'GPK Kokurikulum';
+        } else if (katName === 'Kokurikulum') {
+          nameN1 = gpkKoko ? `${gpkKoko.Nama_Penuh} (GPK Koko)` : 'GPK Kokurikulum';
+          nameN2 = gpk1 ? `${gpk1.Nama_Penuh} (GPK Pentadbiran)` : 'GPK Pentadbiran';
+          nameN3 = gpkHem ? `${gpkHem.Nama_Penuh} (GPK HEM)` : 'GPK Hal Ehwal Murid';
+        }
+
+        wrapper1.innerHTML = `<span class="font-extrabold text-slate-800 flex-1">${nameN1}</span>`;
+        wrapper2.innerHTML = `<span class="font-extrabold text-slate-800 flex-1">${nameN2}</span>`;
+        wrapper3.innerHTML = `<span class="font-extrabold text-slate-800 flex-1">${nameN3}</span>`;
       }
 
       // Penyelaras + Tugas Khas
@@ -1326,7 +1374,7 @@
       // Tampilkan Pegawai Khas Dinamik
       const customOfficers = ALL_PERANAN.filter(p => 
         String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
-        !['penyelaras', 'ketua panitia', 'setiausaha', 'setiausaha panitia', 'ajk', 'ajk panitia', 'naib pengerusi'].includes(String(p.Peranan || p.peranan || '').toLowerCase()) &&
+        !['penyelaras', 'ketua panitia', 'setiausaha', 'setiausaha panitia', 'ajk', 'ajk panitia', 'naib pengerusi', 'naib pengerusi 1', 'naib pengerusi 2', 'naib pengerusi 3'].includes(String(p.Peranan || p.peranan || '').toLowerCase()) &&
         String(p.Status || 'Aktif').toLowerCase() === 'aktif'
       );
 
@@ -1446,17 +1494,44 @@
 
       let payloadBatch = [];
 
-      // Simpan Naib Pengerusi Fleksibel jika Kategori Pentadbiran
+      // Simpan Naib Pengerusi 1, 2, 3 jika Kategori Pentadbiran
       if (activeCategoryInduk === 'Pentadbiran') {
-        const naibVal = document.getElementById('selSubNaibPengerusi')?.value;
-        if (naibVal) {
+        const np1 = document.getElementById('selSubNaib1')?.value;
+        const np2 = document.getElementById('selSubNaib2')?.value;
+        const np3 = document.getElementById('selSubNaib3')?.value;
+
+        if (np1) {
           payloadBatch.push({
             kategori_pengurusan: activeCategoryInduk,
             jk_induk: `JK Induk ${activeCategoryInduk}`,
             nama_jawatankuasa: activeSubJkName,
-            peranan: 'Naib Pengerusi',
+            peranan: 'Naib Pengerusi 1',
             skop_tugas_kelas: activeSubJkName,
-            id_staf: naibVal,
+            id_staf: np1,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+        if (np2) {
+          payloadBatch.push({
+            kategori_pengurusan: activeCategoryInduk,
+            jk_induk: `JK Induk ${activeCategoryInduk}`,
+            nama_jawatankuasa: activeSubJkName,
+            peranan: 'Naib Pengerusi 2',
+            skop_tugas_kelas: activeSubJkName,
+            id_staf: np2,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+        if (np3) {
+          payloadBatch.push({
+            kategori_pengurusan: activeCategoryInduk,
+            jk_induk: `JK Induk ${activeCategoryInduk}`,
+            nama_jawatankuasa: activeSubJkName,
+            peranan: 'Naib Pengerusi 3',
+            skop_tugas_kelas: activeSubJkName,
+            id_staf: np3,
             tahun: tahunAktif,
             status: 'Aktif'
           });
