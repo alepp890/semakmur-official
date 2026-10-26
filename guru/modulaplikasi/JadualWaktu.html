@@ -57,7 +57,6 @@
       box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.1);
     }
 
-    /* FORMAT CETAKAN A4 LANDSCAPE */
     @media print {
       @page { size: A4 landscape; margin: 6mm; }
       body { background: white !important; padding: 0 !important; }
@@ -1018,7 +1017,6 @@
       });
     }
 
-    // PEMBAIKAN: KIRA BEBAN WAKTU GURU UTAMA DAN PAIRING DENGAN TEPAT
     function calculateTotalWaktuGuru(namaGuru) {
       if (!namaGuru) return 0;
       let total = 0;
@@ -1041,7 +1039,6 @@
       return total;
     }
 
-    // PEMBAIKAN PERMINTAAN 11: PEMILIHAN GURU PASANGAN TANPA MENULIS SUBJEK DUPLIKASI PADA GURU PAIRING
     function onSelectGuruPair(idx, selectedPairGuru) {
       STATE_AGIHAN_GURU[idx].idGuruPair = selectedPairGuru;
       renderAgihanGuruMatrix();
@@ -1523,7 +1520,7 @@
       }
     }
 
-    // ================= 5. ENJIN GENERATOR & GRID JADUAL PENUH (FORMAT aSc PRINT) =================
+    // ================= 5. ENJIN GENERATOR & GRID JADUAL PENUH =================
     async function janaJadualWaktuAuto() {
       showLoader('Enjin Penjadualan Automatik Sedang Beroperasi (300 Iterasi Adaptif)...');
       try {
@@ -1569,7 +1566,7 @@
       } catch (err) {}
     }
 
-    // FUNGSI RENDER GRID MATRIKS aSc STYLE (DENGAN COLSPAN, NAMA SAMARAN & STATISTIK RUMUSAN)
+    // FUNGSI RENDER GRID MATRIKS aSc STYLE (DENGAN TAHAP FILTERING, COLSPAN, NAMA SAMARAN & STATISTIK TEPAT)
     function renderJadualHasilView() {
       const container = document.getElementById('containerHasilJadualView');
       if (!container) return;
@@ -1581,23 +1578,6 @@
 
       const mode = document.getElementById('selFilterViewJadual').value;
       const days = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
-
-      // Structure 13 Lajur Grid Masa aSc
-      const gridCols = [
-        { id: '01', noW: '1', label: '1<br>7:40-8:10' },
-        { id: '02', noW: '2', label: '2<br>8:10-8:40' },
-        { id: '03', noW: '3', label: '3<br>8:40-9:10' },
-        { id: '04', noW: '4', label: '4<br>9:10-9:40' },
-        { id: '05', noW: 'R1', label: 'REHAT1<br>9:40-10:00', isRehat: true },
-        { id: '06', noW: '5', label: '5<br>10:00-10:30' },
-        { id: '08', noW: 'R2', label: 'REHAT2<br>10:10-10:30', isRehat: true },
-        { id: '09', noW: '6', label: '6<br>10:30-11:00' },
-        { id: '10', noW: '7', label: '7<br>11:00-11:30' },
-        { id: '11', noW: '8', label: '8<br>11:30-12:00' },
-        { id: '12', noW: '9', label: '9<br>12:00-12:30' },
-        { id: '13', noW: '10', label: '10<br>12:30-13:00' },
-        { id: '14', noW: '11', label: '11<br>13:00-13:30' }
-      ];
 
       let html = '';
 
@@ -1625,13 +1605,60 @@
             return (j.ID_Kelas || j.idKelas) === entityName || j.ID_Kelas === 'ALL';
           });
 
+          // TENTUKAN SAMA ADA TAHAP 1 ATAU TAHAP 2
+          let isTahap1 = true;
+          if (!isGuru) {
+            const match = entityName.match(/\d+/);
+            const yr = match ? parseInt(match[0], 10) : 1;
+            if (yr >= 4) isTahap1 = false;
+          }
+
+          // SUSUNAN GRID COLUMNS MENGIKUT TAHAP
+          const gridCols = isTahap1 ? [
+            { id: '01', noW: '1', label: '1<br>7:40-8:10' },
+            { id: '02', noW: '2', label: '2<br>8:10-8:40' },
+            { id: '03', noW: '3', label: '3<br>8:40-9:10' },
+            { id: '04', noW: '4', label: '4<br>9:10-9:40' },
+            { id: '05', noW: 'R1', label: 'REHAT1<br>9:40-10:00', isRehat: true },
+            { id: '07', noW: '5', label: '5<br>10:00-10:30' },
+            { id: '09', noW: '6', label: '6<br>10:30-11:00' },
+            { id: '10', noW: '7', label: '7<br>11:00-11:30' },
+            { id: '11', noW: '8', label: '8<br>11:30-12:00' },
+            { id: '12', noW: '9', label: '9<br>12:00-12:30' },
+            { id: '13', noW: '10', label: '10<br>12:30-13:00' },
+            { id: '14', noW: '11', label: '11<br>13:00-13:30' }
+          ] : [
+            { id: '01', noW: '1', label: '1<br>7:40-8:10' },
+            { id: '02', noW: '2', label: '2<br>8:10-8:40' },
+            { id: '03', noW: '3', label: '3<br>8:40-9:10' },
+            { id: '04', noW: '4', label: '4<br>9:10-9:40' },
+            { id: '06', noW: '5', label: '5<br>09:40-10:10' },
+            { id: '08', noW: 'R2', label: 'REHAT2<br>10:10-10:30', isRehat: true },
+            { id: '09', noW: '6', label: '6<br>10:30-11:00' },
+            { id: '10', noW: '7', label: '7<br>11:00-11:30' },
+            { id: '11', noW: '8', label: '8<br>11:30-12:00' },
+            { id: '12', noW: '9', label: '9<br>12:00-12:30' },
+            { id: '13', noW: '10', label: '10<br>12:30-13:00' },
+            { id: '14', noW: '11', label: '11<br>13:00-13:30' }
+          ];
+
+          // KIRA STATISTIK TEPAT DARIPADA DATA SEBENAR (TIADA DOUBLE COUNT COLSPAN)
           const statMap = {};
           let totalWaktuCount = 0;
+
+          items.forEach(it => {
+            if (it.ID_Kelas === 'ALL' || it.idSubjek === 'PER' || it.idSubjek === 'RHT' || it.kodSubjek === 'REHAT') return;
+            const subKey = it.Kod_Subjek || it.kodSubjek || it.ID_Subjek || it.idSubjek;
+            if (subKey) {
+              statMap[subKey] = (statMap[subKey] || 0) + 1;
+              totalWaktuCount++;
+            }
+          });
 
           html += `
             <div class="bg-white border-2 border-slate-900 rounded-none p-4 mb-8 asc-card-print shadow-xs">
               <div class="text-center pb-2 mb-2 border-b border-slate-300">
-                <h2 class="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">Jadual Waktu: ${entityName}</h2>
+                <h2 class="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">JADUAL WAKTU: ${entityName}</h2>
                 <p class="text-xs font-semibold text-slate-600">SEKOLAH KEBANGSAAN SEGAMBUT MAKMUR</p>
               </div>
 
@@ -1654,7 +1681,7 @@
 
               if (col.isRehat) {
                 if (dIdx === 0) {
-                  html += `<td rowspan="5" class="asc-rehat-cell">${col.id === '05' ? 'REHAT 1' : 'REHAT 2'}</td>`;
+                  html += `<td rowspan="5" class="asc-rehat-cell">${isTahap1 ? 'REHAT 1' : 'REHAT 2'}</td>`;
                 }
                 continue;
               }
@@ -1667,11 +1694,9 @@
               });
 
               if (matched) {
-                totalWaktuCount++;
                 const subKey = matched.Kod_Subjek || matched.kodSubjek || matched.ID_Subjek || matched.idSubjek;
-                statMap[subKey] = (statMap[subKey] || 0) + 1;
 
-                // Penggabungan Sel (Colspan Check)
+                // PENGGABUNGAN SEL (COLSPAN CHECK UNTUK DOUBLE SLOT SEBENAR)
                 let colspanVal = 1;
                 if (cIdx + 1 < gridCols.length && !gridCols[cIdx + 1].isRehat) {
                   const nextCol = gridCols[cIdx + 1];
@@ -1683,13 +1708,11 @@
 
                   if (nextMatched && (nextMatched.Kod_Subjek || nextMatched.kodSubjek) === subKey) {
                     colspanVal = 2;
-                    cIdx++; // Melompat ke slot seterusnya
-                    totalWaktuCount++;
-                    statMap[subKey] = (statMap[subKey] || 0) + 1;
+                    cIdx++; // Lompat slot seterusnya
                   }
                 }
 
-                // Format Co-Teaching Stacked Name
+                // FORMAT GURU CO-TEACHING
                 const gUtamaName = getSamaran(matched.ID_Guru_Utama || matched.idGuruUtama);
                 const gPairName = getSamaran(matched.ID_Guru_Pair || matched.idGuruPair);
                 
@@ -1736,7 +1759,7 @@
         });
 
       } else if (mode === 'master') {
-        html = `<div class="p-4 bg-white border-2 border-black font-bold text-sm">Paparan Master Grid Keseluruhan (Sila gunakan butang cetak A4 Landscape).</div>`;
+        html = `<div class="p-4 bg-white border-2 border-black font-bold text-sm">Paparan Master Grid Keseluruhan (Sila gunakan menu di bahagian atas untuk menyemak perincian guru dan kelas).</div>`;
       }
 
       container.innerHTML = html;
