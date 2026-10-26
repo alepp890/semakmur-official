@@ -1644,7 +1644,7 @@
                 continue;
               }
 
-              // SEMAKAN PERHIMPUNAN
+              // SEMAKAN PERHIMPUNAN ISNIN W1
               if (day === 'Isnin' && col.id === '01') {
                 html += `<td class="asc-grid-td font-black bg-slate-200 text-slate-900 border-black">PER</td>`;
                 continue;
@@ -1658,8 +1658,26 @@
 
               if (matched) {
                 const subKey = matched.Kod_Subjek || matched.kodSubjek || matched.ID_Subjek || matched.idSubjek;
-                const printContent = `<div class="font-extrabold text-xs text-slate-900">${subKey}</div><div class="text-[10px] text-slate-700">${matched.ID_Kelas || matched.idKelas}</div>`;
-                html += `<td class="asc-grid-td font-extrabold bg-white text-slate-900 border-black">${printContent}</td>`;
+                const clsKey = matched.ID_Kelas || matched.idKelas;
+
+                let colspanVal = 1;
+                // SEMAK SAMA ADA SLOT BERSEBELAHAN MEMPUNYAI SUBJEK & KELAS YANG SAMA (COLSPAN)
+                if (cIdx + 1 < teacherGridCols.length && !teacherGridCols[cIdx + 1].isRehat) {
+                  const nextCol = teacherGridCols[cIdx + 1];
+                  const nextMatched = items.find(it => {
+                    const itemDay = String(it.Hari || it.hari || '').trim();
+                    const itemSlot = String(it.Slot_ID || it.slotId || '').trim();
+                    return (itemDay.toLowerCase() === day.toLowerCase() && itemSlot.includes(`SLOT-${nextCol.id}`));
+                  });
+
+                  if (nextMatched && (nextMatched.Kod_Subjek || nextMatched.kodSubjek) === subKey && (nextMatched.ID_Kelas || nextMatched.idKelas) === clsKey) {
+                    colspanVal = 2;
+                    cIdx++; // LOMPAT SLOT NEXT
+                  }
+                }
+
+                const printContent = `<div class="font-extrabold text-xs text-slate-900">${subKey}</div><div class="text-[10px] text-slate-700">${clsKey}</div>`;
+                html += `<td colspan="${colspanVal}" class="asc-grid-td font-extrabold bg-white text-slate-900 border-black">${printContent}</td>`;
               } else {
                 html += `<td class="asc-grid-td text-slate-300 border-black">-</td>`;
               }
