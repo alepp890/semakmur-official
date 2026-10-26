@@ -190,7 +190,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h2 class="font-display font-extrabold text-xl text-slate-800">2. Tetapan Subjek & Bilangan Waktu Seminggu</h2>
-              <p class="text-xs text-slate-500">Pilih Kod Subjek daripada Master Subjek. Nama subjek dipaparkan secara bersih (BM | Bahasa Melayu).</p>
+              <p class="text-xs text-slate-500">Pilih Kod Subjek daripada Master Subjek. Nama Subjek diisi automatik dan ID Subjek dijana secara unik.</p>
             </div>
             <div class="flex flex-wrap gap-2">
               <button onclick="tarikSemuaMasterSubjek()" class="px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-extrabold text-xs rounded-xl transition flex items-center gap-1 shadow-2xs">
@@ -210,9 +210,9 @@
               <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
                 <tr>
                   <th class="table-cell-std w-12 text-center">BIL</th>
-                  <th class="table-cell-std w-48">ID / Kod Subjek</th>
-                  <th class="table-cell-std">Nama Subjek / Komponen (Auto)</th>
-                  <th class="table-cell-std w-48">Kategori / Tahap</th>
+                  <th class="table-cell-std w-44">Kod Subjek</th>
+                  <th class="table-cell-std">Nama Subjek</th>
+                  <th class="table-cell-std w-48">Kategori Kelas</th>
                   <th class="table-cell-std w-28 text-center">Bil. Waktu / Minggu</th>
                   <th class="table-cell-std w-44">Mod Blok</th>
                   <th class="table-cell-std w-28 text-center">Co-Teaching</th>
@@ -247,7 +247,7 @@
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-list-check text-amber-500"></i> Ringkasan Agihan Subjek Bagi Setiap Kelas:
+                <i class="fa-solid fa-list-check text-amber-500"></i> Status Kelengkapan Pengisian Subjek Mengikut Kelas:
               </span>
               <button onclick="toggleClassCoverageSummary()" class="text-[11px] font-bold text-amber-700 hover:underline">
                 <i class="fa-solid fa-eye mr-1"></i> Tunjuk / Sembunyi Status
@@ -378,10 +378,15 @@
         loadAllJWData();
       });
 
+      // KLIK DI LUAR DROPDOWN - SIMPAN & TUTUP DROPDOWN KELAS BERKELOMPOK
       document.addEventListener('click', function(e) {
         if (!e.target.closest('.class-dropdown-container')) {
-          document.querySelectorAll('[id^="ddClassList_"]').forEach(el => el.classList.add('hidden'));
-          window.currentOpenDropdownIdx = null;
+          document.querySelectorAll('[id^="ddClassList_"]').forEach(el => {
+            if (!el.classList.contains('hidden')) {
+              const idx = parseInt(el.id.replace('ddClassList_', ''), 10);
+              saveAndCloseMultiSelectDropdown(idx);
+            }
+          });
         }
       });
     });
@@ -738,7 +743,16 @@
       }
     }
 
-    // ================= 2. RENDER & MANAGE SUBJEK (LABEL KOD | NAMA BERSIH) =================
+    // ================= 2. RENDER & MANAGE SUBJEK (AUTO-GENERATE ID UNIK) =================
+    function generateUniqueSubjekID(kodSubjek, kategoriTahap, idx) {
+      if (!kodSubjek) return `SUBJ-${idx + 1}`;
+      let tag = 'ALL';
+      const k = String(kategoriTahap || '').toLowerCase();
+      if (k.includes('tahap 1') || k.includes('thp 1') || k.includes('tahun 1')) tag = 'T1';
+      else if (k.includes('tahap 2') || k.includes('thp 2')) tag = 'T2';
+      return `${kodSubjek}-${tag}`;
+    }
+
     function renderSubjekTable() {
       const tbody = document.getElementById('tbodyMasterSubjek');
       if (!tbody) return;
@@ -746,10 +760,14 @@
       tbody.innerHTML = '';
 
       let optMasterSubjek = '<option value="">-- Pilih Kod Subjek --</option>';
+      const seenCodes = new Set();
       ALL_MASTER_SUBJEK_LIST.forEach(m => {
-        const kod = m.Kod_Subjek || m.ID_Subjek;
+        const kod = (m.Kod_Subjek || m.ID_Subjek || '').trim();
         const nama = m['Nama_Subjek / Komponen'] || m.Nama_Subjek || kod;
-        optMasterSubjek += `<option value="${kod}" data-nama="${nama}">${kod} | ${nama}</option>`;
+        if (kod && !seenCodes.has(kod)) {
+          seenCodes.add(kod);
+          optMasterSubjek += `<option value="${kod}" data-nama="${nama}">${kod}</option>`;
+        }
       });
 
       if (STATE_SUBJEK.length === 0) {
@@ -762,20 +780,24 @@
         let optS = optMasterSubjek.replace(`value="${selectedKod}"`, `value="${selectedKod}" selected`);
         let modeBlokVal = row.Mode_Block || 'Double Slot (60 Minit)';
 
+        if (!row.ID_Subjek) {
+          row.ID_Subjek = generateUniqueSubjekID(selectedKod, row.Kategori_Tahap, idx);
+        }
+
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
             <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
             <td class="p-1.5">
-              <input type="text" data-field="ID_Subjek" value="${row.ID_Subjek || ''}" placeholder="cth: BM-T1, BM-T2" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-brand-800 bg-white">
-            </td>
-            <td class="p-1.5">
               <select data-field="Kod_Subjek" onchange="onSelectMasterSubjekCode(this, ${idx})" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-emerald-800 bg-white">
                 ${optS}
               </select>
-              <input type="hidden" data-field="Nama_Subjek" value="${row.Nama_Subjek || ''}">
+              <input type="hidden" data-field="ID_Subjek" value="${row.ID_Subjek}">
             </td>
             <td class="p-1.5">
-              <select data-field="Kategori_Tahap" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white">
+              <input type="text" data-field="Nama_Subjek" value="${row.Nama_Subjek || ''}" readonly class="w-full p-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 cursor-not-allowed">
+            </td>
+            <td class="p-1.5">
+              <select data-field="Kategori_Tahap" onchange="onChangeKategoriTahap(this, ${idx})" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white">
                 <option value="Semua (KSSR)" ${row.Kategori_Tahap === 'Semua (KSSR)' ? 'selected' : ''}>Semua (KSSR)</option>
                 <option value="Tahap 1 (KSSR)" ${row.Kategori_Tahap === 'Tahap 1 (KSSR)' ? 'selected' : ''}>Tahap 1 (KSSR)</option>
                 <option value="Tahap 2 (KSSR)" ${row.Kategori_Tahap === 'Tahap 2 (KSSR)' ? 'selected' : ''}>Tahap 2 (KSSR)</option>
@@ -806,22 +828,30 @@
     }
 
     function onSelectMasterSubjekCode(el, idx) {
-      const selectedOpt = el.options[el.selectedIndex];
-      const nama = selectedOpt.getAttribute('data-nama') || '';
-      const kod = el.value;
+      const selectedKod = el.value;
+      const masterItem = ALL_MASTER_SUBJEK_LIST.find(m => (m.Kod_Subjek || m.ID_Subjek) === selectedKod);
+      const nama = masterItem ? (masterItem['Nama_Subjek / Komponen'] || masterItem.Nama_Subjek || selectedKod) : '';
 
-      if (!STATE_SUBJEK[idx].ID_Subjek) {
-        STATE_SUBJEK[idx].ID_Subjek = kod;
-      }
-      STATE_SUBJEK[idx].Kod_Subjek = kod;
+      STATE_SUBJEK[idx].Kod_Subjek = selectedKod;
       STATE_SUBJEK[idx].Nama_Subjek = nama;
+      STATE_SUBJEK[idx].ID_Subjek = generateUniqueSubjekID(selectedKod, STATE_SUBJEK[idx].Kategori_Tahap, idx);
 
       const tr = el.closest('tr');
       if (tr) {
-        const idInput = tr.querySelector('[data-field="ID_Subjek"]');
-        if (idInput && !idInput.value) idInput.value = kod;
         const namaInput = tr.querySelector('[data-field="Nama_Subjek"]');
         if (namaInput) namaInput.value = nama;
+        const idInput = tr.querySelector('[data-field="ID_Subjek"]');
+        if (idInput) idInput.value = STATE_SUBJEK[idx].ID_Subjek;
+      }
+    }
+
+    function onChangeKategoriTahap(el, idx) {
+      STATE_SUBJEK[idx].Kategori_Tahap = el.value;
+      STATE_SUBJEK[idx].ID_Subjek = generateUniqueSubjekID(STATE_SUBJEK[idx].Kod_Subjek, el.value, idx);
+      const tr = el.closest('tr');
+      if (tr) {
+        const idInput = tr.querySelector('[data-field="ID_Subjek"]');
+        if (idInput) idInput.value = STATE_SUBJEK[idx].ID_Subjek;
       }
     }
 
@@ -831,13 +861,14 @@
         return;
       }
 
-      STATE_SUBJEK = ALL_MASTER_SUBJEK_LIST.map(s => {
+      STATE_SUBJEK = ALL_MASTER_SUBJEK_LIST.map((s, idx) => {
         const kod = s.Kod_Subjek || s.ID_Subjek || '';
+        const kateg = s.Kategori_Tahap || 'Semua (KSSR)';
         return {
-          ID_Subjek: kod,
+          ID_Subjek: generateUniqueSubjekID(kod, kateg, idx),
           Kod_Subjek: kod,
           Nama_Subjek: s['Nama_Subjek / Komponen'] || s.Nama_Subjek || s.Nama || '',
-          Kategori_Tahap: s.Kategori_Tahap || 'Semua (KSSR)',
+          Kategori_Tahap: kateg,
           Bil_Waktu_Seminggu: parseInt(s.Bil_Waktu_Seminggu || 6, 10),
           Mode_Block: s.Mode_Block || 'Double Slot (60 Minit)',
           Flag_CoTeaching: s.Flag_CoTeaching || 'FALSE'
@@ -852,8 +883,7 @@
       const rows = document.querySelectorAll('#tbodyMasterSubjek tr');
       if (rows.length === 0) return;
       const updated = [];
-      rows.forEach(r => {
-        const idSubjek = r.querySelector('[data-field="ID_Subjek"]')?.value || '';
+      rows.forEach((r, idx) => {
         const kodSubjek = r.querySelector('[data-field="Kod_Subjek"]')?.value || '';
         const namaSubjek = r.querySelector('[data-field="Nama_Subjek"]')?.value || '';
         const kategoriTahap = r.querySelector('[data-field="Kategori_Tahap"]')?.value || 'Semua (KSSR)';
@@ -861,9 +891,14 @@
         const modeBlock = r.querySelector('[data-field="Mode_Block"]')?.value || 'Double Slot (60 Minit)';
         const flagCoTeaching = r.querySelector('[data-field="Flag_CoTeaching"]')?.value || 'FALSE';
 
+        let idSubjek = r.querySelector('[data-field="ID_Subjek"]')?.value || '';
+        if (!idSubjek || idSubjek.trim() === '') {
+          idSubjek = generateUniqueSubjekID(kodSubjek, kategoriTahap, idx);
+        }
+
         if (kodSubjek) {
           updated.push({
-            ID_Subjek: idSubjek || kodSubjek,
+            ID_Subjek: idSubjek,
             Kod_Subjek: kodSubjek,
             Nama_Subjek: namaSubjek,
             Kategori_Tahap: kategoriTahap,
@@ -912,7 +947,7 @@
       }
     }
 
-    // ================= 3. AGIHAN TUGAS BERPUSATKAN GURU (FORMAT RINGKAS DROPDOWN) =================
+    // ================= 3. AGIHAN TUGAS BERPUSATKAN GURU =================
     function parseFlatAgihanToGuruView() {
       STATE_AGIHAN_GURU = [];
       const sortedStaf = getSortedStafList();
@@ -1003,7 +1038,6 @@
       return flatList;
     }
 
-    // HELPER MEMBINA LABEL RINGKAS SUBJEK DROPDOWN (BM - Thp 1, PI - Pairing, dll)
     function formatSubjectDropdownLabel(subRow) {
       const idSub = subRow.ID_Subjek || '';
       const kod = subRow.Kod_Subjek || idSub;
@@ -1050,7 +1084,7 @@
 
       const senaraiKelasMaster = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas').map(k => k.Nama_Lokasi);
       if (senaraiKelasMaster.length === 0) {
-        ['1 Iris', '1 Lavender', '1 Violet', '2 Iris', '2 Lavender', '2 Violet', '3 Iris', '3 Lavender', '3 Violet'].forEach(k => senaraiKelasMaster.push(k));
+        ['1 Iris', '1 Lavender', '1 Violet', '2 Iris', '2 Lavender', '2 Violet', '3 Iris', '3 Lavender', '3 Violet', '4 Iris', '4 Lavender', '4 Violet', '5 Iris', '5 Lavender', '5 Violet', '6 Iris', '6 Lavender', '6 Violet'].forEach(k => senaraiKelasMaster.push(k));
       }
 
       if (STATE_AGIHAN_GURU.length === 0) {
@@ -1108,12 +1142,26 @@
             (row.idSubjek ? `${row.idSubjek}__${STATE_SUBJEK.findIndex(s => s.ID_Subjek === row.idSubjek || s.Kod_Subjek === row.idSubjek)}` : '');
           let optSub = optSubjek.replace(`value="${currentSelectedVal}"`, `value="${currentSelectedVal}" selected`);
 
+          const currentSubjId = row.idSubjek || row.kodSubjek;
+          const takenClassesForSubj = new Set();
+          if (currentSubjId) {
+            STATE_AGIHAN_GURU.forEach((r, rIdx) => {
+              if (rIdx !== idx && (r.idSubjek === currentSubjId || r.kodSubjek === currentSubjId)) {
+                (r.senaraiKelas || []).forEach(c => takenClassesForSubj.add(c));
+              }
+            });
+          }
+
           let checkboxListHtml = '';
           senaraiKelasMaster.forEach(kelas => {
+            if (takenClassesForSubj.has(kelas) && !(row.senaraiKelas || []).includes(kelas)) {
+              return;
+            }
+
             const isChecked = (row.senaraiKelas || []).includes(kelas) ? 'checked' : '';
             checkboxListHtml += `
               <label class="flex items-center gap-2 p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer text-xs font-semibold text-slate-700">
-                <input type="checkbox" value="${kelas}" ${isChecked} onchange="onClassCheckboxToggle(${idx}, '${kelas}', this.checked, event)" class="rounded text-amber-600 focus:ring-amber-500 w-4 h-4">
+                <input type="checkbox" value="${kelas}" ${isChecked} class="chk-class-item-${idx} rounded text-amber-600 focus:ring-amber-500 w-4 h-4">
                 <span>${kelas}</span>
               </label>
             `;
@@ -1165,7 +1213,7 @@
               <div id="ddClassList_${idx}" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-slate-300 rounded-2xl shadow-2xl z-50 p-2.5 max-h-56 overflow-y-auto space-y-1">
                 <div class="flex items-center justify-between px-1 pb-1.5 border-b border-slate-100">
                   <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Tandakan Kelas:</span>
-                  <button type="button" onclick="closeMultiSelectDropdown(${idx}, event)" class="text-[10px] bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-2 py-0.5 rounded-md transition">Selesai</button>
+                  <button type="button" onclick="saveAndCloseMultiSelectDropdown(${idx}, event)" class="text-[10px] bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-2.5 py-1 rounded-md transition shadow-2xs">Selesai</button>
                 </div>
                 ${checkboxListHtml}
               </div>
@@ -1246,9 +1294,14 @@
 
     function toggleMultiSelectDropdown(idx, event) {
       if (event) event.stopPropagation();
-      document.querySelectorAll('[id^="ddClassList_"]').forEach((el, i) => {
-        if (i !== idx) el.classList.add('hidden');
+
+      document.querySelectorAll('[id^="ddClassList_"]').forEach((el) => {
+        const otherIdx = parseInt(el.id.replace('ddClassList_', ''), 10);
+        if (otherIdx !== idx && !el.classList.contains('hidden')) {
+          saveAndCloseMultiSelectDropdown(otherIdx);
+        }
       });
+
       const target = document.getElementById(`ddClassList_${idx}`);
       if (target) {
         const isHidden = target.classList.contains('hidden');
@@ -1256,34 +1309,29 @@
           target.classList.remove('hidden');
           window.currentOpenDropdownIdx = idx;
         } else {
-          target.classList.add('hidden');
-          window.currentOpenDropdownIdx = null;
+          saveAndCloseMultiSelectDropdown(idx);
         }
       }
     }
 
-    function closeMultiSelectDropdown(idx, event) {
+    function saveAndCloseMultiSelectDropdown(idx, event) {
       if (event) event.stopPropagation();
       const target = document.getElementById(`ddClassList_${idx}`);
-      if (target) target.classList.add('hidden');
+      if (!target) return;
+
+      const checkboxes = target.querySelectorAll(`.chk-class-item-${idx}`);
+      const selectedClasses = [];
+      checkboxes.forEach(chk => {
+        if (chk.checked) selectedClasses.push(chk.value);
+      });
+
+      if (STATE_AGIHAN_GURU[idx]) {
+        STATE_AGIHAN_GURU[idx].senaraiKelas = selectedClasses;
+      }
+
+      target.classList.add('hidden');
       window.currentOpenDropdownIdx = null;
-    }
 
-    function onClassCheckboxToggle(rowIdx, kelas, isChecked, event) {
-      if (event) event.stopPropagation();
-      if (!STATE_AGIHAN_GURU[rowIdx].senaraiKelas) {
-        STATE_AGIHAN_GURU[rowIdx].senaraiKelas = [];
-      }
-      
-      if (isChecked) {
-        if (!STATE_AGIHAN_GURU[rowIdx].senaraiKelas.includes(kelas)) {
-          STATE_AGIHAN_GURU[rowIdx].senaraiKelas.push(kelas);
-        }
-      } else {
-        STATE_AGIHAN_GURU[rowIdx].senaraiKelas = STATE_AGIHAN_GURU[rowIdx].senaraiKelas.filter(k => k !== kelas);
-      }
-
-      window.currentOpenDropdownIdx = rowIdx;
       renderAgihanGuruMatrix();
     }
 
@@ -1292,13 +1340,29 @@
       renderAgihanGuruMatrix();
     }
 
+    function getRequiredSubjectsForClass(className) {
+      if (!className) return [];
+      const match = className.match(/\d+/);
+      const year = match ? parseInt(match[0], 10) : 0;
+
+      return (STATE_SUBJEK || []).filter(s => {
+        const kateg = String(s.Kategori_Tahap || '').toLowerCase();
+        if (kateg.includes('semua')) return true;
+        if ((kateg.includes('tahap 1') || kateg.includes('thp 1')) && year >= 1 && year <= 3) return true;
+        if ((kateg.includes('tahap 2') || kateg.includes('thp 2')) && year >= 4) return true;
+        if (kateg.includes('tahun 1') && year === 1) return true;
+        if (kateg.includes('tahun 2') && (year === 2 || year === 3)) return true;
+        return false;
+      });
+    }
+
     function renderClassCoverageSummary() {
       const container = document.getElementById('boxClassCoverageSummary');
       if (!container) return;
 
       const senaraiKelasMaster = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas').map(k => k.Nama_Lokasi);
       if (senaraiKelasMaster.length === 0) {
-        ['1 Iris', '1 Lavender', '1 Violet', '2 Iris', '2 Lavender', '2 Violet', '3 Iris', '3 Lavender', '3 Violet'].forEach(k => senaraiKelasMaster.push(k));
+        ['1 Iris', '1 Lavender', '1 Violet', '2 Iris', '2 Lavender', '2 Violet', '3 Iris', '3 Lavender', '3 Violet', '4 Iris', '4 Lavender', '4 Violet', '5 Iris', '5 Lavender', '5 Violet', '6 Iris', '6 Lavender', '6 Violet'].forEach(k => senaraiKelasMaster.push(k));
       }
 
       const flatList = prepareFlatAgihanForBackend();
@@ -1306,16 +1370,30 @@
       let html = '';
       senaraiKelasMaster.forEach(kelas => {
         const classItems = flatList.filter(f => f.ID_Kelas === kelas);
-        const totalSubj = classItems.length;
+        const assignedSubjectIds = new Set(classItems.map(f => f.ID_Subjek || f.Kod_Subjek));
+        const requiredSubjects = getRequiredSubjectsForClass(kelas);
 
-        let badgeClass = "bg-rose-100 text-rose-800 border-rose-300";
-        if (totalSubj >= 8) badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
-        else if (totalSubj > 0) badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+        const reqCount = requiredSubjects.length;
+        const assignedCount = assignedSubjectIds.size;
+
+        let badgeClass = "bg-slate-100 text-slate-500 border-slate-300";
+        let statusText = `${assignedCount} / ${reqCount} Subjek`;
+
+        if (reqCount === 0) {
+          badgeClass = "bg-slate-100 text-slate-400 border-slate-200";
+          statusText = "Tiada Tetapan";
+        } else if (assignedCount === 0) {
+          badgeClass = "bg-rose-100 text-rose-800 border-rose-300 font-extrabold";
+        } else if (assignedCount < reqCount) {
+          badgeClass = "bg-amber-100 text-amber-800 border-amber-300 font-extrabold";
+        } else {
+          badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300 font-extrabold";
+        }
 
         html += `
-          <div class="p-2 border rounded-xl flex items-center justify-between ${badgeClass}">
-            <span class="font-extrabold">${kelas}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-md font-black bg-white/80">${totalSubj} Subjek</span>
+          <div class="p-2 border rounded-xl flex items-center justify-between ${badgeClass} shadow-2xs">
+            <span class="font-extrabold text-xs">${kelas}</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-md font-black bg-white/80 border border-black/5">${statusText}</span>
           </div>
         `;
       });
