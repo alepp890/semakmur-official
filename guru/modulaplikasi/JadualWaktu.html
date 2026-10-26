@@ -231,7 +231,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h2 class="font-display font-extrabold text-xl text-slate-800">3. Matriks Agihan Tugas Mengikut Guru</h2>
-              <p class="text-xs text-slate-500">Dropdown subjek dipaparkan ringkas (cth: BM - Thp 1, PI - Pairing). Enjin mentafsirkan waktu secara automatik.</p>
+              <p class="text-xs text-slate-500">Dropdown subjek dipaparkan ringkas. Pemilihan Co-Teacher akan menyinkronkan subjek dan kelas secara automatik.</p>
             </div>
             <div class="flex gap-2">
               <button onclick="tambahBarisGuruTambahanManual()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
@@ -1007,8 +1007,81 @@
       return total;
     }
 
+    // FUNGSI LOGIK SINKRONI GURU PASANGAN (CO-TEACHING AUTO-SYNC)
+    function syncCoTeacherRow(pairGuru, mainGuru, subjId, classes) {
+      if (!pairGuru || !subjId) return;
+
+      const subObj = STATE_SUBJEK.find(s => s.ID_Subjek === subjId || s.Kod_Subjek === subjId) || {};
+      const kodSub = subObj.Kod_Subjek || subjId;
+
+      let targetRow = STATE_AGIHAN_GURU.find(r => 
+        r.idGuruUtama === pairGuru && 
+        (r.idSubjek === subjId || r.kodSubjek === kodSub) && 
+        r.idGuruPair === mainGuru
+      );
+
+      if (targetRow) {
+        targetRow.senaraiKelas = [...classes];
+      } else {
+        let emptyRowIndex = STATE_AGIHAN_GURU.findIndex(r => r.idGuruUtama === pairGuru && !r.idSubjek);
+        
+        const newRow = {
+          idGuruUtama: pairGuru,
+          idSubjek: subjId,
+          kodSubjek: kodSub,
+          idGuruPair: mainGuru,
+          senaraiKelas: [...classes]
+        };
+
+        if (emptyRowIndex !== -1) {
+          STATE_AGIHAN_GURU[emptyRowIndex] = newRow;
+        } else {
+          let lastGuruIndex = -1;
+          for (let i = STATE_AGIHAN_GURU.length - 1; i >= 0; i--) {
+            if (STATE_AGIHAN_GURU[i].idGuruUtama === pairGuru) {
+              lastGuruIndex = i;
+              break;
+            }
+          }
+          if (lastGuruIndex !== -1) {
+            STATE_AGIHAN_GURU.splice(lastGuruIndex + 1, 0, newRow);
+          } else {
+            STATE_AGIHAN_GURU.push(newRow);
+          }
+        }
+      }
+    }
+
+    function onSelectGuruPair(idx, selectedPairGuru) {
+      const oldPairGuru = STATE_AGIHAN_GURU[idx].idGuruPair;
+      STATE_AGIHAN_GURU[idx].idGuruPair = selectedPairGuru;
+
+      const currentGuruUtama = STATE_AGIHAN_GURU[idx].idGuruUtama;
+      const currentSubj = STATE_AGIHAN_GURU[idx].idSubjek;
+      const currentClasses = [...(STATE_AGIHAN_GURU[idx].senaraiKelas || [])];
+
+      if (selectedPairGuru && currentSubj) {
+        syncCoTeacherRow(selectedPairGuru, currentGuruUtama, currentSubj, currentClasses);
+      }
+
+      if (oldPairGuru && oldPairGuru !== selectedPairGuru) {
+        let oldRowIdx = STATE_AGIHAN_GURU.findIndex(r => 
+          r.idGuruUtama === oldPairGuru && 
+          (r.idSubjek === currentSubj || r.kodSubjek === currentSubj) && 
+          r.idGuruPair === currentGuruUtama
+        );
+        if (oldRowIdx !== -1) {
+          STATE_AGIHAN_GURU.splice(oldRowIdx, 1);
+        }
+      }
+
+      renderAgihanGuruMatrix();
+    }
+
     function prepareFlatAgihanForBackend() {
       const flatList = [];
+      const seenPairs = new Set();
+
       STATE_AGIHAN_GURU.forEach(row => {
         if (row.idGuruUtama && row.idSubjek && row.senaraiKelas && row.senaraiKelas.length > 0) {
           let sub = {};
@@ -1023,15 +1096,23 @@
           const bilWaktu = sub.Bil_Waktu_Seminggu || 6;
 
           row.senaraiKelas.forEach(kelas => {
-            flatList.push({
-              ID_Kelas: kelas,
-              ID_Subjek: idSubjek,
-              Kod_Subjek: kodSubjek,
-              Nama_Subjek: sub.Nama_Subjek || kodSubjek,
-              ID_Guru_Utama: row.idGuruUtama,
-              ID_Guru_Pair: row.idGuruPair || '',
-              Bil_Waktu: parseInt(bilWaktu, 10)
-            });
+            const pairKey1 = `${kelas}_${idSubjek}_${row.idGuruUtama}_${row.idGuruPair || ''}`;
+            const pairKey2 = `${kelas}_${idSubjek}_${row.idGuruPair || ''}_${row.idGuruUtama}`;
+
+            if (!seenPairs.has(pairKey1) && !seenPairs.has(pairKey2)) {
+              seenPairs.add(pairKey1);
+              seenPairs.add(pairKey2);
+
+              flatList.push({
+                ID_Kelas: kelas,
+                ID_Subjek: idSubjek,
+                Kod_Subjek: kodSubjek,
+                Nama_Subjek: sub.Nama_Subjek || kodSubjek,
+                ID_Guru_Utama: row.idGuruUtama,
+                ID_Guru_Pair: row.idGuruPair || '',
+                Bil_Waktu: parseInt(bilWaktu, 10)
+              });
+            }
           });
         }
       });
@@ -1177,7 +1258,7 @@
           let cellCoTeachingHtml = '<span class="text-slate-400 font-extrabold text-center block pt-2">-</span>';
           if (isCoTeaching) {
             cellCoTeachingHtml = `
-              <select onchange="STATE_AGIHAN_GURU[${idx}].idGuruPair = this.value" class="w-full p-1.5 border border-amber-300 rounded-lg text-xs font-semibold bg-white text-amber-900">
+              <select onchange="onSelectGuruPair(${idx}, this.value)" class="w-full p-1.5 border border-amber-300 rounded-lg text-xs font-semibold bg-white text-amber-900">
                 ${optG2}
               </select>
             `;
@@ -1266,6 +1347,13 @@
         STATE_AGIHAN_GURU[idx].kodSubjek = subObj.Kod_Subjek || parts[0];
         STATE_AGIHAN_GURU[idx].subjekIndex = subIndex;
         STATE_AGIHAN_GURU[idx].idSubjekUnique = val;
+
+        const pairGuru = STATE_AGIHAN_GURU[idx].idGuruPair;
+        const guruUtama = STATE_AGIHAN_GURU[idx].idGuruUtama;
+        const classes = STATE_AGIHAN_GURU[idx].senaraiKelas || [];
+        if (pairGuru) {
+          syncCoTeacherRow(pairGuru, guruUtama, STATE_AGIHAN_GURU[idx].idSubjek, classes);
+        }
       }
       renderAgihanGuruMatrix();
     }
@@ -1327,6 +1415,14 @@
 
       if (STATE_AGIHAN_GURU[idx]) {
         STATE_AGIHAN_GURU[idx].senaraiKelas = selectedClasses;
+
+        const pairGuru = STATE_AGIHAN_GURU[idx].idGuruPair;
+        const guruUtama = STATE_AGIHAN_GURU[idx].idGuruUtama;
+        const subj = STATE_AGIHAN_GURU[idx].idSubjek;
+
+        if (pairGuru && subj) {
+          syncCoTeacherRow(pairGuru, guruUtama, subj, selectedClasses);
+        }
       }
 
       target.classList.add('hidden');
