@@ -42,7 +42,7 @@
     
     /* aSc Print Grid Styles */
     .asc-grid-th { background-color: #0f172a; color: #ffffff; text-align: center; font-size: 10px; padding: 5px 2px; border: 1px solid #334155; }
-    .asc-grid-td { text-align: center; font-size: 11px; padding: 4px 2px; border: 1px solid #000000; vertical-align: middle; min-width: 65px; height: 46px; word-wrap: break-word; }
+    .asc-grid-td { text-align: center; font-size: 11px; padding: 4px 2px; border: 1px solid #000000; vertical-align: middle; min-width: 60px; height: 46px; word-wrap: break-word; }
     .asc-rehat-cell { background-color: #fef3c7; color: #92400e; font-weight: 800; font-size: 10px; writing-mode: vertical-lr; transform: rotate(180deg); border: 1px solid #000; }
     
     .loader-ring { display: inline-block; position: relative; width: 44px; height: 44px; }
@@ -195,7 +195,7 @@
         </div>
       </div>
 
-      <!-- ================= 2. TETAPAN SUBJEK & BILANGAN WAKTU ================= -->
+      <!-- ================= 2. TETAPAN SUBJEK ================= -->
       <div id="viewMasterSubjek" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-emerald-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -236,7 +236,7 @@
         </div>
       </div>
 
-      <!-- ================= 3. MATRIKS AGIHAN TUGAS BERPUSATKAN GURU ================= -->
+      <!-- ================= 3. AGIHAN TUGAS GURU ================= -->
       <div id="viewAgihanTugas" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-amber-500">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -254,7 +254,6 @@
             </div>
           </div>
 
-          <!-- SUMMARY & DASHBOARD STATUS AGIHAN KELAS -->
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
@@ -267,7 +266,6 @@
             <div id="boxClassCoverageSummary" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 text-[11px] font-semibold pt-1"></div>
           </div>
 
-          <!-- TABLE AGIHAN GURU -->
           <div class="overflow-x-auto min-h-[350px]">
             <table class="w-full text-left text-xs border-collapse">
               <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
@@ -287,7 +285,7 @@
         </div>
       </div>
 
-      <!-- ================= 4. HAD & PELEPASAN GURU ================= -->
+      <!-- ================= 4. HAD GURU ================= -->
       <div id="viewGuruConstraints" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-purple-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
@@ -323,7 +321,7 @@
         </div>
       </div>
 
-      <!-- ================= 5. ENJIN GENERATOR & GRID JADUAL PENUH ================= -->
+      <!-- ================= 5. ENJIN GENERATOR & GRID ================= -->
       <div id="viewGeneratorConsole" class="hidden space-y-6">
         <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-md space-y-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-800 toolbar-no-print">
           <div>
@@ -616,7 +614,7 @@
       }
     }
 
-    // ================= 1. RENDER & MANAGE GRID MASA =================
+    // ================= 1. GRID MASA =================
     function onHariGridMasaChange() {
       const sel = document.getElementById('selHariGridMasa');
       if (!sel) return;
@@ -766,7 +764,7 @@
       }
     }
 
-    // ================= 2. RENDER & MANAGE SUBJEK =================
+    // ================= 2. SUBJEK =================
     function generateUniqueSubjekID(kodSubjek, kategoriTahap, idx) {
       if (!kodSubjek) return `SUBJ-${idx + 1}`;
       let tag = 'ALL';
@@ -976,7 +974,7 @@
       }
     }
 
-    // ================= 3. AGIHAN TUGAS BERPUSATKAN GURU =================
+    // ================= 3. AGIHAN TUGAS =================
     function parseFlatAgihanToGuruView() {
       STATE_AGIHAN_GURU = [];
       const sortedStaf = getSortedStafList();
@@ -1457,7 +1455,7 @@
       }
     }
 
-    // ================= 4. RENDER GURU CONSTRAINTS =================
+    // ================= 4. HAD GURU =================
     function renderGuruConstraintTable() {
       const tbody = document.getElementById('tbodyGuruConstraint');
       if (!tbody) return;
@@ -1520,7 +1518,7 @@
       }
     }
 
-    // ================= 5. ENJIN GENERATOR & GRID JADUAL PENUH =================
+    // ================= 5. ENJIN GENERATOR & GRID JADUAL =================
     async function janaJadualWaktuAuto() {
       showLoader('Enjin Penjadualan Automatik Sedang Beroperasi (300 Iterasi Adaptif)...');
       try {
@@ -1566,54 +1564,150 @@
       } catch (err) {}
     }
 
-    // FUNGSI RENDER GRID MATRIKS aSc STYLE (DENGAN TAHAP FILTERING, COLSPAN, NAMA SAMARAN & STATISTIK TEPAT)
+    // FUNGSI RENDER MATRIKS aSc STYLE (GURU: TIANG REHAT 1 & 2 SERENTAK + SEMUA GURU; KELAS: REHAT TAHAP)
     function renderJadualHasilView() {
       const container = document.getElementById('containerHasilJadualView');
       if (!container) return;
-
-      if (!STATE_HASIL_JADUAL || STATE_HASIL_JADUAL.length === 0) {
-        container.innerHTML = `<div class="p-6 text-center text-slate-400 italic">Belum ada jadual waktu yang dijana. Klik "Jana Jadual Automatik" di atas.</div>`;
-        return;
-      }
 
       const mode = document.getElementById('selFilterViewJadual').value;
       const days = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
 
       let html = '';
 
-      if (mode === 'guru' || mode === 'kelas') {
-        const isGuru = (mode === 'guru');
-        const entitySet = new Set();
+      if (mode === 'guru') {
+        const allTeachers = getSortedStafList();
 
+        allTeachers.forEach(staf => {
+          const entityName = staf.Nama_Penuh;
+          const items = STATE_HASIL_JADUAL.filter(j => {
+            return (j.ID_Guru_Utama || j.idGuruUtama) === entityName || (j.ID_Guru_Pair || j.idGuruPair) === entityName;
+          });
+
+          // GRID KELAS GURU MEMPUNYAI DUA-DUA REHAT (REHAT 1 & REHAT 2)
+          const teacherGridCols = [
+            { id: '01', noW: '1', label: '1<br>7:40-8:10' },
+            { id: '02', noW: '2', label: '2<br>8:10-8:40' },
+            { id: '03', noW: '3', label: '3<br>8:40-9:10' },
+            { id: '04', noW: '4', label: '4<br>9:10-9:40' },
+            { id: '05', noW: 'R1', label: 'REHAT1<br>9:40-10:00', isRehat: true, rehatType: 'R1' },
+            { id: '06', noW: '5T2', label: '5 (T2)<br>9:40-10:10' },
+            { id: '07', noW: '5T1', label: '5 (T1)<br>10:00-10:30' },
+            { id: '08', noW: 'R2', label: 'REHAT2<br>10:10-10:30', isRehat: true, rehatType: 'R2' },
+            { id: '09', noW: '6', label: '6<br>10:30-11:00' },
+            { id: '10', noW: '7', label: '7<br>11:00-11:30' },
+            { id: '11', noW: '8', label: '8<br>11:30-12:00' },
+            { id: '12', noW: '9', label: '12:00-12:30' },
+            { id: '13', noW: '10', label: '10<br>12:30-13:00' },
+            { id: '14', noW: '11', label: '11<br>13:00-13:30' }
+          ];
+
+          const statMap = {};
+          let totalWaktuCount = 0;
+
+          items.forEach(it => {
+            if (it.ID_Kelas === 'ALL' || it.idSubjek === 'PER' || it.idSubjek === 'RHT' || it.kodSubjek === 'REHAT') return;
+            const subKey = it.Kod_Subjek || it.kodSubjek || it.ID_Subjek || it.idSubjek;
+            if (subKey) {
+              statMap[subKey] = (statMap[subKey] || 0) + 1;
+              totalWaktuCount++;
+            }
+          });
+
+          html += `
+            <div class="bg-white border-2 border-slate-900 rounded-none p-4 mb-8 asc-card-print shadow-xs">
+              <div class="text-center pb-2 mb-2 border-b border-slate-300">
+                <h2 class="font-display font-extrabold text-lg text-slate-900 uppercase tracking-tight">JADUAL WAKTU GURU: ${entityName}</h2>
+                <p class="text-xs font-semibold text-slate-600">SEKOLAH KEBANGSAAN SEGAMBUT MAKMUR | JUMLAH WAKTU: ${totalWaktuCount} WAKTU</p>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse border border-black text-center text-xs">
+                  <thead>
+                    <tr>
+                      <th class="asc-grid-th w-14">HARI</th>
+                      ${teacherGridCols.map(c => `<th class="asc-grid-th ${c.isRehat ? 'bg-amber-100 text-amber-900 font-black' : ''}">${c.label}</th>`).join('')}
+                    </tr>
+                  </thead>
+                  <tbody>
+          `;
+
+          days.forEach((day, dIdx) => {
+            html += `<tr><td class="asc-grid-td font-extrabold bg-slate-100 text-slate-900 border-black">${day}</td>`;
+
+            for (let cIdx = 0; cIdx < teacherGridCols.length; cIdx++) {
+              const col = teacherGridCols[cIdx];
+
+              if (col.isRehat) {
+                if (dIdx === 0) {
+                  html += `<td rowspan="5" class="asc-rehat-cell">${col.rehatType === 'R1' ? 'REHAT 1' : 'REHAT 2'}</td>`;
+                }
+                continue;
+              }
+
+              // SEMAKAN PERHIMPUNAN
+              if (day === 'Isnin' && col.id === '01') {
+                html += `<td class="asc-grid-td font-black bg-slate-200 text-slate-900 border-black">PER</td>`;
+                continue;
+              }
+
+              const matched = items.find(it => {
+                const itemDay = String(it.Hari || it.hari || '').trim();
+                const itemSlot = String(it.Slot_ID || it.slotId || '').trim();
+                return (itemDay.toLowerCase() === day.toLowerCase() && itemSlot.includes(`SLOT-${col.id}`));
+              });
+
+              if (matched) {
+                const subKey = matched.Kod_Subjek || matched.kodSubjek || matched.ID_Subjek || matched.idSubjek;
+                const printContent = `<div class="font-extrabold text-xs text-slate-900">${subKey}</div><div class="text-[10px] text-slate-700">${matched.ID_Kelas || matched.idKelas}</div>`;
+                html += `<td class="asc-grid-td font-extrabold bg-white text-slate-900 border-black">${printContent}</td>`;
+              } else {
+                html += `<td class="asc-grid-td text-slate-300 border-black">-</td>`;
+              }
+            }
+
+            html += `</tr>`;
+          });
+
+          html += `
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="mt-3 flex justify-between items-start text-[10px]">
+                <div class="text-slate-500 italic">
+                  Jadual waktu dijana: ${new Date().toLocaleDateString('ms-MY')} | aSc Jadual Waktu
+                </div>
+                <table class="border-collapse border border-black text-left text-[10px] w-64">
+                  <thead>
+                    <tr class="bg-slate-100"><th class="border border-black p-1">Subjek</th><th class="border border-black p-1 text-center w-16">Jumlah</th></tr>
+                  </thead>
+                  <tbody>
+                    ${Object.keys(statMap).length > 0 ? Object.keys(statMap).map(k => `<tr><td class="border border-black p-1 font-bold">${k}</td><td class="border border-black p-1 text-center font-extrabold">${statMap[k]}</td></tr>`).join('') : '<tr><td colspan="2" class="border border-black p-1 text-center text-slate-400 italic">Tiada waktu subjek.</td></tr>'}
+                    <tr class="bg-slate-200 font-extrabold"><td class="border border-black p-1">Bil. Pelajaran/Minggu</td><td class="border border-black p-1 text-center">${totalWaktuCount}</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          `;
+        });
+
+      } else if (mode === 'kelas') {
+        const entitySet = new Set();
         STATE_HASIL_JADUAL.forEach(j => {
-          if (isGuru) {
-            const g1 = j.ID_Guru_Utama || j.idGuruUtama;
-            const g2 = j.ID_Guru_Pair || j.idGuruPair;
-            if (g1 && g1 !== 'ALL_GURU' && g1 !== 'REHAT') entitySet.add(g1);
-            if (g2 && g2 !== 'ALL_GURU' && g2 !== 'REHAT') entitySet.add(g2);
-          } else {
-            const k = j.ID_Kelas || j.idKelas;
-            if (k && k !== 'ALL') entitySet.add(k);
-          }
+          const k = j.ID_Kelas || j.idKelas;
+          if (k && k !== 'ALL') entitySet.add(k);
         });
 
         const entityList = Array.from(entitySet).sort((a, b) => a.localeCompare(b, 'ms', { numeric: true }));
 
         entityList.forEach(entityName => {
-          const items = STATE_HASIL_JADUAL.filter(j => {
-            if (isGuru) return (j.ID_Guru_Utama || j.idGuruUtama) === entityName || (j.ID_Guru_Pair || j.idGuruPair) === entityName;
-            return (j.ID_Kelas || j.idKelas) === entityName || j.ID_Kelas === 'ALL';
-          });
+          const items = STATE_HASIL_JADUAL.filter(j => (j.ID_Kelas || j.idKelas) === entityName || j.ID_Kelas === 'ALL');
 
-          // TENTUKAN SAMA ADA TAHAP 1 ATAU TAHAP 2
           let isTahap1 = true;
-          if (!isGuru) {
-            const match = entityName.match(/\d+/);
-            const yr = match ? parseInt(match[0], 10) : 1;
-            if (yr >= 4) isTahap1 = false;
-          }
+          const match = entityName.match(/\d+/);
+          const yr = match ? parseInt(match[0], 10) : 1;
+          if (yr >= 4) isTahap1 = false;
 
-          // SUSUNAN GRID COLUMNS MENGIKUT TAHAP
           const gridCols = isTahap1 ? [
             { id: '01', noW: '1', label: '1<br>7:40-8:10' },
             { id: '02', noW: '2', label: '2<br>8:10-8:40' },
@@ -1624,9 +1718,9 @@
             { id: '09', noW: '6', label: '6<br>10:30-11:00' },
             { id: '10', noW: '7', label: '7<br>11:00-11:30' },
             { id: '11', noW: '8', label: '8<br>11:30-12:00' },
-            { id: '12', noW: '9', label: '9<br>12:00-12:30' },
-            { id: '13', noW: '10', label: '10<br>12:30-13:00' },
-            { id: '14', noW: '11', label: '11<br>13:00-13:30' }
+            { id: '12', noW: '9', label: '12:00-12:30' },
+            { id: '13', noW: '10', label: '12:30-13:00' },
+            { id: '14', noW: '11', label: '13:00-13:30' }
           ] : [
             { id: '01', noW: '1', label: '1<br>7:40-8:10' },
             { id: '02', noW: '2', label: '2<br>8:10-8:40' },
@@ -1637,12 +1731,11 @@
             { id: '09', noW: '6', label: '6<br>10:30-11:00' },
             { id: '10', noW: '7', label: '7<br>11:00-11:30' },
             { id: '11', noW: '8', label: '8<br>11:30-12:00' },
-            { id: '12', noW: '9', label: '9<br>12:00-12:30' },
-            { id: '13', noW: '10', label: '10<br>12:30-13:00' },
-            { id: '14', noW: '11', label: '11<br>13:00-13:30' }
+            { id: '12', noW: '9', label: '12:00-12:30' },
+            { id: '13', noW: '10', label: '12:30-13:00' },
+            { id: '14', noW: '11', label: '13:00-13:30' }
           ];
 
-          // KIRA STATISTIK TEPAT DARIPADA DATA SEBENAR (TIADA DOUBLE COUNT COLSPAN)
           const statMap = {};
           let totalWaktuCount = 0;
 
@@ -1686,7 +1779,12 @@
                 continue;
               }
 
-              // CARI MATCH SLOT
+              // SEMAKAN PERHIMPUNAN
+              if (day === 'Isnin' && col.id === '01') {
+                html += `<td class="asc-grid-td font-black bg-slate-200 text-slate-900 border-black">PER</td>`;
+                continue;
+              }
+
               const matched = items.find(it => {
                 const itemDay = String(it.Hari || it.hari || '').trim();
                 const itemSlot = String(it.Slot_ID || it.slotId || '').trim();
@@ -1696,7 +1794,6 @@
               if (matched) {
                 const subKey = matched.Kod_Subjek || matched.kodSubjek || matched.ID_Subjek || matched.idSubjek;
 
-                // PENGGABUNGAN SEL (COLSPAN CHECK UNTUK DOUBLE SLOT SEBENAR)
                 let colspanVal = 1;
                 if (cIdx + 1 < gridCols.length && !gridCols[cIdx + 1].isRehat) {
                   const nextCol = gridCols[cIdx + 1];
@@ -1708,11 +1805,10 @@
 
                   if (nextMatched && (nextMatched.Kod_Subjek || nextMatched.kodSubjek) === subKey) {
                     colspanVal = 2;
-                    cIdx++; // Lompat slot seterusnya
+                    cIdx++;
                   }
                 }
 
-                // FORMAT GURU CO-TEACHING
                 const gUtamaName = getSamaran(matched.ID_Guru_Utama || matched.idGuruUtama);
                 const gPairName = getSamaran(matched.ID_Guru_Pair || matched.idGuruPair);
                 
@@ -1721,9 +1817,7 @@
                   displayGuruStr = `${gUtamaName} /<br>${gPairName}`;
                 }
 
-                const printContent = isGuru ? 
-                  `<div class="font-extrabold text-xs text-slate-900">${subKey}</div><div class="text-[10px] text-slate-700">${matched.ID_Kelas || matched.idKelas}</div>` :
-                  `<div class="font-extrabold text-xs text-slate-900">${subKey}</div><div class="text-[9px] text-slate-800 leading-tight">${displayGuruStr}</div>`;
+                const printContent = `<div class="font-extrabold text-xs text-slate-900">${subKey}</div><div class="text-[9px] text-slate-800 leading-tight">${displayGuruStr}</div>`;
 
                 html += `<td colspan="${colspanVal}" class="asc-grid-td font-extrabold bg-white text-slate-900 border-black">${printContent}</td>`;
               } else {
@@ -1739,7 +1833,6 @@
                 </table>
               </div>
 
-              <!-- STATISTIK RUMUSAN SUBJEK DI BAWAH JADUAL -->
               <div class="mt-3 flex justify-between items-start text-[10px]">
                 <div class="text-slate-500 italic">
                   Jadual waktu dijana: ${new Date().toLocaleDateString('ms-MY')} | aSc Jadual Waktu
@@ -1759,7 +1852,7 @@
         });
 
       } else if (mode === 'master') {
-        html = `<div class="p-4 bg-white border-2 border-black font-bold text-sm">Paparan Master Grid Keseluruhan (Sila gunakan menu di bahagian atas untuk menyemak perincian guru dan kelas).</div>`;
+        html = `<div class="p-4 bg-white border-2 border-black font-bold text-sm">Paparan Master Grid Keseluruhan (Gunakan dropdown untuk beralih antara Jadual Guru dan Jadual Kelas).</div>`;
       }
 
       container.innerHTML = html;
