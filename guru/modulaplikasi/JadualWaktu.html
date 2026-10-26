@@ -745,13 +745,19 @@
 
     // ================= 2. RENDER & MANAGE SUBJEK (AUTO-GENERATE ID UNIK) =================
     function generateUniqueSubjekID(kodSubjek, kategoriTahap, idx) {
-      if (!kodSubjek) return `SUBJ-${idx + 1}`;
-      let tag = 'ALL';
-      const k = String(kategoriTahap || '').toLowerCase();
-      if (k.includes('tahap 1') || k.includes('thp 1') || k.includes('tahun 1')) tag = 'T1';
-      else if (k.includes('tahap 2') || k.includes('thp 2')) tag = 'T2';
-      return `${kodSubjek}-${tag}`;
-    }
+  if (!kodSubjek) return `SUBJ-${idx + 1}`;
+  let tag = 'ALL';
+  const k = String(kategoriTahap || '').toLowerCase();
+  
+  if (k.includes('tahap 1') || k.includes('thp 1') || k.includes('tahun 1')) {
+    tag = 'T1';
+  } else if (k.includes('tahap 2') || k.includes('thp 2')) {
+    tag = 'T2';
+  } else if (k.includes('semua')) {
+    tag = 'ALL';
+  }
+  return `${kodSubjek}-${tag}`;
+}
 
     function renderSubjekTable() {
       const tbody = document.getElementById('tbodyMasterSubjek');
@@ -1120,28 +1126,35 @@
     }
 
     function formatSubjectDropdownLabel(subRow) {
-      const idSub = subRow.ID_Subjek || '';
-      const kod = subRow.Kod_Subjek || idSub;
-      const nama = subRow.Nama_Subjek || subRow['Nama_Subjek / Komponen'] || '';
-      const kateg = subRow.Kategori_Tahap || '';
-      const isPair = String(subRow.Flag_CoTeaching || '').toUpperCase() === 'TRUE';
+  const idSub = subRow.ID_Subjek || '';
+  const kod = subRow.Kod_Subjek || idSub;
+  const nama = subRow.Nama_Subjek || subRow['Nama_Subjek / Komponen'] || '';
+  const kateg = subRow.Kategori_Tahap || '';
+  const isPair = String(subRow.Flag_CoTeaching || '').toUpperCase() === 'TRUE';
 
-      let tagParts = [];
-      if (idSub.includes('-T1') || kateg.includes('Tahap 1') || kateg.includes('Tahun 1')) {
-        tagParts.push('Thp 1');
-      } else if (idSub.includes('-T2') || kateg.includes('Tahap 2')) {
-        tagParts.push('Thp 2');
-      } else if (kateg.includes('Semua')) {
-        tagParts.push('Semua');
-      }
+  let tagParts = [];
 
-      if (isPair || idSub.toUpperCase().includes('PAIR')) {
-        tagParts.push('Pairing');
-      }
+  // SEMAK KATEGORI TAHAP DARI SHEET TETAPAN DAHULU
+  if (kateg.includes('Tahap 1') || kateg.includes('Tahun 1')) {
+    tagParts.push('Thp 1');
+  } else if (kateg.includes('Tahap 2')) {
+    tagParts.push('Thp 2');
+  } else if (kateg.includes('Semua')) {
+    tagParts.push('Semua');
+  } else {
+    // Fallback jika Kategori_Tahap kosong
+    if (idSub.includes('-T1')) tagParts.push('Thp 1');
+    else if (idSub.includes('-T2')) tagParts.push('Thp 2');
+    else tagParts.push('Semua');
+  }
 
-      const suffix = tagParts.length > 0 ? tagParts.join(' - ') : `${subRow.Bil_Waktu_Seminggu || 6}W`;
-      return `${kod} - ${suffix} | ${nama}`;
-    }
+  if (isPair || idSub.toUpperCase().includes('PAIR')) {
+    tagParts.push('Pairing');
+  }
+
+  const suffix = tagParts.length > 0 ? tagParts.join(' - ') : `${subRow.Bil_Waktu_Seminggu || 6}W`;
+  return `${kod} - ${suffix} | ${nama}`;
+}
 
     function renderAgihanGuruMatrix() {
       const tbody = document.getElementById('tbodyAgihanGuruMatrix');
