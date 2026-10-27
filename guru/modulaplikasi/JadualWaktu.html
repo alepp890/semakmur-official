@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ms" class="h-full">
 <head>
-  <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal Pengurusan & Generator Jadual Waktu Sekolah</title>
@@ -41,7 +40,7 @@
     .nav-tab.active { background-color: #0284c7; color: #ffffff; font-weight: 700; }
     .table-cell-std { padding: 0.5rem 0.625rem; font-size: 0.75rem; line-height: 1rem; border-bottom: 1px solid #e2e8f0; }
     
-    /* Style Cetakan Grid aSc Timetable */
+    /* aSc Print Grid Styles */
     .asc-grid-th { background-color: #0f172a; color: #ffffff; text-align: center; font-size: 10px; padding: 5px 2px; border: 1px solid #334155; }
     .asc-grid-td { text-align: center; font-size: 11px; padding: 4px 2px; border: 1px solid #000000; vertical-align: middle; min-width: 60px; height: 46px; word-wrap: break-word; }
     .asc-rehat-cell { background-color: #fef3c7; color: #92400e; font-weight: 800; font-size: 10px; writing-mode: vertical-lr; transform: rotate(180deg); border: 1px solid #000; }
@@ -366,6 +365,7 @@
     </main>
   </div>
 
+  <script src="../../config.js"></script>
   <script>
     let STATE_GRID_MASA = [];
     let STATE_SUBJEK = [];
@@ -381,6 +381,10 @@
     let ALL_MASTER_SUBJEK_LIST = [];
 
     window.currentOpenDropdownIdx = null;
+
+    const SCRIPT_TARGET_URL = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
+      ? WEB_APP_URL 
+      : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
 
     window.addEventListener('DOMContentLoaded', () => {
       loadMasterPangkalanData().then(() => {
@@ -409,34 +413,14 @@
     }
 
     async function postToBackend(payload) {
-      return new Promise((resolve, reject) => {
-        if (typeof google !== 'undefined' && google.script && google.script.run) {
-          const actionMap = {
-            'getManualV2Data': 'getManualV2Data',
-            'initJadualDatabase': 'initJadualDatabase',
-            'getJWConstraints': 'getJWConstraints',
-            'saveJWConstraints': 'saveJWConstraints',
-            'generateJadualWaktu': 'generateJadualWaktuEngine',
-            'getJadualWaktuHasil': 'getJadualWaktuHasil'
-          };
-          const fnName = actionMap[payload.action];
-          if (fnName && google.script.run[fnName]) {
-            google.script.run
-              .withSuccessHandler(resolve)
-              .withFailureHandler(reject)[fnName](payload.data || payload);
-            return;
-          }
-        }
-        
-        fetch(window.location.href, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(resolve)
-        .catch(reject);
+      const response = await fetch(SCRIPT_TARGET_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+        redirect: 'follow'
       });
+      if (!response.ok) throw new Error('HTTP Error ' + response.status);
+      return await response.json();
     }
 
     function toggleSidebar() {
@@ -1101,6 +1085,11 @@
       if (kateg.includes('Tahap 1') || kateg.includes('Tahun 1')) tagParts.push('Thp 1');
       else if (kateg.includes('Tahap 2')) tagParts.push('Thp 2');
       else if (kateg.includes('Semua')) tagParts.push('Semua');
+      else {
+        if (idSub.includes('-T1')) tagParts.push('Thp 1');
+        else if (idSub.includes('-T2')) tagParts.push('Thp 2');
+        else tagParts.push('Semua');
+      }
 
       if (isPair || idSub.toUpperCase().includes('PAIR')) tagParts.push('Pairing');
 
@@ -1575,7 +1564,7 @@
       } catch (err) {}
     }
 
-    // FUNGSI RENDER MATRIKS aSc STYLE (GURU & KELAS)
+    // FUNGSI RENDER MATRIKS aSc STYLE (GURU: TIANG REHAT 1 & 2 SERENTAK + SEMUA GURU; KELAS: REHAT TAHAP)
     function renderJadualHasilView() {
       const container = document.getElementById('containerHasilJadualView');
       if (!container) return;
@@ -1594,6 +1583,7 @@
             return (j.ID_Guru_Utama || j.idGuruUtama) === entityName || (j.ID_Guru_Pair || j.idGuruPair) === entityName;
           });
 
+          // GRID KELAS GURU MEMPUNYAI DUA-DUA REHAT (REHAT 1 & REHAT 2) + WAKTU 9 DIPERTANDAKAN
           const teacherGridCols = [
             { id: '01', noW: '1', label: '1<br>7:40-8:10' },
             { id: '02', noW: '2', label: '2<br>8:10-8:40' },
@@ -1606,7 +1596,7 @@
             { id: '09', noW: '6', label: '6<br>10:30-11:00' },
             { id: '10', noW: '7', label: '7<br>11:00-11:30' },
             { id: '11', noW: '8', label: '8<br>11:30-12:00' },
-            { id: '12', noW: '9', label: '9<br>12:00-12:30' },
+            { id: '12', noW: '9', label: '9<br>12:00-12:30' }, // DIPERBETULKAN DI SINI
             { id: '13', noW: '10', label: '10<br>12:30-13:00' },
             { id: '14', noW: '11', label: '11<br>13:00-13:30' }
           ];
@@ -1654,6 +1644,7 @@
                 continue;
               }
 
+              // SEMAKAN PERHIMPUNAN ISNIN W1
               if (day === 'Isnin' && col.id === '01') {
                 html += `<td class="asc-grid-td font-black bg-slate-200 text-slate-900 border-black">PER</td>`;
                 continue;
@@ -1670,6 +1661,7 @@
                 const clsKey = matched.ID_Kelas || matched.idKelas;
 
                 let colspanVal = 1;
+                // SEMAK SAMA ADA SLOT BERSEBELAHAN MEMPUNYAI SUBJEK & KELAS YANG SAMA (COLSPAN)
                 if (cIdx + 1 < teacherGridCols.length && !teacherGridCols[cIdx + 1].isRehat) {
                   const nextCol = teacherGridCols[cIdx + 1];
                   const nextMatched = items.find(it => {
@@ -1680,7 +1672,7 @@
 
                   if (nextMatched && (nextMatched.Kod_Subjek || nextMatched.kodSubjek) === subKey && (nextMatched.ID_Kelas || nextMatched.idKelas) === clsKey) {
                     colspanVal = 2;
-                    cIdx++;
+                    cIdx++; // LOMPAT SLOT NEXT
                   }
                 }
 
@@ -1805,6 +1797,7 @@
                 continue;
               }
 
+              // SEMAKAN PERHIMPUNAN
               if (day === 'Isnin' && col.id === '01') {
                 html += `<td class="asc-grid-td font-black bg-slate-200 text-slate-900 border-black">PER</td>`;
                 continue;
@@ -1877,7 +1870,7 @@
         });
 
       } else if (mode === 'master') {
-        html = `<div class="p-4 bg-white border-2 border-black font-bold text-sm">Paparan Master Grid Keseluruhan (Gunakan dropdown di atas untuk beralih antara Jadual Waktu Guru dan Jadual Waktu Kelas bagi cetakan A4).</div>`;
+        html = `<div class="p-4 bg-white border-2 border-black font-bold text-sm">Paparan Master Grid Keseluruhan (Gunakan dropdown untuk beralih antara Jadual Guru dan Jadual Kelas).</div>`;
       }
 
       container.innerHTML = html;
