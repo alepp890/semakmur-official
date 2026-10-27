@@ -311,7 +311,7 @@
                   <th class="table-cell-std w-64">Nama Guru (Dropdown Staf)</th>
                   <th class="table-cell-std w-32 text-center">Max Sehari</th>
                   <th class="table-cell-std w-32 text-center">Max Berturut</th>
-                  <th class="table-cell-std">Slot Dikunci / Pelepasan (e.g. ISN-SLOT-01, RAB-SLOT-02)</th>
+                  <th class="table-cell-std">Slot Dikunci / Pelepasan (e.g. Isnin-SLOT-01, Rabu-SLOT-02)</th>
                   <th class="table-cell-std w-16 text-center">Padam</th>
                 </tr>
               </thead>
@@ -506,6 +506,28 @@
       }
     }
 
+    // FUNGSI PENGELEPASAN FLEKSIBEL ID SLOT (ISN-SLOT-01 vs SLOT-01 vs slot-1)
+    function isSlotMatch(itemSlotId, targetSlotId) {
+      if (!itemSlotId || !targetSlotId) return false;
+      let s1 = String(itemSlotId).trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      let s2 = String(targetSlotId).trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+      
+      if (s1 === s2) return true;
+      
+      let num1 = s1.match(/\d+/);
+      let num2 = s2.match(/\d+/);
+
+      let days = ['ISN', 'SEL', 'RAB', 'KHM', 'JUM'];
+      let day1 = days.find(d => s1.includes(d));
+      let day2 = days.find(d => s2.includes(d));
+      
+      if (day1 && day2 && day1 !== day2) return false;
+      if (num1 && num2 && parseInt(num1[0], 10) === parseInt(num2[0], 10)) {
+        return true;
+      }
+      return false;
+    }
+
     function formatTimeString(val) {
       if (!val) return '';
       let str = String(val).trim();
@@ -555,37 +577,6 @@
       let hh = String(h).padStart(2, '0');
       let mm = String(m).padStart(2, '0');
       return `${hh}:${mm}`;
-    }
-
-    /* FUNGSI UTAMA PADANAN SLOT (ISN-SLOT-01 vs SLOT-01 vs slot-1) */
-    function isSlotMatch(item, targetDay, colId) {
-      if (!item) return false;
-      const itemDay = String(item.Hari || item.hari || '').trim().toLowerCase();
-      if (itemDay !== String(targetDay).trim().toLowerCase()) return false;
-      
-      const itemSlot = String(item.Slot_ID || item.slotId || item.ID_Slot || '').trim().toUpperCase();
-      if (!itemSlot) return false;
-
-      const targetCol = String(colId).toUpperCase(); // contoh: 'SLOT-01'
-      const prefix = getPrefixHari(targetDay).toUpperCase(); // contoh: 'ISN'
-
-      // Direct exact match: e.g. "SLOT-01" === "SLOT-01"
-      if (itemSlot === targetCol) return true;
-
-      // Prefixed match: e.g. "ISN-SLOT-01" === "ISN" + "-" + "SLOT-01"
-      if (itemSlot === `${prefix}-${targetCol}` || itemSlot.endsWith(`-${targetCol}`)) return true;
-
-      // Extraction of numbers (e.g. "ISN-SLOT-01" or "slot-1" -> numeric ID 1)
-      const targetNumMatch = targetCol.match(/(\d+)/);
-      const itemNumMatch = itemSlot.match(/(\d+)/);
-
-      if (targetNumMatch && itemNumMatch) {
-        const targetNum = parseInt(targetNumMatch[1], 10);
-        const itemNum = parseInt(itemNumMatch[1], 10);
-        if (targetNum === itemNum) return true;
-      }
-
-      return false;
     }
 
     function syncCurrentDayGridMasaDOM(dayToSync) {
@@ -688,12 +679,7 @@
         
         let jenis = row.Jenis_Slot || 'PdP (30 Minit)';
         const jamTamatAuto = calculateJamTamat(cleanJamMula, jenis);
-        
-        // Pastikan Slot_ID dipaparkan dengan prefix hari yang konsisten
-        let slotIdUnik = row.Slot_ID || '';
-        if (!slotIdUnik || !slotIdUnik.toUpperCase().startsWith(prefix)) {
-          slotIdUnik = `${prefix}-SLOT-${String(idx+1).padStart(2, '0')}`;
-        }
+        const slotIdUnik = row.Slot_ID && row.Slot_ID.startsWith(prefix) ? row.Slot_ID : `${prefix}-SLOT-${String(idx+1).padStart(2, '0')}`;
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
@@ -941,11 +927,12 @@
       const grouped = {};
       if (STATE_AGIHAN && STATE_AGIHAN.length > 0) {
         STATE_AGIHAN.forEach(item => {
-          if (!item.ID_Guru_Utama) return;
-          const key = `${item.ID_Guru_Utama}_${item.ID_Subjek}_${item.ID_Guru_Pair || ''}`;
+          const gUtama = item.ID_Guru_Utama || item.ID_Guru;
+          if (!gUtama) return;
+          const key = `${gUtama}_${item.ID_Subjek}_${item.ID_Guru_Pair || ''}`;
           if (!grouped[key]) {
             grouped[key] = {
-              idGuruUtama: item.ID_Guru_Utama,
+              idGuruUtama: gUtama,
               idSubjek: item.ID_Subjek,
               kodSubjek: item.Kod_Subjek || item.ID_Subjek,
               idGuruPair: item.ID_Guru_Pair || '',
@@ -1189,9 +1176,10 @@
       const sortedStaf = getSortedStafList();
 
       STATE_GURU_CONSTRAINT.forEach((row, idx) => {
+        const namaGuruVal = row.Nama_Guru || row.ID_Guru || '';
         let optGuru = `<option value="">-- Pilih Guru --</option>`;
         sortedStaf.forEach(st => {
-          optGuru += `<option value="${st.Nama_Penuh}" ${row.Nama_Guru === st.Nama_Penuh ? 'selected' : ''}>${st.Nama_Penuh}</option>`;
+          optGuru += `<option value="${st.Nama_Penuh}" ${namaGuruVal === st.Nama_Penuh ? 'selected' : ''}>${st.Nama_Penuh}</option>`;
         });
 
         tbody.innerHTML += `
@@ -1204,7 +1192,7 @@
             </td>
             <td class="p-1.5"><input type="number" value="${row.Max_Waktu_Sehari || 6}" onchange="onGuruConstraintSelect(${idx}, 'Max_Waktu_Sehari', this.value)" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
             <td class="p-1.5"><input type="number" value="${row.Max_Waktu_Berturut || 3}" onchange="onGuruConstraintSelect(${idx}, 'Max_Waktu_Berturut', this.value)" class="w-full p-1.5 border rounded-lg text-xs font-bold text-center bg-white"></td>
-            <td class="p-1.5"><input type="text" value="${row.Slot_Dikunci_Off || ''}" onchange="onGuruConstraintSelect(${idx}, 'Slot_Dikunci_Off', this.value)" placeholder="e.g. ISN-SLOT-01, RAB-SLOT-02" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white text-purple-700"></td>
+            <td class="p-1.5"><input type="text" value="${row.Slot_Dikunci_Off || ''}" onchange="onGuruConstraintSelect(${idx}, 'Slot_Dikunci_Off', this.value)" placeholder="e.g. Isnin-SLOT-01, Rabu-SLOT-02" class="w-full p-1.5 border rounded-lg text-xs font-semibold bg-white text-purple-700"></td>
             <td class="table-cell-std text-center">
               <button onclick="padamBarisGuruConstraint(${idx})" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
             </td>
@@ -1216,11 +1204,12 @@
     function onGuruConstraintSelect(idx, field, val) {
       if (STATE_GURU_CONSTRAINT[idx]) {
         STATE_GURU_CONSTRAINT[idx][field] = val;
+        if (field === 'Nama_Guru') STATE_GURU_CONSTRAINT[idx]['ID_Guru'] = val;
       }
     }
 
     function tambahBarisGuruConstraint() {
-      STATE_GURU_CONSTRAINT.push({ Nama_Guru: '', Max_Waktu_Sehari: 6, Max_Waktu_Berturut: 3, Slot_Dikunci_Off: '' });
+      STATE_GURU_CONSTRAINT.push({ Nama_Guru: '', ID_Guru: '', Max_Waktu_Sehari: 6, Max_Waktu_Berturut: 3, Slot_Dikunci_Off: '' });
       renderGuruConstraintTable();
     }
 
@@ -1286,7 +1275,7 @@
       } catch (err) {}
     }
 
-    // FUNGSI RENDER MATRIKS aSc STYLE (GURU DAN KELAS - PADANAN SLOT LEBIH TEPAT)
+    // FUNGSI RENDER MATRIKS aSc STYLE (GURU DAN KELAS)
     function renderJadualHasilView() {
       const container = document.getElementById('containerHasilJadualView');
       if (!container) return;
@@ -1298,14 +1287,23 @@
       if (mode === 'guru') {
         const teacherSet = new Set();
         STATE_HASIL_JADUAL.forEach(j => {
-          if (j.ID_Guru_Utama && j.ID_Guru_Utama !== 'ALL_GURU') teacherSet.add(j.ID_Guru_Utama);
+          const gUtama = j.ID_Guru_Utama || j.idGuruUtama || j.ID_Guru;
+          const gPair = j.ID_Guru_Pair || j.idGuruPair;
+          if (gUtama && gUtama !== 'ALL_GURU') teacherSet.add(gUtama);
+          if (gPair) teacherSet.add(gPair);
         });
+
+        // Ambil senarai guru daripada pangkalan staf jika hasil jadual belum dimasukkan
+        const sortedStaf = getSortedStafList();
+        sortedStaf.forEach(s => teacherSet.add(s.Nama_Penuh));
 
         const allTeachers = Array.from(teacherSet);
 
         allTeachers.forEach(entityName => {
           const items = STATE_HASIL_JADUAL.filter(j => {
-            return (j.ID_Guru_Utama || j.idGuruUtama) === entityName || (j.ID_Guru_Pair || j.idGuruPair) === entityName;
+            const g1 = j.ID_Guru_Utama || j.idGuruUtama || j.ID_Guru || '';
+            const g2 = j.ID_Guru_Pair || j.idGuruPair || '';
+            return g1.toLowerCase() === entityName.toLowerCase() || g2.toLowerCase() === entityName.toLowerCase();
           });
 
           const teacherGridCols = [
@@ -1361,7 +1359,11 @@
                 continue;
               }
 
-              const matched = items.find(it => isSlotMatch(it, day, col.id));
+              const matched = items.find(it => {
+                const itemDay = String(it.Hari || it.hari || '').trim().toLowerCase();
+                const itemSlot = String(it.Slot_ID || it.slotId || '').trim().toUpperCase();
+                return (itemDay === day.toLowerCase() && isSlotMatch(itemSlot, col.id));
+              });
 
               if (matched) {
                 const subKey = matched.Kod_Subjek || matched.kodSubjek || matched.ID_Subjek || matched.idSubjek;
@@ -1371,7 +1373,11 @@
 
                 if (cIdx + 1 < teacherGridCols.length && !teacherGridCols[cIdx + 1].isRehat) {
                   const nextCol = teacherGridCols[cIdx + 1];
-                  const nextMatched = items.find(it => isSlotMatch(it, day, nextCol.id));
+                  const nextMatched = items.find(it => {
+                    const itemDay = String(it.Hari || it.hari || '').trim().toLowerCase();
+                    const itemSlot = String(it.Slot_ID || it.slotId || '').trim().toUpperCase();
+                    return (itemDay === day.toLowerCase() && isSlotMatch(itemSlot, nextCol.id));
+                  });
 
                   if (nextMatched && (nextMatched.Kod_Subjek || nextMatched.kodSubjek) === subKey && (nextMatched.ID_Kelas || nextMatched.idKelas) === clsKey) {
                     colspanVal = 2;
@@ -1401,7 +1407,7 @@
         });
 
       } else if (mode === 'kelas') {
-        const classSet = new Set();
+        const classSet = new Set(DEFAULT_KELAS_LIST);
         STATE_HASIL_JADUAL.forEach(j => {
           const k = j.ID_Kelas || j.idKelas;
           if (k && k !== 'ALL') classSet.add(k);
@@ -1481,7 +1487,11 @@
                 continue;
               }
 
-              const matched = items.find(it => isSlotMatch(it, day, col.id));
+              const matched = items.find(it => {
+                const itemDay = String(it.Hari || it.hari || '').trim().toLowerCase();
+                const itemSlot = String(it.Slot_ID || it.slotId || '').trim().toUpperCase();
+                return (itemDay === day.toLowerCase() && isSlotMatch(itemSlot, col.id));
+              });
 
               if (matched) {
                 const subKey = matched.Kod_Subjek || matched.kodSubjek || matched.ID_Subjek || matched.idSubjek;
@@ -1489,14 +1499,18 @@
 
                 if (cIdx + 1 < gridCols.length && !gridCols[cIdx + 1].isRehat) {
                   const nextCol = gridCols[cIdx + 1];
-                  const nextMatched = items.find(it => isSlotMatch(it, day, nextCol.id));
+                  const nextMatched = items.find(it => {
+                    const itemDay = String(it.Hari || it.hari || '').trim().toLowerCase();
+                    const itemSlot = String(it.Slot_ID || it.slotId || '').trim().toUpperCase();
+                    return (itemDay === day.toLowerCase() && isSlotMatch(itemSlot, nextCol.id));
+                  });
 
                   if (nextMatched && (nextMatched.Kod_Subjek || nextMatched.kodSubjek) === subKey) {
                     colspanVal = 2;
                   }
                 }
 
-                const gUtamaName = getSamaran(matched.ID_Guru_Utama || matched.idGuruUtama);
+                const gUtamaName = getSamaran(matched.ID_Guru_Utama || matched.idGuruUtama || matched.ID_Guru);
                 const gPairName = getSamaran(matched.ID_Guru_Pair || matched.idGuruPair);
                 
                 let displayGuruStr = gUtamaName;
