@@ -660,14 +660,33 @@
     }
 
     async function postToBackend(payload) {
-      const response = await fetch(SCRIPT_TARGET_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload),
-        redirect: 'follow'
-      });
-      if (!response.ok) throw new Error('HTTP Error ' + response.status);
-      return await response.json();
+      // Elakkan paparan terkunci selama-lamanya jika sambungan terputus.
+      // Had ini menghentikan penantian pelayar, bukan pelaksanaan Apps Script.
+      const type = String(payload && payload.action || '');
+      const waitMs = type === 'shuffleJadualWaktu' ? 330000
+        : type === 'generateJadualWaktu' ? 240000 : 60000;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), waitMs);
+      try {
+        const response = await fetch(SCRIPT_TARGET_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload),
+          redirect: 'follow',
+          signal: controller.signal
+        });
+        if (!response.ok) throw new Error('HTTP Error ' + response.status);
+        return await response.json();
+      } catch (error) {
+        if (error && error.name === 'AbortError') {
+          const err = new Error('Masa menunggu jawapan telah tamat. Sila semak jadual semasa sebelum mencuba lagi.');
+          err.code = 'JW_REQUEST_TIMEOUT';
+          throw err;
+        }
+        throw error;
+      } finally {
+        clearTimeout(timeout);
+      }
     }
 
     function toggleSidebar() {
@@ -1990,8 +2009,14 @@
       showLoader('', 'shuffle');
       try {
         const result = await postToBackend({action:'shuffleJadualWaktu',data:{tahun:'2026'}});
+        console.info('Keputusan Shuffle diterima:',result);
         if (result && result.success && result.saved) {
           const refreshed = await loadJadualHasil();
+          // PENTING: jangan tunggu Swal ketika lapisan loading masih aktif.
+          // Jika tidak, popup berada di belakang overlay dan kelihatan seperti beku.
+          hideLoader();
+          JW_BUSY_TIMETABLE = false;
+          syncJwActionButtons();
           await Swal.fire({icon:refreshed?'success':'info',
             title:refreshed?'Susunan baharu tersedia':'Jadual baharu telah disimpan',
             text:refreshed
@@ -2001,17 +2026,30 @@
           const btn = document.querySelector('.nav-tab[onclick*="viewGeneratorConsole"]');
           switchView('viewGeneratorConsole',btn);
         } else if (result && result.unchanged) {
-          Swal.fire({icon:'info',title:'Susunan masih sama',
+          hideLoader();
+          await Swal.fire({icon:'info',title:'Susunan masih sama',
             text:'Tiada perubahan dibuat. Anda boleh cuba Shuffle sekali lagi.'});
         } else {
           console.warn('Shuffle belum berjaya:',result);
-          Swal.fire({icon:'info',title:'Belum menemui susunan lain',
-            text:'Jadual semasa kekal dan tidak berubah. Anda boleh cuba lagi.'});
+          hideLoader();
+          await Swal.fire({icon:'info',title:'Belum menemui susunan lain',
+            text:'Tiada perubahan berjaya disahkan. Jadual semasa boleh disemak semula.'});
         }
       } catch(err) {
         console.error('Shuffle terganggu:',err);
-        Swal.fire({icon:'error',title:'Sambungan terganggu',
-          text:'Semak jadual semasa sebelum mencuba lagi.'});
+        hideLoader();
+        const timedOut = err && err.code === 'JW_REQUEST_TIMEOUT';
+        const answer = await Swal.fire({icon:'warning',
+          title:timedOut?'Belum menerima pengesahan':'Sambungan terganggu',
+          text: timedOut
+            ? 'Proses mungkin telah tamat atau masih berjalan. Semak jadual terkini sebelum Shuffle semula.'
+            : 'Keputusan belum dapat disahkan. Semak jadual semasa sebelum mencuba lagi.',
+          showCancelButton:true,confirmButtonText:'Semak Jadual',cancelButtonText:'Tutup'});
+        if (answer.isConfirmed) {
+          await loadJadualHasil();
+          const btn = document.querySelector('.nav-tab[onclick*="viewGeneratorConsole"]');
+          switchView('viewGeneratorConsole',btn);
+        }
       } finally {
         JW_BUSY_TIMETABLE = false;
         hideLoader();
