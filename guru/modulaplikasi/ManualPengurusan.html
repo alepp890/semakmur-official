@@ -110,6 +110,10 @@
           </div>
         </div>
 
+        <div id="dashboardSmartMetrics" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
+        <div class="flex flex-wrap gap-2 justify-end">
+          <button onclick="showView('viewAuditPeranan')" class="px-4 py-2.5 rounded-xl bg-white border border-rose-200 text-rose-700 text-xs font-extrabold shadow-sm hover:bg-rose-50"><i class="fa-solid fa-chart-line mr-1"></i> Semakan Pengagihan Lengkap</button>
+        </div>
         <!-- WIDGET LAPORAN KEKOSONGAN JAWATAN -->
         <div class="bg-white rounded-2xl border border-rose-200 shadow-xs p-5 space-y-4">
           <div class="flex items-center justify-between border-b border-rose-100 pb-3">
@@ -122,6 +126,44 @@
 
           <div id="boxVacancyAlerts" class="space-y-2 text-xs"></div>
         </div>
+      </div>
+
+      <!-- SMART COMMAND CENTER -->
+      <div id="viewAuditPeranan" class="hidden space-y-5">
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div><h2 class="font-display font-extrabold text-xl">Pusat Semakan & Analitik Pengagihan</h2>
+              <p class="text-xs text-slate-500 mt-1">Semak kelengkapan, pertindihan, beban tugas dan tugasan tahun yang dipilih — tanpa mengubah data.</p></div>
+            <div class="flex gap-2 flex-wrap">
+              <button onclick="exportPerananCsvV3()" class="px-3 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold"><i class="fa-solid fa-file-csv mr-1"></i> Eksport CSV</button>
+              <button onclick="fetchMasterStafData()" class="px-3 py-2 bg-slate-100 text-slate-700 border rounded-xl text-xs font-bold"><i class="fa-solid fa-rotate mr-1"></i> Muat Semula</button>
+            </div>
+          </div>
+          <div id="auditKpiCards" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5"></div>
+        </section>
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2"><h3 class="font-bold text-sm">Amaran & tindakan disyorkan</h3><span class="text-[11px] text-slate-400">Amaran ialah semakan, bukan perubahan data</span></div>
+          <div id="auditIssues" class="space-y-2 text-xs"></div>
+        </section>
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex flex-wrap justify-between gap-3 items-center">
+            <h3 class="font-bold text-sm">Carian semua peranan staf</h3>
+            <div class="flex gap-2 flex-wrap">
+              <input id="auditSearchInput" oninput="renderAuditPerananV3()" placeholder="Cari nama guru, JK, tugas atau kelas…" class="border border-slate-300 rounded-xl p-2 text-xs w-64 max-w-full"/>
+              <select id="auditCategoryFilter" onchange="renderAuditPerananV3()" class="border border-slate-300 rounded-xl p-2 text-xs"><option value="">Semua kategori</option><option>Pentadbiran</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select>
+            </div>
+          </div>
+          <div class="overflow-x-auto"><table class="w-full text-xs text-left"><thead class="bg-slate-100 text-slate-700"><tr><th class="p-3">Staf</th><th class="p-3">Jawatankuasa</th><th class="p-3">Peranan</th><th class="p-3">Skop / Kelas</th><th class="p-3">Status</th></tr></thead><tbody id="auditPerananRows"></tbody></table></div>
+          <p id="auditResultCount" class="text-xs text-slate-500"></p>
+        </section>
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div><h3 class="font-bold text-sm">Taburan Beban Tugasan Guru</h3><p class="text-xs text-slate-500 mt-1">Bilangan pengagihan mengikut staf bagi sesi dipilih. Digunakan untuk pertimbangan pentadbir, bukan penilaian prestasi.</p></div>
+          <div class="overflow-x-auto"><table class="w-full text-xs text-left"><thead class="bg-slate-100"><tr><th class="p-3">Guru</th><th class="p-3">Jumlah peranan</th><th class="p-3">Taburan jawatankuasa</th></tr></thead><tbody id="auditWorkloadRows"></tbody></table></div>
+        </section>
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex justify-between items-center"><h3 class="font-bold text-sm">Riwayat Simpanan</h3><button onclick="loadManualV3History()" class="bg-slate-100 hover:bg-slate-200 px-3 py-2 text-xs rounded-xl font-semibold">Lihat riwayat</button></div>
+          <div id="auditHistoryList" class="text-xs text-slate-500">Klik “Lihat riwayat” untuk melihat operasi simpan terdahulu.</div>
+        </section>
       </div>
 
       <!-- ================= 2. PROFIL GURU & AKP ================= -->
@@ -137,12 +179,15 @@
             </button>
           </div>
 
+          <div class="flex flex-wrap justify-between items-center gap-3">
           <div class="flex flex-wrap items-center gap-2">
             <button onclick="filterStafTable('Semua', event)" class="btn-filter-staf active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs">Semua</button>
             <button onclick="filterStafTable('Pentadbir', event)" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Pentadbir</button>
             <button onclick="filterStafTable('Guru Akademik', event)" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Guru Akademik</button>
             <button onclick="filterStafTable('Guru Praktikal', event)" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Guru Praktikal</button>
             <button onclick="filterStafTable('AKP', event)" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">AKP</button>
+          </div>
+          <input id="stafSearchV3" oninput="renderMasterStafTable()" placeholder="Cari nama, ID atau e-mel..." class="w-full sm:w-60 border border-slate-300 rounded-xl p-2 text-xs"/>
           </div>
         </div>
 
@@ -238,6 +283,11 @@
             </button>
           </div>
 
+          <div class="flex items-center flex-wrap gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3">
+            <div class="flex-1"><p class="font-extrabold text-xs text-emerald-900">Simpan modul secara khusus</p><p class="text-[11px] text-emerald-700">Hanya pengagihan pada tab aktif akan dikemaskini. Tugasan lain kekal.</p></div>
+            <span id="manualUnsavedBadge" class="hidden text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-1 rounded-lg">Perubahan belum disimpan</span>
+            <button onclick="simpanSemuaPengurusanSekolah(MANUAL_V3_ACTIVE_MODULE)" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl px-4 py-2.5"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Tab Ini</button>
+          </div>
           <div class="flex flex-wrap items-center gap-2">
             <button onclick="switchSubPengurusan('kelas', event)" id="subTabKelas" class="sub-tab-btn active px-3.5 py-2 rounded-xl font-bold text-xs bg-rose-600 text-white transition">Guru Kelas & Aliran</button>
             <button onclick="switchSubPengurusan('bilik', event)" id="subTabBilik" class="sub-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Penyelaras Bilik Khas</button>
@@ -774,6 +824,13 @@
 
     let activeCategoryInduk = 'Pentadbiran';
     let activeSubJkName = '';
+    let MANUAL_V3_ACTIVE_MODULE = 'kelas';
+    let MANUAL_V3_DIRTY = false;
+    let MANUAL_V3_CLEAN_YEAR = '2027';
+    function markManualV3Dirty(){ MANUAL_V3_DIRTY=true; const el=document.getElementById('manualUnsavedBadge'); if(el)el.classList.remove('hidden'); }
+    function clearManualV3Dirty(){ MANUAL_V3_DIRTY=false; MANUAL_V3_CLEAN_YEAR=document.getElementById('selTahunAktif')?.value||'2027'; const el=document.getElementById('manualUnsavedBadge'); if(el)el.classList.add('hidden'); }
+    window.addEventListener('beforeunload',e=>{if(MANUAL_V3_DIRTY){e.preventDefault();e.returnValue='';}});
+
 
     const SPECIAL_GROUPS = [
       { ID_Staf: 'GRP001', Nama_Penuh: 'Semua Guru' },
@@ -808,9 +865,16 @@
       document.querySelectorAll('.lblTahunSpan').forEach(el => el.innerText = activeYear);
     }
 
-    function onChangeTahunAktif() {
+    async function onChangeTahunAktif() {
+      const sel=document.getElementById('selTahunAktif');
+      const proposed=sel.value;
+      if(MANUAL_V3_DIRTY){
+        const ans=await Swal.fire({title:'Ada perubahan belum disimpan',text:'Tukar tahun akan membuang pengisian yang belum disimpan. Teruskan?',icon:'warning',showCancelButton:true,confirmButtonText:'Tukar tahun',cancelButtonText:'Batal'});
+        if(!ans.isConfirmed){sel.value=MANUAL_V3_CLEAN_YEAR;return;}
+      }
       updateYearLabelsUI();
-      fetchMasterStafData();
+      await fetchMasterStafData();
+      MANUAL_V3_CLEAN_YEAR=proposed;
     }
 
     function getNextStafID() {
@@ -894,6 +958,137 @@
       return await response.json();
     }
 
+
+    // ======================== V3: PUSAT SEMAKAN INTELLIGENT ========================
+    const MANUAL_V3_SCOPE_MAP={
+      kelas:['Pengurusan Kelas','Pengurusan Aliran'],
+      bilik:['Pengurusan Bilik Khas'],
+      bertugas:['Kumpulan Bertugas Mingguan'],
+      rph:['Penghantaran e-RPH'],
+      pencerapan:['Pencerapan PdP'],
+      semakan:['Semakan Buku Tulis']
+    };
+    const MANUAL_V3_ALL_SCHOOL_SCOPES=Object.values(MANUAL_V3_SCOPE_MAP).flat();
+    function manualV3Escape(v){return String(v===undefined||v===null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+    function manualV3Year(){return document.getElementById('selTahunAktif')?.value || '2027';}
+    function manualV3ScopeIds(scopes){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year() && scopes.includes(String(p.Nama_Jawatankuasa||''))).map(p=>String(p.ID_Peranan||'')).sort();}
+    function manualV3CurrentRoles(){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year()&&String(p.Status||'Aktif').toLowerCase()==='aktif');}
+    function manualV3ActiveStaff(){return ALL_STAF.filter(s=>String(s.Status||'').toLowerCase()==='aktif');}
+    function manualV3StaffName(id){ const g=ALL_STAF.find(s=>s.ID_Staf===id);return g?g.Nama_Penuh:id; }
+    function manualV3Audit(roles=manualV3CurrentRoles()){
+      const issues=[]; const byStaf=new Map(ALL_STAF.map(s=>[s.ID_Staf,s]));
+      const live=new Set(manualV3ActiveStaff().map(s=>s.ID_Staf));
+      const byClass=new Map(), classForTeacher=new Map(), byGroup=new Map(), duplicate=new Set();
+      const classes=ALL_LOKASI.filter(l=>String(l.Kategori||'').toLowerCase()==='kelas');
+      const reviewers=new Map(); const observers=new Map();
+      for(const p of roles){
+        const id=String(p.ID_Staf||p.id_staf||'');
+        const jk=String(p.Nama_Jawatankuasa||p.nama_jawatankuasa||'');
+        const role=String(p.Peranan||p.peranan||'');
+        const skop=String(p.Skop_Tugas_Kelas||p.skop_tugas_kelas||'');
+        if(!byStaf.has(id)&&!/^GRP00[1-6]$/.test(id))issues.push({level:'error',topic:'Rujukan staf',message:`ID ${id} tidak ditemui dalam Master_Staf (${jk}).`});
+        else if(byStaf.has(id)&&!live.has(id))issues.push({level:'error',topic:'Staf tidak aktif',message:`${manualV3StaffName(id)} masih memegang tugas ${role} — ${jk}.`});
+        const key=[id,jk,role,skop].join('|').toLowerCase();
+        if(duplicate.has(key))issues.push({level:'warning',topic:'Rekod berganda',message:`${manualV3StaffName(id)} mempunyai rekod berulang dalam ${jk} / ${role}.`});
+        duplicate.add(key);
+        if(jk==='Pengurusan Kelas'&&role==='Guru Kelas'){
+          if(!byClass.has(skop))byClass.set(skop,[]);
+          byClass.get(skop).push(id);
+          if(!classForTeacher.has(id))classForTeacher.set(id,[]);
+          classForTeacher.get(id).push(skop);
+        }
+        if(jk==='Kumpulan Bertugas Mingguan'){
+          if(!byGroup.has(id))byGroup.set(id,new Set());byGroup.get(id).add(skop);
+        }
+        if(jk==='Penghantaran e-RPH')reviewers.set(id,skop);
+        if(jk==='Pencerapan PdP'){
+          if(!observers.has(id))observers.set(id,{});
+          observers.get(id)[role]=skop;
+        }
+      }
+      for(const l of classes){
+        const name=String(l.Nama_Lokasi||''); const assigned=byClass.get(name)||[];
+        if(!assigned.length)issues.push({level:'warning',topic:'Guru kelas belum diisi',message:`Kelas ${name} belum mempunyai Guru Kelas.`});
+        else if(assigned.length>1)issues.push({level:'error',topic:'Guru kelas bertindih',message:`Kelas ${name} mempunyai ${assigned.length} rekod Guru Kelas.`});
+      }
+      for(const [id,arr] of classForTeacher)if(arr.length>1)issues.push({level:'warning',topic:'Beban guru kelas',message:`${manualV3StaffName(id)} ditugaskan sebagai Guru Kelas bagi ${arr.join(', ')}.`});
+      for(const [id,groups] of byGroup)if(groups.size>1)issues.push({level:'error',topic:'Kumpulan bertugas bertindih',message:`${manualV3StaffName(id)} berada dalam ${[...groups].join(', ')}.`});
+      const checkGuru=manualV3ActiveStaff().filter(s=>!['AKP','Guru Praktikal','Guru Besar'].includes(String(s.Kategori_Staf||'')));
+      for(const g of checkGuru){
+        if(!reviewers.get(g.ID_Staf))issues.push({level:'warning',topic:'Penyemak RPH belum diisi',message:`${g.Nama_Penuh} belum ditetapkan pegawai penyemak e-RPH.`});
+        if(reviewers.get(g.ID_Staf)===g.ID_Staf)issues.push({level:'error',topic:'Semak diri sendiri',message:`${g.Nama_Penuh} ditetapkan menyemak e-RPH sendiri.`});
+      }
+      for(const [id,p] of observers)if(p['Pencerapan 1']&&p['Pencerapan 1']===p['Pencerapan 2'])
+        issues.push({level:'warning',topic:'Pencerap sama',message:`${manualV3StaffName(id)} mempunyai pencerap PdP 1 dan 2 yang sama.`});
+      return {issues,activeStaff:manualV3ActiveStaff().length,assignedClasses:classes.filter(c=>(byClass.get(c.Nama_Lokasi)||[]).length>0).length,totalClasses:classes.length,roles:roles.length,reviewers:reviewers.size};
+    }
+    function manualV3KpiCard(label,value,detail,icon,color='rose'){
+      const iconColors={rose:'text-rose-600 bg-rose-50',emerald:'text-emerald-700 bg-emerald-50',amber:'text-amber-600 bg-amber-50',blue:'text-blue-700 bg-blue-50'};
+      return `<div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex gap-3 items-center"><div class="rounded-xl p-2 ${iconColors[color]||iconColors.rose}"><i class="fa-solid ${icon} text-lg"></i></div><div><p class="text-[10px] font-semibold text-slate-500 uppercase">${manualV3Escape(label)}</p><p class="text-xl font-extrabold text-slate-900">${manualV3Escape(value)}</p><p class="text-[10px] text-slate-500">${manualV3Escape(detail)}</p></div></div>`;
+    }
+    function refreshManualV3CommandCenter(){
+      const a=manualV3Audit();
+      const cards=[manualV3KpiCard('Staf aktif',a.activeStaff,'Master_Staf','fa-users','blue'),
+        manualV3KpiCard('Rekod tugasan',a.roles,`Sesi ${manualV3Year()}`,'fa-list-check','emerald'),
+        manualV3KpiCard('Guru kelas',`${a.assignedClasses}/${a.totalClasses}`,'Kelas berpenyelaras','fa-chalkboard','amber'),
+        manualV3KpiCard('Perkara perlu semak',a.issues.length,'Amaran & ralat','fa-triangle-exclamation','rose')].join('');
+      for(const id of ['dashboardSmartMetrics','auditKpiCards']){
+        const el=document.getElementById(id);if(el)el.innerHTML=cards;
+      }
+      return a;
+    }
+    function renderAuditPerananV3(){
+      const a=refreshManualV3CommandCenter();
+      const issueBox=document.getElementById('auditIssues');
+      if(issueBox)issueBox.innerHTML=a.issues.length?a.issues.map(v=>`<div class="flex gap-3 p-3 border rounded-xl ${v.level==='error'?'bg-rose-50 border-rose-200':'bg-amber-50 border-amber-200'}"><i class="fa-solid ${v.level==='error'?'fa-circle-exclamation text-rose-600':'fa-triangle-exclamation text-amber-600'} mt-0.5"></i><div><p class="font-bold">${manualV3Escape(v.topic)}</p><p class="text-slate-600 mt-0.5">${manualV3Escape(v.message)}</p></div></div>`).join(''):'<div class="text-emerald-700 bg-emerald-50 p-4 rounded-xl font-bold">Tiada isu dalam semakan asas untuk tahun ini.</div>';
+      const search=String(document.getElementById('auditSearchInput')?.value||'').trim().toLowerCase();
+      const cat=String(document.getElementById('auditCategoryFilter')?.value||'');
+      const rows=manualV3CurrentRoles().filter(p=>(!cat||p.Kategori_Pengurusan===cat) &&
+        [manualV3StaffName(p.ID_Staf),p.Nama_Jawatankuasa,p.Peranan,p.Skop_Tugas_Kelas].some(x=>String(x||'').toLowerCase().includes(search)));
+      const tbody=document.getElementById('auditPerananRows');
+      if(tbody)tbody.innerHTML=rows.length?rows.map(p=>`<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-3 font-semibold">${manualV3Escape(manualV3StaffName(p.ID_Staf))}</td><td class="p-3">${manualV3Escape(p.Nama_Jawatankuasa)}</td><td class="p-3">${manualV3Escape(p.Peranan)}</td><td class="p-3">${manualV3Escape(p.Skop_Tugas_Kelas)}</td><td class="p-3">${manualV3Escape(p.Status)}</td></tr>`).join(''):'<tr><td colspan="5" class="p-5 text-center text-slate-400">Tiada padanan.</td></tr>';
+      const cnt=document.getElementById('auditResultCount');if(cnt)cnt.innerText=`${rows.length} rekod dipaparkan daripada ${a.roles} tugasan aktif sesi ${manualV3Year()}.`;
+      const map=new Map();
+      manualV3CurrentRoles().forEach(p=>{
+        if(!ALL_STAF.some(st=>st.ID_Staf===p.ID_Staf))return;
+        if(!map.has(p.ID_Staf))map.set(p.ID_Staf,[]);
+        map.get(p.ID_Staf).push(p.Nama_Jawatankuasa);
+      });
+      const loadRows=[...map].sort((a,b)=>b[1].length-a[1].length).slice(0,15);
+      const work=document.getElementById('auditWorkloadRows');
+      if(work)work.innerHTML=loadRows.length?loadRows.map(([id,jks])=>`<tr class="border-b border-slate-100"><td class="p-3 font-semibold">${manualV3Escape(manualV3StaffName(id))}</td><td class="p-3 font-bold">${jks.length}</td><td class="p-3 text-slate-600">${manualV3Escape([...new Set(jks)].join(', '))}</td></tr>`).join(''):'<tr><td colspan="3" class="p-4 text-center text-slate-400">Tiada tugasan diisi lagi.</td></tr>';
+    }
+    function exportPerananCsvV3(){
+      const all=manualV3CurrentRoles();
+      const headers=['ID_Staf','Nama_Staf','Nama_Jawatankuasa','Peranan','Skop_Tugas_Kelas','Tahun','Status'];
+      const protect=v=>{let s=String(v===undefined||v===null?'':v);if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+      const csv='\uFEFF'+[headers.join(','),...all.map(p=>[p.ID_Staf,manualV3StaffName(p.ID_Staf),p.Nama_Jawatankuasa,p.Peranan,p.Skop_Tugas_Kelas,p.Tahun,p.Status].map(protect).join(','))].join('\r\n');
+      const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+      const a=document.createElement('a');a.href=url;a.download=`SeMAKMUR_Peranan_${manualV3Year()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);
+    }
+    async function loadManualV3History(){
+      const box=document.getElementById('auditHistoryList');if(box)box.innerText='Membaca sejarah simpanan…';
+      try{
+        const res=await postToBackend({action:'getManualV3History',data:{tahun:manualV3Year()}});
+        if(!res?.success)throw new Error(res?.error||'Gagal membaca sejarah.');
+        if(box)box.innerHTML=res.data.length?res.data.map(v=>`<div class="border-b p-2 flex justify-between gap-3"><span><strong>${manualV3Escape(v.tarikh)}</strong><br>${manualV3Escape(v.skop)}</span><span class="text-slate-400">${manualV3Escape(v.tahun)}</span></div>`).join(''):'Tiada sejarah untuk tahun ini.';
+      }catch(err){if(box)box.innerText='Tidak dapat membaca sejarah. Pastikan case getManualV3History telah ditambah dalam Code.gs. '+err.message;}
+    }
+    // Semakan dan kebenaran sebelum menulis semula satu skop tertentu.
+    async function manualV3ConfirmSave(scopes, items, context){
+      const year=manualV3Year();
+      const kept=manualV3CurrentRoles().filter(p=>!scopes.includes(String(p.Nama_Jawatankuasa||'')));
+      const fresh=items.map(p=>({ID_Staf:p.id_staf, Nama_Jawatankuasa:p.nama_jawatankuasa,Peranan:p.peranan,Skop_Tugas_Kelas:p.skop_tugas_kelas,Tahun:year,Status:'Aktif'}));
+      const audit=manualV3Audit(kept.concat(fresh));
+      const before=manualV3CurrentRoles().filter(p=>scopes.includes(String(p.Nama_Jawatankuasa||''))).length;
+      const issues=audit.issues.filter(x=>x.level==='error');
+      const warning=(items.length===0)?'<p class="text-rose-600 font-extrabold mt-3">Semua rekod dalam skop ini akan dikosongkan.</p>':'';
+      const response=await Swal.fire({icon:items.length?'question':'warning',title:'Semak Sebelum Simpan',
+        html:`<div class="text-left text-xs space-y-1"><p><strong>Bahagian:</strong> ${manualV3Escape(context)}</p><p><strong>Tahun:</strong> ${manualV3Escape(year)}</p><p><strong>Rekod lama dalam skop:</strong> ${before}</p><p><strong>Rekod baharu:</strong> ${items.length}</p><p><strong>Isu keseluruhan yang perlu semak:</strong> ${audit.issues.length} (${issues.length} kritikal)</p>${warning}<p class="text-slate-500 mt-3">Skop lain dan tahun lain tidak diubah.</p></div>`,
+        showCancelButton:true,confirmButtonText:items.length?'Sahkan & Simpan':'Ya, Kosongkan Skop',cancelButtonText:'Semak Semula',confirmButtonColor:items.length?'#047857':'#be123c'});
+      return response.isConfirmed;
+    }
+
     function checkVacanciesReport() {
       const box = document.getElementById('boxVacancyAlerts');
       const badge = document.getElementById('badgeCountVacancies');
@@ -958,6 +1153,9 @@
             <span>Dashboard Utama</span>
           </button>
 
+          <button onclick="showView('viewAuditPeranan', event)" id="sideAuditPeranan" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-shield-halved w-4 text-center text-emerald-400"></i><span>Pusat Semakan & Analitik</span>
+          </button>
           <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data Induk</div>
           
           <button onclick="showView('viewProfilStaf', event)" id="sideProfilStaf" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
@@ -1077,7 +1275,7 @@
       }
 
       // Setiausaha (Tanpa Perkataan Induk)
-      const suPeranan = ALL_PERANAN.find(p => 
+      const suPeranan = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
         (String(p.Peranan || p.peranan || '').trim() === `Setiausaha ${katName}` || String(p.Peranan || p.peranan || '').trim() === `Setiausaha`) &&
         String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim() === `JK Induk ${katName}` &&
         String(p.Status || 'Aktif').toLowerCase() === 'aktif'
@@ -1085,7 +1283,7 @@
       document.getElementById('selSetiausahaInduk').value = suPeranan ? (suPeranan.ID_Staf || suPeranan.id_staf || '') : '';
 
       // Tampilkan Jawatan Pegawai Khas Dinamik di JK Induk
-      const customIndukOfficers = ALL_PERANAN.filter(p => 
+      const customIndukOfficers = ALL_PERANAN.filter(p => String(p.Tahun || '') === manualV3Year() && 
         String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim() === `JK Induk ${katName}` &&
         !['pengerusi', 'naib pengerusi', 'setiausaha'].includes(String(p.Peranan || p.peranan || '').toLowerCase()) &&
         String(p.Status || 'Aktif').toLowerCase() === 'aktif'
@@ -1136,7 +1334,6 @@
       const suVal = document.getElementById('selSetiausahaInduk').value;
       const tahunAktif = document.getElementById('selTahunAktif')?.value || '2027';
 
-      showLoader(`Menyimpan Pimpinan JK Induk ${activeCategoryInduk}...`);
 
       const payloadBatch = [];
 
@@ -1172,11 +1369,17 @@
         }
       });
 
+      const scopes = [`JK Induk ${activeCategoryInduk}`];
+      if (!await manualV3ConfirmSave(scopes,payloadBatch,`JK Induk ${activeCategoryInduk}`)) return;
       const payload = {
         action: 'savePerananStafV2',
-        scopes_to_clear: [`JK Induk ${activeCategoryInduk}`],
+        target_year: tahunAktif,
+        allow_empty: payloadBatch.length === 0,
+        expected_scope_ids: manualV3ScopeIds(scopes),
+        scopes_to_clear: scopes,
         data: payloadBatch
       };
+      showLoader(`Menyimpan Pimpinan JK Induk ${activeCategoryInduk}...`);
 
       try {
         const res = await postToBackend(payload);
@@ -1212,7 +1415,7 @@
         const roleType = item.Peranan || item.peranan || 'Penyelaras';
         const titleLabel = `${roleType} ${namaJk}`;
 
-        const penyelarasRec = ALL_PERANAN.find(p => 
+        const penyelarasRec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
           String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
           (String(p.Peranan || p.peranan || '').toLowerCase().includes('penyelaras') || String(p.Peranan || p.peranan || '').toLowerCase().includes('ketua panitia')) &&
           String(p.Status || 'Aktif').toLowerCase() === 'aktif'
@@ -1308,17 +1511,17 @@
         wrapper2.innerHTML = `<select id="selSubNaib2" onchange="filterPentadbiranNaibDropdowns()" class="w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>`;
         wrapper3.innerHTML = `<select id="selSubNaib3" onchange="filterPentadbiranNaibDropdowns()" class="w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>`;
 
-        const np1Rec = ALL_PERANAN.find(p => 
+        const np1Rec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
           String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
           (String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi 1' || String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi') &&
           String(p.Status || 'Aktif').toLowerCase() === 'aktif'
         );
-        const np2Rec = ALL_PERANAN.find(p => 
+        const np2Rec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
           String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
           String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi 2' &&
           String(p.Status || 'Aktif').toLowerCase() === 'aktif'
         );
-        const np3Rec = ALL_PERANAN.find(p => 
+        const np3Rec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
           String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
           String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi 3' &&
           String(p.Status || 'Aktif').toLowerCase() === 'aktif'
@@ -1351,7 +1554,7 @@
       }
 
       // Penyelaras + Tugas Khas
-      const penyelarasRec = ALL_PERANAN.find(p => 
+      const penyelarasRec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
         String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
         (String(p.Peranan || p.peranan || '').toLowerCase().includes('penyelaras') || String(p.Peranan || p.peranan || '').toLowerCase().includes('ketua panitia')) &&
         String(p.Status || 'Aktif').toLowerCase() === 'aktif'
@@ -1361,7 +1564,7 @@
       document.getElementById('inpSubPenyelarasTugasKhas').value = penyelarasRec ? (penyelarasRec.Skop_Tugas_Kelas || penyelarasRec.skop_tugas_kelas || '') : '';
 
       // Setiausaha + Tugas Khas
-      const suRec = ALL_PERANAN.find(p => 
+      const suRec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
         String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
         String(p.Peranan || p.peranan || '').toLowerCase().includes('setiausaha') &&
         !String(p.Peranan || p.peranan || '').toLowerCase().includes('naib') &&
@@ -1372,7 +1575,7 @@
       document.getElementById('inpSubSetiausahaTugasKhas').value = suRec ? (suRec.Skop_Tugas_Kelas || suRec.skop_tugas_kelas || '') : '';
 
       // Tampilkan Pegawai Khas Dinamik
-      const customOfficers = ALL_PERANAN.filter(p => 
+      const customOfficers = ALL_PERANAN.filter(p => String(p.Tahun || '') === manualV3Year() && 
         String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
         !['penyelaras', 'ketua panitia', 'setiausaha', 'setiausaha panitia', 'ajk', 'ajk panitia', 'naib pengerusi', 'naib pengerusi 1', 'naib pengerusi 2', 'naib pengerusi 3'].includes(String(p.Peranan || p.peranan || '').toLowerCase()) &&
         String(p.Status || 'Aktif').toLowerCase() === 'aktif'
@@ -1388,7 +1591,7 @@
       }
 
       // Senarai AJK + Tugas Khas
-      const ajkList = ALL_PERANAN.filter(p => 
+      const ajkList = ALL_PERANAN.filter(p => String(p.Tahun || '') === manualV3Year() && 
         String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
         String(p.Peranan || p.peranan || '').toLowerCase().includes('ajk') &&
         String(p.Status || 'Aktif').toLowerCase() === 'aktif'
@@ -1606,13 +1809,17 @@
         }
       });
 
-      showLoader(`Menyimpan ${activeSubJkName}...`);
-
+      const scopes = [activeSubJkName];
+      if (!await manualV3ConfirmSave(scopes,payloadBatch,activeSubJkName)) return;
       const payload = {
         action: 'savePerananStafV2',
-        scopes_to_clear: [activeSubJkName],
+        target_year: tahunAktif,
+        allow_empty: payloadBatch.length === 0,
+        expected_scope_ids: manualV3ScopeIds(scopes),
+        scopes_to_clear: scopes,
         data: payloadBatch
       };
+      showLoader(`Menyimpan jawatankuasa ${activeSubJkName}...`);
 
       try {
         const res = await postToBackend(payload);
@@ -1699,11 +1906,16 @@
           ALL_PERANAN = res.peranan || [];
           ALL_JAWATANKUASA = res.jawatankuasa || [];
           ALL_SUBJEK = res.subjek || [];
-        }
+        } else { throw new Error(res?.error || 'Backend tidak memulangkan data lengkap.'); }
       } catch (err) {
         hideLoader();
+        await Swal.fire('Gagal Muat Data',String(err.message||err),'error');
+        return;
       }
 
+      clearManualV3Dirty();
+      refreshManualV3CommandCenter();
+      renderAuditPerananV3();
       checkVacanciesReport();
       renderMasterStafTable();
       renderMasterJawatankuasaTable();
@@ -1718,7 +1930,7 @@
     }
 
     function showView(viewId, evt = null) {
-      const views = ['viewDashboard', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail'];
+      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail'];
       views.forEach(v => {
         const el = document.getElementById(v);
         if (el) el.classList.add('hidden');
@@ -1738,6 +1950,7 @@
 
       const bTxt = document.getElementById('txtBreadcrumb');
       if (viewId === 'viewDashboard') bTxt.innerText = 'Dashboard Utama';
+      else if (viewId === 'viewAuditPeranan') {bTxt.innerText = 'Pusat Semakan & Analitik'; renderAuditPerananV3();}
       else if (viewId === 'viewProfilStaf') bTxt.innerText = 'Profil Guru & AKP';
       else if (viewId === 'viewPengurusanJawatankuasa') bTxt.innerText = 'Pengurusan Master Jawatankuasa';
       else if (viewId === 'viewPengurusanSekolah') bTxt.innerText = 'Pengurusan Sekolah';
@@ -1746,6 +1959,7 @@
     }
 
     function switchSubPengurusan(type, evt = null) {
+      MANUAL_V3_ACTIVE_MODULE=type;
       ['subSecKelas', 'subSecBilik', 'subSecBertugas', 'subSecRph', 'subSecPencerapan', 'subSecSemakan'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add('hidden');
@@ -1841,6 +2055,7 @@
     }
 
     function updateStateRph(idGuru, idPenyemak) {
+      markManualV3Dirty();
       statePenghantaranRph[idGuru] = idPenyemak;
     }
 
@@ -1888,6 +2103,7 @@
     }
 
     function updateStatePencerapan(idGuru, field, idPencerap) {
+      markManualV3Dirty();
       if (!statePencerapanPdp[idGuru]) statePencerapanPdp[idGuru] = { p1: '', p2: '' };
       statePencerapanPdp[idGuru][field] = idPencerap;
     }
@@ -1967,6 +2183,7 @@
     }
 
     function updateStateSemakanBuku(keySkop, idPenyemak) {
+      markManualV3Dirty();
       stateSemakanBuku[keySkop] = idPenyemak;
     }
 
@@ -1988,7 +2205,9 @@
         filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'AKP');
       }
 
-      document.getElementById('txtCountStaf').innerText = `${filteredData.length} Staf Registered`;
+      const term=String(document.getElementById('stafSearchV3')?.value||'').trim().toLowerCase();
+      if(term)filteredData=filteredData.filter(s=>[s.Nama_Penuh,s.Nama_Samaran,s.ID_Staf,s.Email_Delima].some(x=>String(x||'').toLowerCase().includes(term)));
+      document.getElementById('txtCountStaf').innerText = `${filteredData.length} Staf`;
 
       if (filteredData.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" class="table-cell-std text-center text-slate-400 italic">Tiada data staf dijumpai.</td></tr>`;
@@ -2542,6 +2761,7 @@
     }
 
     function updateStateKelas(namaKelas, field, val) {
+      markManualV3Dirty();
       if (!statePengurusanKelas[namaKelas]) statePengurusanKelas[namaKelas] = { gk: '', gpk: '' };
       statePengurusanKelas[namaKelas][field] = val;
       renderTableKelas();
@@ -2585,6 +2805,7 @@
     }
 
     function updateStateBilik(namaBilik, val) {
+      markManualV3Dirty();
       stateBilikKhas[namaBilik] = val;
     }
 
@@ -2632,6 +2853,7 @@
     }
 
     function tambahKeKumpulan(grp) {
+      markManualV3Dirty();
       const sel = document.getElementById(`selK${grp}`);
       if (!sel || !sel.value) return;
 
@@ -2640,12 +2862,12 @@
     }
 
     function buangDariKumpulan(grp, idStaf) {
+      markManualV3Dirty();
       kumpulanBertugasState[grp] = kumpulanBertugasState[grp].filter(id => id !== idStaf);
       renderKumpulanBertugasUI();
     }
 
-    async function simpanSemuaPengurusanSekolah() {
-      showLoader('Menyimpan Pengurusan Sekolah...');
+    async function simpanSemuaPengurusanSekolah(modulDipilih = 'semua') {
       let payloadBatch = [];
       const tahunAktif = document.getElementById('selTahunAktif')?.value || '2027';
 
@@ -2796,11 +3018,18 @@
         }
       });
 
+      const scopes = modulDipilih === 'semua' ? MANUAL_V3_ALL_SCHOOL_SCOPES : MANUAL_V3_SCOPE_MAP[modulDipilih];
+      if (!scopes) { await Swal.fire('Modul Tidak Dikenali','Sila pilih tab pengurusan yang sah.','error');return; }
+      payloadBatch = payloadBatch.filter(x=>scopes.includes(x.nama_jawatankuasa));
+      if(!await manualV3ConfirmSave(scopes,payloadBatch,modulDipilih==='semua'?'Semua Pengurusan Sekolah':modulDipilih.toUpperCase()))return;
       const payload = {
-        action: 'savePerananStafV2',
-        scopes_to_clear: ['Pengurusan Kelas', 'Pengurusan Aliran', 'Pengurusan Bilik Khas', 'Kumpulan Bertugas Mingguan', 'Penghantaran e-RPH', 'Pencerapan PdP', 'Semakan Buku Tulis'],
+        action: 'savePerananStafV2', target_year: tahunAktif,
+        allow_empty: payloadBatch.length === 0,
+        expected_scope_ids: manualV3ScopeIds(scopes),
+        scopes_to_clear: scopes,
         data: payloadBatch
       };
+      showLoader('Menyimpan pengagihan tugas…');
 
       try {
         const res = await postToBackend(payload);
