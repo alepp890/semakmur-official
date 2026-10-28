@@ -200,7 +200,7 @@
     <div class="flex-1 overflow-y-auto p-3 space-y-1 text-xs">
       <div class="px-3 py-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Konfigurasi Syarat</div>
       
-      <button onclick="switchView('viewGridMasa', this)" class="nav-tab active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition">
+      <button onclick="switchView('viewGridMasa', this)" class="nav-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition">
         <i class="fa-solid fa-clock w-4 text-center"></i>
         <span>1. Tetapan Grid Masa & Rehat</span>
       </button>
@@ -222,7 +222,7 @@
 
       <div class="pt-4 px-3 py-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Enjin Penjadualan</div>
 
-      <button onclick="switchView('viewGeneratorConsole', this)" class="nav-tab w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+      <button onclick="switchView('viewGeneratorConsole', this)" class="nav-tab active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 transition">
         <i class="fa-solid fa-wand-magic-sparkles w-4 text-center text-rose-400"></i>
         <span>5. Jana & Grid Jadual Penuh</span>
       </button>
@@ -245,7 +245,7 @@
         <div class="flex items-center gap-2 text-xs text-slate-500">
           <span class="font-bold text-slate-800">Modul Jadual Waktu Sekolah</span>
           <span>/</span>
-          <span id="txtBreadcrumb" class="text-brand-600 font-semibold">Tetapan Grid Masa & Rehat</span>
+          <span id="txtBreadcrumb" class="text-brand-600 font-semibold">Jadual Waktu</span>
         </div>
       </div>
 
@@ -257,7 +257,7 @@
     <main class="p-4 lg:p-8 space-y-6">
 
       <!-- ================= 1. TETAPAN GRID MASA ================= -->
-      <div id="viewGridMasa" class="space-y-6">
+      <div id="viewGridMasa" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-brand-600">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
@@ -442,15 +442,20 @@
       </div>
 
       <!-- ================= 5. ENJIN GENERATOR & GRID ================= -->
-      <div id="viewGeneratorConsole" class="hidden space-y-6">
+      <div id="viewGeneratorConsole" class="space-y-6">
         <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-md space-y-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-800 toolbar-no-print">
           <div>
             <h2 class="font-display font-extrabold text-xl text-white">Jana & Urus Jadual Waktu</h2>
             <p class="text-xs text-slate-400 mt-1">Sediakan jadual waktu berdasarkan tetapan sekolah dan agihan guru yang telah dipilih.</p>
           </div>
-          <button onclick="janaJadualWaktuAuto()" class="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition flex items-center gap-2 shrink-0">
-            <i class="fa-solid fa-wand-magic-sparkles text-base"></i> Jana Jadual Automatik
-          </button>
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button id="btnShuffleJW" onclick="shuffleJadualWaktuFrontend()" type="button" class="px-5 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Susun semula tanpa mengubah tetapan">
+              <i class="fa-solid fa-shuffle text-base"></i> Shuffle Jadual
+            </button>
+            <button id="btnGenerateJW" onclick="janaJadualWaktuAuto()" class="px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+              <i class="fa-solid fa-wand-magic-sparkles text-base"></i> Jana Jadual Automatik
+            </button>
+          </div>
         </div>
 
         <div id="boxClashReport" class="hidden bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3 toolbar-no-print">
@@ -478,6 +483,9 @@
             </div>
           </div>
 
+          <div id="jwHasilStatus" class="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-sky-800 text-xs font-semibold flex items-center gap-2 toolbar-no-print" role="status" aria-live="polite">
+            <i class="fa-solid fa-circle-notch fa-spin"></i><span id="jwHasilStatusText">Sedang menyediakan jadual waktu semasa…</span>
+          </div>
           <div id="containerHasilJadualView" class="overflow-x-auto space-y-8"></div>
         </div>
       </div>
@@ -514,6 +522,8 @@
     // Paparan sambutan sudah kelihatan sebelum JavaScript ini berjalan.
     // Kedua-dua bacaan awal dilakukan serentak supaya portal boleh dibuka lebih cepat.
     let JW_HASIL_VIEW_RENDERED = false;
+    let JW_HASIL_FETCH_COUNTER = 0;
+    let JW_BUSY_TIMETABLE = false;
     let JW_LOADER_HIDE_TIMER = null;
     let JW_LOADER_TIP_TIMER = null;
     let JW_LOADER_ACTIVE_MODE = 'startup';
@@ -554,7 +564,10 @@
           tips:['Ruang kerja sedang dikemas kini.','Paparan akan kembali sebaik sahaja sedia.']},
         generate: {title:'Menyusun jadual waktu', eyebrow:'Penjanaan sedang berjalan',
           text:'Sedang membina susunan jadual waktu untuk sekolah anda.', foot:'Jadual akan dipaparkan apabila siap',
-          tips:['Penyusunan jadual mengambil kira keperluan guru dan kelas.','Terima kasih kerana memberi ruang untuk penyusunan selesai.','Jadual akan dibuka secara automatik selepas penjanaan.']},
+          tips:['Penyusunan jadual mengambil kira keperluan guru dan kelas.','Jadual akan dibuka secara automatik selepas penjanaan.']},
+        shuffle: {title:'Mencari susunan baharu', eyebrow:'Variasi jadual waktu',
+          text:'Sedang menyediakan pilihan jadual alternatif.', foot:'Jadual semasa dikekalkan sehingga susunan baharu siap',
+          tips:['Memastikan susunan baharu sesuai dengan keperluan sekolah.','Jadual asal kekal selamat jika tiada alternatif yang sesuai.']},
         save: {title:'Menyimpan perubahan', eyebrow:'Mengemas kini maklumat',
           text:'Perubahan anda sedang disimpan.', foot:'Ruang kerja anda akan kembali sebentar lagi',
           tips:['Pastikan tetingkap ini kekal terbuka sehingga selesai.']},
@@ -598,12 +611,17 @@
     async function initialiseJWPortal() {
       showLoader('', 'startup');
       try {
-        const [masterResult, jwResult] = await Promise.all([
+        // Semua maklumat diminta serta-merta; hasil jadual tidak menunggu tetapan siap.
+        const [masterResult, jwResult, hasilResult] = await Promise.all([
           postToBackend({ action: 'getManualV2Data' }).catch(error => {
             console.warn('Maklumat pengguna belum dapat dimuatkan:',error);
             return null;
           }),
-          postToBackend({ action: 'getJWConstraints' })
+          postToBackend({ action: 'getJWConstraints' }),
+          postToBackend({ action: 'getJadualWaktuHasil' }).catch(error => {
+            console.warn('Jadual semasa belum dapat dimuatkan:',error);
+            return null;
+          })
         ]);
         if (masterResult && masterResult.success) {
           ALL_STAF = masterResult.staf || [];
@@ -614,12 +632,27 @@
         // Biarkan animasi dipaparkan satu bingkai sebelum kerja membina matriks bermula.
         await new Promise(resolve => requestAnimationFrame(resolve));
         applyJWConstraintsData(jwResult);
+        if (!ALL_STAF.length) {
+          // Paparan kelas tetap boleh digunakan walaupun direktori staf lambat dibaca.
+          const modePilihan = document.getElementById('selFilterViewJadual');
+          if (modePilihan) modePilihan.value = 'kelas';
+        }
+        // Ketika portal siap, jadual yang sudah disimpan terus berada dalam grid.
+        if (hasilResult && hasilResult.success) {
+          STATE_HASIL_JADUAL = normalizeJwHasilRows(hasilResult.data);
+          JW_HASIL_VIEW_RENDERED = false;
+          setJwHasilStatus(STATE_HASIL_JADUAL.length ? 'ready' : 'empty');
+        } else {
+          setJwHasilStatus('error');
+        }
+        renderJadualHasilView();
+        JW_HASIL_VIEW_RENDERED = true;
         hideLoader();
-        // Jadual besar dimuatkan selepas paparan utama tersedia, tanpa menyekat pengguna.
-        setTimeout(() => loadJadualHasil(), 80);
+        syncJwActionButtons();
       } catch (error) {
         console.error('Gagal membuka portal jadual waktu:',error);
         hideLoader();
+        setJwHasilStatus('error');
         Swal.fire({icon:'error',title:'Paparan belum tersedia',
           text:'Sila semak sambungan internet dan cuba muat semula halaman.',
           confirmButtonText:'Faham'});
@@ -833,12 +866,23 @@
     async function loadAllJWData() {
       showLoader('', 'refresh');
       try {
-        const res = await postToBackend({ action: 'getJWConstraints' });
+        const [res, hasil] = await Promise.all([
+          postToBackend({ action:'getJWConstraints' }),
+          postToBackend({ action:'getJadualWaktuHasil' }).catch(() => null)
+        ]);
         if (!res || !res.success) throw new Error('Maklumat jadual tidak dapat dibaca.');
         await new Promise(resolve => requestAnimationFrame(resolve));
         applyJWConstraintsData(res);
+        if (hasil && hasil.success) {
+          STATE_HASIL_JADUAL = normalizeJwHasilRows(hasil.data);
+          setJwHasilStatus(STATE_HASIL_JADUAL.length ? 'ready' : 'empty');
+          renderJadualHasilView();
+          JW_HASIL_VIEW_RENDERED = true;
+        } else {
+          setJwHasilStatus('error');
+        }
+        syncJwActionButtons();
         hideLoader();
-        setTimeout(() => loadJadualHasil(), 80);
       } catch (err) {
         console.error('Tidak dapat memuatkan maklumat terkini:',err);
         hideLoader();
@@ -1897,14 +1941,96 @@
     }
 
     // ================= 5. ENJIN GENERATOR & GRID JADUAL =================
+    // Hasil yang disimpan hanya mempunyai Slot_ID; hari ditentukan daripada prefix slot.
+    // Ini memastikan refresh memaparkan jadual sebenar, bukan grid kosong.
+    function normalizeJwHasilRows(rows) {
+      const dayPrefix = {ISN:'Isnin', SEL:'Selasa', RAB:'Rabu', KHM:'Khamis', JUM:'Jumaat'};
+      return (Array.isArray(rows) ? rows : []).map(r => {
+        const slot = String(r.Slot_ID || r.slotId || '').trim().toUpperCase();
+        const prefix = slot.split('-')[0];
+        const day = r.Hari || r.hari || dayPrefix[prefix] || '';
+        return {...r, Hari:day, hari:day};
+      });
+    }
+
+    function setJwHasilStatus(mode) {
+      const box = document.getElementById('jwHasilStatus');
+      const text = document.getElementById('jwHasilStatusText');
+      if (!box || !text) return;
+      const variants = {
+        loading:['Sedang memuatkan jadual waktu semasa…','fa-circle-notch fa-spin','border-sky-100 bg-sky-50 text-sky-800'],
+        ready:['Jadual waktu semasa telah tersedia.','fa-circle-check','border-emerald-100 bg-emerald-50 text-emerald-800'],
+        empty:['Belum ada jadual waktu untuk dipaparkan.','fa-calendar-plus','border-amber-100 bg-amber-50 text-amber-800'],
+        error:['Jadual belum dapat dipaparkan. Cuba Segarkan Data.','fa-triangle-exclamation','border-rose-100 bg-rose-50 text-rose-800']
+      };
+      const [label,iconName,colors] = variants[mode] || variants.loading;
+      box.className = 'rounded-xl border px-4 py-3 text-xs font-semibold flex items-center gap-2 toolbar-no-print ' + colors;
+      box.querySelector('i').className = 'fa-solid ' + iconName;
+      text.textContent = label;
+    }
+
+    function syncJwActionButtons() {
+      const shuffle = document.getElementById('btnShuffleJW');
+      const generate = document.getElementById('btnGenerateJW');
+      if (shuffle) shuffle.disabled = JW_BUSY_TIMETABLE || STATE_HASIL_JADUAL.length === 0;
+      if (generate) generate.disabled = JW_BUSY_TIMETABLE;
+    }
+
+    async function shuffleJadualWaktuFrontend() {
+      if (JW_BUSY_TIMETABLE || !STATE_HASIL_JADUAL.length) return;
+      const confirm = await Swal.fire({
+        icon:'question', title:'Cuba susunan jadual lain?',
+        text:'Tetapan guru dan subjek tidak berubah. Susunan semasa disimpan sebagai salinan jika jadual baharu berjaya.',
+        showCancelButton:true, confirmButtonText:'Shuffle Jadual', cancelButtonText:'Batal',
+        confirmButtonColor:'#0891b2'
+      });
+      if (!confirm.isConfirmed) return;
+      JW_BUSY_TIMETABLE = true;
+      syncJwActionButtons();
+      showLoader('', 'shuffle');
+      try {
+        const result = await postToBackend({action:'shuffleJadualWaktu',data:{tahun:'2026'}});
+        if (result && result.success && result.saved) {
+          const refreshed = await loadJadualHasil();
+          await Swal.fire({icon:refreshed?'success':'info',
+            title:refreshed?'Susunan baharu tersedia':'Jadual baharu telah disimpan',
+            text:refreshed
+              ? 'Jadual semasa berjaya digantikan. Salinan jadual terdahulu turut disimpan.'
+              : 'Jadual baharu sudah disimpan tetapi paparan belum berjaya dikemas kini. Klik Segarkan Data.',
+            confirmButtonText:refreshed?'Lihat Jadual':'Faham'});
+          const btn = document.querySelector('.nav-tab[onclick*="viewGeneratorConsole"]');
+          switchView('viewGeneratorConsole',btn);
+        } else if (result && result.unchanged) {
+          Swal.fire({icon:'info',title:'Susunan masih sama',
+            text:'Tiada perubahan dibuat. Anda boleh cuba Shuffle sekali lagi.'});
+        } else {
+          console.warn('Shuffle belum berjaya:',result);
+          Swal.fire({icon:'info',title:'Belum menemui susunan lain',
+            text:'Jadual semasa kekal dan tidak berubah. Anda boleh cuba lagi.'});
+        }
+      } catch(err) {
+        console.error('Shuffle terganggu:',err);
+        Swal.fire({icon:'error',title:'Sambungan terganggu',
+          text:'Semak jadual semasa sebelum mencuba lagi.'});
+      } finally {
+        JW_BUSY_TIMETABLE = false;
+        hideLoader();
+        syncJwActionButtons();
+      }
+    }
+
     async function janaJadualWaktuAuto() {
+      if (JW_BUSY_TIMETABLE) return;
+      JW_BUSY_TIMETABLE = true;
+      syncJwActionButtons();
       showLoader('', 'generate');
       try {
         const res = await postToBackend({ action: 'generateJadualWaktu', data: { tahun: '2026' } });
         hideLoader();
 
         if (res && res.success) {
-          STATE_HASIL_JADUAL = res.timetable || [];
+          STATE_HASIL_JADUAL = normalizeJwHasilRows(res.timetable);
+          setJwHasilStatus(STATE_HASIL_JADUAL.length ? 'ready' : 'empty');
           
           const boxReport = document.getElementById('boxClashReport');
           const clashContainer = document.getElementById('clashLogContainer');
@@ -1932,22 +2058,33 @@
         hideLoader();
         console.error('Sambungan penjanaan terganggu:',err);
         Swal.fire('Sambungan terganggu', 'Sila semak sambungan internet dan cuba lagi.', 'error');
+      } finally {
+        JW_BUSY_TIMETABLE = false;
+        syncJwActionButtons();
       }
     }
 
     async function loadJadualHasil() {
+      const currentRequest = ++JW_HASIL_FETCH_COUNTER;
       try {
         const res = await postToBackend({ action: 'getJadualWaktuHasil' });
-        if (res && res.success) {
-          STATE_HASIL_JADUAL = res.data || [];
-          JW_HASIL_VIEW_RENDERED = false;
-          const view = document.getElementById('viewGeneratorConsole');
-          if (view && !view.classList.contains('hidden')) {
-            renderJadualHasilView();
-            JW_HASIL_VIEW_RENDERED = true;
-          }
+        if (currentRequest !== JW_HASIL_FETCH_COUNTER) return false;
+        if (!res || !res.success) throw new Error('Jadual belum tersedia');
+        STATE_HASIL_JADUAL = normalizeJwHasilRows(res.data);
+        JW_HASIL_VIEW_RENDERED = false;
+        setJwHasilStatus(STATE_HASIL_JADUAL.length ? 'ready' : 'empty');
+        const view = document.getElementById('viewGeneratorConsole');
+        if (view && !view.classList.contains('hidden')) {
+          renderJadualHasilView();
+          JW_HASIL_VIEW_RENDERED = true;
         }
-      } catch (err) { console.warn('Jadual sedia ada belum dapat dimuatkan:',err); }
+        syncJwActionButtons();
+        return true;
+      } catch (err) {
+        console.warn('Jadual sedia ada belum dapat dimuatkan:',err);
+        setJwHasilStatus('error');
+        return false;
+      }
     }
 
     // FUNGSI RENDER MATRIKS aSc STYLE (GURU: TIANG REHAT 1 & 2 SERENTAK + SEMUA GURU; KELAS: REHAT TAHAP)
