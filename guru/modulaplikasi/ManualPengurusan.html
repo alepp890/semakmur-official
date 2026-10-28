@@ -166,6 +166,46 @@
         </section>
       </div>
 
+
+      <!-- V4: KATALOG DATA INDUK -->
+      <div id="viewV4Catalog" class="hidden space-y-5">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div><h2 class="font-display font-extrabold text-xl">Pusat Tetapan & Katalog Dinamik</h2><p class="text-slate-500 text-xs mt-1">Tambah atau nyahaktif kelas, bilik khas, subjek, seksyen dan kumpulan tanpa mengedit Google Sheets.</p></div>
+            <button onclick="v4OpenCatalogEditor()" class="bg-rose-600 hover:bg-rose-700 text-white rounded-xl px-4 py-2.5 font-bold text-xs"><i class="fa-solid fa-circle-plus mr-1"></i> Tambah Rekod</button>
+          </div>
+          <div class="mt-4 flex flex-wrap gap-2" id="v4CatalogTabs"></div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm overflow-x-auto"><div id="v4CatalogItems" class="space-y-2"></div></div>
+      </div>
+      <!-- V4: SUSUNAN JAWATANKUASA -->
+      <div id="viewV4Order" class="hidden space-y-5">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div><h2 class="font-display font-extrabold text-xl">Susun Jawatankuasa & Seksyen</h2><p class="text-xs text-slate-500 mt-1">Tukar seksyen, susun ke atas/bawah dan simpan. Tiada pelantikan guru diubah.</p></div>
+            <button onclick="v4SaveOrder()" class="rounded-xl bg-emerald-700 px-4 py-2.5 text-white text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Susunan</button>
+          </div>
+          <div class="mt-4"><label class="font-bold text-xs">Induk</label><select id="v4OrderCategory" onchange="v4DrawOrder()" class="w-full sm:w-64 ml-2 p-2 border rounded-xl text-xs"><option>Pentadbiran</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select></div>
+        </div>
+        <div id="v4OrderList" class="space-y-2"></div>
+      </div>
+      <!-- V4: TAKWIM BERSEPADU -->
+      <div id="viewV4Calendar" class="hidden space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="font-display font-extrabold text-xl">Takwim Persekolahan & Aktiviti</h2><p class="text-xs text-slate-500 mt-1">Sekolah, cuti, minggu e-RPH, minggu bertugas, program dan mesyuarat dalam satu pangkalan data.</p></div>
+            <button onclick="v4OpenCalendarEditor()" class="bg-rose-600 text-white font-bold text-xs rounded-xl px-4 py-2.5"><i class="fa-solid fa-plus mr-1"></i> Tambah Aktiviti</button></div>
+          <div class="mt-4 flex flex-wrap gap-2"><input type="search" id="v4CalendarSearch" oninput="v4RenderCalendar()" placeholder="Cari program atau minggu…" class="p-2 border rounded-xl text-xs flex-1 min-w-[190px]"/>
+            <select id="v4CalendarTypeFilter" onchange="v4RenderCalendar()" class="p-2 border rounded-xl text-xs"><option value="">Semua jenis</option><option value="SEKOLAH">Persekolahan</option><option value="CUTI">Cuti</option><option value="MINGGU_RPH">Minggu e-RPH</option><option value="MINGGU_BERTUGAS">Minggu Bertugas</option><option value="PROGRAM">Program / Aktiviti</option><option value="MESYUARAT">Mesyuarat</option></select></div>
+        </div>
+        <div id="v4CalendarItems" class="space-y-2"></div>
+      </div>
+      <!-- V4: CETAK BUKU -->
+      <div id="viewV4Print" class="hidden space-y-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"><h2 class="font-display font-extrabold text-xl">Buku Manual Pengurusan Sekolah</h2><p class="text-xs text-slate-500 mt-2">Jana buku bercetak A4: muka depan, isi kandungan bernombor, profil staf, jawatankuasa dan pelantikan, pengurusan kelas, serta takwim. Pratonton dalam tab baharu sebelum cetak / Simpan sebagai PDF.</p>
+          <div class="mt-4 flex gap-2 items-center flex-wrap"><button onclick="v4PrintManualBook()" class="bg-slate-900 text-white font-bold rounded-xl px-5 py-3 text-xs"><i class="fa-solid fa-print mr-2"></i> Pratonton & Cetak Buku</button><span class="text-xs text-slate-500">Sesi <strong class="lblTahunSpan">2027</strong> · Hanya pelantikan aktif pada sesi dipilih</span></div>
+        </div>
+      </div>
+
       <!-- ================= 2. PROFIL GURU & AKP ================= -->
       <div id="viewProfilStaf" class="hidden space-y-6">
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
@@ -338,61 +378,7 @@
           </div>
         </div>
 
-        <div id="subSecBertugas" class="hidden space-y-4">
-          <div class="bg-slate-900 text-white p-4 rounded-2xl text-xs font-bold">
-            <i class="fa-solid fa-users-rectangle mr-2 text-amber-400"></i>Agihan Kumpulan Bertugas Mingguan Guru (Kumpulan 1 - 4)
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-              <div class="flex justify-between items-center border-b pb-2 font-extrabold text-rose-700">
-                <span><i class="fa-solid fa-flag mr-2"></i>Kumpulan 1</span>
-                <span id="badgeK1" class="text-[10px] bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">0 Guru</span>
-              </div>
-              <div id="boxListK1" class="space-y-1.5 min-h-[80px]"></div>
-              <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
-                <select id="selK1" class="w-full p-2 border border-slate-300 rounded-xl bg-slate-50 font-semibold focus:outline-none text-xs"></select>
-                <button onclick="tambahKeKumpulan(1)" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition shrink-0">+ Tambah Guru</button>
-              </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-              <div class="flex justify-between items-center border-b pb-2 font-extrabold text-amber-700">
-                <span><i class="fa-solid fa-flag mr-2"></i>Kumpulan 2</span>
-                <span id="badgeK2" class="text-[10px] bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">0 Guru</span>
-              </div>
-              <div id="boxListK2" class="space-y-1.5 min-h-[80px]"></div>
-              <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
-                <select id="selK2" class="w-full p-2 border border-slate-300 rounded-xl bg-slate-50 font-semibold focus:outline-none text-xs"></select>
-                <button onclick="tambahKeKumpulan(2)" class="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition shrink-0">+ Tambah Guru</button>
-              </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-              <div class="flex justify-between items-center border-b pb-2 font-extrabold text-blue-700">
-                <span><i class="fa-solid fa-flag mr-2"></i>Kumpulan 3</span>
-                <span id="badgeK3" class="text-[10px] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">0 Guru</span>
-              </div>
-              <div id="boxListK3" class="space-y-1.5 min-h-[80px]"></div>
-              <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
-                <select id="selK3" class="w-full p-2 border border-slate-300 rounded-xl bg-slate-50 font-semibold focus:outline-none text-xs"></select>
-                <button onclick="tambahKeKumpulan(3)" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition shrink-0">+ Tambah Guru</button>
-              </div>
-            </div>
-
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs space-y-3">
-              <div class="flex justify-between items-center border-b pb-2 font-extrabold text-emerald-700">
-                <span><i class="fa-solid fa-flag mr-2"></i>Kumpulan 4</span>
-                <span id="badgeK4" class="text-[10px] bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">0 Guru</span>
-              </div>
-              <div id="boxListK4" class="space-y-1.5 min-h-[80px]"></div>
-              <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
-                <select id="selK4" class="w-full p-2 border border-slate-300 rounded-xl bg-slate-50 font-semibold focus:outline-none text-xs"></select>
-                <button onclick="tambahKeKumpulan(4)" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shrink-0">+ Tambah Guru</button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <div id="subSecBertugas" class="hidden space-y-4"><div class="bg-slate-900 text-white p-4 rounded-xl text-xs font-bold flex flex-wrap gap-2 items-center justify-between"><span><i class="fa-solid fa-users mr-2 text-amber-400"></i>Kumpulan Bertugas Mingguan — fleksibel</span><button onclick="v4OpenCatalog('kumpulan')" class="bg-white/10 px-3 py-1.5 rounded-lg">+ Urus Kumpulan</button></div><div id="v4GroupGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
 
         <div id="subSecRph" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700">
@@ -467,7 +453,8 @@
               <h2 id="txtIndukCategoryTitle" class="font-display font-extrabold text-xl text-slate-800">JK Induk</h2>
               <p class="text-xs text-slate-500">Pemetaan Penuh Barisan Kepimpinan & Penyelaras Sub-Unit</p>
             </div>
-            <button onclick="simpanSetiausahaInduk()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+            <button id="v4EditIndukBtn" onclick="v4SetIndukEditMode(true)" class="px-4 py-2 bg-slate-200 text-slate-800 font-bold rounded-xl text-xs"><i class="fa-solid fa-pen mr-1"></i> Edit Jawatan</button>
+              <button id="v4SaveIndukBtn" onclick="simpanSetiausahaInduk()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
               <i class="fa-solid fa-floppy-disk"></i> Simpan Pimpinan JK Induk
             </button>
           </div>
@@ -502,12 +489,13 @@
             <div id="containerIndukCustomOfficers" class="space-y-2 pt-2 border-t border-slate-200/80"></div>
 
             <div class="pt-2 flex justify-end">
-              <button onclick="tambahBarisPegawaiInduk()" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5">
+              <button id="v4AddIndukOfficer" onclick="tambahBarisPegawaiInduk()" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5">
                 <i class="fa-solid fa-plus text-xs"></i> Tambah Jawatan (e.g. Naib Setiausaha / Bendahari / SU Sukan)
               </button>
             </div>
           </div>
 
+          <div id="v4IndukReadOnly" class="hidden bg-white border border-slate-200 rounded-xl p-4 text-sm"></div>
           <div class="space-y-3">
             <h3 class="font-bold text-xs text-slate-500 uppercase tracking-wider">Senarai Penyelaras Jawatankuasa (Master Jawatankuasa)</h3>
             <div id="boxMappingSubJk" class="space-y-2 text-xs"></div>
@@ -681,7 +669,7 @@
 
         <div>
           <label class="block font-bold mb-1 text-slate-700">Kategori Pengurusan <span class="text-rose-500">*</span></label>
-          <select id="jk_Kategori_Pengurusan" onchange="onCategoryChangeInModal()" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-cyan-600">
+          <select id="jk_Kategori_Pengurusan" onchange="onCategoryChangeInModal();v4FillSeksyen()" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-cyan-600">
             <option value="Pentadbiran">Pentadbiran</option>
             <option value="Kurikulum">Kurikulum</option>
             <option value="Hal Ehwal Murid">Hal Ehwal Murid</option>
@@ -699,6 +687,15 @@
           <input type="text" id="jk_Nama_Jawatankuasa" placeholder="Contoh: JK Strategik / Panitia Bahasa Melayu" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-cyan-600">
         </div>
 
+        <div>
+          <label class="block font-bold mb-1 text-slate-700">Seksyen / Bahagian Dalam JK Induk</label>
+          <div class="flex gap-2"><select id="jk_Seksyen" class="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-bold text-xs"></select><button type="button" onclick="closeModalJawatankuasa();v4OpenCatalog('seksyen')" class="bg-slate-100 px-3 rounded-xl font-bold text-xs" title="Urus seksyen">+ Seksyen</button></div>
+          <input id="jk_Seksyen_Baharu" placeholder="Atau taip nama seksyen baharu di sini..." class="w-full mt-2 p-2.5 border border-slate-300 rounded-xl text-xs"/>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="block font-bold mb-1 text-slate-700">Susunan</label><input id="jk_Susunan" type="number" min="1" value="1" class="w-full p-2.5 border rounded-xl text-xs"/></div>
+          <div><label class="block font-bold mb-1 text-slate-700">Unit Penyelia</label><select id="jk_Unit_Penyelia" class="w-full p-2.5 border rounded-xl text-xs"><option>Pentadbiran</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select></div>
+        </div>
         <div>
           <label class="block font-bold mb-1 text-slate-700">Jawatan Pimpinan Utama <span class="text-rose-500">*</span></label>
           <div id="boxPerananCheckboxes" class="p-3 bg-slate-50 rounded-xl border border-slate-200"></div>
@@ -810,6 +807,12 @@
     let ALL_JAWATANKUASA = [];
     let ALL_PERANAN = [];
     let ALL_SUBJEK = [];
+    let ALL_SEKSYEN = [];
+    let ALL_KUMPULAN = [];
+    let ALL_TAKWIM = [];
+    let MANUAL_V4_EFFECTIVE_DATE = '';
+    let MANUAL_V4_REASON = '';
+
 
     let CURRENT_STAF_FILTER = 'Semua';
     let CURRENT_JK_FILTER = 'Semua';
@@ -817,7 +820,7 @@
 
     let statePengurusanKelas = {}; 
     let stateBilikKhas = {};      
-    let kumpulanBertugasState = { 1: [], 2: [], 3: [], 4: [] }; 
+    let kumpulanBertugasState = {}; 
     let statePenghantaranRph = {};
     let statePencerapanPdp = {};
     let stateSemakanBuku = {};
@@ -971,7 +974,7 @@
     const MANUAL_V3_ALL_SCHOOL_SCOPES=Object.values(MANUAL_V3_SCOPE_MAP).flat();
     function manualV3Escape(v){return String(v===undefined||v===null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
     function manualV3Year(){return document.getElementById('selTahunAktif')?.value || '2027';}
-    function manualV3ScopeIds(scopes){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year() && scopes.includes(String(p.Nama_Jawatankuasa||''))).map(p=>String(p.ID_Peranan||'')).sort();}
+    function manualV3ScopeIds(scopes){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year() && String(p.Status||'Aktif').toLowerCase()==='aktif' && scopes.includes(String(p.Nama_Jawatankuasa||''))).map(p=>String(p.ID_Peranan||'')).sort();}
     function manualV3CurrentRoles(){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year()&&String(p.Status||'Aktif').toLowerCase()==='aktif');}
     function manualV3ActiveStaff(){return ALL_STAF.filter(s=>String(s.Status||'').toLowerCase()==='aktif');}
     function manualV3StaffName(id){ const g=ALL_STAF.find(s=>s.ID_Staf===id);return g?g.Nama_Penuh:id; }
@@ -1084,8 +1087,21 @@
       const issues=audit.issues.filter(x=>x.level==='error');
       const warning=(items.length===0)?'<p class="text-rose-600 font-extrabold mt-3">Semua rekod dalam skop ini akan dikosongkan.</p>':'';
       const response=await Swal.fire({icon:items.length?'question':'warning',title:'Semak Sebelum Simpan',
-        html:`<div class="text-left text-xs space-y-1"><p><strong>Bahagian:</strong> ${manualV3Escape(context)}</p><p><strong>Tahun:</strong> ${manualV3Escape(year)}</p><p><strong>Rekod lama dalam skop:</strong> ${before}</p><p><strong>Rekod baharu:</strong> ${items.length}</p><p><strong>Isu keseluruhan yang perlu semak:</strong> ${audit.issues.length} (${issues.length} kritikal)</p>${warning}<p class="text-slate-500 mt-3">Skop lain dan tahun lain tidak diubah.</p></div>`,
-        showCancelButton:true,confirmButtonText:items.length?'Sahkan & Simpan':'Ya, Kosongkan Skop',cancelButtonText:'Semak Semula',confirmButtonColor:items.length?'#047857':'#be123c'});
+        html:`<div class="text-left text-xs space-y-1"><p><strong>Bahagian:</strong> ${manualV3Escape(context)}</p><p><strong>Tahun:</strong> ${manualV3Escape(year)}</p><p><strong>Rekod lama dalam skop:</strong> ${before}</p><p><strong>Rekod baharu:</strong> ${items.length}</p><p><strong>Isu keseluruhan yang perlu semak:</strong> ${audit.issues.length} (${issues.length} kritikal)</p>${warning}<div class="mt-3 border-t pt-3 space-y-2"><label class="block font-bold">Tarikh kuat kuasa</label><input id="v4Effective" type="date" value="${Number(year)>new Date().getFullYear()?year+'-01-01':new Date().toISOString().slice(0,10)}" class="w-full p-2 border rounded-lg" required/><label class="block font-bold">Sebab perubahan</label><input id="v4Reason" type="text" value="Kemaskini pengagihan" class="w-full p-2 border rounded-lg" maxlength="180" /></div><p class="text-slate-500 mt-3">Rekod asal tidak dipadam; pelantikan terdahulu ditamatkan jika bertukar.</p></div>`,
+        showCancelButton:true,confirmButtonText:items.length?'Sahkan & Simpan':'Ya, Kosongkan Skop',cancelButtonText:'Semak Semula',confirmButtonColor:items.length?'#047857':'#be123c',
+        preConfirm:()=>{
+          const date=document.getElementById('v4Effective')?.value||'';
+          const reason=document.getElementById('v4Reason')?.value.trim()||'Kemaskini pengagihan';
+          if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){Swal.showValidationMessage('Sila isi tarikh kuat kuasa.');return false;}
+          return {effective_date:date,change_reason:reason};
+        }});
+      if(response.isConfirmed){
+        MANUAL_V4_EFFECTIVE_DATE=response.value?.effective_date||'';
+        MANUAL_V4_REASON=response.value?.change_reason||'Kemaskini pengagihan';
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(MANUAL_V4_EFFECTIVE_DATE)){
+          await Swal.fire('Tarikh diperlukan','Sila nyatakan tarikh kuat kuasa yang sah.','warning');return false;
+        }
+      }
       return response.isConfirmed;
     }
 
@@ -1168,6 +1184,8 @@
             <span>Pengurusan Master Jawatankuasa</span>
           </button>
 
+          <button onclick="v4OpenCatalog('lokasi')" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-sliders w-4 text-center text-cyan-400"></i><span>Tetapan Data Induk</span></button>
+          <button onclick="v4OpenOrder()" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-arrow-down-wide-short w-4 text-center text-amber-400"></i><span>Susunan JK & Seksyen</span></button>
           <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pengurusan Operasi</div>
 
           <button onclick="showView('viewPengurusanSekolah', event)" id="sidePengurusanSekolah" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
@@ -1175,6 +1193,8 @@
             <span>Pengurusan Sekolah</span>
           </button>
 
+          <button onclick="v4OpenCalendar()" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-calendar-days w-4 text-center text-violet-400"></i><span>Takwim & Program</span></button>
+          <button onclick="showView('viewV4Print')" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-book-open w-4 text-center text-emerald-400"></i><span>Cetak Buku Manual</span></button>
           <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-rose-400 uppercase tracking-wider">Jawatankuasa Induk</div>
 
           <button onclick="openCategoryMenu('Pentadbiran')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
@@ -1200,19 +1220,21 @@
       } else if (mode === 'category') {
         activeCategoryInduk = katName;
 
-        const subList = ALL_JAWATANKUASA.filter(j => 
-          String(j.Kategori_Pengurusan || j.kategori_pengurusan || '').toLowerCase() === katName.toLowerCase()
-        );
-
-        let subHtml = '';
-        subList.forEach(item => {
-          const namaJk = item.Nama_Jawatankuasa || item.nama_jawatankuasa || '';
-          subHtml += `
-            <button onclick="openSubJkDetail('${katName}', '${namaJk}')" class="sub-jk-btn w-full text-left px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition flex items-center gap-2">
-              <i class="fa-solid fa-plus text-[10px] text-rose-400"></i>
-              <span class="truncate">${namaJk}</span>
-            </button>
-          `;
+        const subList = v4SortedJK(katName);
+        const groups = new Map();
+        subList.forEach(item=>{
+          const sec=String(item.Seksyen||katName).trim();
+          if(!groups.has(sec))groups.set(sec,[]);
+          groups.get(sec).push(item);
+        });
+        const sectionOrder=Array.from(groups.keys()).sort((a,b)=>v4SectionOrder(katName,a)-v4SectionOrder(katName,b)||a.localeCompare(b,'ms'));
+        let subHtml='';
+        sectionOrder.forEach(sec=>{
+          subHtml+=`<div class="px-3 pt-3 pb-1 text-[10px] font-black uppercase text-rose-300 tracking-wide border-b border-white/10">${manualV3Escape(sec)}</div>`;
+          groups.get(sec).forEach(item=>{
+            const id=String(item.ID_Tugasan||item.id_tugasan||'');
+            subHtml+=`<button data-jk-id="${manualV3Escape(id)}" onclick="v4OpenSubJkById(this.dataset.jkId)" class="sub-jk-btn w-full text-left px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition flex gap-2"><i class="fa-solid fa-angle-right mt-0.5 text-[10px] text-rose-400"></i><span>${manualV3Escape(item.Nama_Jawatankuasa||'')}</span></button>`;
+          });
         });
 
         container.innerHTML = `
@@ -1299,6 +1321,7 @@
       }
 
       renderMappingSubJkList(katName);
+      v4SetIndukEditMode(false);
     }
 
     function tambahBarisPegawaiInduk(namaJawatan = '', selectedId = '') {
@@ -1375,6 +1398,7 @@
         action: 'savePerananStafV2',
         target_year: tahunAktif,
         allow_empty: payloadBatch.length === 0,
+        effective_date:MANUAL_V4_EFFECTIVE_DATE,change_reason:MANUAL_V4_REASON,
         expected_scope_ids: manualV3ScopeIds(scopes),
         scopes_to_clear: scopes,
         data: payloadBatch
@@ -1385,7 +1409,8 @@
         const res = await postToBackend(payload);
         hideLoader();
         if (res && res.success) {
-          Swal.fire('Berjaya Saved', `Pimpinan JK Induk ${activeCategoryInduk} berjaya dikemaskini!`, 'success');
+          Swal.fire('Berjaya', `Pimpinan JK Induk ${activeCategoryInduk} berjaya dikemaskini!`, 'success');
+          v4SetIndukEditMode(false);
           fetchMasterStafData();
         } else {
           Swal.fire('Ralat', res.error || 'Gagal menyimpan.', 'error');
@@ -1531,7 +1556,9 @@
         const v2 = np2Rec ? (np2Rec.ID_Staf || np2Rec.id_staf) : '';
         const v3 = np3Rec ? (np3Rec.ID_Staf || np3Rec.id_staf) : '';
 
-        populatePentadbiranNaibDropdowns(v1, v2, v3);
+        const supervisor=String(jkMaster?.Unit_Penyelia||'Pentadbiran');
+        const recommended=v4FindSupervisor(supervisor);
+        populatePentadbiranNaibDropdowns(v1||recommended, v2, v3);
       } else {
         let nameN1 = '', nameN2 = '', nameN3 = '';
         if (katName === 'Kurikulum') {
@@ -1815,6 +1842,7 @@
         action: 'savePerananStafV2',
         target_year: tahunAktif,
         allow_empty: payloadBatch.length === 0,
+        effective_date:MANUAL_V4_EFFECTIVE_DATE,change_reason:MANUAL_V4_REASON,
         expected_scope_ids: manualV3ScopeIds(scopes),
         scopes_to_clear: scopes,
         data: payloadBatch
@@ -1839,7 +1867,7 @@
     function hydrateStateFromPerananData() {
       statePengurusanKelas = {};
       stateBilikKhas = {};
-      kumpulanBertugasState = { 1: [], 2: [], 3: [], 4: [] };
+      kumpulanBertugasState = Object.fromEntries(v4ActiveGroups().map(g=>[Number(g.Nombor_Kumpulan),[]]));
       statePenghantaranRph = {};
       statePencerapanPdp = {};
       stateSemakanBuku = {};
@@ -1906,6 +1934,11 @@
           ALL_PERANAN = res.peranan || [];
           ALL_JAWATANKUASA = res.jawatankuasa || [];
           ALL_SUBJEK = res.subjek || [];
+          ALL_SEKSYEN = res.seksyen || [];
+          ALL_KUMPULAN = res.kumpulan || [];
+          ALL_TAKWIM = res.takwim || [];
+          v4RenderCatalog();v4RenderCalendar();
+
         } else { throw new Error(res?.error || 'Backend tidak memulangkan data lengkap.'); }
       } catch (err) {
         hideLoader();
@@ -1930,7 +1963,7 @@
     }
 
     function showView(viewId, evt = null) {
-      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail'];
+      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print'];
       views.forEach(v => {
         const el = document.getElementById(v);
         if (el) el.classList.add('hidden');
@@ -1956,6 +1989,10 @@
       else if (viewId === 'viewPengurusanSekolah') bTxt.innerText = 'Pengurusan Sekolah';
       else if (viewId === 'viewIndukOverview') bTxt.innerText = `JK Induk ${activeCategoryInduk}`;
       else if (viewId === 'viewSubJkDetail') bTxt.innerText = activeSubJkName;
+      else if (viewId === 'viewV4Catalog') bTxt.innerText='Tetapan Data Induk';
+      else if (viewId === 'viewV4Order') bTxt.innerText='Susunan Jawatankuasa';
+      else if (viewId === 'viewV4Calendar') bTxt.innerText='Takwim';
+      else if (viewId === 'viewV4Print') bTxt.innerText='Cetak Buku Manual';
     }
 
     function switchSubPengurusan(type, evt = null) {
@@ -2108,78 +2145,34 @@
       statePencerapanPdp[idGuru][field] = idPencerap;
     }
 
-    function renderTableSemakanBuku() {
-      const tbody = document.getElementById('tbodySemakanBuku');
-      if (!tbody) return;
-
-      const senaraiPentadbir = getPentadbirList();
-      let subjekIndukList = [];
-
-      if (ALL_SUBJEK && ALL_SUBJEK.length > 0) {
-        const mapSub = {};
-        ALL_SUBJEK.forEach(s => {
-          const namaInduk = String(s.Subjek_Induk || s.subjek_induk || s['Nama_Subjek / Komponen'] || '').trim();
-          const kod = String(s.Kod_Subjek || s.kod_subjek || '').trim();
-          const tahap = String(s.Kategori_Tahap || s.kategori_tahap || '').trim();
-
-          if (namaInduk) {
-            if (!mapSub[namaInduk]) {
-              mapSub[namaInduk] = { Nama: namaInduk, Kod: kod, Tahap: tahap };
-            } else {
-              if (mapSub[namaInduk].Kod.includes('-') && !kod.includes('-')) {
-                mapSub[namaInduk].Kod = kod;
-              }
-            }
-          }
-        });
-        subjekIndukList = Object.values(mapSub);
-      }
-
-      if (subjekIndukList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="table-cell-std text-center text-slate-400 italic">Tiada rekod subjek dijumpai.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = '';
-      subjekIndukList.forEach((sub, idx) => {
-        let cellsHtml = '';
-        const isTahap2Only = String(sub.Tahap).toLowerCase().includes('tahap 2') && !String(sub.Tahap).toLowerCase().includes('tahap 1');
-
-        for (let thn = 1; thn <= 6; thn++) {
-          if (isTahap2Only && thn <= 3) {
-            cellsHtml += `
-              <td class="p-1 text-center">
-                <span class="text-[10px] font-extrabold text-slate-400 bg-slate-100 px-2 py-1 rounded-md block">N/A</span>
-              </td>
-            `;
-            continue;
-          }
-
-          const keySkop = `${sub.Kod || sub.Nama}_Tahun${thn}`;
-          const currentPenyemak = stateSemakanBuku[keySkop] || '';
-
-          let opt = `<option value="">-- Pilih --</option>`;
-          senaraiPentadbir.forEach(p => {
-            opt += `<option value="${p.ID_Staf}" ${p.ID_Staf === currentPenyemak ? 'selected' : ''}>${p.Nama_Samaran || p.Nama_Penuh} (${p.Kategori_Staf})</option>`;
-          });
-
-          cellsHtml += `
-            <td class="p-1">
-              <select onchange="updateStateSemakanBuku('${keySkop}', this.value)" class="w-full p-1.5 border border-slate-200 rounded-lg bg-white font-semibold text-[11px] focus:border-emerald-600">
-                ${opt}
-              </select>
-            </td>
-          `;
-        }
-
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
-            <td class="table-cell-std font-extrabold text-slate-800">${sub.Nama} <span class="text-rose-600 font-bold">(${sub.Kod})</span></td>
-            ${cellsHtml}
-          </tr>
-        `;
+    function v4EligibleYears(category){
+      const t=String(category||'').toLowerCase().replace(/\s+/g,' ').trim();
+      const years=[...t.matchAll(/tahun\s*([1-6])/g)].map(m=>Number(m[1]));
+      if(years.length)return [...new Set(years)];
+      if(t.includes('tahap 1')&&t.includes('tahap 2'))return [1,2,3,4,5,6];
+      if(t.includes('tahap 1'))return [1,2,3];
+      if(t.includes('tahap 2'))return [4,5,6];
+      return [1,2,3,4,5,6];
+    }
+    function renderTableSemakanBuku(){
+      const tbody=document.getElementById('tbodySemakanBuku');if(!tbody)return;
+      const admins=getPentadbirList(),map=new Map();
+      ALL_SUBJEK.filter(s=>String(s.Status||'Aktif').toLowerCase()==='aktif').forEach(s=>{
+        const key=String(s.Subjek_Induk||s['Nama_Subjek / Komponen']||'').trim();if(!key)return;
+        const code=String(s.Kod_Subjek||'').trim(),category=String(s.Kategori_Tahap||'').trim();
+        if(!map.has(key))map.set(key,{name:key,code:code,years:new Set()});
+        const entry=map.get(key);v4EligibleYears(category).forEach(y=>entry.years.add(y));
+        if(entry.code.includes('-')&&!code.includes('-'))entry.code=code;
       });
+      tbody.innerHTML=[...map.values()].map((sub,i)=>{
+        const cells=Array.from({length:6},(_,x)=>{
+          const year=x+1;if(!sub.years.has(year))return '<td class="p-1 text-center bg-slate-50"><span class="text-slate-400 text-[10px] font-bold">N/A</span></td>';
+          const key=`${sub.code||sub.name}_Tahun${year}`,value=stateSemakanBuku[key]||'';
+          const options=admins.map(a=>`<option value="${manualV3Escape(a.ID_Staf)}" ${a.ID_Staf===value?'selected':''}>${manualV3Escape(a.Nama_Samaran||a.Nama_Penuh)}</option>`).join('');
+          return `<td class="p-1"><select data-key="${manualV3Escape(key)}" onchange="updateStateSemakanBuku(this.dataset.key,this.value)" class="w-full p-1.5 border rounded-lg text-[11px]"><option value="">-- Pilih --</option>${options}</select></td>`;
+        }).join('');
+        return `<tr class="border-b"><td class="table-cell-std text-center">${i+1}</td><td class="table-cell-std font-bold">${manualV3Escape(sub.name)} <span class="text-rose-600">(${manualV3Escape(sub.code)})</span></td>${cells}</tr>`;
+      }).join('')||'<tr><td colspan="8" class="p-5 text-center text-slate-400">Tiada subjek aktif.</td></tr>';
     }
 
     function updateStateSemakanBuku(keySkop, idPenyemak) {
@@ -2391,6 +2384,7 @@
       
       const nextId = getNextStafID();
       document.getElementById('inp_ID_Staf').value = nextId;
+      document.getElementById('inp_ID_Staf').dataset.isNew='true';
       document.getElementById('inp_Nama_Penuh').value = '';
       document.getElementById('inp_Nama_Samaran').value = '';
       document.getElementById('inp_No_KP').value = '';
@@ -2435,9 +2429,26 @@
         Tarikh_Masuk: document.getElementById('inp_Tarikh_Masuk').value,
         Tarikh_Keluar: '',
         Status: document.getElementById('inp_Status').value,
-        ID_Mentor: document.getElementById('inp_ID_Mentor').value
+        ID_Mentor: document.getElementById('inp_ID_Mentor').value,
+        is_new: document.getElementById('inp_ID_Staf').dataset.isNew==='true'
       };
 
+      const previously=ALL_STAF.find(x=>x.ID_Staf===newStaf.ID_Staf);
+      const isLeaving=previously && String(previously.Status||'Aktif').toLowerCase()==='aktif' && String(newStaf.Status||'').toLowerCase()!=='aktif';
+      if(isLeaving){
+        const roles=ALL_PERANAN.filter(x=>x.ID_Staf===newStaf.ID_Staf && String(x.Status||'Aktif').toLowerCase()==='aktif');
+        if(roles.length){
+          const year=manualV3Year();
+          const defaultDate=Number(year)>new Date().getFullYear()?year+'-01-01':new Date().toISOString().slice(0,10);
+          const names=roles.map(x=>`<li>${manualV3Escape(x.Tahun)} · ${manualV3Escape(x.Nama_Jawatankuasa)} — ${manualV3Escape(x.Peranan)}</li>`).join('');
+          const ans=await Swal.fire({title:'Staf masih mempunyai pelantikan aktif',icon:'warning',width:620,
+            html:`<p class="text-xs text-slate-600">Menukar staf kepada Tidak Aktif akan menamatkan <strong>${roles.length}</strong> pelantikan ini tanpa memadam sejarah.</p><ul class="text-left text-xs list-disc pl-6 my-3 max-h-40 overflow-auto">${names}</ul><label class="block text-left text-xs font-bold">Tarikh kuat kuasa</label><input id="v4-staff-end" type="date" value="${defaultDate}" class="w-full p-2 border rounded-lg"/><label class="block text-left text-xs font-bold mt-2">Sebab</label><input id="v4-staff-reason" value="Berpindah / tamat perkhidmatan" class="w-full p-2 border rounded-lg"/>`,
+            showCancelButton:true,confirmButtonText:'Tamatkan semua tugasan & simpan',cancelButtonText:'Batal',
+            preConfirm:()=>{const date=document.getElementById('v4-staff-end')?.value,reason=document.getElementById('v4-staff-reason')?.value||'';if(!date){Swal.showValidationMessage('Tarikh diperlukan.');return false;}return {date,reason};}});
+          if(!ans.isConfirmed)return;
+          newStaf.close_active_roles=true;newStaf.effective_date=ans.value.date;newStaf.change_reason=ans.value.reason;
+        }
+      }
       closeTambahGuruModal();
       showLoader('Menyimpan rekod Staf...');
 
@@ -2486,8 +2497,11 @@
       document.getElementById('jk_ID_Tugasan').value = getNextJkID();
       document.getElementById('jk_Kategori_Pengurusan').value = 'Pentadbiran';
       document.getElementById('jk_Nama_Jawatankuasa').value = '';
+      document.getElementById('jk_Seksyen_Baharu').value = '';
+      document.getElementById('jk_ID_Tugasan').dataset.isNew='true';
       
-      onCategoryChangeInModal();
+      onCategoryChangeInModal();v4FillSeksyen();
+      document.getElementById('jk_Susunan').value=ALL_JAWATANKUASA.length+1;document.getElementById('jk_Unit_Penyelia').value='Pentadbiran';
       document.getElementById('modal-jawatankuasa').classList.remove('hidden');
     }
 
@@ -2501,11 +2515,15 @@
 
       document.getElementById('modalJkTitle').innerHTML = '<i class="fa-solid fa-pen-to-square mr-2"></i>Kemaskini Jawatankuasa';
       document.getElementById('jk_ID_Tugasan').value = idTugasan;
+      document.getElementById('jk_ID_Tugasan').dataset.isNew='false';
+      document.getElementById('jk_Seksyen_Baharu').value='';
       const kat = item.Kategori_Pengurusan || item.kategori_pengurusan || 'Pentadbiran';
       document.getElementById('jk_Kategori_Pengurusan').value = kat;
       document.getElementById('jk_Nama_Jawatankuasa').value = item.Nama_Jawatankuasa || item.nama_jawatankuasa || '';
 
-      onCategoryChangeInModal();
+      onCategoryChangeInModal();v4FillSeksyen(item.Seksyen||kat);
+      document.getElementById('jk_Susunan').value=item.Susunan||1;
+      document.getElementById('jk_Unit_Penyelia').value=item.Unit_Penyelia||kat;
 
       const el = document.getElementById('jk_Peranan_Select');
       if (el) el.value = item.Peranan || item.peranan || 'Penyelaras';
@@ -2522,13 +2540,23 @@
         kategori_pengurusan: document.getElementById('jk_Kategori_Pengurusan').value,
         jk_induk: document.getElementById('jk_JK_Induk').value,
         nama_jawatankuasa: document.getElementById('jk_Nama_Jawatankuasa').value.trim(),
-        peranan: selectedRole
+        peranan: selectedRole,
+        seksyen: document.getElementById('jk_Seksyen').value,
+        susunan: Number(document.getElementById('jk_Susunan').value)||1,
+        unit_penyelia: document.getElementById('jk_Unit_Penyelia').value,
+        is_new: document.getElementById('jk_ID_Tugasan').dataset.isNew==='true'
       };
 
+      const newSection=document.getElementById('jk_Seksyen_Baharu').value.trim();
+      if(newSection)payload.seksyen=newSection;
       closeModalJawatankuasa();
       showLoader('Menyimpan Master Jawatankuasa...');
 
       try {
+        if(newSection&&!ALL_SEKSYEN.some(x=>x.Kategori_Pengurusan===payload.kategori_pengurusan&&x.Nama_Seksyen.toLowerCase()===newSection.toLowerCase())){
+          const savedSection=await postToBackend({action:'saveManualV4Section',data:{Kategori_Pengurusan:payload.kategori_pengurusan,Nama_Seksyen:newSection,Status:'Aktif',Susunan:ALL_SEKSYEN.length+1}});
+          if(!savedSection.success)throw Error(savedSection.error||'Tidak dapat mencipta seksyen baharu.');
+        }
         const res = await postToBackend({ action: 'saveMasterJawatankuasaV2', data: payload });
         hideLoader();
         if (res && res.success) {
@@ -2701,7 +2729,7 @@
       const tbody = document.getElementById('tbodyPengurusanKelas');
       if (!tbody) return;
 
-      const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'kelas');
+      const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'kelas' && String(l.Status||'Aktif').toLowerCase()==='aktif');
       const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
       const sortedGuru = sortStafList(activeGuruOnly);
 
@@ -2753,7 +2781,7 @@
               </select>
             </td>
             <td class="table-cell-std font-extrabold text-rose-700 bg-rose-50/40">
-              ${namaPenyelarasAliran}
+              ${namaKelas === kelasPertamaAliran ? namaPenyelarasAliran : '<span class="text-slate-300">—</span>'}
             </td>
           </tr>
         `;
@@ -2771,7 +2799,7 @@
       const tbody = document.getElementById('tbodyBilikKhas');
       if (!tbody) return;
 
-      const senaraiBilik = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'bilik khas');
+      const senaraiBilik = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'bilik khas' && String(l.Status||'Aktif').toLowerCase()==='aktif');
       const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
       const sortedGuru = sortStafList(activeGuruOnly);
 
@@ -2810,46 +2838,15 @@
     }
 
     function renderKumpulanBertugasUI() {
-      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
-      const sortedGuru = sortStafList(activeGuruOnly);
-
-      const usedTeacherIDs = new Set();
-      [1, 2, 3, 4].forEach(grp => {
-        kumpulanBertugasState[grp].forEach(id => usedTeacherIDs.add(id));
-      });
-
-      [1, 2, 3, 4].forEach(grp => {
-        const box = document.getElementById(`boxListK${grp}`);
-        const sel = document.getElementById(`selK${grp}`);
-        const badge = document.getElementById(`badgeK${grp}`);
-
-        if (badge) badge.innerText = `${kumpulanBertugasState[grp].length} Guru`;
-
-        if (box) {
-          box.innerHTML = '';
-          kumpulanBertugasState[grp].forEach(idStaf => {
-            const gObj = sortedGuru.find(g => g.ID_Staf === idStaf);
-            const namaDisplay = gObj ? gObj.Nama_Penuh : idStaf;
-
-            box.innerHTML += `
-              <div class="flex items-center justify-between p-2 bg-slate-50 rounded-xl border border-slate-200 text-xs font-bold">
-                <span>${namaDisplay}</span>
-                <button onclick="buangDariKumpulan(${grp}, '${idStaf}')" class="text-rose-500 hover:text-rose-700 p-1"><i class="fa-solid fa-xmark text-sm"></i></button>
-              </div>
-            `;
-          });
-        }
-
-        if (sel) {
-          let opt = `<option value="">-- Pilih Guru Tambah ke K${grp} --</option>`;
-          sortedGuru.forEach(g => {
-            if (!usedTeacherIDs.has(g.ID_Staf)) {
-              opt += `<option value="${g.ID_Staf}">${g.Nama_Penuh}</option>`;
-            }
-          });
-          sel.innerHTML = opt;
-        }
-      });
+      const grid=document.getElementById('v4GroupGrid');if(!grid)return;
+      const staf=sortStafList(ALL_STAF.filter(s=>s.Kategori_Staf!=='AKP'&&String(s.Status||'Aktif').toLowerCase()==='aktif'));
+      const used=new Set(Object.values(kumpulanBertugasState).flat());
+      grid.innerHTML=v4ActiveGroups().map(g=>{
+        const n=Number(g.Nombor_Kumpulan),ids=kumpulanBertugasState[n]||[];
+        const members=ids.map(id=>`<div class="p-2 border rounded-lg bg-slate-50 flex items-center justify-between"><span>${manualV3Escape(manualV3StaffName(id))}</span><button onclick="buangDariKumpulan(${n},'${id}')" class="text-rose-600" title="Buang"><i class="fa-solid fa-xmark"></i></button></div>`).join('');
+        const opts=staf.filter(s=>!used.has(s.ID_Staf)).map(s=>`<option value="${manualV3Escape(s.ID_Staf)}">${manualV3Escape(s.Nama_Penuh)}</option>`).join('');
+        return `<div class="bg-white p-4 rounded-xl border shadow-sm space-y-3 text-xs"><div class="flex justify-between font-bold border-b pb-2"><span>${manualV3Escape(g.Nama_Kumpulan||'Kumpulan '+n)}</span><span>${ids.length} guru</span></div><div class="space-y-1 min-h-16">${members||'<p class="text-slate-400 italic">Belum ada ahli</p>'}</div><div class="flex gap-2"><select id="selK${n}" class="border rounded-lg p-2 flex-1 min-w-0"><option value="">-- Pilih guru --</option>${opts}</select><button onclick="tambahKeKumpulan(${n})" class="bg-rose-600 text-white px-3 rounded-lg font-bold">Tambah</button></div></div>`;
+      }).join('');
     }
 
     function tambahKeKumpulan(grp) {
@@ -2871,7 +2868,7 @@
       let payloadBatch = [];
       const tahunAktif = document.getElementById('selTahunAktif')?.value || '2027';
 
-      const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'kelas');
+      const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'kelas' && String(l.Status||'Aktif').toLowerCase()==='aktif');
       const streamMap = {};
       senaraiKelas.forEach(k => {
         const key = getStreamKey(k.Nama_Lokasi);
@@ -2943,7 +2940,7 @@
         }
       });
 
-      [1, 2, 3, 4].forEach(grp => {
+      v4ActiveGroups().map(g=>Number(g.Nombor_Kumpulan)).forEach(grp => {
         kumpulanBertugasState[grp].forEach(idG => {
           payloadBatch.push({
             kategori_pengurusan: 'Pentadbiran',
@@ -3002,7 +2999,12 @@
         }
       });
 
-      Object.keys(stateSemakanBuku).forEach(keySkop => {
+      const allowedBookScopes=new Set();
+      ALL_SUBJEK.filter(x=>String(x.Status||'Aktif').toLowerCase()==='aktif').forEach(sub=>{
+        const code=String(sub.Kod_Subjek||'');
+        v4EligibleYears(sub.Kategori_Tahap||'').forEach(y=>allowedBookScopes.add(code+'_Tahun'+y));
+      });
+      Object.keys(stateSemakanBuku).filter(key=>allowedBookScopes.has(key)).forEach(keySkop => {
         const idPenyemak = stateSemakanBuku[keySkop];
         if (idPenyemak) {
           payloadBatch.push({
@@ -3025,6 +3027,7 @@
       const payload = {
         action: 'savePerananStafV2', target_year: tahunAktif,
         allow_empty: payloadBatch.length === 0,
+        effective_date:MANUAL_V4_EFFECTIVE_DATE,change_reason:MANUAL_V4_REASON,
         expected_scope_ids: manualV3ScopeIds(scopes),
         scopes_to_clear: scopes,
         data: payloadBatch
@@ -3046,6 +3049,190 @@
         Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
       }
     }
+
+    /* ========================================================================
+       SeMAKMUR Manual Pengurusan V4 - UI dinamik, seksyen, takwim, cetakan
+       ======================================================================== */
+    function v4ActiveGroups(){
+      return (ALL_KUMPULAN||[]).filter(g=>String(g.Status||'Aktif').toLowerCase()==='aktif')
+        .sort((a,b)=>(Number(a.Susunan)||99)-(Number(b.Susunan)||99)||Number(a.Nombor_Kumpulan)-Number(b.Nombor_Kumpulan));
+    }
+    function v4SectionOrder(cat,sec){
+      if(String(sec)===String(cat))return -1;
+      const hit=ALL_SEKSYEN.find(s=>s.Kategori_Pengurusan===cat&&s.Nama_Seksyen===sec);
+      return hit?Number(hit.Susunan)||999:999;
+    }
+    function v4SortedJK(cat){
+      return ALL_JAWATANKUASA.filter(j=>String(j.Kategori_Pengurusan||'')===cat)
+        .sort((a,b)=>v4SectionOrder(cat,a.Seksyen||cat)-v4SectionOrder(cat,b.Seksyen||cat)
+          ||(Number(a.Susunan)||9999)-(Number(b.Susunan)||9999)
+          ||String(a.Nama_Jawatankuasa||'').localeCompare(String(b.Nama_Jawatankuasa||''),'ms'));
+    }
+    function v4OpenSubJkById(id){
+      const j=ALL_JAWATANKUASA.find(x=>String(x.ID_Tugasan)===String(id));
+      if(j)openSubJkDetail(j.Kategori_Pengurusan,j.Nama_Jawatankuasa);
+    }
+    function v4FindSupervisor(unit){
+      const names={'Pentadbiran':'GPK Pentadbiran','Kurikulum':'GPK Pentadbiran','Hal Ehwal Murid':'GPK Hal Ehwal Murid','Kokurikulum':'GPK Ko Kurikulum'};
+      const category=names[unit]||'GPK Pentadbiran';
+      return ALL_STAF.find(s=>s.Kategori_Staf===category&&String(s.Status||'Aktif').toLowerCase()==='aktif')?.ID_Staf||'';
+    }
+    function v4FillSeksyen(selected){
+      const kat=document.getElementById('jk_Kategori_Pengurusan')?.value||'Pentadbiran',sel=document.getElementById('jk_Seksyen');if(!sel)return;
+      const options=[kat,...ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===kat&&String(s.Status||'Aktif').toLowerCase()==='aktif').map(s=>s.Nama_Seksyen)];
+      if(selected&&!options.includes(selected))options.push(selected);
+      sel.innerHTML=options.map(s=>`<option value="${manualV3Escape(s)}">${manualV3Escape(s)}</option>`).join('');
+      sel.value=selected||kat;
+      if(!selected){const u=document.getElementById('jk_Unit_Penyelia');if(u)u.value=kat;}
+    }
+    const V4_KINDS=[['lokasi','Kelas & Bilik'],['subjek','Mata Pelajaran'],['kumpulan','Kumpulan Bertugas'],['seksyen','Seksyen JK']];
+    let V4_CATALOG_KIND='lokasi';
+    function v4OpenCatalog(kind='lokasi'){V4_CATALOG_KIND=kind;showView('viewV4Catalog');v4RenderCatalog();}
+    function v4RenderCatalog(){
+      const tabs=document.getElementById('v4CatalogTabs'),box=document.getElementById('v4CatalogItems');if(!tabs||!box)return;
+      tabs.innerHTML=V4_KINDS.map(([k,n])=>`<button onclick="v4OpenCatalog('${k}')" class="rounded-xl px-4 py-2 text-xs font-bold ${V4_CATALOG_KIND===k?'bg-rose-600 text-white':'bg-slate-100 text-slate-700 hover:bg-slate-200'}">${n}</button>`).join('');
+      const list=V4_CATALOG_KIND==='lokasi'?ALL_LOKASI:V4_CATALOG_KIND==='subjek'?ALL_SUBJEK:V4_CATALOG_KIND==='kumpulan'?ALL_KUMPULAN:ALL_SEKSYEN;
+      box.innerHTML=list.map(o=>{
+        const key=V4_CATALOG_KIND==='lokasi'?'ID_Lokasi':V4_CATALOG_KIND==='subjek'?'ID_Subjek':V4_CATALOG_KIND==='kumpulan'?'Nombor_Kumpulan':'ID_Seksyen';
+        const id=String(o[key]||''),name=V4_CATALOG_KIND==='lokasi'?o.Nama_Lokasi:V4_CATALOG_KIND==='subjek'?o['Nama_Subjek / Komponen']:V4_CATALOG_KIND==='kumpulan'?o.Nama_Kumpulan:o.Nama_Seksyen;
+        const desc=V4_CATALOG_KIND==='lokasi'?`${o.Kategori||''} ${o.Tahap_Blok||''}`:V4_CATALOG_KIND==='subjek'?`${o.Kod_Subjek||''} · ${o.Kategori_Tahap||''}`:V4_CATALOG_KIND==='kumpulan'?'Kumpulan '+id:`${o.Kategori_Pengurusan||''} · Susunan ${o.Susunan||''}`;
+        const active=String(o.Status||'Aktif').toLowerCase()==='aktif';
+        return `<div class="flex items-center gap-3 justify-between p-3 border rounded-xl ${active?'bg-white':'bg-slate-50 opacity-65'}"><div><p class="font-bold text-xs">${manualV3Escape(name)} <span class="font-normal text-slate-400">(${manualV3Escape(id)})</span></p><p class="text-[11px] text-slate-500 mt-1">${manualV3Escape(desc)} · ${active?'AKTIF':'TIDAK AKTIF'}</p></div><button data-id="${manualV3Escape(id)}" onclick="v4OpenCatalogEditor(this.dataset.id)" class="shrink-0 bg-slate-100 hover:bg-rose-50 border rounded-lg px-3 py-2 text-xs font-bold"><i class="fa-solid fa-pen"></i> Edit</button></div>`;
+      }).join('')||'<div class="p-6 text-center text-slate-400 text-xs">Belum ada rekod. Klik Tambah Rekod.</div>';
+    }
+    async function v4OpenCatalogEditor(id=''){
+      const kind=V4_CATALOG_KIND,source=kind==='lokasi'?ALL_LOKASI:kind==='subjek'?ALL_SUBJEK:kind==='kumpulan'?ALL_KUMPULAN:ALL_SEKSYEN;
+      const key=kind==='lokasi'?'ID_Lokasi':kind==='subjek'?'ID_Subjek':kind==='kumpulan'?'Nombor_Kumpulan':'ID_Seksyen';
+      const item=source.find(x=>String(x[key])===String(id))||{};
+      const input=(key,label,defaultValue='',type='text')=>`<label class="block text-left text-xs font-bold mb-1 mt-3">${label}</label><input id="v4-${key}" type="${type}" value="${manualV3Escape(defaultValue)}" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm"/>`;
+      const select=(key,label,choices,selected)=>`<label class="block text-left text-xs font-bold mb-1 mt-3">${label}</label><select id="v4-${key}" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm">${choices.map(v=>`<option ${String(v)===String(selected)?'selected':''}>${manualV3Escape(v)}</option>`).join('')}</select>`;
+      let fields='';
+      if(kind==='lokasi')fields=input('Nama_Lokasi','Nama kelas / bilik',item.Nama_Lokasi||'')+select('Kategori','Kategori',['Kelas','Bilik Khas'],item.Kategori||'Kelas')+input('Tahap_Blok','Tahap / Blok (pilihan)',item.Tahap_Blok||'');
+      if(kind==='subjek')fields=input('Kod_Subjek','Kod subjek',item.Kod_Subjek||'')+input('Nama_Subjek','Nama subjek / komponen',item['Nama_Subjek / Komponen']||'')+input('Subjek_Induk','Subjek induk',item.Subjek_Induk||'')+select('Kategori_Tahap','Kategori / tahun',['Tahap 1 & 2','Tahap 1','Tahap 2','Tahun 1','Tahun 2','Tahun 3','Tahun 4','Tahun 5','Tahun 6'],item.Kategori_Tahap||'Tahap 1 & 2');
+      if(kind==='kumpulan')fields=input('Nama_Kumpulan','Nama kumpulan',item.Nama_Kumpulan||'')+input('Susunan','Susunan',item.Susunan||id||1,'number');
+      if(kind==='seksyen')fields=select('Kategori_Pengurusan','JK Induk',['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'],item.Kategori_Pengurusan||'Pentadbiran')+input('Nama_Seksyen','Nama seksyen',item.Nama_Seksyen||'')+input('Susunan','Susunan',item.Susunan||1,'number');
+      fields+=select('Status','Status',['Aktif','Tidak Aktif'],item.Status||'Aktif');
+      const ans=await Swal.fire({title:id?'Kemaskini Data Induk':'Tambah Rekod Baharu',width:510,html:`<div class="text-left max-h-[65vh] overflow-auto p-1">${fields}</div>`,showCancelButton:true,confirmButtonText:'Simpan',cancelButtonText:'Batal',preConfirm:()=>{
+        const values={};['Nama_Lokasi','Kategori','Tahap_Blok','Kod_Subjek','Nama_Subjek','Subjek_Induk','Kategori_Tahap','Nama_Kumpulan','Susunan','Kategori_Pengurusan','Nama_Seksyen','Status'].forEach(k=>{const el=document.getElementById('v4-'+k);if(el)values[k]=el.value.trim();});
+        if(kind==='lokasi'&&!values.Nama_Lokasi||kind==='subjek'&&(!values.Kod_Subjek||!values.Nama_Subjek)||kind==='seksyen'&&!values.Nama_Seksyen){Swal.showValidationMessage('Sila isi maklumat wajib.');return false;}
+        return values;
+      }});
+      if(!ans.isConfirmed||!ans.value)return;
+      const val=ans.value;let action='',payload={};
+      if(kind==='lokasi'){action='saveManualV4Catalog';payload={kind:'lokasi',item:{ID_Lokasi:id,Nama_Lokasi:val.Nama_Lokasi,Kategori:val.Kategori,Tahap_Blok:val.Tahap_Blok,Status:val.Status}};}
+      if(kind==='subjek'){action='saveManualV4Catalog';payload={kind:'subjek',item:{ID_Subjek:id,Kod_Subjek:val.Kod_Subjek,'Nama_Subjek / Komponen':val.Nama_Subjek,Subjek_Induk:val.Subjek_Induk,Kategori_Tahap:val.Kategori_Tahap,Status:val.Status}};}
+      if(kind==='kumpulan'){action='saveManualV4Group';payload={Nombor_Kumpulan:id?Number(id):0,Nama_Kumpulan:val.Nama_Kumpulan,Susunan:val.Susunan,Status:val.Status};}
+      if(kind==='seksyen'){action='saveManualV4Section';payload={ID_Seksyen:id,Kategori_Pengurusan:val.Kategori_Pengurusan,Nama_Seksyen:val.Nama_Seksyen,Susunan:val.Susunan,Status:val.Status};}
+      showLoader('Menyimpan tetapan…');try{
+        const res=await postToBackend({action:action,data:payload});hideLoader();if(!res.success)throw Error(res.error||'Gagal menyimpan');
+        await Swal.fire('Berjaya',res.message||'Data disimpan.','success');await fetchMasterStafData();v4OpenCatalog(kind);
+      }catch(e){hideLoader();await Swal.fire('Tidak berjaya',e.message,'error');}
+    }
+    let V4_ORDER_DRAFT=[],V4_ORDER_CATEGORY='';
+    function v4OpenOrder(){showView('viewV4Order');V4_ORDER_CATEGORY='';v4DrawOrder();}
+    function v4DrawOrder(){
+      const kat=document.getElementById('v4OrderCategory')?.value||'Pentadbiran';
+      if(kat!==V4_ORDER_CATEGORY){V4_ORDER_CATEGORY=kat;V4_ORDER_DRAFT=v4SortedJK(kat).map(j=>({...j}));}
+      const box=document.getElementById('v4OrderList');if(!box)return;
+      const secs=[kat,...ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===kat&&String(s.Status||'Aktif').toLowerCase()==='aktif').map(s=>s.Nama_Seksyen)];
+      box.innerHTML=V4_ORDER_DRAFT.map((j,i)=>{
+        const options=[...new Set([...secs,j.Seksyen||kat])].map(s=>`<option value="${manualV3Escape(s)}" ${s===(j.Seksyen||kat)?'selected':''}>${manualV3Escape(s)}</option>`).join('');
+        return `<div class="bg-white border rounded-xl p-3 flex gap-3 flex-wrap items-center"><span class="text-slate-400 font-bold text-xs w-7">${i+1}.</span><div class="flex-1 min-w-[180px]"><p class="font-bold text-xs">${manualV3Escape(j.Nama_Jawatankuasa)}</p><p class="text-[11px] text-slate-500">${manualV3Escape(j.ID_Tugasan)}</p></div><select onchange="v4ChangeJkSection(${i},this.value)" class="p-2 text-xs rounded-lg border">${options}</select><div class="flex gap-1"><button onclick="v4MoveJk(${i},-1)" class="border rounded-lg px-3 py-2 hover:bg-rose-50" title="Ke atas">↑</button><button onclick="v4MoveJk(${i},1)" class="border rounded-lg px-3 py-2 hover:bg-rose-50" title="Ke bawah">↓</button></div></div>`;
+      }).join('')||'<p class="text-slate-500 p-5">Tiada jawatankuasa dalam induk ini.</p>';
+    }
+    function v4MoveJk(index,delta){const other=index+delta;if(other<0||other>=V4_ORDER_DRAFT.length)return;[V4_ORDER_DRAFT[index],V4_ORDER_DRAFT[other]]=[V4_ORDER_DRAFT[other],V4_ORDER_DRAFT[index]];v4DrawOrder();}
+    function v4ChangeJkSection(index,sec){V4_ORDER_DRAFT[index].Seksyen=sec;v4DrawOrder();}
+    async function v4SaveOrder(){
+      if(!V4_ORDER_DRAFT.length)return;
+      const items=V4_ORDER_DRAFT.map((j,i)=>({ID_Tugasan:j.ID_Tugasan,Seksyen:j.Seksyen||j.Kategori_Pengurusan,Susunan:i+1,Unit_Penyelia:j.Unit_Penyelia||j.Kategori_Pengurusan}));
+      const ok=await Swal.fire({title:'Simpan susunan?',text:'Seksyen dan kedudukan jawatankuasa akan dikemas kini. Tugasan guru kekal.',icon:'question',showCancelButton:true,confirmButtonText:'Simpan'});if(!ok.isConfirmed)return;
+      showLoader('Menyimpan susunan…');try{const r=await postToBackend({action:'saveManualV4JkOrder',data:{items}});hideLoader();if(!r.success)throw Error(r.error||'Gagal');await Swal.fire('Berjaya','Susunan disimpan.','success');await fetchMasterStafData();v4OpenOrder();}catch(e){hideLoader();Swal.fire('Ralat',e.message,'error');}
+    }
+    function v4OpenCalendar(){showView('viewV4Calendar');v4RenderCalendar();}
+    function v4RenderCalendar(){
+      const box=document.getElementById('v4CalendarItems');if(!box)return;
+      const q=String(document.getElementById('v4CalendarSearch')?.value||'').toLowerCase(),type=document.getElementById('v4CalendarTypeFilter')?.value||'';
+      const list=[...ALL_TAKWIM].filter(e=>!type||e.Jenis===type).filter(e=>[e.Tajuk,e.Maklumat,e.Unit,e.Minggu].some(x=>String(x||'').toLowerCase().includes(q)))
+        .sort((a,b)=>String(a.Tarikh_Mula||'').localeCompare(String(b.Tarikh_Mula||'')));
+      box.innerHTML=list.map(e=>`<div class="bg-white border rounded-xl p-4 flex gap-3 flex-wrap items-center justify-between"><div class="flex-1 min-w-[210px]"><div class="text-[10px] font-bold text-rose-700 uppercase">${manualV3Escape(e.Jenis)} ${e.Minggu?' · Minggu '+manualV3Escape(e.Minggu):''}</div><p class="text-xs font-extrabold mt-1">${manualV3Escape(e.Tajuk)}</p><p class="text-xs text-slate-500 mt-1">${manualV3Escape(e.Tarikh_Mula)}${e.Tarikh_Tamat&&e.Tarikh_Tamat!==e.Tarikh_Mula?' — '+manualV3Escape(e.Tarikh_Tamat):''} · ${manualV3Escape(e.Unit||'Semua unit')} · ${manualV3Escape(e.Status||'Aktif')}</p></div><button data-id="${manualV3Escape(e.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id)" class="border bg-slate-50 rounded-lg px-3 py-2 text-xs font-bold">Edit</button></div>`).join('')||'<div class="bg-white border rounded-xl text-center p-8 text-xs text-slate-500">Tiada aktiviti. Klik Tambah Aktiviti untuk membina takwim.</div>';
+    }
+    async function v4OpenCalendarEditor(id=''){
+      const o=ALL_TAKWIM.find(e=>String(e.ID_Acara)===String(id))||{};
+      const input=(k,label,value='',type='text')=>`<label class="block text-left text-xs font-bold mt-3 mb-1">${label}</label><input id="v4cal-${k}" type="${type}" value="${manualV3Escape(value)}" class="w-full p-2.5 border rounded-xl text-xs"/>`;
+      const select=(k,label,values,selected)=>`<label class="block text-left text-xs font-bold mt-3 mb-1">${label}</label><select id="v4cal-${k}" class="w-full p-2.5 border rounded-xl text-xs">${values.map(v=>`<option value="${manualV3Escape(v.value||v)}" ${String(v.value||v)===String(selected)?'selected':''}>${manualV3Escape(v.text||v)}</option>`).join('')}</select>`;
+      const weeks=[''].concat(Array.from({length:52},(_,i)=>i+1));
+      const groups=[''].concat(v4ActiveGroups().map(g=>({value:g.Nombor_Kumpulan,text:g.Nama_Kumpulan})));
+      const committees=[''].concat(ALL_JAWATANKUASA.map(j=>j.Nama_Jawatankuasa));
+      const html=`<div class="text-left max-h-[65vh] overflow-y-auto px-1">${input('Tajuk','Tajuk acara / aktiviti',o.Tajuk||'')}
+        ${select('Jenis','Jenis takwim',['SEKOLAH','CUTI','MINGGU_RPH','MINGGU_BERTUGAS','PROGRAM','MESYUARAT'],o.Jenis||'PROGRAM')}
+        <div class="grid grid-cols-2 gap-3">${input('Tarikh_Mula','Tarikh mula',o.Tarikh_Mula||'','date')}${input('Tarikh_Tamat','Tarikh tamat',o.Tarikh_Tamat||'','date')}</div>
+        <div class="grid grid-cols-2 gap-3">${select('Minggu','Minggu (jika berkaitan)',weeks,o.Minggu||'')}${select('Kumpulan_Bertugas','Kumpulan Bertugas',groups,o.Kumpulan_Bertugas||'')}</div>
+        ${select('ID_Jawatankuasa','Khusus JK (kosong = semua)',committees,o.ID_Jawatankuasa||'')}
+        ${input('Unit','Unit / sasaran',o.Unit||'')}${input('Lokasi','Tempat',o.Lokasi||'')}${input('Maklumat','Ringkasan / agenda',o.Maklumat||'')}
+        <div class="grid grid-cols-2 gap-3">${input('Notifikasi_Hari','Ingatkan berapa hari awal',o.Notifikasi_Hari||7,'number')}${select('Status','Status',['Aktif','Tidak Aktif'],o.Status||'Aktif')}</div></div>`;
+      const ans=await Swal.fire({title:id?'Edit Aktiviti':'Tambah Aktiviti',html,width:700,showCancelButton:true,confirmButtonText:'Simpan',preConfirm:()=>{
+        const result={ID_Acara:id};['Tajuk','Jenis','Tarikh_Mula','Tarikh_Tamat','Minggu','Kumpulan_Bertugas','ID_Jawatankuasa','Unit','Lokasi','Maklumat','Notifikasi_Hari','Status'].forEach(k=>result[k]=document.getElementById('v4cal-'+k)?.value||'');
+        if(!result.Tajuk||!result.Tarikh_Mula){Swal.showValidationMessage('Tajuk dan Tarikh Mula diperlukan.');return false;}return result;
+      }});if(!ans.isConfirmed||!ans.value)return;
+      showLoader('Menyimpan takwim…');try{
+        const r=await postToBackend({action:'saveManualV4Calendar',data:ans.value});hideLoader();if(!r.success)throw Error(r.error||'Gagal menyimpan');await Swal.fire('Berjaya',r.message||'Takwim disimpan','success');await fetchMasterStafData();v4OpenCalendar();
+      }catch(e){hideLoader();Swal.fire('Ralat',e.message,'error');}
+    }
+    function v4SetIndukEditMode(edit){
+      const select=document.getElementById('selSetiausahaInduk'),off=document.getElementById('containerIndukCustomOfficers'),add=document.getElementById('v4AddIndukOfficer'),save=document.getElementById('v4SaveIndukBtn'),editBtn=document.getElementById('v4EditIndukBtn'),read=document.getElementById('v4IndukReadOnly');
+      if(!select||!read)return;
+      select.classList.toggle('hidden',!edit);if(off)off.classList.toggle('hidden',!edit);if(add)add.classList.toggle('hidden',!edit);
+      if(save)save.classList.toggle('hidden',!edit);if(editBtn)editBtn.classList.toggle('hidden',edit);read.classList.toggle('hidden',edit);
+      if(!edit){
+        const records=manualV3CurrentRoles().filter(p=>p.Nama_Jawatankuasa==='JK Induk '+activeCategoryInduk);
+        read.innerHTML=records.length?records.map(p=>`<div class="flex justify-between gap-3 border-b py-2"><strong>${manualV3Escape(p.Peranan)}</strong><span class="text-right text-slate-700">${manualV3Escape(manualV3StaffName(p.ID_Staf))}</span></div>`).join(''):'<p class="text-slate-400 italic">Belum ada pelantikan JK Induk. Klik Edit Jawatan untuk mengisi.</p>';
+      }
+    }
+    function v4PrintManualBook(){
+      const year=manualV3Year();
+      const active=manualV3CurrentRoles(),staff=sortStafList(ALL_STAF.filter(s=>String(s.Status||'Aktif').toLowerCase()==='aktif'));
+      const esc=manualV3Escape;
+      const pages=[];
+      const add=(title,chapter,content)=>pages.push({title,chapter,content});
+      add('Manual Pengurusan Sekolah','Muka Depan',`<div class="cover"><div class="cover-emblem">SeMAKMUR</div><h1>BUKU MANUAL<br>PENGURUSAN SEKOLAH</h1><div class="cover-year">SESI ${esc(year)}</div><h2>SEKOLAH KEBANGSAAN SEGAMBUT MAKMUR</h2><p>Dokumen Pengagihan Jawatankuasa, Pengurusan Staf, Operasi & Takwim</p></div>`);
+      add('Isi Kandungan','Isi Kandungan','__TOC__');
+      const table=(columns,rows)=>`<table><thead><tr>${columns.map(x=>'<th>'+esc(x)+'</th>').join('')}</tr></thead><tbody>${rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')}</tbody></table>`;
+      const chunks=(arr,n)=>arr.length?Array.from({length:Math.ceil(arr.length/n)},(_,i)=>arr.slice(i*n,(i+1)*n)):[[]];
+      chunks(staff,19).forEach((chunk,i)=>add('Direktori Staf'+(i?' (sambungan)':''),'Direktori Staf',table(['Bil','Nama Staf','Jawatan'],chunk.map((g,j)=>[String(i*19+j+1),g.Nama_Penuh,g.Kategori_Staf]))));
+      ['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'].forEach(cat=>{
+        const jks=v4SortedJK(cat);const sections=[...new Set(jks.map(j=>j.Seksyen||cat))];
+        sections.forEach(sec=>{
+          const selected=jks.filter(j=>(j.Seksyen||cat)===sec);
+          selected.forEach(j=>{
+            const ass=active.filter(p=>p.Nama_Jawatankuasa===j.Nama_Jawatankuasa);
+            chunks(ass,17).forEach((chunk,i)=>add(j.Nama_Jawatankuasa+(i?' (sambungan)':''),`JK ${cat} · ${sec}`,
+              `<p class="section-meta">${esc(cat)} / ${esc(sec)} · ${esc(j.Nama_Jawatankuasa)}</p>`+table(['Bil','Peranan','Penyandang','Skop / Tugas'],chunk.map((r,k)=>[String(i*17+k+1),r.Peranan,manualV3StaffName(r.ID_Staf),r.Skop_Tugas_Kelas]))));
+          });
+        });
+      });
+      const cl=ALL_LOKASI.filter(l=>String(l.Kategori||'').toLowerCase()==='kelas'&&String(l.Status||'Aktif').toLowerCase()==='aktif');
+      chunks(cl,18).forEach((c,i)=>add('Pengurusan Kelas'+(i?' (sambungan)':''),'Pengurusan Kelas',table(['Kelas','Guru Kelas','Guru Pembantu'],c.map(x=>{const r=statePengurusanKelas[x.Nama_Lokasi]||{};return [x.Nama_Lokasi,r.gk?manualV3StaffName(r.gk):'BELUM DIISI',r.gpk?manualV3StaffName(r.gpk):'—'];}))));
+      const events=ALL_TAKWIM.filter(e=>String(e.Status||'Aktif').toLowerCase()==='aktif'&&String(e.Tarikh_Mula||'').startsWith(year)).sort((a,b)=>String(a.Tarikh_Mula).localeCompare(String(b.Tarikh_Mula)));
+      chunks(events,17).forEach((c,i)=>add('Takwim Persekolahan'+(i?' (sambungan)':''),'Takwim',table(['Tarikh','Jenis','Aktiviti','Unit'],c.map(e=>[e.Tarikh_Mula,e.Jenis,e.Tajuk,e.Unit]))));
+      const toc=[];let previous='';pages.forEach((p,i)=>{if(p.chapter!==previous){toc.push([p.chapter,i+1]);previous=p.chapter;}});
+      pages[1].content=`<div class="toc">${toc.map(x=>`<div><span>${esc(x[0])}</span><span>${x[1]}</span></div>`).join('')}</div>`;
+      const html=`<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Buku Manual Pengurusan ${esc(year)}</title><style>
+        @page{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#18243a;background:#eef2f7}
+        .toolbar{position:sticky;top:0;background:#101a2c;padding:12px;color:white;text-align:center;z-index:100}button{border:0;border-radius:7px;padding:9px 18px;background:#d91e4e;color:white;font-weight:bold;cursor:pointer}
+        .page{width:210mm;height:297mm;background:white;margin:12px auto;position:relative;overflow:hidden;padding:21mm 17mm 21mm;box-shadow:0 4px 20px #0002;break-after:page;page-break-after:always}
+        .page header{height:18mm;border-bottom:2px solid #173963;margin-bottom:8mm;display:flex;justify-content:space-between;align-items:center;font-size:9pt;color:#21466d}
+        .page h2{font-size:16pt;margin:0 0 10mm}.page h3{font-size:12pt;margin:0 0 7mm}
+        .page footer{position:absolute;bottom:13mm;left:17mm;right:17mm;border-top:1px solid #cbd5e1;padding-top:3mm;display:flex;justify-content:space-between;font-size:8pt;color:#64748b}
+        table{width:100%;border-collapse:collapse;font-size:8pt;line-height:1.3}th{background:#e9f0f8;text-align:left;color:#173963;padding:7px 5px;border:1px solid #dce4ef}td{vertical-align:top;padding:5px;border:1px solid #e2e8f0;word-break:break-word}
+        .section-meta{font-size:8pt;color:#64748b}.cover{text-align:center;padding-top:30mm}.cover-emblem{border:4px solid #173963;display:inline-block;padding:18px;font-size:22pt;font-weight:900;color:#173963;border-radius:20px}
+        .cover h1{font-size:27pt;line-height:1.25;margin-top:30mm}.cover-year{background:#173963;color:white;border-radius:9px;padding:12px;margin:16mm auto;width:60%;font-weight:bold}.cover h2{font-size:16pt}.cover p{font-size:9pt;color:#64748b}
+        .toc>div{display:flex;justify-content:space-between;border-bottom:1px dotted #94a3b8;padding:10px 0;font-size:11pt}
+        .page:last-child{break-after:auto;page-break-after:auto}
+        @media print{body{background:white}.toolbar{display:none}.page{margin:0;box-shadow:none} }
+        </style></head><body><div class="toolbar"><strong>Pratonton Buku Manual Pengurusan Sesi ${esc(year)}</strong> <button onclick="window.print()">Cetak / Simpan PDF</button></div>${pages.map((p,i)=>`<section class="page"><header><strong>SK SEGAMBUT MAKMUR</strong><span>Manual Pengurusan ${esc(year)}</span></header>${i===0?p.content:`<h2>${esc(p.title)}</h2>${p.content}`}<footer><span>Portal Digital SeMAKMUR · ${esc(p.chapter)}</span><span>Halaman ${i+1} / ${pages.length}</span></footer></section>`).join('')}</body></html>`;
+      const w=window.open('','_blank');if(!w){Swal.fire('Popup disekat','Benarkan popup untuk memaparkan buku.','warning');return;}w.document.open();w.document.write(html);w.document.close();
+    }
+
   </script>
 </body>
 </html>
