@@ -248,16 +248,25 @@
               <button onclick="tambahBarisGuruTambahanManual()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
                 <i class="fa-solid fa-user-plus"></i> + Tugasan Guru
               </button>
-              <button onclick="simpanAgihanTugas()" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+              <button id="btnSimpanAgihan" onclick="simpanAgihanTugas()" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2 disabled:opacity-60">
                 <i class="fa-solid fa-floppy-disk"></i> Simpan Agihan Ke Sheet
               </button>
             </div>
           </div>
 
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 justify-between bg-amber-50/60 border border-amber-200 rounded-xl px-3 py-2">
+            <div class="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
+              <label for="inputCariGuruAgihan" class="text-xs font-bold text-amber-900 whitespace-nowrap"><i class="fa-solid fa-magnifying-glass mr-1"></i> Cari guru:</label>
+              <input id="inputCariGuruAgihan" type="search" oninput="filterAgihanGuru()" placeholder="Taip nama guru untuk tapis matriks..." class="w-full sm:max-w-md border border-amber-200 bg-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300">
+              <span id="jwAgihanFilterCount" class="text-[11px] text-amber-800 font-semibold"></span>
+            </div>
+            <span id="jwAgihanSaveStatus" role="status" aria-live="polite" class="text-[11px] font-bold text-slate-600">Data dimuatkan</span>
+          </div>
+
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
             <div class="flex items-center justify-between">
               <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-list-check text-amber-500"></i> Status Kelengkapan Pengisian Subjek Mengikut Kelas:
+                <i class="fa-solid fa-list-check text-amber-500"></i> Status Kelengkapan Pengisian Subjek Mengikut Kelas <span class="hidden sm:inline font-medium text-slate-500">(klik kelas untuk semak butiran)</span>:
               </span>
               <button onclick="toggleClassCoverageSummary()" class="text-[11px] font-bold text-amber-700 hover:underline">
                 <i class="fa-solid fa-eye mr-1"></i> Tunjuk / Sembunyi Status
@@ -373,6 +382,11 @@
     let STATE_AGIHAN_GURU = [];
     let STATE_GURU_CONSTRAINT = [];
     let STATE_HASIL_JADUAL = [];
+
+    // Prestasi frontend agihan: kemas kini lokal pantas; simpan Sheet hanya melalui butang Simpan.
+    let JW_AGIHAN_REVISION = 0;
+    let JW_AGIHAN_SAVING = false;
+    let JW_COVERAGE_TIMER = null;
 
     let LAST_GRID_HARI = 'Isnin';
 
@@ -603,6 +617,8 @@
           STATE_GURU_CONSTRAINT = res.guruConstraints || [];
 
           parseFlatAgihanToGuruView();
+          JW_AGIHAN_REVISION = 0;
+          setAgihanSaveStatus('saved');
           renderGridMasaTable();
           renderSubjekTable();
           renderAgihanGuruMatrix();
@@ -882,10 +898,18 @@
       }
     }
 
-    function tarikSemuaMasterSubjek() {
+    async function tarikSemuaMasterSubjek() {
       if (!ALL_MASTER_SUBJEK_LIST || ALL_MASTER_SUBJEK_LIST.length === 0) {
         Swal.fire('Info', 'Tiada data Master Subjek dijumpai.', 'info');
         return;
+      }
+      if (STATE_SUBJEK.length) {
+        const confirm = await Swal.fire({
+          icon: 'warning', title: 'Ganti semua tetapan subjek?',
+          text: 'Tindakan ini menggantikan senarai subjek yang sedang diedit. Jika ada perubahan belum disimpan, perubahan itu akan hilang.',
+          showCancelButton: true, confirmButtonText: 'Ya, tarik dari Master', cancelButtonText: 'Batal'
+        });
+        if (!confirm.isConfirmed) return;
       }
 
       STATE_SUBJEK = ALL_MASTER_SUBJEK_LIST.map((s, idx) => {
@@ -999,8 +1023,10 @@
         });
       }
 
+      const groupedRows = Object.values(grouped);
+      const activeNames = new Set(sortedStaf.map(g => g.Nama_Penuh));
       sortedStaf.forEach(g => {
-        const teacherRows = Object.values(grouped).filter(a => a.idGuruUtama === g.Nama_Penuh);
+        const teacherRows = groupedRows.filter(a => a.idGuruUtama === g.Nama_Penuh);
         if (teacherRows.length > 0) {
           teacherRows.forEach(r => STATE_AGIHAN_GURU.push(r));
         } else {
@@ -1013,6 +1039,9 @@
           });
         }
       });
+      // Rekod guru tidak aktif/tidak ditemui tetap dipapar supaya tidak terpadam senyap.
+      groupedRows.filter(r => !activeNames.has(r.idGuruUtama))
+        .forEach(r => STATE_AGIHAN_GURU.push(r));
     }
 
     function calculateTotalWaktuGuru(namaGuru) {
@@ -1038,7 +1067,9 @@
     }
 
     function onSelectGuruPair(idx, selectedPairGuru) {
+      if (!STATE_AGIHAN_GURU[idx]) return;
       STATE_AGIHAN_GURU[idx].idGuruPair = selectedPairGuru;
+      markAgihanChanged();
       renderAgihanGuruMatrix();
     }
 
@@ -1097,281 +1128,342 @@
       return `${kod} - ${suffix} | ${nama}`;
     }
 
+    // ================= PRESTASI & STATUS AGIHAN (FRONTEND SAHAJA) =================
+    function jwEscapeHtml(val) {
+      return String(val == null ? '' : val).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[c]));
+    }
+
+    function getSenaraiKelasAgihan() {
+      const kelas = ALL_LOKASI
+        .filter(l => String(l.Kategori || '').toLowerCase() === 'kelas')
+        .map(l => String(l.Nama_Lokasi || '').trim())
+        .filter(Boolean);
+      // Fallback asal dikekalkan untuk keserasian; bukan rujukan rasmi jika Master_Lokasi tiada.
+      if (!kelas.length) {
+        for (let year = 1; year <= 6; year++) {
+          ['Iris', 'Lavender', 'Violet'].forEach(name => kelas.push(`${year} ${name}`));
+        }
+      }
+      return [...new Set(kelas)];
+    }
+
+    function getSubjekForAgihanRow(row) {
+      if (!row) return {};
+      if (Number.isInteger(row.subjekIndex) && STATE_SUBJEK[row.subjekIndex]) {
+        return STATE_SUBJEK[row.subjekIndex];
+      }
+      return STATE_SUBJEK.find(s => s.ID_Subjek === row.idSubjek) ||
+          STATE_SUBJEK.find(s => s.Kod_Subjek === row.idSubjek || s.Kod_Subjek === row.kodSubjek) || {};
+    }
+
+    function setAgihanSaveStatus(status) {
+      const el = document.getElementById('jwAgihanSaveStatus');
+      if (!el) return;
+      const info = {
+        saved: ['✓ Data dipaparkan / disimpan', 'text-emerald-700'],
+        dirty: ['● Ada perubahan belum disimpan', 'text-amber-800'],
+        saving: ['⟳ Menyimpan ke Sheet… boleh terus mengisi', 'text-brand-700'],
+        pending: ['● Ada perubahan baharu semasa simpan; simpan sekali lagi', 'text-amber-800'],
+        error: ['✕ Simpan gagal — perubahan masih di paparan', 'text-rose-700']
+      }[status] || ['Data agihan', 'text-slate-600'];
+      el.className = `text-[11px] font-bold ${info[1]}`;
+      el.textContent = info[0];
+    }
+
+    function markAgihanChanged() {
+      JW_AGIHAN_REVISION++;
+      setAgihanSaveStatus(JW_AGIHAN_SAVING ? 'saving' : 'dirty');
+      scheduleClassCoverageRefresh();
+    }
+
+    function scheduleClassCoverageRefresh() {
+      if (JW_COVERAGE_TIMER !== null) clearTimeout(JW_COVERAGE_TIMER);
+      // Kiraan berat dibuat selepas rentetan klik reda; checkbox masih boleh terus digunakan.
+      JW_COVERAGE_TIMER = setTimeout(() => {
+        JW_COVERAGE_TIMER = null;
+        renderClassCoverageSummary();
+        refreshAgihanTotalHours();
+      }, 160);
+    }
+
+    function refreshAgihanTotalHours() {
+      const totalMap = new Map();
+      STATE_AGIHAN_GURU.forEach(row => {
+        const sub = getSubjekForAgihanRow(row);
+        const hours = (row.senaraiKelas || []).length * (parseInt(sub.Bil_Waktu_Seminggu, 10) || 0);
+        if (row.idGuruUtama) totalMap.set(row.idGuruUtama, (totalMap.get(row.idGuruUtama) || 0) + hours);
+        if (row.idGuruPair) totalMap.set(row.idGuruPair, (totalMap.get(row.idGuruPair) || 0) + hours);
+      });
+      document.querySelectorAll('[data-jw-total-teacher]').forEach(el => {
+        const key = el.getAttribute('data-jw-total-teacher');
+        el.textContent = `(${totalMap.get(key) || 0} w)`;
+      });
+    }
+
+    function filterAgihanGuru() {
+      const input = document.getElementById('inputCariGuruAgihan');
+      const q = (input?.value || '').trim().toLocaleLowerCase('ms');
+      const groups = new Set();
+      document.querySelectorAll('#tbodyAgihanGuruMatrix tr[data-jw-guru]').forEach(tr => {
+        const name = tr.getAttribute('data-jw-guru') || '';
+        const visible = !q || name.toLocaleLowerCase('ms').includes(q);
+        tr.classList.toggle('hidden', !visible);
+        if (visible) groups.add(name);
+      });
+      const count = document.getElementById('jwAgihanFilterCount');
+      if (count) count.textContent = q ? `${groups.size} guru ditemui` : '';
+      if (window.currentOpenDropdownIdx !== null) {
+        const open = document.getElementById(`jwAgihanRow_${window.currentOpenDropdownIdx}`);
+        if (open?.classList.contains('hidden')) saveAndCloseMultiSelectDropdown(window.currentOpenDropdownIdx);
+      }
+    }
+
     function renderAgihanGuruMatrix() {
       const tbody = document.getElementById('tbodyAgihanGuruMatrix');
       if (!tbody) return;
-
-      tbody.innerHTML = '';
-
+      window.currentOpenDropdownIdx = null;
       const sortedStaf = getSortedStafList();
-      let optGuru = '<option value="">-- Pilih Guru --</option>';
-      sortedStaf.forEach(g => {
-        optGuru += `<option value="${g.Nama_Penuh}">${g.Nama_Penuh}</option>`;
-      });
+      const existingNames = STATE_AGIHAN_GURU.flatMap(r => [r.idGuruUtama, r.idGuruPair]).filter(Boolean);
+      const masterNames = sortedStaf.map(g => g.Nama_Penuh);
+      const semuaGuru = [...new Set([...masterNames, ...existingNames])];
+      const optGuru = '<option value="">-- Pilih Guru --</option>' +
+        semuaGuru.map(g => `<option value="${jwEscapeHtml(g)}">${jwEscapeHtml(g)}${masterNames.includes(g) ? '' : ' (semak status staf)'}</option>`).join('');
 
-      let optSubjek = '<option value="">-- Pilih Subjek --</option>';
       const sourceSubjek = (STATE_SUBJEK && STATE_SUBJEK.length > 0) ? STATE_SUBJEK : ALL_MASTER_SUBJEK_LIST;
-      sourceSubjek.forEach((s, subIdx) => {
-        const uniqueKey = `${s.ID_Subjek || s.Kod_Subjek}__${subIdx}`;
-        const cleanLabel = formatSubjectDropdownLabel(s);
-        optSubjek += `<option value="${uniqueKey}">${cleanLabel}</option>`;
-      });
+      const optSubjek = '<option value="">-- Pilih Subjek --</option>' +
+        sourceSubjek.map((s, i) => `<option value="${jwEscapeHtml(`${s.ID_Subjek || s.Kod_Subjek}__${i}`)}">${jwEscapeHtml(formatSubjectDropdownLabel(s))}</option>`).join('');
 
-      const senaraiKelasMaster = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas').map(k => k.Nama_Lokasi);
-      if (senaraiKelasMaster.length === 0) {
-        ['1 Iris', '1 Lavender', '1 Violet', '2 Iris', '2 Lavender', '2 Violet', '3 Iris', '3 Lavender', '3 Violet', '4 Iris', '4 Lavender', '4 Violet', '5 Iris', '5 Lavender', '5 Violet', '6 Iris', '6 Lavender', '6 Violet'].forEach(k => senaraiKelasMaster.push(k));
-      }
-
-      if (STATE_AGIHAN_GURU.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="table-cell-std text-center text-slate-400 italic">Tiada agihan guru.</td></tr>`;
+      if (!STATE_AGIHAN_GURU.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="table-cell-std text-center text-slate-400 italic">Tiada agihan guru.</td></tr>';
         renderClassCoverageSummary();
         return;
       }
 
       const teacherGroups = [];
-      let currentTeacher = null;
-      let currentGroup = null;
-
+      let currentTeacher = null, currentGroup = null;
       STATE_AGIHAN_GURU.forEach((row, idx) => {
-        const tName = row.idGuruUtama || '';
-        if (!currentGroup || currentTeacher !== tName || !tName) {
-          currentTeacher = tName;
-          currentGroup = {
-            guruName: tName,
-            rows: [{ data: row, originalIndex: idx }]
-          };
+        const name = row.idGuruUtama || '';
+        if (!currentGroup || currentTeacher !== name || !name) {
+          currentTeacher = name;
+          currentGroup = { guruName: name, rows: [] };
           teacherGroups.push(currentGroup);
-        } else {
-          currentGroup.rows.push({ data: row, originalIndex: idx });
         }
+        currentGroup.rows.push({ data: row, originalIndex: idx });
       });
 
+      const htmlRows = [];
       let bilCounter = 1;
-
-      teacherGroups.forEach((group) => {
+      teacherGroups.forEach(group => {
         const rowspanCount = group.rows.length;
         const totalTeacherHours = calculateTotalWaktuGuru(group.guruName);
-
         group.rows.forEach((rowObj, subIdx) => {
           const idx = rowObj.originalIndex;
           const row = rowObj.data;
-          const isFirst = (subIdx === 0);
-          const isLast = (subIdx === rowspanCount - 1);
-
-          const selectedCount = (row.senaraiKelas || []).length;
-          
-          let sub = {};
-          if (row.subjekIndex !== undefined && row.subjekIndex !== null && STATE_SUBJEK[row.subjekIndex]) {
-            sub = STATE_SUBJEK[row.subjekIndex];
-          } else if (row.idSubjek) {
-            sub = STATE_SUBJEK.find(s => s.ID_Subjek === row.idSubjek || s.Kod_Subjek === row.idSubjek) || {};
-          }
-
+          const isFirst = subIdx === 0;
+          const isLast = subIdx === rowspanCount - 1;
+          const sub = getSubjekForAgihanRow(row);
           const isCoTeaching = String(sub.Flag_CoTeaching || '').toUpperCase() === 'TRUE';
-          const rowHours = selectedCount * (parseInt(sub.Bil_Waktu_Seminggu, 10) || 0);
-
-          let optG1 = optGuru.replace(`value="${row.idGuruUtama}"`, `value="${row.idGuruUtama}" selected`);
-          let optG2 = optGuru.replace(`value="${row.idGuruPair}"`, `value="${row.idGuruPair}" selected`);
-
-          const currentSelectedVal = (row.idSubjekUnique) ? row.idSubjekUnique :
-            (row.idSubjek ? `${row.idSubjek}__${STATE_SUBJEK.findIndex(s => s.ID_Subjek === row.idSubjek || s.Kod_Subjek === row.idSubjek)}` : '');
-          let optSub = optSubjek.replace(`value="${currentSelectedVal}"`, `value="${currentSelectedVal}" selected`);
-
-          const currentSubjId = row.idSubjek || row.kodSubjek;
-          const takenClassesForSubj = new Set();
-          if (currentSubjId) {
-            STATE_AGIHAN_GURU.forEach((r, rIdx) => {
-              if (rIdx !== idx && (r.idSubjek === currentSubjId || r.kodSubjek === currentSubjId)) {
-                (r.senaraiKelas || []).forEach(c => takenClassesForSubj.add(c));
-              }
-            });
-          }
-
-          let checkboxListHtml = '';
-          senaraiKelasMaster.forEach(kelas => {
-            if (takenClassesForSubj.has(kelas) && !(row.senaraiKelas || []).includes(kelas)) {
-              return;
-            }
-
-            const isChecked = (row.senaraiKelas || []).includes(kelas) ? 'checked' : '';
-            checkboxListHtml += `
-              <label class="flex items-center gap-2 p-1.5 hover:bg-slate-100 rounded-lg cursor-pointer text-xs font-semibold text-slate-700">
-                <input type="checkbox" value="${kelas}" ${isChecked} class="chk-class-item-${idx} rounded text-amber-600 focus:ring-amber-500 w-4 h-4">
-                <span>${kelas}</span>
-              </label>
-            `;
-          });
-
-          let classesDisplayHtml = '';
-          if (row.senaraiKelas && row.senaraiKelas.length > 0) {
-            classesDisplayHtml = row.senaraiKelas.map(c => `<div class="font-extrabold text-slate-800 text-[11px] leading-tight py-0.5"><i class="fa-solid fa-chalkboard-user text-amber-500 mr-1 text-[10px]"></i>${c}</div>`).join('');
-          } else {
-            classesDisplayHtml = `<span class="text-slate-400 italic text-[11px]">-- Pilih Checkbox Kelas --</span>`;
-          }
-
-          let cellCoTeachingHtml = '<span class="text-slate-400 font-extrabold text-center block pt-2">-</span>';
-          if (isCoTeaching) {
-            cellCoTeachingHtml = `
-              <select onchange="onSelectGuruPair(${idx}, this.value)" class="w-full p-1.5 border border-amber-300 rounded-lg text-xs font-semibold bg-white text-amber-900">
-                ${optG2}
-              </select>
-            `;
-          }
-
-          let trHtml = `<tr class="hover:bg-slate-50 transition border-b border-slate-200">`;
-
+          const rowHours = (row.senaraiKelas || []).length * (parseInt(sub.Bil_Waktu_Seminggu, 10) || 0);
+          const optG1 = optGuru.replace(`value="${jwEscapeHtml(row.idGuruUtama)}"`, `value="${jwEscapeHtml(row.idGuruUtama)}" selected`);
+          const optG2 = optGuru.replace(`value="${jwEscapeHtml(row.idGuruPair)}"`, `value="${jwEscapeHtml(row.idGuruPair)}" selected`);
+          const matchIndex = STATE_SUBJEK.findIndex(s => s.ID_Subjek === row.idSubjek || s.Kod_Subjek === row.idSubjek);
+          const currentSelectedVal = row.idSubjekUnique || (row.idSubjek && matchIndex >= 0 ? `${row.idSubjek}__${matchIndex}` : '');
+          const optSub = optSubjek.replace(`value="${jwEscapeHtml(currentSelectedVal)}"`, `value="${jwEscapeHtml(currentSelectedVal)}" selected`);
+          const classesDisplayHtml = (row.senaraiKelas || []).length
+            ? row.senaraiKelas.map(c => `<div class="font-extrabold text-slate-800 text-[11px] leading-tight py-0.5"><i class="fa-solid fa-chalkboard-user text-amber-500 mr-1 text-[10px]"></i>${jwEscapeHtml(c)}</div>`).join('')
+            : '<span class="text-slate-400 italic text-[11px]">-- Pilih Checkbox Kelas --</span>';
+          const cellCoTeachingHtml = isCoTeaching
+            ? `<select onchange="onSelectGuruPair(${idx}, this.value)" class="w-full p-1.5 border border-amber-300 rounded-lg text-xs font-semibold bg-white text-amber-900">${optG2}</select>`
+            : '<span class="text-slate-400 font-extrabold text-center block pt-2">-</span>';
+          let trHtml = `<tr id="jwAgihanRow_${idx}" data-jw-guru="${jwEscapeHtml(group.guruName)}" class="hover:bg-slate-50 transition border-b border-slate-200">`;
           if (isFirst) {
             trHtml += `
-              <td rowspan="${rowspanCount}" class="table-cell-std text-center font-bold text-slate-400 align-top pt-3 bg-slate-50/50">${bilCounter}</td>
+              <td rowspan="${rowspanCount}" class="table-cell-std text-center font-bold text-slate-400 align-top pt-3 bg-slate-50/50">${bilCounter++}</td>
               <td rowspan="${rowspanCount}" class="p-2 sticky-col-guru align-top min-w-[220px] w-64 bg-white border-r border-slate-200">
-                <select onchange="STATE_AGIHAN_GURU[${idx}].idGuruUtama = this.value; renderAgihanGuruMatrix();" class="w-full p-2 border border-amber-300 rounded-xl text-xs font-extrabold text-amber-900 bg-amber-50/30 focus:outline-none shadow-2xs">
-                  ${optG1}
-                </select>
-              </td>
-            `;
-            bilCounter++;
+                <select onchange="onChangeAgihanGuruUtama(${idx}, this.value)" class="w-full p-2 border border-amber-300 rounded-xl text-xs font-extrabold text-amber-900 bg-amber-50/30 focus:outline-none shadow-2xs">${optG1}</select>
+              </td>`;
           }
-
           trHtml += `
             <td class="p-2 align-top min-w-[240px]">
-              <select onchange="onSelectAgihanSubjekUnique(this.value, ${idx})" class="w-full p-1.5 border border-amber-200 rounded-lg text-xs font-bold bg-white focus:outline-none text-slate-800">
-                ${optSub}
-              </select>
+              <select onchange="onSelectAgihanSubjekUnique(this.value, ${idx})" class="w-full p-1.5 border border-amber-200 rounded-lg text-xs font-bold bg-white focus:outline-none text-slate-800">${optSub}</select>
             </td>
-
             <td class="p-2 align-top relative class-dropdown-container min-w-[180px]">
-              <button type="button" onclick="toggleMultiSelectDropdown(${idx}, event)" class="w-full p-2 border border-slate-300 rounded-xl bg-white text-left flex items-start justify-between shadow-2xs hover:bg-slate-50 transition">
-                <div class="space-y-0.5 flex-1">${classesDisplayHtml}</div>
-                <span class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full shrink-0 font-extrabold ml-2 mt-0.5">${selectedCount} Kelas</span>
+              <button type="button" onclick="toggleMultiSelectDropdown(${idx}, event)" aria-label="Pilih kelas bagi subjek ini" class="w-full p-2 border border-slate-300 rounded-xl bg-white text-left flex items-start justify-between shadow-2xs hover:bg-slate-50 transition">
+                <div data-jw-class-display class="space-y-0.5 flex-1">${classesDisplayHtml}</div>
+                <span data-jw-class-count class="bg-amber-100 text-amber-800 text-[10px] px-2 py-0.5 rounded-full shrink-0 font-extrabold ml-2 mt-0.5">${(row.senaraiKelas || []).length} Kelas</span>
               </button>
-
-              <div id="ddClassList_${idx}" class="hidden absolute top-full left-0 mt-1 w-64 bg-white border border-slate-300 rounded-2xl shadow-2xl z-50 p-2.5 max-h-56 overflow-y-auto space-y-1">
+              <div id="ddClassList_${idx}" class="hidden absolute top-full left-0 mt-1 w-72 bg-white border border-slate-300 rounded-2xl shadow-2xl z-50 p-2.5 max-h-72 overflow-y-auto space-y-1">
                 <div class="flex items-center justify-between px-1 pb-1.5 border-b border-slate-100">
-                  <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Tandakan Kelas:</span>
-                  <button type="button" onclick="saveAndCloseMultiSelectDropdown(${idx}, event)" class="text-[10px] bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-2.5 py-1 rounded-md transition shadow-2xs">Selesai</button>
+                  <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Pilih beberapa kelas</span>
+                  <button type="button" onclick="saveAndCloseMultiSelectDropdown(${idx}, event)" class="text-[10px] bg-amber-600 hover:bg-amber-700 text-white font-extrabold px-2.5 py-1 rounded-md">Selesai</button>
                 </div>
-                ${checkboxListHtml}
+                <div data-jw-class-options></div>
               </div>
             </td>
-
-            <td class="p-2 align-top w-48">
-              ${cellCoTeachingHtml}
-            </td>
-
+            <td class="p-2 align-top w-48">${cellCoTeachingHtml}</td>
             <td class="p-2 align-top text-center w-28">
-              <div class="font-extrabold text-slate-700 bg-slate-100 px-2 py-1 rounded-lg text-xs inline-block min-w-[45px]">
-                ${rowHours} w
-              </div>
-              ${isLast ? `
-                <div class="mt-2 pt-1 border-t border-amber-200 font-black text-xs text-amber-900 bg-amber-100/90 py-1 px-1.5 rounded-lg border border-amber-300 shadow-2xs">
-                  (${totalTeacherHours} w)
-                </div>
-              ` : ''}
+              <div data-jw-row-hours class="font-extrabold text-slate-700 bg-slate-100 px-2 py-1 rounded-lg text-xs inline-block min-w-[45px]">${rowHours} w</div>
+              ${isLast ? `<div data-jw-total-teacher="${jwEscapeHtml(group.guruName)}" class="mt-2 pt-1 border-t border-amber-200 font-black text-xs text-amber-900 bg-amber-100/90 py-1 px-1.5 rounded-lg border border-amber-300 shadow-2xs">(${totalTeacherHours} w)</div>` : ''}
             </td>
-
             <td class="p-2 align-top text-center w-32 space-x-1">
-              <button onclick="tambahSubjekUntukGuru('${row.idGuruUtama}', ${idx})" title="Tambah Subjek untuk guru ini" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-[11px] rounded-lg transition border border-amber-300 inline-flex items-center gap-1 shadow-2xs"><i class="fa-solid fa-plus text-[10px]"></i> Subjek</button>
-              <button onclick="padamBarisAgihanGuru(${idx})" title="Padam Baris" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-[11px] rounded-lg transition border border-rose-200 inline-flex items-center"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="tambahSubjekUntukGuru(STATE_AGIHAN_GURU[${idx}].idGuruUtama, ${idx})" title="Tambah Subjek" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-[11px] rounded-lg border border-amber-300"><i class="fa-solid fa-plus text-[10px]"></i> Subjek</button>
+              <button onclick="padamBarisAgihanGuru(${idx})" title="Padam Baris" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold text-[11px] rounded-lg border border-rose-200"><i class="fa-solid fa-trash"></i></button>
             </td>
           </tr>`;
-
-          tbody.innerHTML += trHtml;
+          htmlRows.push(trHtml);
         });
       });
-
-      if (window.currentOpenDropdownIdx !== null && window.currentOpenDropdownIdx !== undefined) {
-        const activeDd = document.getElementById(`ddClassList_${window.currentOpenDropdownIdx}`);
-        if (activeDd) activeDd.classList.remove('hidden');
-      }
-
+      // Sekali sahaja innerHTML — elak pembinaan semula keseluruhan jadual bagi setiap baris.
+      tbody.innerHTML = htmlRows.join('');
+      filterAgihanGuru();
       renderClassCoverageSummary();
     }
 
+    function onChangeAgihanGuruUtama(idx, value) {
+      const row = STATE_AGIHAN_GURU[idx];
+      if (!row) return;
+      row.idGuruUtama = value;
+      markAgihanChanged();
+      renderAgihanGuruMatrix();
+    }
+
     function onSelectAgihanSubjekUnique(val, idx) {
+      const row = STATE_AGIHAN_GURU[idx];
+      if (!row) return;
       if (!val) {
-        STATE_AGIHAN_GURU[idx].idSubjek = '';
-        STATE_AGIHAN_GURU[idx].kodSubjek = '';
-        STATE_AGIHAN_GURU[idx].idSubjekUnique = '';
-        STATE_AGIHAN_GURU[idx].subjekIndex = null;
+        row.idSubjek = '';
+        row.kodSubjek = '';
+        row.idSubjekUnique = '';
+        row.subjekIndex = null;
       } else {
-        const parts = val.split('__');
-        const subIndex = parseInt(parts[1], 10);
+        const subIndex = parseInt(val.split('__').pop(), 10);
         const subObj = STATE_SUBJEK[subIndex] || {};
-        STATE_AGIHAN_GURU[idx].idSubjek = subObj.ID_Subjek || parts[0];
-        STATE_AGIHAN_GURU[idx].kodSubjek = subObj.Kod_Subjek || parts[0];
-        STATE_AGIHAN_GURU[idx].subjekIndex = subIndex;
-        STATE_AGIHAN_GURU[idx].idSubjekUnique = val;
+        row.idSubjek = subObj.ID_Subjek || val.split('__')[0];
+        row.kodSubjek = subObj.Kod_Subjek || row.idSubjek;
+        row.subjekIndex = subIndex;
+        row.idSubjekUnique = val;
       }
+      markAgihanChanged();
       renderAgihanGuruMatrix();
     }
 
     function tambahSubjekUntukGuru(guruName, idx) {
       STATE_AGIHAN_GURU.splice(idx + 1, 0, {
-        idGuruUtama: guruName,
-        idSubjek: '',
-        kodSubjek: '',
-        idGuruPair: '',
-        senaraiKelas: []
+        idGuruUtama: guruName, idSubjek: '', kodSubjek: '', idGuruPair: '', senaraiKelas: []
       });
+      markAgihanChanged();
       renderAgihanGuruMatrix();
     }
 
     function tambahBarisGuruTambahanManual() {
       STATE_AGIHAN_GURU.push({
-        idGuruUtama: '',
-        idSubjek: '',
-        kodSubjek: '',
-        idGuruPair: '',
-        senaraiKelas: []
+        idGuruUtama: '', idSubjek: '', kodSubjek: '', idGuruPair: '', senaraiKelas: []
       });
+      markAgihanChanged();
       renderAgihanGuruMatrix();
+    }
+
+    function buildAgihanClassOptions(idx) {
+      const row = STATE_AGIHAN_GURU[idx];
+      if (!row) return '';
+      const selected = new Set(row.senaraiKelas || []);
+      const allClasses = [...new Set([...getSenaraiKelasAgihan(), ...selected])];
+      const taken = new Map();
+      const subjectId = row.idSubjek || row.kodSubjek;
+      if (subjectId) STATE_AGIHAN_GURU.forEach((r, n) => {
+        if (n === idx) return;
+        if (r.idSubjek === subjectId || r.kodSubjek === subjectId) {
+          (r.senaraiKelas || []).forEach(k => taken.set(k, r.idGuruUtama || 'guru lain'));
+        }
+      });
+      return allClasses.map(kelas => {
+        const checked = selected.has(kelas);
+        const locked = taken.has(kelas) && !checked;
+        const hint = locked ? `<span class="block text-[10px] text-amber-700">Sudah diagih: ${jwEscapeHtml(taken.get(kelas))}</span>` : '';
+        return `<label class="flex items-start gap-2 p-2 hover:bg-slate-100 rounded-lg cursor-pointer text-xs font-semibold ${locked ? 'text-slate-400 cursor-not-allowed' : 'text-slate-700'}">
+          <input type="checkbox" value="${jwEscapeHtml(kelas)}" ${checked ? 'checked' : ''} ${locked ? 'disabled' : ''}
+            onchange="onAgihanClassCheckboxChange(this, ${idx})" class="rounded text-amber-600 focus:ring-amber-500 w-4 h-4 shrink-0 mt-0.5">
+          <span>${jwEscapeHtml(kelas)}${hint}</span>
+        </label>`;
+      }).join('');
     }
 
     function toggleMultiSelectDropdown(idx, event) {
       if (event) event.stopPropagation();
-
-      document.querySelectorAll('[id^="ddClassList_"]').forEach((el) => {
-        const otherIdx = parseInt(el.id.replace('ddClassList_', ''), 10);
-        if (otherIdx !== idx && !el.classList.contains('hidden')) {
-          saveAndCloseMultiSelectDropdown(otherIdx);
-        }
-      });
-
       const target = document.getElementById(`ddClassList_${idx}`);
-      if (target) {
-        const isHidden = target.classList.contains('hidden');
-        if (isHidden) {
-          target.classList.remove('hidden');
-          window.currentOpenDropdownIdx = idx;
-        } else {
-          saveAndCloseMultiSelectDropdown(idx);
-        }
+      if (!target) return;
+      if (!target.classList.contains('hidden')) {
+        saveAndCloseMultiSelectDropdown(idx);
+        return;
       }
+      if (window.currentOpenDropdownIdx !== null && window.currentOpenDropdownIdx !== idx) {
+        saveAndCloseMultiSelectDropdown(window.currentOpenDropdownIdx);
+      }
+      const options = target.querySelector('[data-jw-class-options]');
+      if (options) options.innerHTML = buildAgihanClassOptions(idx); // Dibina hanya apabila perlu.
+      target.classList.remove('hidden');
+      window.currentOpenDropdownIdx = idx;
+    }
+
+    function onAgihanClassCheckboxChange(chk, idx) {
+      const row = STATE_AGIHAN_GURU[idx];
+      if (!row) return;
+      const selected = new Set(row.senaraiKelas || []);
+      if (chk.checked) selected.add(chk.value);
+      else selected.delete(chk.value);
+      row.senaraiKelas = Array.from(selected);
+      // Tiada renderAgihanGuruMatrix() di sini: checkbox kekal responsif.
+      updateAgihanRowClassDisplay(idx);
+      markAgihanChanged();
+    }
+
+    function updateAgihanRowClassDisplay(idx) {
+      const row = STATE_AGIHAN_GURU[idx];
+      const tr = document.getElementById(`jwAgihanRow_${idx}`);
+      if (!row || !tr) return;
+      const display = tr.querySelector('[data-jw-class-display]');
+      const count = tr.querySelector('[data-jw-class-count]');
+      const hours = tr.querySelector('[data-jw-row-hours]');
+      if (display) display.innerHTML = (row.senaraiKelas || []).length
+        ? row.senaraiKelas.map(c => `<div class="font-extrabold text-slate-800 text-[11px] leading-tight py-0.5"><i class="fa-solid fa-chalkboard-user text-amber-500 mr-1 text-[10px]"></i>${jwEscapeHtml(c)}</div>`).join('')
+        : '<span class="text-slate-400 italic text-[11px]">-- Pilih Checkbox Kelas --</span>';
+      if (count) count.textContent = `${(row.senaraiKelas || []).length} Kelas`;
+      const sub = getSubjekForAgihanRow(row);
+      if (hours) hours.textContent = `${(row.senaraiKelas || []).length * (parseInt(sub.Bil_Waktu_Seminggu, 10) || 0)} w`;
     }
 
     function saveAndCloseMultiSelectDropdown(idx, event) {
       if (event) event.stopPropagation();
       const target = document.getElementById(`ddClassList_${idx}`);
-      if (!target) return;
-
-      const checkboxes = target.querySelectorAll(`.chk-class-item-${idx}`);
-      const selectedClasses = [];
-      checkboxes.forEach(chk => {
-        if (chk.checked) selectedClasses.push(chk.value);
-      });
-
-      if (STATE_AGIHAN_GURU[idx]) {
-        STATE_AGIHAN_GURU[idx].senaraiKelas = selectedClasses;
+      if (target) {
+        target.classList.add('hidden');
+        const options = target.querySelector('[data-jw-class-options]');
+        if (options) options.innerHTML = ''; // Bebaskan checkbox sementara.
       }
-
-      target.classList.add('hidden');
-      window.currentOpenDropdownIdx = null;
-
-      renderAgihanGuruMatrix();
+      if (window.currentOpenDropdownIdx === idx) window.currentOpenDropdownIdx = null;
+      // Semua checkbox sudah disimpan dalam STATE_AGIHAN_GURU ketika diklik.
+      // Tiada rendering semula — mengelakkan lag ketika memilih kelas seterusnya.
     }
 
-    function padamBarisAgihanGuru(idx) {
-      STATE_AGIHAN_GURU.splice(idx, 1);
+    async function padamBarisAgihanGuru(idx) {
+      const row = STATE_AGIHAN_GURU[idx];
+      if (!row) return;
+      if (row.idSubjek || (row.senaraiKelas || []).length) {
+        const confirm = await Swal.fire({
+          icon: 'warning', title: 'Padam tugasan guru?',
+          text: `${row.idGuruUtama || 'Guru'} — ${(row.senaraiKelas || []).length} kelas. Perubahan belum disimpan ke Sheet.`,
+          showCancelButton: true, confirmButtonText: 'Ya, padam baris', cancelButtonText: 'Batal',
+          confirmButtonColor: '#dc2626'
+        });
+        if (!confirm.isConfirmed) return;
+      }
+      // Cari objek asal jika indeks berubah akibat tindakan pengguna semasa dialog dibuka.
+      const currentIdx = STATE_AGIHAN_GURU.indexOf(row);
+      if (currentIdx === -1) return;
+      STATE_AGIHAN_GURU.splice(currentIdx, 1);
+      markAgihanChanged();
       renderAgihanGuruMatrix();
     }
 
@@ -1379,7 +1471,7 @@
       if (!className) return [];
       const match = className.match(/\d+/);
       const year = match ? parseInt(match[0], 10) : 0;
-
+      // Logik kategori asal dikekalkan supaya status konsisten dengan tetapan sedia ada.
       return (STATE_SUBJEK || []).filter(s => {
         const kateg = String(s.Kategori_Tahap || '').toLowerCase();
         if (kateg.includes('semua')) return true;
@@ -1391,49 +1483,99 @@
       });
     }
 
+    function getClassCoverageDetails(kelas, allFlat) {
+      const flat = allFlat || prepareFlatAgihanForBackend();
+      const required = getRequiredSubjectsForClass(kelas);
+      const assigned = flat.filter(f => f.ID_Kelas === kelas);
+      const keyOf = obj => String(obj.ID_Subjek || obj.Kod_Subjek || '').trim();
+      const requiredIds = new Set(required.map(keyOf));
+      const grouped = new Map();
+      assigned.forEach(f => {
+        const key = keyOf(f);
+        if (!grouped.has(key)) grouped.set(key, []);
+        grouped.get(key).push(f);
+      });
+      const missing = required.filter(s => !grouped.has(keyOf(s)));
+      const completeCount = required.length - missing.length;
+      const duplicate = [...grouped].filter(([key, rows]) => rows.length > 1);
+      const extra = assigned.filter(f => !requiredIds.has(keyOf(f)));
+      const pairMissing = required.filter(s => String(s.Flag_CoTeaching || '').toUpperCase() === 'TRUE')
+        .flatMap(s => (grouped.get(keyOf(s)) || []).filter(a => !a.ID_Guru_Pair).map(a => s));
+      const hoursExpected = required.reduce((n,s) => n + (parseInt(s.Bil_Waktu_Seminggu, 10) || 0),0);
+      const hoursAssigned = assigned.reduce((n,a) => n + (parseInt(a.Bil_Waktu, 10) || 0),0);
+      return {kelas, required, assigned, grouped, missing, completeCount, duplicate, extra, pairMissing, hoursExpected, hoursAssigned, valid: required.length > 0 && !missing.length && !duplicate.length && !extra.length && !pairMissing.length};
+    }
+
     function renderClassCoverageSummary() {
       const container = document.getElementById('boxClassCoverageSummary');
       if (!container) return;
-
-      const senaraiKelasMaster = ALL_LOKASI.filter(l => String(l.Kategori).toLowerCase() === 'kelas').map(k => k.Nama_Lokasi);
-      if (senaraiKelasMaster.length === 0) {
-        ['1 Iris', '1 Lavender', '1 Violet', '2 Iris', '2 Lavender', '2 Violet', '3 Iris', '3 Lavender', '3 Violet', '4 Iris', '4 Lavender', '4 Violet', '5 Iris', '5 Lavender', '5 Violet', '6 Iris', '6 Lavender', '6 Violet'].forEach(k => senaraiKelasMaster.push(k));
-      }
-
-      const flatList = prepareFlatAgihanForBackend();
-
-      let html = '';
-      senaraiKelasMaster.forEach(kelas => {
-        const classItems = flatList.filter(f => f.ID_Kelas === kelas);
-        const assignedSubjectIds = new Set(classItems.map(f => f.ID_Subjek || f.Kod_Subjek));
-        const requiredSubjects = getRequiredSubjectsForClass(kelas);
-
-        const reqCount = requiredSubjects.length;
-        const assignedCount = assignedSubjectIds.size;
-
-        let badgeClass = "bg-slate-100 text-slate-500 border-slate-300";
-        let statusText = `${assignedCount} / ${reqCount} Subjek`;
-
-        if (reqCount === 0) {
-          badgeClass = "bg-slate-100 text-slate-400 border-slate-200";
-          statusText = "Tiada Tetapan";
-        } else if (assignedCount === 0) {
-          badgeClass = "bg-rose-100 text-rose-800 border-rose-300 font-extrabold";
-        } else if (assignedCount < reqCount) {
-          badgeClass = "bg-amber-100 text-amber-800 border-amber-300 font-extrabold";
-        } else {
-          badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300 font-extrabold";
+      const flat = prepareFlatAgihanForBackend();
+      const classes = getSenaraiKelasAgihan();
+      container.innerHTML = classes.map(kelas => {
+        const d = getClassCoverageDetails(kelas, flat);
+        let badgeClass = 'bg-slate-100 text-slate-500 border-slate-300';
+        let statusText = 'Tiada Tetapan';
+        if (d.required.length > 0) {
+          statusText = `${d.completeCount} / ${d.required.length} Subjek`;
+          if (d.valid) badgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+          else if (!d.completeCount) badgeClass = 'bg-rose-100 text-rose-800 border-rose-300';
+          else badgeClass = 'bg-amber-100 text-amber-800 border-amber-300';
         }
+        const extraIssue = d.duplicate.length || d.extra.length || d.pairMissing.length;
+        return `<button type="button" onclick="showClassCoverageDetails('${encodeURIComponent(kelas)}')"
+          title="Klik untuk lihat subjek lengkap, belum diisi dan guru"
+          class="w-full p-2 border rounded-xl flex items-center justify-between gap-1 ${badgeClass} shadow-2xs hover:shadow-md hover:ring-2 hover:ring-amber-300 transition text-left focus:outline-none focus:ring-2 focus:ring-amber-400">
+          <span class="font-extrabold text-xs">${jwEscapeHtml(kelas)}</span>
+          <span class="flex items-center gap-1">
+            ${extraIssue ? '<i class="fa-solid fa-triangle-exclamation text-amber-700 text-[10px]"></i>' : ''}
+            <span class="text-[10px] px-1.5 py-0.5 rounded-md font-black bg-white/80 border border-black/5 whitespace-nowrap">${statusText}</span>
+          </span>
+        </button>`;
+      }).join('');
+    }
 
-        html += `
-          <div class="p-2 border rounded-xl flex items-center justify-between ${badgeClass} shadow-2xs">
-            <span class="font-extrabold text-xs">${kelas}</span>
-            <span class="text-[10px] px-1.5 py-0.5 rounded-md font-black bg-white/80 border border-black/5">${statusText}</span>
-          </div>
-        `;
-      });
-
-      container.innerHTML = html;
+    function showClassCoverageDetails(encodedClass) {
+      const kelas = decodeURIComponent(encodedClass);
+      const d = getClassCoverageDetails(kelas);
+      const subjectLabel = s => `${s.Kod_Subjek || s.ID_Subjek || 'SUBJEK'} — ${s.Nama_Subjek || s.Kod_Subjek || ''}`;
+      const keyOf = s => String(s.ID_Subjek || s.Kod_Subjek || '').trim();
+      const missingHtml = d.missing.length
+        ? `<div class="bg-rose-50 border border-rose-200 rounded-xl p-3 mb-3 text-left">
+             <div class="font-extrabold text-rose-800 mb-2"><i class="fa-solid fa-circle-exclamation mr-1"></i> Belum diagihkan (${d.missing.length})</div>
+             ${d.missing.map(s => `<div class="py-1 border-b border-rose-100 last:border-0 text-xs">${jwEscapeHtml(subjectLabel(s))} <strong>(${parseInt(s.Bil_Waktu_Seminggu,10)||0} waktu)</strong></div>`).join('')}
+           </div>`
+        : '<div class="bg-emerald-50 border border-emerald-200 text-emerald-800 text-left text-xs font-bold p-3 rounded-xl mb-3">✓ Semua subjek yang diwajibkan oleh tetapan telah mempunyai agihan.</div>';
+      const subjectRows = d.required.map(s => {
+        const rows = d.grouped.get(keyOf(s)) || [];
+        const ok = rows.length === 1 && (String(s.Flag_CoTeaching || '').toUpperCase() !== 'TRUE' || Boolean(rows[0].ID_Guru_Pair));
+        const guru = rows.map(a => `${a.ID_Guru_Utama}${a.ID_Guru_Pair ? ' / '+a.ID_Guru_Pair : ''}`).join(' ; ') || 'Belum diagihkan';
+        return `<tr class="border-b border-slate-100">
+          <td class="p-2 text-xs text-left"><div class="font-bold">${jwEscapeHtml(s.Kod_Subjek || s.ID_Subjek)}</div><div class="text-slate-500">${jwEscapeHtml(s.Nama_Subjek || '')}</div></td>
+          <td class="p-2 text-xs text-center">${parseInt(s.Bil_Waktu_Seminggu,10)||0}</td>
+          <td class="p-2 text-xs text-left break-words">${jwEscapeHtml(guru)}</td>
+          <td class="p-2 text-xs text-center font-bold ${ok ? 'text-emerald-700' : 'text-rose-700'}">${ok ? '✓' : rows.length > 1 ? 'Duplikasi' : rows.length ? 'Semak pasangan' : 'Belum'}</td>
+        </tr>`;
+      }).join('');
+      const warnings = [];
+      if (d.duplicate.length) warnings.push(`${d.duplicate.length} subjek mempunyai lebih daripada satu agihan untuk kelas ini.`);
+      if (d.pairMissing.length) warnings.push(`${d.pairMissing.length} agihan Co-Teaching belum mempunyai guru pasangan.`);
+      if (d.extra.length) warnings.push(`${d.extra.length} agihan tiada dalam senarai subjek wajib kategori kelas ini (semak tetapan/kategori).`);
+      const warningsHtml = warnings.length ? `<div class="rounded-xl bg-amber-50 text-amber-900 border border-amber-200 p-3 mb-3 text-xs text-left">${warnings.map(x => `<div class="mb-1">⚠ ${jwEscapeHtml(x)}</div>`).join('')}</div>` : '';
+      const content = `<div class="text-left text-xs text-slate-600 mb-3">Status berdasarkan <strong>Tetapan Subjek</strong> dan <strong>Agihan Guru</strong> semasa pada paparan (termasuk perubahan yang belum disimpan).</div>
+        <div class="grid grid-cols-3 gap-2 mb-3 text-center">
+          <div class="bg-slate-100 p-2 rounded-lg"><div class="font-black text-lg text-slate-800">${d.completeCount}/${d.required.length}</div><div class="text-[10px]">Subjek diagih</div></div>
+          <div class="bg-slate-100 p-2 rounded-lg"><div class="font-black text-lg text-slate-800">${d.hoursExpected}</div><div class="text-[10px]">Waktu diperlukan</div></div>
+          <div class="bg-slate-100 p-2 rounded-lg"><div class="font-black text-lg text-slate-800">${d.hoursAssigned}</div><div class="text-[10px]">Waktu diagih</div></div>
+        </div>
+        ${missingHtml}${warningsHtml}
+        <div class="max-h-[46vh] overflow-y-auto border border-slate-200 rounded-xl">
+          <table class="w-full text-xs border-collapse"><thead class="bg-slate-100 sticky top-0"><tr>
+            <th class="p-2 text-left">Subjek</th><th class="p-2">Waktu</th><th class="p-2 text-left">Guru Utama / Pasangan</th><th class="p-2">Status</th>
+          </tr></thead><tbody>${subjectRows || '<tr><td colspan="4" class="p-4 text-center">Tiada subjek yang ditetapkan untuk kategori kelas ini.</td></tr>'}</tbody></table>
+        </div>`;
+      Swal.fire({title: `Semakan Kelas: ${kelas}`, html: content, width: 800,
+        confirmButtonText: 'Tutup', confirmButtonColor: '#d97706',
+        customClass: {htmlContainer: 'text-left'} });
     }
 
     function toggleClassCoverageSummary() {
@@ -1441,17 +1583,28 @@
     }
 
     async function simpanAgihanTugas() {
+      if (JW_AGIHAN_SAVING) return;
       const flatList = prepareFlatAgihanForBackend();
-      showLoader('Menyimpan Agihan Tugas Ke Google Sheet...');
+      const snapshotRevision = JW_AGIHAN_REVISION;
+      JW_AGIHAN_SAVING = true;
+      const button = document.getElementById('btnSimpanAgihan');
+      if (button) button.disabled = true;
+      setAgihanSaveStatus('saving');
       try {
+        // Simpan secara async tanpa mengunci UI; pengguna boleh terus mengisi agihan.
         const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'agihan', data: flatList } });
-        hideLoader();
-        if (res && res.success) {
-          Swal.fire('Berjaya', res.message, 'success');
-        }
+        if (!res || !res.success) throw new Error(res?.error || 'Backend tidak mengesahkan simpanan.');
+        const hasNewChanges = JW_AGIHAN_REVISION !== snapshotRevision;
+        setAgihanSaveStatus(hasNewChanges ? 'pending' : 'saved');
+        Swal.fire({toast:true,position:'top-end',icon:'success',
+          title:hasNewChanges ? 'Simpanan selesai; ada perubahan baharu belum disimpan.' : (res.message || 'Agihan disimpan.'),
+          showConfirmButton:false,timer:2500,timerProgressBar:true});
       } catch (err) {
-        hideLoader();
-        Swal.fire('Ralat', String(err), 'error');
+        setAgihanSaveStatus('error');
+        Swal.fire('Ralat Simpan Agihan', String(err), 'error');
+      } finally {
+        JW_AGIHAN_SAVING = false;
+        if (button) button.disabled = false;
       }
     }
 
