@@ -97,34 +97,21 @@
     <main class="p-4 lg:p-8 space-y-6">
 
       <!-- ================= 1. DASHBOARD UTAMA & WIDGET KEKOSONGAN ================= -->
-      <div id="viewDashboard" class="space-y-6">
-        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-md border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-5">
-          <div class="flex items-center gap-4">
-            <div class="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md p-2 border border-white/20 flex items-center justify-center">
-              <i class="fa-solid fa-sitemap text-3xl text-rose-400"></i>
-            </div>
-            <div>
-              <h1 class="font-display font-extrabold text-xl lg:text-2xl text-white">Manual Pengurusan Sekolah <span class="lblTahunSpan">2027</span></h1>
-              <p class="text-xs text-rose-300 font-semibold mt-0.5">Sistem Pengurusan Teratur Bagi Agihan Tugas & Jawatankuasa Sekolah.</p>
-            </div>
-          </div>
+      <div id="viewDashboard" class="space-y-5">
+        <div class="bg-slate-900 rounded-2xl p-6 text-white shadow-sm">
+          <h1 class="text-2xl font-extrabold">Penyediaan Buku Manual Pengurusan <span class="lblTahunSpan">2027</span></h1>
+          <p class="text-xs mt-2 text-rose-200">Pilih kad untuk menyediakan maklumat rasmi. Semua kandungan yang disimpan digunakan oleh cetakan buku yang sama.</p>
+          <div class="flex flex-wrap gap-2 mt-4"><button onclick="showView('viewV4Print')" class="bg-white text-slate-900 px-4 py-2.5 rounded-xl text-xs font-bold"><i class="fa-solid fa-print mr-1"></i> Pratonton Buku</button><button onclick="showView('viewAuditPeranan')" class="bg-white/10 px-4 py-2.5 rounded-xl text-xs font-bold"><i class="fa-solid fa-chart-line mr-1"></i> Pusat Analitik</button></div>
         </div>
-
-        <div id="dashboardSmartMetrics" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
-        <div class="flex flex-wrap gap-2 justify-end">
-          <button onclick="showView('viewAuditPeranan')" class="px-4 py-2.5 rounded-xl bg-white border border-rose-200 text-rose-700 text-xs font-extrabold shadow-sm hover:bg-rose-50"><i class="fa-solid fa-chart-line mr-1"></i> Semakan Pengagihan Lengkap</button>
-        </div>
-        <!-- WIDGET LAPORAN KEKOSONGAN JAWATAN -->
-        <div class="bg-white rounded-2xl border border-rose-200 shadow-xs p-5 space-y-4">
-          <div class="flex items-center justify-between border-b border-rose-100 pb-3">
-            <div class="flex items-center gap-2">
-              <span class="w-3 h-3 rounded-full bg-rose-600 animate-ping"></span>
-              <h3 class="font-display font-extrabold text-sm text-slate-800">Laporan Pengesanan Kekosongan Jawatan (Urgent Vacancy Alert)</h3>
-            </div>
-            <span id="badgeCountVacancies" class="text-[11px] font-extrabold bg-rose-100 text-rose-700 px-3 py-1 rounded-full">0 Kekosongan</span>
-          </div>
-
-          <div id="boxVacancyAlerts" class="space-y-2 text-xs"></div>
+        <div id="v5BookCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+      </div>
+      <div id="viewV5BookEditor" class="hidden space-y-4">
+        <div class="bg-white border rounded-2xl p-6 space-y-4 max-w-4xl">
+          <div class="flex justify-between flex-wrap gap-3 items-center"><div><h2 id="v5BookTitle" class="font-extrabold text-xl">Editor Kandungan</h2><p class="text-xs text-slate-500 mt-1">Sesi <span id="v5BookYear">2027</span> · kandungan yang sama akan digunakan ketika cetakan buku</p></div><button onclick="showView('viewDashboard')" class="border rounded-xl px-3 py-2 text-xs font-bold">Kembali</button></div>
+          <label class="font-bold text-xs">Kandungan, teks dan pautan gambar/dokumen (URL)</label>
+          <textarea id="v5BookText" rows="15" placeholder="Isi kandungan bahagian ini... Untuk imej, masukkan URL https:// imej pada baris tersendiri." class="w-full border rounded-xl p-4 text-sm leading-7"></textarea>
+          <div class="flex gap-3 flex-wrap items-center"><label class="font-bold text-xs">Status</label><select id="v5BookStatus" class="border rounded-lg p-2 text-xs"><option>Draf</option><option>Lengkap</option></select><button onclick="v5SaveBookSection()" class="ml-auto bg-emerald-700 text-white rounded-xl px-5 py-3 text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Kandungan</button></div>
+          <p class="text-xs text-slate-500">Imej digunakan melalui pautan HTTPS; muat naik terus ke Drive dan penghasilan PDF automatik belum termasuk dalam modul ini.</p>
         </div>
       </div>
 
@@ -150,7 +137,7 @@
             <h3 class="font-bold text-sm">Carian semua peranan staf</h3>
             <div class="flex gap-2 flex-wrap">
               <input id="auditSearchInput" oninput="renderAuditPerananV3()" placeholder="Cari nama guru, JK, tugas atau kelas…" class="border border-slate-300 rounded-xl p-2 text-xs w-64 max-w-full"/>
-              <select id="auditCategoryFilter" onchange="renderAuditPerananV3()" class="border border-slate-300 rounded-xl p-2 text-xs"><option value="">Semua kategori</option><option>Pentadbiran</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select>
+              <select id="auditCategoryFilter" onchange="renderAuditPerananV3()" class="border border-slate-300 rounded-xl p-2 text-xs"><option value="">Semua kategori</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select>
             </div>
           </div>
           <div class="overflow-x-auto"><table class="w-full text-xs text-left"><thead class="bg-slate-100 text-slate-700"><tr><th class="p-3">Staf</th><th class="p-3">Jawatankuasa</th><th class="p-3">Peranan</th><th class="p-3">Skop / Kelas</th><th class="p-3">Status</th></tr></thead><tbody id="auditPerananRows"></tbody></table></div>
@@ -183,7 +170,7 @@
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div><h2 class="font-display font-extrabold text-xl">Susun Jawatankuasa & Seksyen</h2><p class="text-xs text-slate-500 mt-1">Tukar seksyen, susun ke atas/bawah dan simpan. Tiada pelantikan guru diubah.</p></div>
-            <button onclick="v4SaveOrder()" class="rounded-xl bg-emerald-700 px-4 py-2.5 text-white text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Susunan</button>
+            <span id="v5OrderStatus" class="text-xs text-slate-400">✓ Tiada perubahan</span><button id="v5OrderSaveBtn" disabled onclick="v4SaveOrder()" class="rounded-xl bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-500 px-4 py-2.5 text-white text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Susunan</button>
           </div>
           <div class="mt-4"><label class="font-bold text-xs">Induk</label><select id="v4OrderCategory" onchange="v4DrawOrder()" class="w-full sm:w-64 ml-2 p-2 border rounded-xl text-xs"><option>Pentadbiran</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select></div>
         </div>
@@ -197,6 +184,7 @@
           <div class="mt-4 flex flex-wrap gap-2"><input type="search" id="v4CalendarSearch" oninput="v4RenderCalendar()" placeholder="Cari program atau minggu…" class="p-2 border rounded-xl text-xs flex-1 min-w-[190px]"/>
             <select id="v4CalendarTypeFilter" onchange="v4RenderCalendar()" class="p-2 border rounded-xl text-xs"><option value="">Semua jenis</option><option value="SEKOLAH">Persekolahan</option><option value="CUTI">Cuti</option><option value="MINGGU_RPH">Minggu e-RPH</option><option value="MINGGU_BERTUGAS">Minggu Bertugas</option><option value="PROGRAM">Program / Aktiviti</option><option value="MESYUARAT">Mesyuarat</option></select></div>
         </div>
+        <div id="v5CalendarTabs" class="flex gap-2 flex-wrap"><button data-tab="penuh" onclick="v5SwitchCalendarTab('penuh')" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Takwim Penuh</button><button data-tab="ringkasan" onclick="v5SwitchCalendarTab('ringkasan')" class="bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold">Ringkasan Mengikut Unit</button><button onclick="v5EditWeek(manualV3Year()===v5Today().slice(0,4)?v5Today():manualV3Year()+'-01-01')" class="ml-auto border px-4 py-2 rounded-xl text-xs font-bold">+ Tetapkan Minggu / Cuti</button></div>
         <div id="v4CalendarItems" class="space-y-2"></div>
       </div>
       <!-- V4: CETAK BUKU -->
@@ -454,6 +442,7 @@
               <p class="text-xs text-slate-500">Pemetaan Penuh Barisan Kepimpinan & Penyelaras Sub-Unit</p>
             </div>
             <button id="v4EditIndukBtn" onclick="v4SetIndukEditMode(true)" class="px-4 py-2 bg-slate-200 text-slate-800 font-bold rounded-xl text-xs"><i class="fa-solid fa-pen mr-1"></i> Edit Jawatan</button>
+              <button id="v5CancelIndukBtn" onclick="v5CancelInduk()" class="hidden border border-slate-200 bg-slate-100 rounded-xl px-4 py-2 text-xs font-bold">Batal</button>
               <button id="v4SaveIndukBtn" onclick="simpanSetiausahaInduk()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
               <i class="fa-solid fa-floppy-disk"></i> Simpan Pimpinan JK Induk
             </button>
@@ -481,12 +470,12 @@
             <div class="flex items-center justify-between pt-1">
               <span class="font-bold text-rose-600 w-40">Setiausaha:</span>
               <div class="flex-1">
-                <select id="selSetiausahaInduk" class="select-guru-opt w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>
+                <span id="v5IndukSuRead" class="font-extrabold text-slate-800 text-xs"></span><select id="selSetiausahaInduk" class="select-guru-opt w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>
               </div>
             </div>
 
             <!-- CONTAINER JAWATAN TAMBAHAN KHAS UNTUK JK INDUK -->
-            <div id="containerIndukCustomOfficers" class="space-y-2 pt-2 border-t border-slate-200/80"></div>
+            <div id="v5IndukOfficersRead" class="pt-1"></div><div id="containerIndukCustomOfficers" class="space-y-2 pt-2 border-t border-slate-200/80"></div>
 
             <div class="pt-2 flex justify-end">
               <button id="v4AddIndukOfficer" onclick="tambahBarisPegawaiInduk()" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5">
@@ -511,7 +500,8 @@
               <h2 id="txtSubJkDetailTitle" class="font-display font-extrabold text-xl text-slate-800">Detail Jawatankuasa</h2>
               <p class="text-xs text-slate-500">Agihan Penyelaras / Ketua Panitia, Setiausaha, Pegawai Khas & Ahli Jawatankuasa (AJK) serta Portfolio Tugas Khas</p>
             </div>
-            <button onclick="simpanDetailSubJk()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+            <button id="v5SubEditBtn" onclick="v5SetSubEditMode(true)" class="px-4 py-2 bg-slate-200 rounded-xl font-bold text-xs">✎ Edit Jawatan</button><button id="v5SubCancelBtn" onclick="v5CancelSub()" class="hidden px-4 py-2 border rounded-xl font-bold text-xs">Batal</button>
+              <button onclick="simpanDetailSubJk()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
               <i class="fa-solid fa-floppy-disk"></i> Simpan Jawatankuasa
             </button>
           </div>
@@ -688,12 +678,12 @@
         </div>
 
         <div>
-          <label class="block font-bold mb-1 text-slate-700">Seksyen / Bahagian Dalam JK Induk</label>
-          <div class="flex gap-2"><select id="jk_Seksyen" class="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-bold text-xs"></select><button type="button" onclick="closeModalJawatankuasa();v4OpenCatalog('seksyen')" class="bg-slate-100 px-3 rounded-xl font-bold text-xs" title="Urus seksyen">+ Seksyen</button></div>
+          <label class="block font-bold mb-1 text-slate-700">Seksyen / Bahagian Dalam JK Induk <span class="text-rose-600">*</span></label>
+          <div class="flex gap-2"><select id="jk_Seksyen" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-bold text-xs"></select><button type="button" onclick="v5AddSectionInline()" class="bg-slate-100 px-3 rounded-xl font-bold text-xs" title="Urus seksyen">+ Seksyen</button></div>
           <input id="jk_Seksyen_Baharu" placeholder="Atau taip nama seksyen baharu di sini..." class="w-full mt-2 p-2.5 border border-slate-300 rounded-xl text-xs"/>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="block font-bold mb-1 text-slate-700">Susunan</label><input id="jk_Susunan" type="number" min="1" value="1" class="w-full p-2.5 border rounded-xl text-xs"/></div>
+          <div class="hidden"><input id="jk_Susunan" type="number" value="1"/></div>
           <div><label class="block font-bold mb-1 text-slate-700">Unit Penyelia</label><select id="jk_Unit_Penyelia" class="w-full p-2.5 border rounded-xl text-xs"><option>Pentadbiran</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select></div>
         </div>
         <div>
@@ -774,15 +764,20 @@
 
           <div>
             <label class="block font-bold mb-1 text-slate-700">Status Staf <span class="text-rose-500">*</span></label>
-            <select id="inp_Status" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600">
+            <select id="inp_Status" onchange="v5ToggleStaffDate()" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600">
               <option value="Aktif" selected>Aktif</option>
               <option value="Tidak Aktif">Tidak Aktif</option>
             </select>
           </div>
 
-          <div>
+          <div id="v5EnterDateWrap">
             <label class="block font-bold mb-1 text-slate-700">Tarikh Masuk</label>
             <input type="date" id="inp_Tarikh_Masuk" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div id="v5ExitDateWrap" class="hidden">
+            <label class="block font-bold mb-1 text-rose-700">Tarikh Keluar <span class="text-rose-600">*</span></label>
+            <input type="date" id="inp_Tarikh_Keluar" class="w-full p-2.5 border border-rose-300 rounded-xl bg-rose-50 focus:outline-none" />
           </div>
 
           <div>
@@ -1410,8 +1405,7 @@
         hideLoader();
         if (res && res.success) {
           Swal.fire('Berjaya', `Pimpinan JK Induk ${activeCategoryInduk} berjaya dikemaskini!`, 'success');
-          v4SetIndukEditMode(false);
-          fetchMasterStafData();
+          await v5RefreshIndukAfterSave(activeCategoryInduk);
         } else {
           Swal.fire('Ralat', res.error || 'Gagal menyimpan.', 'error');
         }
@@ -1775,7 +1769,7 @@
           jk_induk: `JK Induk ${activeCategoryInduk}`,
           nama_jawatankuasa: activeSubJkName,
           peranan: roleText,
-          skop_tugas_kelas: penyelarasTugasKhas || activeSubJkName,
+          skop_tugas_kelas: penyelarasTugasKhas,
           id_staf: penyelarasVal,
           tahun: tahunAktif,
           status: 'Aktif'
@@ -1789,7 +1783,7 @@
           jk_induk: `JK Induk ${activeCategoryInduk}`,
           nama_jawatankuasa: activeSubJkName,
           peranan: roleSuText,
-          skop_tugas_kelas: suTugasKhas || activeSubJkName,
+          skop_tugas_kelas: suTugasKhas,
           id_staf: suVal,
           tahun: tahunAktif,
           status: 'Aktif'
@@ -1808,7 +1802,7 @@
             jk_induk: `JK Induk ${activeCategoryInduk}`,
             nama_jawatankuasa: activeSubJkName,
             peranan: titleInp.value.trim(),
-            skop_tugas_kelas: activeSubJkName,
+            skop_tugas_kelas: '',
             id_staf: selInp.value,
             tahun: tahunAktif,
             status: 'Aktif'
@@ -1828,7 +1822,7 @@
             jk_induk: `JK Induk ${activeCategoryInduk}`,
             nama_jawatankuasa: activeSubJkName,
             peranan: roleAjkText,
-            skop_tugas_kelas: (tugasInp ? tugasInp.value.trim() : '') || activeSubJkName,
+            skop_tugas_kelas: (tugasInp ? tugasInp.value.trim() : ''),
             id_staf: selInp.value,
             tahun: tahunAktif,
             status: 'Aktif'
@@ -1854,7 +1848,7 @@
         hideLoader();
         if (res && res.success) {
           Swal.fire('Berjaya Saved', `Jawatankuasa ${activeSubJkName} berjaya dikemaskini!`, 'success');
-          fetchMasterStafData();
+          await v5RefreshSubAfterSave(activeCategoryInduk,activeSubJkName);
         } else {
           Swal.fire('Ralat', res.error || 'Gagal menyimpan.', 'error');
         }
@@ -1937,6 +1931,8 @@
           ALL_SEKSYEN = res.seksyen || [];
           ALL_KUMPULAN = res.kumpulan || [];
           ALL_TAKWIM = res.takwim || [];
+          ALL_MINGGU = res.mingguSekolah || [];
+          ALL_BUKU = res.kandunganBuku || [];
           v4RenderCatalog();v4RenderCalendar();
 
         } else { throw new Error(res?.error || 'Backend tidak memulangkan data lengkap.'); }
@@ -1963,7 +1959,7 @@
     }
 
     function showView(viewId, evt = null) {
-      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print'];
+      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print', 'viewV5BookEditor'];
       views.forEach(v => {
         const el = document.getElementById(v);
         if (el) el.classList.add('hidden');
@@ -1993,6 +1989,7 @@
       else if (viewId === 'viewV4Order') bTxt.innerText='Susunan Jawatankuasa';
       else if (viewId === 'viewV4Calendar') bTxt.innerText='Takwim';
       else if (viewId === 'viewV4Print') bTxt.innerText='Cetak Buku Manual';
+      else if (viewId === 'viewV5BookEditor') bTxt.innerText='Editor Kandungan Buku';
     }
 
     function switchSubPengurusan(type, evt = null) {
@@ -2427,7 +2424,7 @@
         Opsyen_Utama: document.getElementById('inp_Opsyen_Utama').value.trim(),
         No_Telefon: document.getElementById('inp_No_Telefon').value.trim(),
         Tarikh_Masuk: document.getElementById('inp_Tarikh_Masuk').value,
-        Tarikh_Keluar: '',
+        Tarikh_Keluar: document.getElementById('inp_Status').value==='Tidak Aktif' ? document.getElementById('inp_Tarikh_Keluar').value : '',
         Status: document.getElementById('inp_Status').value,
         ID_Mentor: document.getElementById('inp_ID_Mentor').value,
         is_new: document.getElementById('inp_ID_Staf').dataset.isNew==='true'
@@ -2439,16 +2436,17 @@
         const roles=ALL_PERANAN.filter(x=>x.ID_Staf===newStaf.ID_Staf && String(x.Status||'Aktif').toLowerCase()==='aktif');
         if(roles.length){
           const year=manualV3Year();
-          const defaultDate=Number(year)>new Date().getFullYear()?year+'-01-01':new Date().toISOString().slice(0,10);
+          const defaultDate=newStaf.Tarikh_Keluar||v5Today();
           const names=roles.map(x=>`<li>${manualV3Escape(x.Tahun)} · ${manualV3Escape(x.Nama_Jawatankuasa)} — ${manualV3Escape(x.Peranan)}</li>`).join('');
           const ans=await Swal.fire({title:'Staf masih mempunyai pelantikan aktif',icon:'warning',width:620,
             html:`<p class="text-xs text-slate-600">Menukar staf kepada Tidak Aktif akan menamatkan <strong>${roles.length}</strong> pelantikan ini tanpa memadam sejarah.</p><ul class="text-left text-xs list-disc pl-6 my-3 max-h-40 overflow-auto">${names}</ul><label class="block text-left text-xs font-bold">Tarikh kuat kuasa</label><input id="v4-staff-end" type="date" value="${defaultDate}" class="w-full p-2 border rounded-lg"/><label class="block text-left text-xs font-bold mt-2">Sebab</label><input id="v4-staff-reason" value="Berpindah / tamat perkhidmatan" class="w-full p-2 border rounded-lg"/>`,
             showCancelButton:true,confirmButtonText:'Tamatkan semua tugasan & simpan',cancelButtonText:'Batal',
             preConfirm:()=>{const date=document.getElementById('v4-staff-end')?.value,reason=document.getElementById('v4-staff-reason')?.value||'';if(!date){Swal.showValidationMessage('Tarikh diperlukan.');return false;}return {date,reason};}});
           if(!ans.isConfirmed)return;
-          newStaf.close_active_roles=true;newStaf.effective_date=ans.value.date;newStaf.change_reason=ans.value.reason;
+          newStaf.close_active_roles=true;newStaf.Tarikh_Keluar=ans.value.date;newStaf.effective_date=ans.value.date;newStaf.change_reason=ans.value.reason;
         }
       }
+      if(String(newStaf.Status).toLowerCase()!=='aktif'&&!newStaf.Tarikh_Keluar){Swal.fire('Tarikh Keluar wajib','Pilih Tarikh Keluar sebelum simpan.','warning');return;}
       closeTambahGuruModal();
       showLoader('Menyimpan rekod Staf...');
 
@@ -3196,6 +3194,10 @@
       const add=(title,chapter,content)=>pages.push({title,chapter,content});
       add('Manual Pengurusan Sekolah','Muka Depan',`<div class="cover"><div class="cover-emblem">SeMAKMUR</div><h1>BUKU MANUAL<br>PENGURUSAN SEKOLAH</h1><div class="cover-year">SESI ${esc(year)}</div><h2>SEKOLAH KEBANGSAAN SEGAMBUT MAKMUR</h2><p>Dokumen Pengagihan Jawatankuasa, Pengurusan Staf, Operasi & Takwim</p></div>`);
       add('Isi Kandungan','Isi Kandungan','__TOC__');
+      const bookSections=(ALL_BUKU||[]).filter(r=>String(r.Tahun)===year&&r.Status==='Lengkap').sort((a,b)=>Number(a.Susunan||99)-Number(b.Susunan||99));
+      const textToHtml=(content)=>String(content||'').split('\n').map(line=>{const trimmed=line.trim();if(/^https:\/\/[^\s]+\.(png|jpg|jpeg|webp)(\?[^\s]*)?$/i.test(trimmed))return `<p style="text-align:center"><img src="${esc(trimmed)}" style="max-width:100%;max-height:150mm;object-fit:contain"></p>`;return `<p style="white-space:pre-wrap;font-size:10pt;line-height:1.6">${esc(line)||'&nbsp;'}</p>`;}).join('');
+      for(const r of bookSections){if(r.Slug==='muka_depan'){pages[0].content=pages[0].content.replace(/<\/div>\s*$/,`<p>${esc(r.Kandungan||'')}</p></div>`);}else add(r.Tajuk,r.Tajuk,textToHtml(r.Kandungan));}
+
       const table=(columns,rows)=>`<table><thead><tr>${columns.map(x=>'<th>'+esc(x)+'</th>').join('')}</tr></thead><tbody>${rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')}</tbody></table>`;
       const chunks=(arr,n)=>arr.length?Array.from({length:Math.ceil(arr.length/n)},(_,i)=>arr.slice(i*n,(i+1)*n)):[[]];
       chunks(staff,19).forEach((chunk,i)=>add('Direktori Staf'+(i?' (sambungan)':''),'Direktori Staf',table(['Bil','Nama Staf','Jawatan'],chunk.map((g,j)=>[String(i*19+j+1),g.Nama_Penuh,g.Kategori_Staf]))));
@@ -3234,5 +3236,133 @@
     }
 
   </script>
+<script>
+/* SeMAKMUR Manual Pengurusan V5 — pembaikan UI berdasarkan sembilan isu. */
+const V5_UNITS=['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'];
+const V5_MONTHS=['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+const V5_WEEKDAYS=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+let ALL_MINGGU=[],ALL_BUKU=[],V5_BOOK_SLUG='muka_depan',V5_CAL_TAB='penuh',V5_DRAG_ID='',V5_SECT_CAT='',V5_SECT_DRAFT=[],V5_SECT_DIRTY=false,V5_ORDER_DIRTY=false;
+const v5E=x=>manualV3Escape(x);
+const v5Active=x=>String(x.Status||'Aktif').toLowerCase()==='aktif';
+const v5Pad=x=>String(x).padStart(2,'0');
+function v5ISO(d){return `${d.getFullYear()}-${v5Pad(d.getMonth()+1)}-${v5Pad(d.getDate())}`;}
+function v5Date(s){const t=String(s||'').slice(0,10);if(/^\d{4}-\d\d-\d\d$/.test(t))return t;const d=new Date(s);return isNaN(d)?'':v5ISO(d);}
+function v5Today(){return v5ISO(new Date());}
+function v5SupervisorOrder(unit){const map={'Kurikulum':['GPK Pentadbiran','GPK Hal Ehwal Murid','GPK Ko Kurikulum'],'Hal Ehwal Murid':['GPK Hal Ehwal Murid','GPK Pentadbiran','GPK Ko Kurikulum'],'Kokurikulum':['GPK Ko Kurikulum','GPK Pentadbiran','GPK Hal Ehwal Murid']};return map[unit]||map.Kurikulum;}
+function v5AdminByCategory(cat){return ALL_STAF.find(s=>s.Kategori_Staf===cat&&v5Active(s));}
+function v5SupervisorNames(unit){return v5SupervisorOrder(unit).map(c=>v5AdminByCategory(c)?.Nama_Penuh||'Belum dilantik');}
+function v5SupervisorLabels(unit){return v5SupervisorOrder(unit).map(c=>({id:v5AdminByCategory(c)?.ID_Staf||'',name:v5AdminByCategory(c)?.Nama_Penuh||'Belum dilantik',cat:c}));}
+function v5CurrentJk(){return ALL_JAWATANKUASA.find(j=>j.Nama_Jawatankuasa===activeSubJkName);}
+function v5RowsForJk(name){return manualV3CurrentRoles().filter(r=>r.Nama_Jawatankuasa===name);}
+function v5RoleLabel(r){return String(r.Peranan||'').trim();}
+function v5PlainRole(label,name,color=''){return `<div class="flex flex-wrap items-start gap-2 border-b border-slate-200 py-2 text-xs"><strong class="w-40 shrink-0 ${color}">${v5E(label)}:</strong><span class="flex-1 font-semibold text-slate-800">${v5E(name||'Belum Diisi')}</span></div>`;}
+// Isu #1 — 'Tahap 1 & 2' bukan Tahap 1 sahaja.
+window.v4EligibleYears=function(cat){const raw=String(cat||'').toLowerCase().replace(/\s+/g,' ').trim();if(/tahap\s*1\s*(&|dan|dan\s*juga|\+)\s*(tahap\s*)?2|tahap\s*1\s*\/\s*2/.test(raw))return [1,2,3,4,5,6];const yy=[...raw.matchAll(/tahun\s*([1-6])/g)].map(m=>Number(m[1]));if(yy.length)return [...new Set(yy)];if(raw.includes('tahap 1')&&raw.includes('tahap 2'))return [1,2,3,4,5,6];if(raw.includes('tahap 1'))return [1,2,3];if(raw.includes('tahap 2'))return [4,5,6];return [1,2,3,4,5,6];};
+// Isu #2 — guru besar dan semua GPK bukan ahli bertugas mingguan.
+const v5OldRenderGroups=window.renderKumpulanBertugasUI;
+window.renderKumpulanBertugasUI=function(){v5OldRenderGroups();document.querySelectorAll('#v4GroupGrid select[id^="selK"]').forEach(sel=>{[...sel.options].forEach(o=>{const s=ALL_STAF.find(x=>x.ID_Staf===o.value);if(s&&(/guru besar|^gpk\b/i.test(String(s.Kategori_Staf||''))||!v5Active(s)))o.remove();});});};
+// Isu #3 — status tidak aktif, tarikh keluar dipilih; tarikh masuk kekal.
+function v5ToggleStaffDate(){const inactive=document.getElementById('inp_Status')?.value==='Tidak Aktif';const start=document.getElementById('v5EnterDateWrap'),exit=document.getElementById('v5ExitDateWrap');if(start)start.classList.toggle('hidden',inactive);if(exit)exit.classList.toggle('hidden',!inactive);const el=document.getElementById('inp_Tarikh_Keluar');if(el&&inactive&&!el.value)el.value=v5Today();}
+const v5OldOpenEditStaff=window.openEditGuruModal;
+window.openEditGuruModal=function(id){v5OldOpenEditStaff(id);document.getElementById('inp_ID_Staf').dataset.isNew='false';const s=ALL_STAF.find(x=>x.ID_Staf===id);const el=document.getElementById('inp_Tarikh_Keluar');if(el)el.value=v5Date(s?.Tarikh_Keluar||'');const x=document.getElementById('inp_Tarikh_Masuk');if(x)x.value=v5Date(s?.Tarikh_Masuk||'');v5ToggleStaffDate();};
+const v5OldOpenNewStaff=window.openTambahGuruModal;
+window.openTambahGuruModal=function(){v5OldOpenNewStaff();const e=document.getElementById('inp_Tarikh_Keluar');if(e)e.value='';v5ToggleStaffDate();};
+// Isu #4 — hanya seksyen berdaftar, tambah terus dari popup.
+window.v4FillSeksyen=function(selected=''){const cat=document.getElementById('jk_Kategori_Pengurusan')?.value||'Pentadbiran',sel=document.getElementById('jk_Seksyen');if(!sel)return;const arr=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat&&v5Active(s)).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));sel.innerHTML='<option value="">-- Pilih Seksyen (wajib) --</option>'+arr.map(s=>`<option value="${v5E(s.Nama_Seksyen)}">${v5E(s.Nama_Seksyen)}</option>`).join('');sel.value=arr.some(s=>s.Nama_Seksyen===selected)?selected:'';};
+window.v5AddSectionInline=async function(){const inp=document.getElementById('jk_Seksyen_Baharu'),cat=document.getElementById('jk_Kategori_Pengurusan')?.value;const name=inp?.value.trim();if(!name){Swal.fire('Nama seksyen diperlukan','Taip nama seksyen sebelum klik + Seksyen.','warning');return;}if(ALL_SEKSYEN.some(s=>s.Kategori_Pengurusan===cat&&s.Nama_Seksyen.toLowerCase()===name.toLowerCase()&&v5Active(s))){v4FillSeksyen(name);inp.value='';return;}showLoader('Mendaftarkan seksyen…');try{const r=await postToBackend({action:'saveManualV4Section',data:{Kategori_Pengurusan:cat,Nama_Seksyen:name,Status:'Aktif',Susunan:ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat).length+1}});if(!r.success)throw Error(r.error||'Gagal');ALL_SEKSYEN.push({Kategori_Pengurusan:cat,Nama_Seksyen:name,Status:'Aktif',Susunan:ALL_SEKSYEN.length+1});v4FillSeksyen(name);inp.value='';}catch(e){Swal.fire('Seksyen tidak disimpan',e.message,'error');}finally{hideLoader();}};
+const v5OldSaveJk=window.simpanMasterJawatankuasa;
+window.simpanMasterJawatankuasa=async function(e){const sec=document.getElementById('jk_Seksyen')?.value,inp=document.getElementById('jk_Seksyen_Baharu');if(inp?.value.trim()){e.preventDefault();await Swal.fire('Tambah Seksyen dahulu','Klik butang + Seksyen untuk mendaftar dan memilih seksyen baharu sebelum menyimpan JK.','info');return;}if(!sec){e.preventDefault();Swal.fire('Seksyen wajib','Sila pilih seksyen yang telah berdaftar.','warning');return;}return v5OldSaveJk(e);};
+const v5OldEditJk=window.editMasterJawatankuasa;
+window.editMasterJawatankuasa=function(id){v5OldEditJk(id);const j=ALL_JAWATANKUASA.find(x=>String(x.ID_Tugasan)===String(id));v4FillSeksyen(j?.Seksyen||'');const u=document.getElementById('jk_Unit_Penyelia');if(u)u.value=['Kurikulum','Hal Ehwal Murid','Kokurikulum'].includes(j?.Unit_Penyelia)?j.Unit_Penyelia:'Kurikulum';};
+const v5OldNewJk=window.openModalJawatankuasa;
+window.openModalJawatankuasa=function(){v5OldNewJk();const u=document.getElementById('jk_Unit_Penyelia');if(u)u.value='Kurikulum';};
+// Isu #4: pengurusan seksyen dipisahkan mengikut JK Induk, pemegang seret 6 titik.
+const v5OldRenderCatalog=window.v4RenderCatalog;
+window.v4RenderCatalog=function(){v5OldRenderCatalog();if(V4_CATALOG_KIND!=='seksyen')return;const box=document.getElementById('v4CatalogItems');if(!box)return;box.innerHTML=V5_UNITS.map(cat=>{const list=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));return `<div class="bg-white border rounded-2xl p-4 mb-4"><div class="flex justify-between items-center border-b pb-3 mb-3 gap-3"><h3 class="font-extrabold text-sm">JK Induk ${v5E(cat)}</h3><button onclick="v5SaveSectionOrder('${cat}')" data-v5-secsave="${cat}" disabled class="px-3 py-2 bg-emerald-700 text-white disabled:bg-slate-200 disabled:text-slate-500 rounded-lg text-xs font-bold">Simpan Susunan</button></div><div id="v5-sec-${V5_UNITS.indexOf(cat)}" class="space-y-2">${list.map((s,i)=>`<div draggable="true" data-sec-id="${v5E(s.ID_Seksyen)}" ondragstart="v5SectionDrag(event)" ondragover="event.preventDefault()" ondrop="v5SectionDrop(event,'${v5E(cat)}')" class="flex items-center gap-3 border rounded-xl p-3 ${v5Active(s)?'':'opacity-50'}"><span class="cursor-grab text-slate-500 text-lg" title="Seret untuk susun"><i class="fa-solid fa-grip-vertical"></i></span><span class="flex-1 font-bold text-xs">${v5E(s.Nama_Seksyen)}</span><button data-id="${v5E(s.ID_Seksyen)}" onclick="v4OpenCatalogEditor(this.dataset.id)" class="border rounded-lg px-3 py-2 text-xs">Edit</button></div>`).join('')||'<p class="text-xs text-slate-400 italic">Belum ada seksyen. Klik Tambah Rekod.</p>'}</div></div>`;}).join('');};
+const v5OldCatalogEditor=window.v4OpenCatalogEditor;
+window.v4OpenCatalogEditor=async function(id=''){if(V4_CATALOG_KIND!=='seksyen')return v5OldCatalogEditor(id);const old=ALL_SEKSYEN.find(s=>String(s.ID_Seksyen)===String(id))||{};const cats=V5_UNITS.map(c=>`<option ${c===(old.Kategori_Pengurusan||'Pentadbiran')?'selected':''}>${v5E(c)}</option>`).join('');const ans=await Swal.fire({title:id?'Edit Seksyen':'Tambah Seksyen',html:`<div class="text-left"><label class="text-xs font-bold">JK Induk</label><select id="v5-cat" class="w-full border rounded-xl p-3 mt-1 mb-4">${cats}</select><label class="text-xs font-bold">Nama Seksyen</label><input id="v5-secname" value="${v5E(old.Nama_Seksyen||'')}" class="w-full border rounded-xl p-3 mt-1 mb-4"/><label class="text-xs font-bold">Status</label><select id="v5-secstatus" class="w-full border rounded-xl p-3 mt-1"><option ${old.Status==='Aktif'?'selected':''}>Aktif</option><option ${old.Status==='Tidak Aktif'?'selected':''}>Tidak Aktif</option></select><p class="text-xs text-slate-500 mt-3">Susunan dikawal menggunakan ikon enam titik dalam senarai, bukan nombor manual.</p></div>`,showCancelButton:true,confirmButtonText:'Simpan',preConfirm:()=>{const n=document.getElementById('v5-secname')?.value.trim();if(!n){Swal.showValidationMessage('Nama Seksyen wajib.');return false;}return {ID_Seksyen:id,Kategori_Pengurusan:document.getElementById('v5-cat').value,Nama_Seksyen:n,Status:document.getElementById('v5-secstatus').value,Susunan:old.Susunan||ALL_SEKSYEN.length+1};}});if(!ans.isConfirmed||!ans.value)return;showLoader('Menyimpan seksyen…');try{const r=await postToBackend({action:'saveManualV4Section',data:ans.value});if(!r.success)throw Error(r.error||'Gagal');await fetchMasterStafData();v4OpenCatalog('seksyen');}catch(e){Swal.fire('Ralat',e.message,'error');}finally{hideLoader();}};
+window.v5SectionDrag=function(ev){V5_DRAG_ID=ev.currentTarget.dataset.secId;ev.dataTransfer.effectAllowed='move';};
+window.v5SectionDrop=function(ev,cat){ev.preventDefault();const container=ev.currentTarget.parentElement,source=container.querySelector(`[data-sec-id="${V5_DRAG_ID}"]`);if(!source||source===ev.currentTarget)return;const nodes=[...container.children],before=nodes.indexOf(source)>nodes.indexOf(ev.currentTarget);container.insertBefore(source,before?ev.currentTarget:ev.currentTarget.nextSibling);const button=document.querySelector(`[data-v5-secsave="${cat}"]`);if(button)button.disabled=false;};
+window.v5SaveSectionOrder=async function(cat){const container=document.getElementById('v5-sec-'+V5_UNITS.indexOf(cat));const ids=[...container.querySelectorAll('[data-sec-id]')].map(x=>x.dataset.secId);if(!ids.length)return;showLoader('Menyimpan susunan seksyen…');try{const r=await postToBackend({action:'saveManualV5SectionOrder',data:{kategori:cat,ids}});if(!r.success)throw Error(r.error||'Gagal');ALL_SEKSYEN.filter(x=>x.Kategori_Pengurusan===cat).forEach(s=>{s.Susunan=ids.indexOf(String(s.ID_Seksyen))+1;});v4RenderCatalog();}catch(e){Swal.fire('Gagal Simpan',e.message,'error');}finally{hideLoader();}};
+// Isu #5 — JK induk: setiausaha dan pegawai tambahan di dalam kotak pimpinan.
+const v5OldOpenInduk=window.openIndukOverview;
+window.openIndukOverview=function(cat){v5OldOpenInduk(cat);v5SetIndukEditMode(false);};
+window.v4SetIndukEditMode=function(edit){const ids=['selSetiausahaInduk','containerIndukCustomOfficers','v4AddIndukOfficer','v4SaveIndukBtn','v5CancelIndukBtn'];ids.forEach(id=>document.getElementById(id)?.classList.toggle('hidden',!edit));document.getElementById('v4EditIndukBtn')?.classList.toggle('hidden',edit);const su=document.getElementById('v5IndukSuRead'),off=document.getElementById('v5IndukOfficersRead');if(su)su.classList.toggle('hidden',edit);if(off)off.classList.toggle('hidden',edit);document.getElementById('v4IndukReadOnly')?.classList.add('hidden');if(!edit){const records=v5RowsForJk('JK Induk '+activeCategoryInduk);const suRow=records.find(r=>v5RoleLabel(r)==='Setiausaha');if(su)su.textContent=suRow?manualV3StaffName(suRow.ID_Staf):'Belum Diisi';const extra=records.filter(r=>r.Peranan!=='Setiausaha');if(off)off.innerHTML=extra.map(r=>v5PlainRole(r.Peranan,manualV3StaffName(r.ID_Staf))).join('');}};
+window.v5CancelInduk=function(){openIndukOverview(activeCategoryInduk);};
+// Isu #6 — naib JK kecil diambil secara automatik dan mod view bersih.
+const v5OldOpenSub=window.openSubJkDetail;
+window.openSubJkDetail=function(cat,name){v5OldOpenSub(cat,name);const j=v5CurrentJk(),unit=['Kurikulum','Hal Ehwal Murid','Kokurikulum'].includes(j?.Unit_Penyelia)?j.Unit_Penyelia:(cat==='Pentadbiran'?'Kurikulum':cat);const labels=v5SupervisorLabels(unit);[1,2,3].forEach((n,i)=>{const wrap=document.getElementById('wrapperNaib'+n);if(wrap)wrap.innerHTML=`<span class="font-bold text-xs text-slate-800">${v5E(labels[i].name)} (${v5E(labels[i].cat)})</span>`;});v5SetSubEditMode(false);};
+window.v5SetSubEditMode=function(edit){const root=document.querySelector('#viewSubJkDetail > div');if(!root)return;const parts=[...root.children].slice(1);parts.forEach(el=>{if(el.id!=='v5SubSummary')el.classList.toggle('hidden',!edit);});let summary=document.getElementById('v5SubSummary');if(!summary){summary=document.createElement('div');summary.id='v5SubSummary';root.insertBefore(summary,root.children[1]);}summary.classList.toggle('hidden',edit);const save=root.querySelector('button[onclick="simpanDetailSubJk()"]');if(save)save.classList.toggle('hidden',!edit);const editbtn=document.getElementById('v5SubEditBtn'),cancel=document.getElementById('v5SubCancelBtn');if(editbtn)editbtn.classList.toggle('hidden',edit);if(cancel)cancel.classList.toggle('hidden',!edit);if(!edit){const j=v5CurrentJk(),unit=j?.Unit_Penyelia||'Kurikulum',rows=v5RowsForJk(activeSubJkName),role=j?.Peranan||'Penyelaras',lead=v5AdminByCategory('Guru Besar');const seen=new Set();let html=v5PlainRole('Pengerusi',lead?.Nama_Penuh||'Belum Diisi');v5SupervisorNames(unit).forEach((name,i)=>html+=v5PlainRole('Naib Pengerusi '+(i+1),name));const ordered=rows.filter(r=>!/^naib pengerusi/i.test(r.Peranan)).sort((a,b)=>{const rank=x=>x.Peranan===role?0:/^setiausaha/i.test(x.Peranan)?1:/^ajk/i.test(x.Peranan)?3:2;return rank(a)-rank(b);});ordered.forEach(r=>{const k=r.Peranan+'|'+r.ID_Staf;if(seen.has(k))return;seen.add(k);html+=v5PlainRole(r.Peranan,manualV3StaffName(r.ID_Staf));});summary.innerHTML=`<div class="bg-slate-50 rounded-xl border p-4">${html}</div>`;}};
+window.v5CancelSub=function(){openSubJkDetail(activeCategoryInduk,activeSubJkName);};
+const v5OldSaveSub=window.simpanDetailSubJk;
+window.simpanDetailSubJk=async function(){const lead=document.getElementById('selSubPenyelaras')?.value,ajk=[...document.querySelectorAll('#containerAjkRows select[data-ajk-select="true"]')].map(s=>s.value).filter(Boolean);if(lead&&ajk.includes(lead)){Swal.fire('Pengagihan bertindih','Penyelaras tidak boleh menjadi AJK dalam jawatankuasa yang sama.','warning');return;}if(new Set(ajk).size!==ajk.length){Swal.fire('AJK berulang','Seorang guru hanya boleh dimasukkan sekali sebagai AJK bagi jawatankuasa yang sama.','warning');return;}await v5OldSaveSub();};
+// Isu #6.5 #6.6 — senarai penyelaras grouped by sections, tanpa skop kurungan.
+window.renderMappingSubJkList=function(cat){const box=document.getElementById('boxMappingSubJk');if(!box)return;const sections=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat&&v5Active(s)).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));const jks=v4SortedJK(cat);const names=[...new Set([...sections.map(s=>s.Nama_Seksyen),...jks.map(j=>j.Seksyen||'Belum Dikelaskan')])];box.innerHTML=names.map(sec=>{const rows=jks.filter(j=>(j.Seksyen||'Belum Dikelaskan')===sec);if(!rows.length)return '';return `<div class="rounded-xl border overflow-hidden"><h4 class="bg-slate-200 text-slate-700 font-extrabold text-xs px-4 py-3">${v5E(sec)}</h4>${rows.map(j=>{const role=v5RowsForJk(j.Nama_Jawatankuasa).find(r=>/penyelaras|ketua panitia/i.test(r.Peranan));return `<div class="px-4 py-3 flex justify-between gap-4 border-t bg-white"><span class="font-bold">${v5E(j.Peranan||'Penyelaras')} ${v5E(j.Nama_Jawatankuasa)}</span><span class="font-semibold text-right ${role?'':'italic text-slate-400'}">${role?v5E(manualV3StaffName(role.ID_Staf)):'Belum Diisi'}</span></div>`;}).join('')}</div>`;}).join('')||'<p class="text-slate-400 italic">Tiada jawatankuasa didaftarkan.</p>';};
+// Isu #7 — susun JK di bawah seksyen yang jelas, drag/drop, dirty state.
+window.v4DrawOrder=function(){const cat=document.getElementById('v4OrderCategory')?.value||'Pentadbiran';if(cat!==V4_ORDER_CATEGORY){V4_ORDER_CATEGORY=cat;V4_ORDER_DRAFT=v4SortedJK(cat).map(x=>({...x}));V5_ORDER_DIRTY=false;}const box=document.getElementById('v4OrderList');if(!box)return;const secs=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat&&v5Active(s)).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));const names=[...new Set([...secs.map(s=>s.Nama_Seksyen),...V4_ORDER_DRAFT.map(j=>j.Seksyen||'Belum Dikelaskan')])];box.innerHTML=names.map(sec=>{const rows=V4_ORDER_DRAFT.filter(j=>(j.Seksyen||'Belum Dikelaskan')===sec);return `<div class="bg-white border rounded-xl mb-4 overflow-hidden"><div class="bg-slate-100 p-3 font-extrabold text-xs">${v5E(sec)} <span class="text-slate-400 font-normal">(${rows.length})</span></div><div class="p-2 space-y-2" data-v5-group="${v5E(sec)}">${rows.map(j=>`<div draggable="true" data-v5-jkid="${v5E(j.ID_Tugasan)}" ondragstart="v5JkDrag(event)" ondragover="event.preventDefault()" ondrop="v5JkDrop(event)" class="flex flex-wrap items-center gap-3 p-3 border rounded-lg"><span class="cursor-grab text-slate-500" title="Seret untuk ubah kedudukan"><i class="fa-solid fa-grip-vertical"></i></span><span class="font-bold text-xs flex-1 min-w-32">${v5E(j.Nama_Jawatankuasa)}</span><select onchange="v5MoveJkToSection(this.dataset.id,this.value)" data-id="${v5E(j.ID_Tugasan)}" class="text-xs border rounded-lg p-2"><option value="">-- Pilih seksyen --</option>${secs.map(s=>`<option value="${v5E(s.Nama_Seksyen)}" ${s.Nama_Seksyen===sec?'selected':''}>${v5E(s.Nama_Seksyen)}</option>`).join('')}</select></div>`).join('')}</div></div>`;}).join('');v5OrderState();};
+window.v5OrderState=function(){const status=document.getElementById('v5OrderStatus'),btn=document.getElementById('v5OrderSaveBtn');if(status){status.innerText=V5_ORDER_DIRTY?'● Belum disimpan':'✓ Tiada perubahan';status.className='text-xs '+(V5_ORDER_DIRTY?'text-amber-700 font-bold':'text-slate-400');}if(btn)btn.disabled=!V5_ORDER_DIRTY;};
+window.v5JkDrag=ev=>{V5_DRAG_ID=ev.currentTarget.dataset.v5Jkid;ev.dataTransfer.effectAllowed='move';};
+window.v5JkDrop=function(ev){ev.preventDefault();const dest=ev.currentTarget,source=document.querySelector(`[data-v5-jkid="${V5_DRAG_ID}"]`);if(!source||source===dest)return;const parent=dest.parentElement,sec=parent.dataset.v5Group;const idx=V4_ORDER_DRAFT.findIndex(j=>String(j.ID_Tugasan)===V5_DRAG_ID);if(idx<0)return;const item=V4_ORDER_DRAFT.splice(idx,1)[0];item.Seksyen=sec;const target=V4_ORDER_DRAFT.findIndex(j=>String(j.ID_Tugasan)===dest.dataset.v5Jkid);V4_ORDER_DRAFT.splice(Math.max(target,0),0,item);V5_ORDER_DIRTY=true;v4DrawOrder();};
+window.v5MoveJkToSection=function(id,sec){const i=V4_ORDER_DRAFT.findIndex(j=>String(j.ID_Tugasan)===String(id));if(i<0||!sec)return;const j=V4_ORDER_DRAFT.splice(i,1)[0];j.Seksyen=sec;let insert=V4_ORDER_DRAFT.map(x=>x.Seksyen).lastIndexOf(sec);V4_ORDER_DRAFT.splice(insert+1,0,j);V5_ORDER_DIRTY=true;v4DrawOrder();};
+const v5OldSaveOrder=window.v4SaveOrder;
+window.v4SaveOrder=async function(){if(!V5_ORDER_DIRTY)return;await v5OldSaveOrder();};
+// Isu #9 — Takwim penuh: satu acara boleh merentasi tarikh serta unit; minggu berasingan daripada acara.
+function v5WeekForDate(date){return ALL_MINGGU.find(w=>String(w.Sesi)===manualV3Year()&&v5Active(w)&&String(w.Tarikh_Mula)<=date&&String(w.Tarikh_Tamat)>=date)||null;}
+function v5WeekCaption(w){if(!w)return 'Minggu belum ditetapkan';if(w.Jenis_Minggu==='KESEDIAAN')return 'Minggu Kesediaan';if(String(w.Jenis_Minggu).startsWith('CUTI'))return 'Cuti: '+String(w.Nama_Cuti||'');return 'Minggu '+String(w.Label_Minggu||'')+(w.Kumpulan_Bertugas?' · Kumpulan '+String(w.Kumpulan_Bertugas).replace(/\D/g,''):'');}
+function v5EventUnits(e){const x=String(e.Unit||'').toLowerCase();if(!x||/semua/.test(x))return V5_UNITS;return V5_UNITS.filter(u=>x.includes(u.toLowerCase())||(u==='Hal Ehwal Murid'&&/\bhem\b/.test(x))||(u==='Kokurikulum'&&/ko\s*kurikulum/.test(x)));}
+function v5EventsAt(date,unit){return ALL_TAKWIM.filter(e=>v5Active(e)&&e.Tarikh_Mula<=date&&e.Tarikh_Tamat>=date&&v5EventUnits(e).includes(unit));}
+function v5DatesInMonth(year,month){const result=[];for(let i=1;i<=new Date(year,month+1,0).getDate();i++)result.push(v5ISO(new Date(year,month,i)));return result;}
+function v5ReadinessMonths(){const y=Number(manualV3Year());const prev=ALL_MINGGU.filter(w=>String(w.Sesi)===String(y)&&w.Jenis_Minggu==='KESEDIAAN'&&String(w.Tarikh_Mula).startsWith(String(y-1)));return prev.length?[{year:y-1,month:11,readiness:true}]:[];}
+window.v4OpenCalendar=function(){showView('viewV4Calendar');v5RenderCalendar();};
+window.v4RenderCalendar=function(){if(!document.getElementById('viewV4Calendar')?.classList.contains('hidden'))v5RenderCalendar();};
+window.v5SwitchCalendarTab=function(tab){V5_CAL_TAB=tab;v5RenderCalendar();};
+function v5RenderCalendar(){const box=document.getElementById('v4CalendarItems');if(!box)return;const types=document.getElementById('v5CalendarTabs');if(types)types.querySelectorAll('button').forEach(b=>b.classList.toggle('bg-rose-600',b.dataset.tab===V5_CAL_TAB));if(V5_CAL_TAB==='ringkasan'){v5RenderCalendarSummary();return;}const year=Number(manualV3Year()),months=[...v5ReadinessMonths(),...Array.from({length:12},(_,month)=>({year,month}))],q=String(document.getElementById('v4CalendarSearch')?.value||'').trim().toLowerCase(),filter=document.getElementById('v4CalendarTypeFilter')?.value||'';let count=0;
+box.innerHTML=months.map(({year:y,month,readiness})=>{const dates=readiness?v5DatesInMonth(y,month).filter(d=>ALL_MINGGU.some(w=>String(w.Sesi)===String(year)&&w.Jenis_Minggu==='KESEDIAAN'&&d>=w.Tarikh_Mula&&d<=w.Tarikh_Tamat)):v5DatesInMonth(y,month);if(!dates.length)return '';const reserved=new Set();const rows=dates.map((date,di)=>{const w=v5WeekForDate(date),prev=di? v5WeekForDate(dates[di-1]):null;const key=w?.ID_Minggu||'',prevKey=prev?.ID_Minggu||'';let out='<tr class="border-b align-top">';if(di===0||key!==prevKey){let span=1;while(di+span<dates.length&&(v5WeekForDate(dates[di+span])?.ID_Minggu||'')===key)span++;out+=`<td rowspan="${span}" class="bg-slate-100 border p-2 text-[11px] w-36"><button onclick="v5EditWeek('${date}')" class="font-extrabold text-left text-rose-700 hover:underline">${v5E(v5WeekCaption(w))} <i class="fa-solid fa-pen text-[9px]"></i></button><div class="text-slate-500 text-[10px] mt-1">${w? v5E(w.Tarikh_Mula+' – '+w.Tarikh_Tamat):'Klik untuk tetapkan minggu'}</div></td>`;}const day=new Date(date+'T12:00:00').getDay();out+=`<td class="border p-2 w-28 text-xs whitespace-nowrap"><b>${v5E(V5_WEEKDAYS[day])}</b><br/><span class="text-slate-500">${date.slice(8)}</span></td>`;
+for(let ui=0;ui<4;ui++){const pos=date+'_'+ui;if(reserved.has(pos))continue;const unit=V5_UNITS[ui];let evs=v5EventsAt(date,unit).filter(e=>(!q||[e.Tajuk,e.Maklumat,e.Unit].some(t=>String(t||'').toLowerCase().includes(q)))&&(!filter||e.Jenis===filter));if(!evs.length){out+=`<td onclick="v5OpenCalendarCell('${date}','${unit}')" class="border p-2 text-xs cursor-pointer hover:bg-sky-50 min-w-36" title="Klik tambah aktiviti"><span class="text-slate-300">+</span></td>`;continue;}
+const ev=evs[0];let colspan=1;while(ui+colspan<4&&!reserved.has(date+'_'+(ui+colspan))&&v5EventsAt(date,V5_UNITS[ui+colspan]).length===1&&v5EventsAt(date,V5_UNITS[ui+colspan])[0].ID_Acara===ev.ID_Acara)colspan++;
+let rowspan=1;const curWeek=w?.ID_Minggu||'';while(di+rowspan<dates.length&&dates[di+rowspan]<=ev.Tarikh_Tamat&&(v5WeekForDate(dates[di+rowspan])?.ID_Minggu||'')===curWeek){const next=dates[di+rowspan];if(V5_UNITS.slice(ui,ui+colspan).some(u=>v5EventsAt(next,u).length!==1||v5EventsAt(next,u)[0].ID_Acara!==ev.ID_Acara))break;rowspan++;}for(let rr=0;rr<rowspan;rr++)for(let cc=0;cc<colspan;cc++)reserved.add(dates[di+rr]+'_'+(ui+cc));
+const others=evs.slice(1).map(e=>`<div class="mt-1 border-t pt-1">${v5E(e.Tajuk)} <button data-id="${v5E(e.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id);event.stopPropagation()" class="text-rose-600">✎</button></div>`).join('');out+=`<td rowspan="${rowspan}" colspan="${colspan}" class="border p-2 bg-rose-50/60 text-xs text-center min-w-36"><strong class="block">${v5E(ev.Tajuk)}</strong><span class="text-[10px] text-slate-500">${v5E(ev.Jenis)}</span><button data-id="${v5E(ev.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id)" class="ml-2 text-rose-600" title="Edit aktiviti"><i class="fa-solid fa-pen"></i></button>${others}</td>`;ui+=colspan-1;}
+return out+'</tr>';}).join('');count++;return `<div class="bg-white rounded-2xl border mb-5 overflow-x-auto"><div class="sticky left-0 bg-slate-900 text-white px-4 py-3 font-extrabold text-sm">${V5_MONTHS[month]} ${y}${readiness?' · Minggu Kesediaan':''}</div><table class="w-full border-collapse min-w-[1000px]"><thead><tr class="bg-slate-100 text-[11px]"><th class="border p-2">Minggu / Cuti</th><th class="border p-2">Tarikh & Hari</th>${V5_UNITS.map(u=>`<th class="border p-2">${v5E(u)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;}).join('')||'<p>Tiada bulan untuk dipaparkan.</p>';}
+function v5RenderCalendarSummary(){const box=document.getElementById('v4CalendarItems');if(!box)return;const year=manualV3Year(),q=String(document.getElementById('v4CalendarSearch')?.value||'').toLowerCase();box.innerHTML=V5_UNITS.map(unit=>{const events=ALL_TAKWIM.filter(e=>v5Active(e)&&v5EventUnits(e).includes(unit)&&String(e.Tarikh_Mula||'').slice(0,4)===year&&String(e.Tajuk||'').toLowerCase().includes(q)).sort((a,b)=>a.Tarikh_Mula.localeCompare(b.Tarikh_Mula));return `<div class="bg-white border rounded-2xl p-4 mb-4"><h3 class="font-extrabold text-base mb-3">${v5E(unit)}</h3><div class="overflow-x-auto"><table class="w-full min-w-[480px] text-xs"><thead class="bg-slate-100"><tr><th class="p-3">Bil.</th><th class="p-3 text-left">Perkara</th><th class="p-3">Tarikh</th><th class="p-3">Pindaan</th></tr></thead><tbody>${events.map((e,i)=>`<tr class="border-b"><td class="p-3 text-center">${i+1}</td><td class="p-3 font-semibold">${v5E(e.Tajuk)}</td><td class="p-3 text-center">${v5E(e.Tarikh_Mula)}${e.Tarikh_Tamat!==e.Tarikh_Mula?' – '+v5E(e.Tarikh_Tamat):''}</td><td class="p-3 text-center"><button data-id="${v5E(e.ID_Acara)}" onclick="v5ReviseEventDate(this.dataset.id)" class="bg-slate-100 px-3 py-2 rounded-lg">Pinda Tarikh</button></td></tr>`).join('')||'<tr><td colspan="4" class="p-4 text-center text-slate-400">Tiada aktiviti</td></tr>'}</tbody></table></div></div>`;}).join('');}
+window.v5OpenCalendarCell=async function(date,unit){await v4OpenCalendarEditor('',{date,unit});};
+const v5OldCalendarEditor=window.v4OpenCalendarEditor;
+window.v4OpenCalendarEditor=async function(id='',preset={}){const wanted=ALL_TAKWIM.find(e=>String(e.ID_Acara)===String(id));if(!id&&preset?.date){const defaults={Tarikh_Mula:preset.date,Tarikh_Tamat:preset.date,Unit:preset.unit};const sentinel='V5_TMP_'+Date.now();ALL_TAKWIM.push({ID_Acara:sentinel,...defaults,Status:'Aktif',Jenis:'PROGRAM',Tajuk:''});try{await v5CalendarEditorExtended(sentinel,true);}finally{ALL_TAKWIM=ALL_TAKWIM.filter(e=>e.ID_Acara!==sentinel);}return;}return v5CalendarEditorExtended(id,false);};
+async function v5CalendarEditorExtended(id='',isTemp=false){const o=ALL_TAKWIM.find(e=>String(e.ID_Acara)===String(id))||{},selUnits=v5EventUnits(o),inp=(k,label,type='text',value=o[k]||'')=>`<label class="block text-left text-xs font-bold mt-3 mb-1">${label}</label><input id="v5evt-${k}" type="${type}" value="${v5E(value)}" class="w-full p-2 border rounded-lg text-xs"/>`;const checks=V5_UNITS.map(u=>`<label class="flex gap-2 items-center text-xs"><input type="checkbox" data-v5evtunit="${v5E(u)}" ${selUnits.includes(u)?'checked':''}/> ${v5E(u)}</label>`).join('');const ans=await Swal.fire({title:isTemp||!id?'Tambah Aktiviti':'Edit Aktiviti',width:680,html:`<div class="text-left max-h-[65vh] overflow-y-auto">${inp('Tajuk','Tajuk aktiviti')}${inp('Tarikh_Mula','Tarikh mula','date',o.Tarikh_Mula||v5Today())}${inp('Tarikh_Tamat','Tarikh tamat','date',o.Tarikh_Tamat||o.Tarikh_Mula||v5Today())}<label class="block text-xs font-bold mt-3 mb-1">Unit terlibat (boleh pilih beberapa)</label><div class="grid grid-cols-2 gap-2 border rounded-lg p-3">${checks}</div><label class="block text-xs font-bold mt-3 mb-1">Jenis</label><select id="v5evt-Jenis" class="w-full border rounded-lg p-2 text-xs">${['PROGRAM','MESYUARAT','SEKOLAH','CUTI','MINGGU_RPH','MINGGU_BERTUGAS'].map(s=>`<option ${s===(o.Jenis||'PROGRAM')?'selected':''}>${s}</option>`).join('')}</select>${inp('Lokasi','Lokasi')}${inp('Maklumat','Catatan / agenda')}<label class="block text-xs font-bold mt-3 mb-1">Status</label><select id="v5evt-Status" class="w-full border rounded-lg p-2 text-xs"><option ${o.Status!=='Tidak Aktif'?'selected':''}>Aktif</option><option ${o.Status==='Tidak Aktif'?'selected':''}>Tidak Aktif</option></select></div>`,showCancelButton:true,confirmButtonText:'Simpan Aktiviti',preConfirm:()=>{const g=k=>document.getElementById('v5evt-'+k)?.value||'',units=[...document.querySelectorAll('[data-v5evtunit]:checked')].map(x=>x.dataset.v5evtunit);if(!g('Tajuk').trim()||!g('Tarikh_Mula')||g('Tarikh_Tamat')<g('Tarikh_Mula')||!units.length){Swal.showValidationMessage('Tajuk, tarikh yang betul dan sekurang-kurangnya satu unit diperlukan.');return false;}return {ID_Acara:isTemp?'':id,Tajuk:g('Tajuk'),Jenis:g('Jenis'),Tarikh_Mula:g('Tarikh_Mula'),Tarikh_Tamat:g('Tarikh_Tamat'),Unit:units.join(' | '),Lokasi:g('Lokasi'),Maklumat:g('Maklumat'),Status:g('Status'),Minggu:'',Kumpulan_Bertugas:'',Notifikasi_Hari:7};}});if(!ans.isConfirmed||!ans.value)return;showLoader('Menyimpan aktiviti…');try{const r=await postToBackend({action:'saveManualV4Calendar',data:ans.value});if(!r.success)throw Error(r.error||'Gagal simpan aktiviti');await fetchMasterStafData();v5RenderCalendar();}catch(e){Swal.fire('Gagal menyimpan aktiviti',e.message,'error');}finally{hideLoader();}}
+window.v5ReviseEventDate=async function(id){const e=ALL_TAKWIM.find(x=>String(x.ID_Acara)===String(id));if(!e)return;const ans=await Swal.fire({title:'Pindaan Tarikh Aktiviti',html:`<p class="text-xs text-left font-bold">${v5E(e.Tajuk)}</p><label class="block text-xs text-left mt-3">Tarikh Mula</label><input id="v5-revise-start" type="date" value="${v5E(e.Tarikh_Mula)}" class="w-full border rounded-lg p-3"/><label class="block text-xs text-left mt-3">Tarikh Tamat</label><input id="v5-revise-end" type="date" value="${v5E(e.Tarikh_Tamat||e.Tarikh_Mula)}" class="w-full border rounded-lg p-3"/>`,showCancelButton:true,confirmButtonText:'Simpan Pindaan',preConfirm:()=>{const a=document.getElementById('v5-revise-start').value,b=document.getElementById('v5-revise-end').value;if(!a||b<a){Swal.showValidationMessage('Tarikh tidak sah');return false;}return {...e,Tarikh_Mula:a,Tarikh_Tamat:b};}});if(!ans.isConfirmed||!ans.value)return;showLoader('Menyimpan pindaan…');try{const r=await postToBackend({action:'saveManualV4Calendar',data:ans.value});if(!r.success)throw Error(r.error||'Gagal');await fetchMasterStafData();v5RenderCalendar();}catch(err){Swal.fire('Pindaan gagal',err.message,'error');}finally{hideLoader();}};
+window.v5EditWeek=async function(date){const old=v5WeekForDate(date),startDate=new Date(date+'T12:00:00');const day=startDate.getDay();startDate.setDate(startDate.getDate()-((day+6)%7));const start=v5ISO(startDate),endDate=new Date(startDate);endDate.setDate(endDate.getDate()+6);const end=v5ISO(endDate),used=new Set(ALL_MINGGU.filter(w=>String(w.Sesi)===manualV3Year()&&w.Jenis_Minggu==='PERSEKOLAHAN'&&v5Active(w)&&w.ID_Minggu!==old?.ID_Minggu).map(w=>Number(w.Label_Minggu)));const weekOpts=['<option value="">—</option>',...Array.from({length:53},(_,i)=>i+1).filter(n=>!used.has(n)).map(n=>`<option value="${n}" ${String(old?.Label_Minggu)===String(n)?'selected':''}>Minggu ${n}</option>`)].join('');const groupOpts=['<option value="">-- Belum ditetapkan --</option>',...v4ActiveGroups().map(g=>`<option value="${v5E(g.Nombor_Kumpulan)}" ${String(old?.Kumpulan_Bertugas)===String(g.Nombor_Kumpulan)?'selected':''}>${v5E(g.Nama_Kumpulan)}</option>`)].join('');const types=['PERSEKOLAHAN','KESEDIAAN','CUTI_PENGGAL','CUTI_PERAYAAN','CUTI_UMUM','CUTI_LAIN'];const ans=await Swal.fire({title:'Tetapan Minggu Rasmi',width:610,html:`<div class="text-left text-xs"><label class="block font-bold mb-1">Jenis Minggu</label><select id="v5wk-type" class="w-full p-2 border rounded-lg">${types.map(x=>`<option ${x===(old?.Jenis_Minggu||'PERSEKOLAHAN')?'selected':''}>${x}</option>`).join('')}</select><div class="grid grid-cols-2 gap-3"><div><label class="block font-bold mt-3 mb-1">Tarikh Mula</label><input id="v5wk-start" type="date" value="${old?.Tarikh_Mula||start}" class="w-full border p-2 rounded-lg"/></div><div><label class="block font-bold mt-3 mb-1">Tarikh Tamat</label><input id="v5wk-end" type="date" value="${old?.Tarikh_Tamat||end}" class="w-full border p-2 rounded-lg"/></div></div><label class="block font-bold mt-3 mb-1">Minggu Persekolahan</label><select id="v5wk-num" class="w-full p-2 border rounded-lg">${weekOpts}</select><label class="block font-bold mt-3 mb-1">Nama Cuti (jika bercuti)</label><input id="v5wk-holiday" class="w-full p-2 border rounded-lg" value="${v5E(old?.Nama_Cuti||'')}"/><label class="block font-bold mt-3 mb-1">Kumpulan Bertugas</label><select id="v5wk-group" class="w-full p-2 border rounded-lg">${groupOpts}</select><p class="text-slate-500 mt-3">Nombor minggu tidak bergerak semasa cuti penggal. Minggu Kesediaan boleh ditetapkan pada Disember tahun sebelumnya.</p></div>`,showCancelButton:true,confirmButtonText:'Simpan Minggu',preConfirm:()=>{const get=k=>document.getElementById('v5wk-'+k)?.value||'';let type=get('type'),week=type==='KESEDIAAN'?'Kesediaan':type==='PERSEKOLAHAN'?get('num'):'';if(type==='PERSEKOLAHAN'&&!week||type.startsWith('CUTI')&&!get('holiday')||get('end')<get('start')){Swal.showValidationMessage('Lengkapkan nombor minggu atau nama cuti serta tarikh.');return false;}return {ID_Minggu:old?.ID_Minggu||'',Sesi:manualV3Year(),Tarikh_Mula:get('start'),Tarikh_Tamat:get('end'),Label_Minggu:week,Jenis_Minggu:type,Nama_Cuti:get('holiday'),Kumpulan_Bertugas:type==='PERSEKOLAHAN'?get('group'):'',Status:'Aktif'};}});if(!ans.isConfirmed||!ans.value)return;showLoader('Menyimpan minggu…');try{const r=await postToBackend({action:'saveManualV5Week',data:ans.value});if(!r.success)throw Error(r.error||'Gagal');await fetchMasterStafData();v5RenderCalendar();}catch(e){Swal.fire('Minggu tidak disimpan',e.message,'error');}finally{hideLoader();}};
+// Isu #8 — Dashboard bukan lagi salinan analitik: pusat penyediaan kandungan Buku Manual.
+const V5_BOOK_SECTIONS=[
+ ['muka_depan','Muka Depan','fa-book-open',1],
+ ['kata_aluan','Kata Aluan','fa-quote-left',2],
+ ['profil_sekolah','Profil Sekolah','fa-school',3],
+ ['pelan_lokasi','Pelan Lokasi Sekolah','fa-map-location-dot',4],
+ ['falsafah_program','Falsafah & Hala Tuju','fa-lightbulb',5],
+ ['lencana_sekolah','Lencana & Identiti','fa-image',6],
+ ['enrolmen_murid','Enrolmen Murid','fa-users',7],
+ ['pekeliling','Pekeliling & Dokumen','fa-file-lines',8],
+ ['visi_misi','Visi, Misi & Moto','fa-bullseye',9],
+ ['lain_lain','Maklumat Tambahan','fa-folder-plus',10]
+];
+function v5BookRecord(slug){return ALL_BUKU.find(x=>String(x.Tahun)===manualV3Year()&&x.Slug===slug);}
+function v5RenderDashboard(){const box=document.getElementById('v5BookCards');if(!box)return;box.innerHTML=V5_BOOK_SECTIONS.map(([slug,title,ico])=>{const r=v5BookRecord(slug),status=r?.Status||'Belum Diisi';return `<button onclick="v5OpenBookSection('${slug}')" class="text-left bg-white hover:border-rose-400 hover:shadow-md transition border rounded-2xl p-5 flex flex-col gap-3 min-h-36"><span class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 grid place-items-center text-lg"><i class="fa-solid ${ico}"></i></span><strong class="text-sm text-slate-900">${v5E(title)}</strong><span class="text-xs ${status==='Lengkap'?'text-emerald-700':status==='Draf'?'text-amber-700':'text-slate-400'}"><i class="fa-solid fa-circle text-[7px] mr-1"></i> ${v5E(status)}</span></button>`;}).join('');}
+window.v5OpenBookSection=function(slug){V5_BOOK_SLUG=slug;const spec=V5_BOOK_SECTIONS.find(x=>x[0]===slug)||[slug,slug],record=v5BookRecord(slug)||{};showView('viewV5BookEditor');document.getElementById('v5BookTitle').innerText=spec[1];document.getElementById('v5BookText').value=record.Kandungan||'';document.getElementById('v5BookStatus').value=record.Status||'Draf';document.getElementById('v5BookYear').innerText=manualV3Year();};
+window.v5SaveBookSection=async function(){const spec=V5_BOOK_SECTIONS.find(x=>x[0]===V5_BOOK_SLUG);if(!spec)return;const payload={Tahun:manualV3Year(),Slug:spec[0],Tajuk:spec[1],Kandungan:document.getElementById('v5BookText').value,Status:document.getElementById('v5BookStatus').value,Susunan:spec[3]};showLoader('Menyimpan kandungan buku…');try{const r=await postToBackend({action:'saveManualV5Book',data:payload});if(!r.success)throw Error(r.error||'Gagal');const idx=ALL_BUKU.findIndex(x=>String(x.Tahun)===payload.Tahun&&x.Slug===payload.Slug);if(idx>=0)ALL_BUKU[idx]={...ALL_BUKU[idx],...payload};else ALL_BUKU.push(payload);v5RenderDashboard();showView('viewDashboard');Swal.fire('Berjaya','Kandungan ini digunakan terus untuk cetakan buku Manual Pengurusan.','success');}catch(e){Swal.fire('Gagal',e.message,'error');}finally{hideLoader();}};
+const v5OldYearChange=window.onChangeTahunAktif;
+window.onChangeTahunAktif=async function(){await v5OldYearChange();v5RenderDashboard();v4RenderCalendar();};
+// Sync frontend globals from consolidated API response without a separate network call.
+const v5OldFetch=window.fetchMasterStafData;
+window.fetchMasterStafData=async function(){await v5OldFetch();v5RenderDashboard();v4RenderCalendar();};
+// Refresh JK after save and ensure read-only mode reloads the latest roles.
+const v5OldSaveInduk=window.simpanSetiausahaInduk;
+window.simpanSetiausahaInduk=async function(){if(!document.getElementById('selSetiausahaInduk')?.value){Swal.fire('Setiausaha wajib','Pilih Setiausaha sebelum simpan.','warning');return;}await v5OldSaveInduk();};
+window.v5RefreshSubAfterSave=async function(cat,name){await fetchMasterStafData();openSubJkDetail(cat,name);};
+window.v5RefreshIndukAfterSave=async function(cat){await fetchMasterStafData();openIndukOverview(cat);};
+// Dropdown JK kecil: Penyelaras dan AJK tidak boleh dipilih berulang dalam JK sama.
+window.v5FilterAjkChoices=function(){const lead=document.getElementById('selSubPenyelaras')?.value||'',selected=new Set();document.querySelectorAll('#containerAjkRows select[data-ajk-select="true"]').forEach(sel=>{if(lead&&sel.value===lead)sel.value='';if(sel.value&&selected.has(sel.value))sel.value='';if(sel.value)selected.add(sel.value);});document.querySelectorAll('#containerAjkRows select[data-ajk-select="true"]').forEach(sel=>{[...sel.options].forEach(o=>{o.disabled=!!o.value&&(o.value===lead||(o.value!==sel.value&&selected.has(o.value)));});});};
+const v5OldAddAjk=window.tambahBarisAjk;
+window.tambahBarisAjk=function(...args){const r=v5OldAddAjk(...args);v5FilterAjkChoices();return r;};
+document.addEventListener('change',e=>{if(e.target?.id==='selSubPenyelaras'||e.target?.matches('select[data-ajk-select="true"]'))v5FilterAjkChoices();});
+
+</script>
 </body>
 </html>
