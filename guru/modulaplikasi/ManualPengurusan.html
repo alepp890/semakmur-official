@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual Pengurusan SK Segambut Makmur 2027</title>
+  <title>Manual Pengurusan SeMAKMUR V5.1</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -179,10 +179,10 @@
       <!-- V4: TAKWIM BERSEPADU -->
       <div id="viewV4Calendar" class="hidden space-y-5">
         <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-          <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="font-display font-extrabold text-xl">Takwim Persekolahan & Aktiviti</h2><p class="text-xs text-slate-500 mt-1">Sekolah, cuti, minggu e-RPH, minggu bertugas, program dan mesyuarat dalam satu pangkalan data.</p></div>
+          <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="font-display font-extrabold text-xl">Takwim Persekolahan & Aktiviti</h2><p class="text-xs text-slate-500 mt-1">Tetapan minggu rasmi dan cuti dikawal dalam lajur Minggu/Cuti; program, bengkel, LADAP dan mesyuarat dalam takwim aktiviti.</p></div>
             <button onclick="v4OpenCalendarEditor()" class="bg-rose-600 text-white font-bold text-xs rounded-xl px-4 py-2.5"><i class="fa-solid fa-plus mr-1"></i> Tambah Aktiviti</button></div>
           <div class="mt-4 flex flex-wrap gap-2"><input type="search" id="v4CalendarSearch" oninput="v4RenderCalendar()" placeholder="Cari program atau minggu…" class="p-2 border rounded-xl text-xs flex-1 min-w-[190px]"/>
-            <select id="v4CalendarTypeFilter" onchange="v4RenderCalendar()" class="p-2 border rounded-xl text-xs"><option value="">Semua jenis</option><option value="SEKOLAH">Persekolahan</option><option value="CUTI">Cuti</option><option value="MINGGU_RPH">Minggu e-RPH</option><option value="MINGGU_BERTUGAS">Minggu Bertugas</option><option value="PROGRAM">Program / Aktiviti</option><option value="MESYUARAT">Mesyuarat</option></select></div>
+            <select id="v4CalendarTypeFilter" onchange="v4RenderCalendar()" class="p-2 border rounded-xl text-xs"><option value="">Semua jenis</option><option value="CUTI">Cuti</option><option value="MESYUARAT">Mesyuarat</option><option value="BENGKEL">Bengkel</option><option value="AKTIVITI">Aktiviti</option><option value="LADAP">LADAP</option><option value="PROGRAM">Program</option></select></div>
         </div>
         <div id="v5CalendarTabs" class="flex gap-2 flex-wrap"><button data-tab="penuh" onclick="v5SwitchCalendarTab('penuh')" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Takwim Penuh</button><button data-tab="ringkasan" onclick="v5SwitchCalendarTab('ringkasan')" class="bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold">Ringkasan Mengikut Unit</button><button onclick="v5EditWeek(manualV3Year()===v5Today().slice(0,4)?v5Today():manualV3Year()+'-01-01')" class="ml-auto border px-4 py-2 rounded-xl text-xs font-bold">+ Tetapkan Minggu / Cuti</button></div>
         <div id="v4CalendarItems" class="space-y-2"></div>
@@ -207,6 +207,13 @@
             </button>
           </div>
 
+          <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 border border-slate-200 p-2">
+            <div class="flex flex-wrap gap-2" role="tablist" aria-label="Status staf">
+              <button id="v51StaffTabActive" role="tab" aria-selected="true" onclick="v51SwitchStafView('aktif')" class="px-4 py-2 rounded-lg bg-rose-600 text-white font-extrabold text-xs"> <i class="fa-solid fa-user-check mr-1"></i> Staf Aktif <span id="v51ActiveCount" class="ml-1 opacity-80"></span></button>
+              <button id="v51StaffTabArchive" role="tab" aria-selected="false" onclick="v51SwitchStafView('arkib')" class="px-4 py-2 rounded-lg bg-white text-slate-600 border border-slate-200 font-extrabold text-xs"> <i class="fa-solid fa-box-archive mr-1"></i> Arkib Staf <span id="v51ArchiveCount" class="ml-1 opacity-80"></span></button>
+            </div>
+            <span class="text-[11px] text-slate-500" id="v51StaffViewHint">Hanya staf aktif ditunjukkan. Rekod arkib tidak dipadam.</span>
+          </div>
           <div class="flex flex-wrap justify-between items-center gap-3">
           <div class="flex flex-wrap items-center gap-2">
             <button onclick="filterStafTable('Semua', event)" class="btn-filter-staf active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs">Semua</button>
@@ -221,7 +228,7 @@
 
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-            <span class="font-bold text-xs text-slate-700"><i class="fa-solid fa-users mr-2 text-rose-600"></i>Senarai Staf Registered</span>
+            <span class="font-bold text-xs text-slate-700" id="v51StaffListHeading"><i class="fa-solid fa-users mr-2 text-rose-600"></i> Senarai Staf Aktif</span>
             <span id="txtCountStaf" class="text-[11px] font-extrabold bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full">0 Staf</span>
           </div>
 
@@ -441,11 +448,13 @@
               <h2 id="txtIndukCategoryTitle" class="font-display font-extrabold text-xl text-slate-800">JK Induk</h2>
               <p class="text-xs text-slate-500">Pemetaan Penuh Barisan Kepimpinan & Penyelaras Sub-Unit</p>
             </div>
-            <button id="v4EditIndukBtn" onclick="v4SetIndukEditMode(true)" class="px-4 py-2 bg-slate-200 text-slate-800 font-bold rounded-xl text-xs"><i class="fa-solid fa-pen mr-1"></i> Edit Jawatan</button>
+            <div class="ml-auto flex flex-wrap gap-2 items-center justify-end shrink-0">
+              <button id="v4EditIndukBtn" onclick="v4SetIndukEditMode(true)" class="px-4 py-2 bg-slate-200 text-slate-800 font-bold rounded-xl text-xs"><i class="fa-solid fa-pen mr-1"></i> Edit Jawatan</button>
               <button id="v5CancelIndukBtn" onclick="v5CancelInduk()" class="hidden border border-slate-200 bg-slate-100 rounded-xl px-4 py-2 text-xs font-bold">Batal</button>
-              <button id="v4SaveIndukBtn" onclick="simpanSetiausahaInduk()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-              <i class="fa-solid fa-floppy-disk"></i> Simpan Pimpinan JK Induk
-            </button>
+              <button id="v4SaveIndukBtn" onclick="simpanSetiausahaInduk()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex gap-2 items-center">
+                <i class="fa-solid fa-floppy-disk"></i> Simpan Pimpinan JK Induk
+              </button>
+            </div>
           </div>
 
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
@@ -2177,22 +2186,52 @@
       stateSemakanBuku[keySkop] = idPenyemak;
     }
 
+    let CURRENT_STAF_VIEW = 'aktif';
+    function v51PrettyDate(value){
+      if(!value)return '';
+      const str=String(value);
+      if(/^\d{4}-\d{2}-\d{2}/.test(str))return str.slice(8,10)+'/'+str.slice(5,7)+'/'+str.slice(0,4);
+      return str;
+    }
+    function v51SwitchStafView(view){
+      CURRENT_STAF_VIEW=view==='arkib'?'arkib':'aktif';
+      ['aktif','arkib'].forEach(v=>{
+        const btn=document.getElementById(v==='aktif'?'v51StaffTabActive':'v51StaffTabArchive');
+        if(!btn)return;
+        const selected=CURRENT_STAF_VIEW===v;
+        btn.setAttribute('aria-selected',selected?'true':'false');
+        btn.className='px-4 py-2 rounded-lg font-extrabold text-xs '+(selected?'bg-rose-600 text-white shadow-sm':'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100');
+      });
+      const hint=document.getElementById('v51StaffViewHint');
+      if(hint)hint.textContent=CURRENT_STAF_VIEW==='arkib'?'Arkib hanya mengasingkan paparan. Rekod sejarah staf tetap disimpan.':'Hanya staf aktif ditunjukkan. Rekod arkib tidak dipadam.';
+      CURRENT_STAF_FILTER='Semua';
+      document.querySelectorAll('.btn-filter-staf').forEach((b,i)=>{
+        b.className='btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs '+(i===0?'bg-rose-600 text-white':'bg-slate-100 hover:bg-slate-200 text-slate-700');
+      });
+      renderMasterStafTable();
+    }
+
     function renderMasterStafTable(filterKat = CURRENT_STAF_FILTER) {
       CURRENT_STAF_FILTER = filterKat;
       const tbody = document.getElementById('tbodyMasterStaf');
       if (!tbody) return;
 
       const sortedStaf = sortStafList(ALL_STAF);
-      let filteredData = sortedStaf;
+      const activeStaf=sortedStaf.filter(s=>String(s.Status||'').trim().toLowerCase()==='aktif');
+      const archiveStaf=sortedStaf.filter(s=>String(s.Status||'').trim().toLowerCase()!=='aktif');
+      const countActive=document.getElementById('v51ActiveCount');if(countActive)countActive.textContent='('+activeStaf.length+')';
+      const countArchive=document.getElementById('v51ArchiveCount');if(countArchive)countArchive.textContent='('+archiveStaf.length+')';
+      const heading=document.getElementById('v51StaffListHeading');if(heading)heading.innerHTML='<i class="fa-solid '+(CURRENT_STAF_VIEW==='aktif'?'fa-users text-rose-600':'fa-box-archive text-slate-600')+' mr-2"></i> Senarai Staf '+(CURRENT_STAF_VIEW==='aktif'?'Aktif':'Arkib');
+      let filteredData = CURRENT_STAF_VIEW==='aktif'?activeStaf:archiveStaf;
 
       if (filterKat === 'Pentadbir') {
-        filteredData = sortedStaf.filter(s => ['Guru Besar', 'GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf));
+        filteredData = filteredData.filter(s => ['Guru Besar', 'GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf));
       } else if (filterKat === 'Guru Akademik') {
-        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'Guru Akademik');
+        filteredData = filteredData.filter(s => s.Kategori_Staf === 'Guru Akademik');
       } else if (filterKat === 'Guru Praktikal') {
-        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'Guru Praktikal');
+        filteredData = filteredData.filter(s => s.Kategori_Staf === 'Guru Praktikal');
       } else if (filterKat === 'AKP') {
-        filteredData = sortedStaf.filter(s => s.Kategori_Staf === 'AKP');
+        filteredData = filteredData.filter(s => s.Kategori_Staf === 'AKP');
       }
 
       const term=String(document.getElementById('stafSearchV3')?.value||'').trim().toLowerCase();
@@ -2228,6 +2267,7 @@
                 ${staf.Nama_Penuh || '-'}
               </button>
               <p class="text-[10px] text-rose-600 font-semibold">"${staf.Nama_Samaran || '-'}"</p>
+              ${CURRENT_STAF_VIEW==='arkib'?`<p class="text-[10px] text-slate-500 mt-1"><i class="fa-regular fa-calendar-xmark mr-1"></i> Tarikh keluar: ${manualV3Escape(v51PrettyDate(staf.Tarikh_Keluar)||'Tidak direkodkan')}</p>`:''}
             </td>
             <td class="table-cell-std"><span class="px-2 py-0.5 text-[10px] rounded-full ${badgeClass}">${kat}</span></td>
             <td class="table-cell-std font-bold text-slate-700">${staf.Gred_Jawatan || '-'}</td>
@@ -2723,12 +2763,45 @@
       return match ? match[1] : namaKelas;
     }
 
+    /** V5.1: guru layak untuk Pengurusan Kelas dan Bilik Khas sahaja. */
+    function v51AssignableTeachers(){
+      const adminCats=new Set(['guru besar','gpk pentadbiran','gpk hal ehwal murid','gpk ko kurikulum','gpk kokurikulum']);
+      return sortStafList(ALL_STAF.filter(s=>
+        String(s.Status||'').trim().toLowerCase()==='aktif' &&
+        !adminCats.has(String(s.Kategori_Staf||'').trim().toLowerCase()) &&
+        !/^gpk\b/i.test(String(s.Kategori_Staf||'').trim()) &&
+        String(s.Kategori_Staf||'').trim().toLowerCase()!=='akp'
+      ));
+    }
+
+    function v51ValidateAssignments(module){
+      const allowed=new Set(v51AssignableTeachers().map(s=>s.ID_Staf));
+      const problems=[];
+      if(module==='semua'||module==='kelas'){
+        const owners=new Map();
+        ALL_LOKASI.filter(l=>String(l.Kategori||'').toLowerCase()==='kelas'&&String(l.Status||'Aktif').toLowerCase()==='aktif').forEach(l=>{
+          const name=l.Nama_Lokasi,st=statePengurusanKelas[name]||{};
+          if(st.gk && !allowed.has(st.gk))problems.push(name+': Guru Kelas bukan staf aktif yang layak.');
+          if(st.gpk && !allowed.has(st.gpk))problems.push(name+': Guru Pembantu bukan staf aktif yang layak.');
+          if(st.gk && st.gk===st.gpk)problems.push(name+': Guru Kelas dan Guru Pembantu tidak boleh sama.');
+          if(st.gk){if(owners.has(st.gk))problems.push(name+': Guru Kelas sama seperti '+owners.get(st.gk)+'.');else owners.set(st.gk,name);}
+        });
+      }
+      if(module==='semua'||module==='bilik'){
+        ALL_LOKASI.filter(l=>String(l.Kategori||'').toLowerCase()==='bilik khas'&&String(l.Status||'Aktif').toLowerCase()==='aktif').forEach(l=>{
+          const id=stateBilikKhas[l.Nama_Lokasi];
+          if(id&&!allowed.has(id))problems.push(l.Nama_Lokasi+': Penyelaras bukan staf aktif yang layak.');
+        });
+      }
+      return problems;
+    }
+
     function renderTableKelas() {
       const tbody = document.getElementById('tbodyPengurusanKelas');
       if (!tbody) return;
 
       const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'kelas' && String(l.Status||'Aktif').toLowerCase()==='aktif');
-      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+      const activeGuruOnly = v51AssignableTeachers();
       const sortedGuru = sortStafList(activeGuruOnly);
 
       if (senaraiKelas.length === 0) {
@@ -2759,10 +2832,23 @@
         let optGk = `<option value="">-- Pilih Guru Kelas --</option>`;
         let optGpk = `<option value="">-- Pilih Guru Pembantu --</option>`;
 
+        const selectedElsewhere=new Set(Object.entries(statePengurusanKelas)
+          .filter(([nama,st])=>nama!==namaKelas && st && st.gk).map(([nama,st])=>st.gk));
         sortedGuru.forEach(g => {
-          optGk += `<option value="${g.ID_Staf}" ${g.ID_Staf === currentGk ? 'selected' : ''}>${g.Nama_Penuh}</option>`;
-          optGpk += `<option value="${g.ID_Staf}" ${g.ID_Staf === currentGpk ? 'selected' : ''}>${g.Nama_Penuh}</option>`;
+          if (!selectedElsewhere.has(g.ID_Staf)) {
+            optGk += `<option value="${g.ID_Staf}" ${g.ID_Staf === currentGk ? 'selected' : ''}>${manualV3Escape(g.Nama_Penuh)}</option>`;
+          }
+          if (g.ID_Staf !== currentGk) {
+            optGpk += `<option value="${g.ID_Staf}" ${g.ID_Staf === currentGpk ? 'selected' : ''}>${manualV3Escape(g.Nama_Penuh)}</option>`;
+          }
         });
+        // Rekod lama tidak dibuang secara senyap jika pelantikan asal tidak lagi layak.
+        if(currentGk && !sortedGuru.some(g=>g.ID_Staf===currentGk && !selectedElsewhere.has(g.ID_Staf))) {
+          optGk += `<option selected value="${manualV3Escape(currentGk)}">⚠ Perlu semak / ganti Guru Kelas</option>`;
+        }
+        if(currentGpk && !sortedGuru.some(g=>g.ID_Staf===currentGpk && g.ID_Staf!==currentGk)) {
+          optGpk += `<option selected value="${manualV3Escape(currentGpk)}">⚠ Perlu semak / ganti Guru Pembantu</option>`;
+        }
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
@@ -2787,9 +2873,21 @@
     }
 
     function updateStateKelas(namaKelas, field, val) {
-      markManualV3Dirty();
       if (!statePengurusanKelas[namaKelas]) statePengurusanKelas[namaKelas] = { gk: '', gpk: '' };
-      statePengurusanKelas[namaKelas][field] = val;
+      const st=statePengurusanKelas[namaKelas];
+      if(val && !v51AssignableTeachers().some(g=>g.ID_Staf===val)) {
+        Swal.fire('Guru tidak layak','Sila pilih guru aktif yang bukan pentadbir sekolah.','warning');
+        renderTableKelas();return;
+      }
+      if (val && field==='gk' && Object.entries(statePengurusanKelas).some(([name,other])=>name!==namaKelas && other.gk===val)) {
+        Swal.fire('Guru Kelas bertindih','Guru ini telah menjadi Guru Kelas bagi kelas lain.','warning');
+        renderTableKelas();return;
+      }
+      if (val && ((field==='gk' && st.gpk===val) || (field==='gpk' && st.gk===val))) {
+        Swal.fire('Guru berganda','Guru Kelas dan Guru Pembantu bagi kelas yang sama mesti berlainan orang.','warning');
+        renderTableKelas();return;
+      }
+      if(st[field]!==val){st[field]=val;markManualV3Dirty();}
       renderTableKelas();
     }
 
@@ -2798,7 +2896,7 @@
       if (!tbody) return;
 
       const senaraiBilik = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'bilik khas' && String(l.Status||'Aktif').toLowerCase()==='aktif');
-      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+      const activeGuruOnly = v51AssignableTeachers();
       const sortedGuru = sortStafList(activeGuruOnly);
 
       if (senaraiBilik.length === 0) {
@@ -2813,8 +2911,11 @@
 
         let optP = `<option value="">-- Pilih Guru Penyelaras --</option>`;
         sortedGuru.forEach(g => {
-          optP += `<option value="${g.ID_Staf}" ${g.ID_Staf === currentPenyelaras ? 'selected' : ''}>${g.Nama_Penuh}</option>`;
+          optP += `<option value="${g.ID_Staf}" ${g.ID_Staf === currentPenyelaras ? 'selected' : ''}>${manualV3Escape(g.Nama_Penuh)}</option>`;
         });
+        if(currentPenyelaras && !sortedGuru.some(g=>g.ID_Staf===currentPenyelaras)) {
+          optP += `<option selected value="${manualV3Escape(currentPenyelaras)}">⚠ Penyelaras tidak layak — sila ganti</option>`;
+        }
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50 transition">
@@ -3021,6 +3122,13 @@
       const scopes = modulDipilih === 'semua' ? MANUAL_V3_ALL_SCHOOL_SCOPES : MANUAL_V3_SCOPE_MAP[modulDipilih];
       if (!scopes) { await Swal.fire('Modul Tidak Dikenali','Sila pilih tab pengurusan yang sah.','error');return; }
       payloadBatch = payloadBatch.filter(x=>scopes.includes(x.nama_jawatankuasa));
+      if(['semua','kelas','bilik'].includes(modulDipilih)){
+        const issues=v51ValidateAssignments(modulDipilih);
+        if(issues.length){
+          await Swal.fire({title:'Semakan Pengagihan Diperlukan',icon:'warning',html:'<div class="text-left text-xs max-h-72 overflow-y-auto"><p class="mb-2">Betulkan maklumat berikut sebelum menyimpan:</p><ul class="list-disc pl-4 space-y-1">'+issues.slice(0,12).map(x=>'<li>'+manualV3Escape(x)+'</li>').join('')+'</ul></div>',confirmButtonText:'Semak Pengagihan'});
+          return;
+        }
+      }
       if(!await manualV3ConfirmSave(scopes,payloadBatch,modulDipilih==='semua'?'Semua Pengurusan Sekolah':modulDipilih.toUpperCase()))return;
       const payload = {
         action: 'savePerananStafV2', target_year: tahunAktif,
@@ -3323,7 +3431,7 @@ const ev=evs[0];let colspan=1;while(ui+colspan<4&&!reserved.has(date+'_'+(ui+col
 let rowspan=1;const curWeek=w?.ID_Minggu||'';while(di+rowspan<dates.length&&dates[di+rowspan]<=ev.Tarikh_Tamat&&(v5WeekForDate(dates[di+rowspan])?.ID_Minggu||'')===curWeek){const next=dates[di+rowspan];if(V5_UNITS.slice(ui,ui+colspan).some(u=>v5EventsAt(next,u).length!==1||v5EventsAt(next,u)[0].ID_Acara!==ev.ID_Acara))break;rowspan++;}for(let rr=0;rr<rowspan;rr++)for(let cc=0;cc<colspan;cc++)reserved.add(dates[di+rr]+'_'+(ui+cc));
 const others=evs.slice(1).map(e=>`<div class="mt-1 border-t pt-1">${v5E(e.Tajuk)} <button data-id="${v5E(e.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id);event.stopPropagation()" class="text-rose-600">✎</button></div>`).join('');out+=`<td rowspan="${rowspan}" colspan="${colspan}" class="border p-2 bg-rose-50/60 text-xs text-center min-w-36"><strong class="block">${v5E(ev.Tajuk)}</strong><span class="text-[10px] text-slate-500">${v5E(ev.Jenis)}</span><button data-id="${v5E(ev.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id)" class="ml-2 text-rose-600" title="Edit aktiviti"><i class="fa-solid fa-pen"></i></button>${others}</td>`;ui+=colspan-1;}
 return out+'</tr>';}).join('');count++;return `<div class="bg-white rounded-2xl border mb-5 overflow-x-auto"><div class="sticky left-0 bg-slate-900 text-white px-4 py-3 font-extrabold text-sm">${V5_MONTHS[month]} ${y}${readiness?' · Minggu Kesediaan':''}</div><table class="w-full border-collapse min-w-[1000px]"><thead><tr class="bg-slate-100 text-[11px]"><th class="border p-2">Minggu / Cuti</th><th class="border p-2">Tarikh & Hari</th>${V5_UNITS.map(u=>`<th class="border p-2">${v5E(u)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;}).join('')||'<p>Tiada bulan untuk dipaparkan.</p>';}
-function v5RenderCalendarSummary(){const box=document.getElementById('v4CalendarItems');if(!box)return;const year=manualV3Year(),q=String(document.getElementById('v4CalendarSearch')?.value||'').toLowerCase();box.innerHTML=V5_UNITS.map(unit=>{const events=ALL_TAKWIM.filter(e=>v5Active(e)&&v5EventUnits(e).includes(unit)&&String(e.Tarikh_Mula||'').slice(0,4)===year&&String(e.Tajuk||'').toLowerCase().includes(q)).sort((a,b)=>a.Tarikh_Mula.localeCompare(b.Tarikh_Mula));return `<div class="bg-white border rounded-2xl p-4 mb-4"><h3 class="font-extrabold text-base mb-3">${v5E(unit)}</h3><div class="overflow-x-auto"><table class="w-full min-w-[480px] text-xs"><thead class="bg-slate-100"><tr><th class="p-3">Bil.</th><th class="p-3 text-left">Perkara</th><th class="p-3">Tarikh</th><th class="p-3">Pindaan</th></tr></thead><tbody>${events.map((e,i)=>`<tr class="border-b"><td class="p-3 text-center">${i+1}</td><td class="p-3 font-semibold">${v5E(e.Tajuk)}</td><td class="p-3 text-center">${v5E(e.Tarikh_Mula)}${e.Tarikh_Tamat!==e.Tarikh_Mula?' – '+v5E(e.Tarikh_Tamat):''}</td><td class="p-3 text-center"><button data-id="${v5E(e.ID_Acara)}" onclick="v5ReviseEventDate(this.dataset.id)" class="bg-slate-100 px-3 py-2 rounded-lg">Pinda Tarikh</button></td></tr>`).join('')||'<tr><td colspan="4" class="p-4 text-center text-slate-400">Tiada aktiviti</td></tr>'}</tbody></table></div></div>`;}).join('');}
+function v5RenderCalendarSummary(){const box=document.getElementById('v4CalendarItems');if(!box)return;const year=manualV3Year(),q=String(document.getElementById('v4CalendarSearch')?.value||'').toLowerCase();box.innerHTML=V5_UNITS.map(unit=>{const events=ALL_TAKWIM.filter(e=>!['MINGGU_RPH','MINGGU_BERTUGAS'].includes(String(e.Jenis||''))&&v5Active(e)&&v5EventUnits(e).includes(unit)&&String(e.Tarikh_Mula||'').slice(0,4)===year&&String(e.Tajuk||'').toLowerCase().includes(q)).sort((a,b)=>a.Tarikh_Mula.localeCompare(b.Tarikh_Mula));return `<div class="bg-white border rounded-2xl p-4 mb-4"><h3 class="font-extrabold text-base mb-3">${v5E(unit)}</h3><div class="overflow-x-auto"><table class="w-full min-w-[480px] text-xs"><thead class="bg-slate-100"><tr><th class="p-3">Bil.</th><th class="p-3 text-left">Perkara</th><th class="p-3">Tarikh</th><th class="p-3">Pindaan</th></tr></thead><tbody>${events.map((e,i)=>`<tr class="border-b"><td class="p-3 text-center">${i+1}</td><td class="p-3 font-semibold">${v5E(e.Tajuk)}</td><td class="p-3 text-center">${v5E(e.Tarikh_Mula)}${e.Tarikh_Tamat!==e.Tarikh_Mula?' – '+v5E(e.Tarikh_Tamat):''}</td><td class="p-3 text-center"><button data-id="${v5E(e.ID_Acara)}" onclick="v5ReviseEventDate(this.dataset.id)" class="bg-slate-100 px-3 py-2 rounded-lg">Pinda Tarikh</button></td></tr>`).join('')||'<tr><td colspan="4" class="p-4 text-center text-slate-400">Tiada aktiviti</td></tr>'}</tbody></table></div></div>`;}).join('');}
 window.v5OpenCalendarCell=async function(date,unit){await v4OpenCalendarEditor('',{date,unit});};
 const v5OldCalendarEditor=window.v4OpenCalendarEditor;
 window.v4OpenCalendarEditor=async function(id='',preset={}){const wanted=ALL_TAKWIM.find(e=>String(e.ID_Acara)===String(id));if(!id&&preset?.date){const defaults={Tarikh_Mula:preset.date,Tarikh_Tamat:preset.date,Unit:preset.unit};const sentinel='V5_TMP_'+Date.now();ALL_TAKWIM.push({ID_Acara:sentinel,...defaults,Status:'Aktif',Jenis:'PROGRAM',Tajuk:''});try{await v5CalendarEditorExtended(sentinel,true);}finally{ALL_TAKWIM=ALL_TAKWIM.filter(e=>e.ID_Acara!==sentinel);}return;}return v5CalendarEditorExtended(id,false);};
@@ -3362,6 +3470,290 @@ window.v5FilterAjkChoices=function(){const lead=document.getElementById('selSubP
 const v5OldAddAjk=window.tambahBarisAjk;
 window.tambahBarisAjk=function(...args){const r=v5OldAddAjk(...args);v5FilterAjkChoices();return r;};
 document.addEventListener('change',e=>{if(e.target?.id==='selSubPenyelaras'||e.target?.matches('select[data-ajk-select="true"]'))v5FilterAjkChoices();});
+
+
+/* ===== V5.1: Pembetulan UI & Takwim ===== */
+// V5.1: Takwim bulan berbentuk accordion (satu bulan terbuka pada setiap masa).
+let V51_MONTH_OPEN = '';
+function v51MonthKey(y,m,readiness=false){ return `${y}-${m}${readiness?'-kesediaan':''}`; }
+window.v51OpenMonth = function(key){
+  if (V51_MONTH_OPEN === key) return; // sekurang-kurangnya satu bulan sentiasa terbuka
+  V51_MONTH_OPEN=key;
+  v5RenderCalendar();
+};
+function v51WeekGroupKey(date,w){
+  if(w) return 'w:'+String(w.ID_Minggu||w.Tarikh_Mula);
+  const d=new Date(date+'T12:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));
+  return 'kosong:'+v5ISO(d);
+}
+function v51WeekIsHoliday(w){return !!w && String(w.Jenis_Minggu||'').startsWith('CUTI');}
+function v51WeekTitle(w){
+  if(!w)return 'Minggu Belum Ditetapkan';
+  if(v51WeekIsHoliday(w))return 'CUTI';
+  if(w.Jenis_Minggu==='KESEDIAAN')return 'Minggu Kesediaan';
+  return 'Minggu '+String(w.Label_Minggu||'');
+}
+function v51WeekGroupName(w){
+  if(!w || v51WeekIsHoliday(w) || !w.Kumpulan_Bertugas)return '';
+  const number=String(w.Kumpulan_Bertugas).replace(/\D/g,'');
+  const group=v4ActiveGroups().find(g=>String(g.Nombor_Kumpulan)===number);
+  return group?.Nama_Kumpulan || (number?'Kumpulan '+number:String(w.Kumpulan_Bertugas));
+}
+function v51EventTheme(type){
+  const t=String(type||'').trim().toUpperCase();
+  if(t==='CUTI')return 'bg-rose-100 text-rose-900 border-rose-300';
+  if(t==='MESYUARAT')return 'bg-sky-100 text-sky-950 border-sky-300';
+  if(['BENGKEL','AKTIVITI','LADAP','PROGRAM','SEKOLAH'].includes(t))return 'bg-emerald-100 text-emerald-950 border-emerald-300';
+  return 'bg-slate-100 text-slate-800 border-slate-300';
+}
+function v51CalendarMatch(e, search, kind){
+  if(['MINGGU_RPH','MINGGU_BERTUGAS'].includes(String(e.Jenis||'')))return false; // rekod warisan kekal dalam DB, tidak muncul sebagai aktiviti
+  return (!search || [e.Tajuk,e.Maklumat,e.Unit].some(x=>String(x||'').toLowerCase().includes(search))) &&
+    (!kind || String(e.Jenis||'')===kind || (kind==='AKTIVITI'&&String(e.Jenis)==='SEKOLAH'));
+}
+function v51CellEventList(date,unit,search,kind){
+  return v5EventsAt(date,unit).filter(e=>v51CalendarMatch(e,search,kind));
+}
+function v51EventInline(e){
+  return `<div class="text-[11px] mt-2 border-t border-current/20 pt-1">${v5E(e.Tajuk)} <button data-id="${v5E(e.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id);event.stopPropagation()" aria-label="Edit aktiviti tambahan" class="ml-1 underline">Edit</button></div>`;
+}
+// Fungsi asal V5 masih wujud untuk keserasian API; paparan sahaja dinaik taraf.
+window.v5RenderCalendar=function(){
+  const box=document.getElementById('v4CalendarItems');if(!box)return;
+  const tabs=document.getElementById('v5CalendarTabs');
+  if(tabs)tabs.querySelectorAll('[data-tab]').forEach(b=>{
+    const selected=b.dataset.tab===V5_CAL_TAB;
+    b.classList.toggle('bg-rose-600',selected);
+    b.classList.toggle('text-white',selected);
+    b.classList.toggle('bg-slate-100',!selected);
+    b.classList.toggle('text-slate-700',!selected);
+  });
+  if(V5_CAL_TAB==='ringkasan'){v5RenderCalendarSummary();return;}
+  const year=Number(manualV3Year());
+  const months=[...v5ReadinessMonths(),...Array.from({length:12},(_,m)=>({year,month:m}))];
+  const monthKeys=months.map(x=>v51MonthKey(x.year,x.month,!!x.readiness));
+  if(!monthKeys.includes(V51_MONTH_OPEN)){
+    const today=new Date();
+    const currentKey=v51MonthKey(year,today.getMonth());
+    V51_MONTH_OPEN=monthKeys.includes(currentKey)&&today.getFullYear()===year?currentKey:v51MonthKey(year,0);
+  }
+  const search=String(document.getElementById('v4CalendarSearch')?.value||'').trim().toLowerCase();
+  const kind=String(document.getElementById('v4CalendarTypeFilter')?.value||'');
+  box.innerHTML=months.map(({year:y,month,readiness})=>{
+    const key=v51MonthKey(y,month,!!readiness),open=key===V51_MONTH_OPEN;
+    const heading=`${V5_MONTHS[month]} ${y}${readiness?' · Minggu Kesediaan':''}`;
+    let calendar='';
+    if(open){
+      const dates=readiness?v5DatesInMonth(y,month).filter(date=>ALL_MINGGU.some(w=>
+        String(w.Sesi)===String(year)&&w.Jenis_Minggu==='KESEDIAAN'&&v5Active(w)&&date>=w.Tarikh_Mula&&date<=w.Tarikh_Tamat
+      )):v5DatesInMonth(y,month);
+      const booked=new Set();
+      const rows=dates.map((date,i)=>{
+        const week=v5WeekForDate(date),weekKey=v51WeekGroupKey(date,week);
+        const prevKey=i?v51WeekGroupKey(dates[i-1],v5WeekForDate(dates[i-1])):'';
+        let row='<tr class="border-b border-slate-200 align-top">';
+        if(i===0||weekKey!==prevKey){
+          let span=1;
+          while(i+span<dates.length&&v51WeekGroupKey(dates[i+span],v5WeekForDate(dates[i+span]))===weekKey)span++;
+          const holiday=v51WeekIsHoliday(week);
+          const weekBackground=holiday?'bg-rose-100 border-rose-300':week?.Jenis_Minggu==='KESEDIAAN'?'bg-amber-50 border-amber-200':week?'bg-blue-50 border-blue-200':'bg-slate-50 border-slate-200';
+          const title=v51WeekTitle(week),groupName=v51WeekGroupName(week);
+          row+=`<td rowspan="${span}" class="border-2 ${weekBackground} p-3 align-middle text-center min-w-[165px]">
+             <button onclick="v5EditWeek('${date}')" class="block mx-auto text-center w-full group" title="Tetapkan minggu/cuti">
+               <span class="block text-base font-extrabold leading-snug ${holiday?'text-rose-900':'text-slate-900'}">${v5E(title)}</span>
+               ${holiday?`<span class="block text-sm font-bold text-rose-800 mt-2">${v5E(week.Nama_Cuti||'')}</span>`:''}
+               ${groupName?`<span class="block text-[12px] font-bold text-indigo-800 mt-2">${v5E(groupName)}</span>`:''}
+               <i class="fa-solid fa-pen text-[11px] mt-3 text-rose-600 group-hover:text-rose-900"></i>
+             </button>
+             <div class="text-[10px] mt-2 text-slate-500">${week?v5E(week.Tarikh_Mula+' – '+week.Tarikh_Tamat):'Klik ikon untuk menetapkan minggu'}</div>
+           </td>`;
+        }
+        const weekday=V5_WEEKDAYS[new Date(date+'T12:00:00').getDay()];
+        row+=`<td class="border border-slate-200 bg-white p-3 min-w-[105px] align-middle"><span class="font-extrabold text-xs">${v5E(weekday)}</span><div class="text-slate-500 text-xs mt-1">${date.slice(8)}</div></td>`;
+        if(v51WeekIsHoliday(week)){
+          const pos=date+'_0';
+          if(!booked.has(pos)){
+            let rowspan=1;
+            while(i+rowspan<dates.length && v51WeekGroupKey(dates[i+rowspan],v5WeekForDate(dates[i+rowspan]))===weekKey)rowspan++;
+            for(let n=0;n<rowspan;n++)for(let c=0;c<4;c++)booked.add(dates[i+n]+'_'+c);
+            const otherEvents=new Map();
+            for(let n=0;n<rowspan;n++)for(const unit of V5_UNITS)
+              for(const ev of v51CellEventList(dates[i+n],unit,search,kind))otherEvents.set(String(ev.ID_Acara),ev);
+            const extras=[...otherEvents.values()].filter(ev=>String(ev.Jenis)!=='CUTI').map(v51EventInline).join('');
+            row+=`<td rowspan="${rowspan}" colspan="4" class="border-2 border-rose-400 bg-rose-100 p-5 text-center align-middle min-h-[78px]">
+               <div class="text-rose-900 text-base md:text-lg font-extrabold leading-relaxed">${v5E(week.Nama_Cuti||'Cuti Persekolahan')}</div>
+               <div class="text-rose-700 text-xs mt-1">CUTI</div>${extras}
+             </td>`;
+          }
+          return row+'</tr>';
+        }
+        for(let col=0;col<V5_UNITS.length;col++){
+          const pos=date+'_'+col;if(booked.has(pos))continue;
+          const unit=V5_UNITS[col],events=v51CellEventList(date,unit,search,kind);
+          if(!events.length){
+            row+=`<td onclick="v5OpenCalendarCell('${date}','${unit}')" class="border border-slate-200 p-2 text-center cursor-pointer hover:bg-blue-50 min-w-[175px]" title="Klik untuk menambah aktiviti"><span class="text-slate-300">+</span></td>`;
+            continue;
+          }
+          const ev=events[0];let colspan=1;
+          // Gabung mendatar jika acara tunggal yang sama merentasi unit bersebelahan.
+          if(events.length===1){
+            while(col+colspan<4&&!booked.has(date+'_'+(col+colspan))){
+              const match=v51CellEventList(date,V5_UNITS[col+colspan],search,kind);
+              if(match.length!==1||String(match[0].ID_Acara)!==String(ev.ID_Acara))break;
+              colspan++;
+            }
+          }
+          let rowspan=1;
+          if(events.length===1){
+            while(i+rowspan<dates.length && dates[i+rowspan]<=ev.Tarikh_Tamat){
+              const future=dates[i+rowspan];
+              if(v51WeekIsHoliday(v5WeekForDate(future)))break;
+              if(V5_UNITS.slice(col,col+colspan).some(u=>{
+                const a=v51CellEventList(future,u,search,kind);
+                return a.length!==1||String(a[0].ID_Acara)!==String(ev.ID_Acara);
+              }))break;
+              rowspan++;
+            }
+          }
+          for(let r=0;r<rowspan;r++)for(let c=0;c<colspan;c++)booked.add(dates[i+r]+'_'+(col+c));
+          const theme=v51EventTheme(ev.Jenis);
+          const extras=events.slice(1).map(v51EventInline).join('');
+          row+=`<td rowspan="${rowspan}" colspan="${colspan}" class="border-2 ${theme} p-4 text-center align-middle min-w-[175px]">
+            <div class="text-base font-extrabold leading-snug">${v5E(ev.Tajuk)}</div>
+            <div class="text-[11px] font-semibold opacity-75 mt-2">${v5E(ev.Jenis)}</div>
+            <button data-id="${v5E(ev.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id)" title="Edit aktiviti" class="mt-2 text-xs underline font-bold"><i class="fa-solid fa-pen mr-1"></i> Edit</button>
+            ${extras}
+          </td>`;
+          col+=colspan-1;
+        }
+        return row+'</tr>';
+      }).join('');
+      calendar=`<div class="overflow-x-auto"><table class="w-full border-collapse min-w-[1080px] table-fixed"><thead><tr class="bg-slate-100 text-xs"><th class="border p-3 w-44">Minggu / Cuti</th><th class="border p-3 w-28">Tarikh & Hari</th>${V5_UNITS.map(unit=>`<th class="border p-3">${v5E(unit)}</th>`).join('')}</tr></thead><tbody>${rows||'<tr><td colspan="6" class="p-4 text-center">Tiada tarikh.</td></tr>'}</tbody></table></div>`;
+    }
+    return `<section class="bg-white border border-slate-200 rounded-2xl mb-4 overflow-hidden shadow-sm">
+      <button type="button" onclick="v51OpenMonth('${key}')" aria-expanded="${open?'true':'false'}" class="w-full flex justify-between items-center gap-3 text-left bg-slate-900 text-white px-5 py-4 font-extrabold text-sm hover:bg-slate-800">
+        <span><i class="fa-regular fa-calendar-days mr-2 text-rose-300"></i>${v5E(heading)}</span>
+        <span class="text-xs text-slate-300">${open?'Sedang Dipaparkan':'Buka Bulan'} <i class="fa-solid ${open?'fa-chevron-up':'fa-chevron-down'} ml-2"></i></span>
+      </button>${calendar}</section>`;
+  }).join('') || '<p class="text-center p-5">Tiada bulan untuk dipaparkan.</p>';
+};
+
+// Borang aktiviti V5.1: setiap jenis mempunyai warna automatik semasa paparan.
+window.v5CalendarEditorExtended=async function(id='',isTemp=false){
+  const old=ALL_TAKWIM.find(e=>String(e.ID_Acara)===String(id))||{};
+  const units=v5EventUnits(old);
+  const opts=['CUTI','MESYUARAT','BENGKEL','AKTIVITI','LADAP','PROGRAM'];
+  const legacy=['SEKOLAH','MINGGU_RPH','MINGGU_BERTUGAS'].includes(String(old.Jenis||''));
+  const selected=legacy?'AKTIVITI':String(old.Jenis||'PROGRAM');
+  const field=(id,label,type='text',v=old[id]||'')=>`<label class="block text-left text-xs font-bold mt-3 mb-1">${label}</label><input id="v51evt-${id}" type="${type}" value="${v5E(v)}" class="w-full p-2 border rounded-lg text-sm"/>`;
+  const checks=V5_UNITS.map(u=>`<label class="flex items-center gap-2 text-xs"><input type="checkbox" data-v51-unit="${v5E(u)}" ${units.includes(u)?'checked':''}/> ${v5E(u)}</label>`).join('');
+  const ans=await Swal.fire({
+    title:(isTemp||!id?'Tambah':'Edit')+' Aktiviti',width:670,
+    html:`<div class="text-left max-h-[65vh] overflow-y-auto">
+       ${field('Tajuk','Nama Aktiviti')}${field('Tarikh_Mula','Tarikh Mula','date',old.Tarikh_Mula||v5Today())}
+       ${field('Tarikh_Tamat','Tarikh Tamat','date',old.Tarikh_Tamat||old.Tarikh_Mula||v5Today())}
+       <label class="block font-bold text-xs mt-3 mb-1">Unit terlibat</label><div class="grid grid-cols-2 gap-2 border rounded-lg p-3">${checks}</div>
+       <label class="block font-bold text-xs mt-3 mb-1">Jenis Aktiviti</label>
+       <select id="v51evt-Jenis" class="w-full border rounded-lg p-2 text-sm">${opts.map(t=>`<option value="${t}" ${t===selected?'selected':''}>${t}</option>`).join('')}</select>
+       <p class="text-[11px] text-slate-500 mt-1">Untuk cuti penggal/perayaan seminggu, gunakan Tetapan Minggu/Cuti di lajur kiri.</p>
+       ${field('Lokasi','Lokasi')}${field('Maklumat','Catatan / Agenda')}
+       <label class="block font-bold text-xs mt-3 mb-1">Status</label>
+       <select id="v51evt-Status" class="w-full border rounded-lg p-2 text-sm"><option value="Aktif" ${old.Status!=='Tidak Aktif'?'selected':''}>Aktif</option><option value="Tidak Aktif" ${old.Status==='Tidak Aktif'?'selected':''}>Tidak Aktif</option></select>
+     </div>`,
+    showCancelButton:true,confirmButtonText:'Simpan Aktiviti',cancelButtonText:'Batal',
+    preConfirm:()=>{
+      const get=k=>document.getElementById('v51evt-'+k)?.value||'';
+      const selectedUnits=[...document.querySelectorAll('[data-v51-unit]:checked')].map(el=>el.dataset.v51Unit);
+      if(!get('Tajuk').trim()||!get('Tarikh_Mula')||get('Tarikh_Tamat')<get('Tarikh_Mula')||!selectedUnits.length){
+        Swal.showValidationMessage('Isi tajuk, tarikh yang sah dan pilih sekurang-kurangnya satu unit.');return false;
+      }
+      return {ID_Acara:isTemp?'':id,Tajuk:get('Tajuk').trim(),Tarikh_Mula:get('Tarikh_Mula'),Tarikh_Tamat:get('Tarikh_Tamat'),
+        Jenis:get('Jenis'),Unit:selectedUnits.join(' | '),Lokasi:get('Lokasi'),Maklumat:get('Maklumat'),Status:get('Status'),
+        Minggu:'',Kumpulan_Bertugas:'',Notifikasi_Hari:7};
+    }
+  });
+  if(!ans.isConfirmed||!ans.value)return;
+  showLoader('Menyimpan aktiviti…');
+  try{
+    const r=await postToBackend({action:'saveManualV4Calendar',data:ans.value});
+    if(!r?.success)throw Error(r?.error||'Gagal menyimpan aktiviti.');
+    await fetchMasterStafData();v5RenderCalendar();
+  }catch(err){await Swal.fire('Gagal menyimpan aktiviti',err.message,'error');}
+  finally{hideLoader();}
+};
+
+// Borang minggu V5.1: minggu/cuti saling mengecualikan, tidak minta nombor ketika cuti.
+window.v51ToggleWeekFields=function(){
+  const type=document.getElementById('v51wk-type')?.value||'PERSEKOLAHAN';
+  const cuti=type.startsWith('CUTI');
+  const teaching=document.getElementById('v51wk-teaching');
+  const holiday=document.getElementById('v51wk-holiday-wrap');
+  const num=document.getElementById('v51wk-num-wrap');
+  const ready=document.getElementById('v51wk-readiness-label');
+  if(teaching)teaching.classList.toggle('hidden',cuti);
+  if(holiday)holiday.classList.toggle('hidden',!cuti);
+  if(num)num.classList.toggle('hidden',type!=='PERSEKOLAHAN');
+  if(ready)ready.classList.toggle('hidden',type!=='KESEDIAAN');
+};
+window.v5EditWeek=async function(date){
+  const current=v5WeekForDate(date);
+  const dateObj=new Date(date+'T12:00:00');
+  dateObj.setDate(dateObj.getDate()-((dateObj.getDay()+6)%7));
+  const monday=v5ISO(dateObj);dateObj.setDate(dateObj.getDate()+6);
+  const sunday=v5ISO(dateObj);
+  const used=new Set(ALL_MINGGU.filter(w=>String(w.Sesi)===manualV3Year()&&v5Active(w)&&
+      String(w.Jenis_Minggu)==='PERSEKOLAHAN'&&w.ID_Minggu!==current?.ID_Minggu).map(w=>Number(w.Label_Minggu)));
+  const options=['<option value="">-- Pilih Minggu Persekolahan --</option>',
+    ...Array.from({length:53},(_,i)=>i+1).filter(n=>!used.has(n)).map(n=>
+      `<option value="${n}" ${String(current?.Label_Minggu||'')===String(n)?'selected':''}>Minggu ${n}</option>`)].join('');
+  const groupOptions=['<option value="">-- Belum ditetapkan --</option>',...
+    v4ActiveGroups().map(g=>`<option value="${v5E(g.Nombor_Kumpulan)}" ${String(current?.Kumpulan_Bertugas||'')===String(g.Nombor_Kumpulan)?'selected':''}>${v5E(g.Nama_Kumpulan)}</option>`)].join('');
+  const weekTypes=[['PERSEKOLAHAN','Minggu Persekolahan'],['KESEDIAAN','Minggu Kesediaan'],
+    ['CUTI_PENGGAL','Cuti Penggal'],['CUTI_PERAYAAN','Cuti Perayaan'],['CUTI_UMUM','Cuti Umum'],['CUTI_LAIN','Cuti Lain']];
+  const oldType=current?.Jenis_Minggu||'PERSEKOLAHAN';
+  const ans=await Swal.fire({
+    title:'Tetapan Minggu Rasmi',width:610,
+    html:`<div class="text-left text-xs">
+      <label class="block font-bold mb-1">Jenis Minggu</label>
+      <select id="v51wk-type" onchange="v51ToggleWeekFields()" class="w-full p-2 border rounded-lg">${weekTypes.map(([v,l])=>`<option value="${v}" ${oldType===v?'selected':''}>${l}</option>`).join('')}</select>
+      <div class="grid grid-cols-2 gap-3"><label class="block font-bold mt-3">Tarikh Mula<input id="v51wk-start" type="date" value="${v5E(current?.Tarikh_Mula||monday)}" class="w-full p-2 border rounded-lg mt-1 font-normal"/></label>
+      <label class="block font-bold mt-3">Tarikh Tamat<input id="v51wk-end" type="date" value="${v5E(current?.Tarikh_Tamat||sunday)}" class="w-full p-2 border rounded-lg mt-1 font-normal"/></label></div>
+      <div id="v51wk-teaching" class="mt-3 space-y-3">
+        <div id="v51wk-num-wrap"><label class="block font-bold mb-1">Minggu Persekolahan *</label><select id="v51wk-num" class="w-full p-2 border rounded-lg">${options}</select></div>
+        <div id="v51wk-readiness-label" class="hidden rounded-lg bg-amber-50 border border-amber-200 p-3 text-amber-900 font-bold">Minggu Kesediaan (sebelum Minggu 1)</div>
+        <div><label class="block font-bold mb-1">Kumpulan Bertugas</label><select id="v51wk-group" class="w-full p-2 border rounded-lg">${groupOptions}</select></div>
+      </div>
+      <div id="v51wk-holiday-wrap" class="hidden mt-3"><label class="block font-bold mb-1">Nama Cuti *</label><input id="v51wk-holiday" value="${v5E(current?.Nama_Cuti||'')}" placeholder="Contoh: Cuti Penggal 1" class="w-full p-2 border rounded-lg"/></div>
+      <p class="text-slate-500 mt-4">Cuti tidak menggunakan nombor minggu atau kumpulan. Minggu sekolah seterusnya dipilih apabila persekolahan bersambung.</p>
+    </div>`,showCancelButton:true,confirmButtonText:'Simpan Minggu',cancelButtonText:'Batal',
+    didOpen:()=>v51ToggleWeekFields(),
+    preConfirm:()=>{
+      const get=k=>document.getElementById('v51wk-'+k)?.value||'';
+      const type=get('type'),holiday=type.startsWith('CUTI');
+      if(!get('start')||!get('end')||get('end')<get('start')){
+        Swal.showValidationMessage('Tarikh mula dan tamat mesti sah.');return false;
+      }
+      if(type==='PERSEKOLAHAN'&&!get('num')){
+        Swal.showValidationMessage('Pilih nombor minggu persekolahan.');return false;
+      }
+      if(holiday&&!get('holiday').trim()){
+        Swal.showValidationMessage('Nama cuti wajib diisi.');return false;
+      }
+      return {ID_Minggu:current?.ID_Minggu||'',Sesi:manualV3Year(),Jenis_Minggu:type,
+        Tarikh_Mula:get('start'),Tarikh_Tamat:get('end'),Label_Minggu:holiday?'':type==='KESEDIAAN'?'Kesediaan':get('num'),
+        Nama_Cuti:holiday?get('holiday').trim():'',Kumpulan_Bertugas:holiday?'':get('group'),Status:'Aktif'};
+    }
+  });
+  if(!ans.isConfirmed||!ans.value)return;
+  showLoader('Menyimpan minggu/cuti…');
+  try{
+    const r=await postToBackend({action:'saveManualV5Week',data:ans.value});
+    if(!r?.success)throw Error(r?.error||'Gagal menyimpan minggu.');
+    await fetchMasterStafData();v5RenderCalendar();
+  }catch(err){await Swal.fire('Minggu/cuti tidak disimpan',err.message,'error');}
+  finally{hideLoader();}
+};
+
 
 </script>
 </body>
