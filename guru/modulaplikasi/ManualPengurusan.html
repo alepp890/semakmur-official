@@ -44,6 +44,36 @@
     .loader-ring div { box-sizing: border-box; display: block; position: absolute; width: 34px; height: 34px; margin: 5px; border: 3.5px solid #e11d48; border-radius: 50%; animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite; border-color: #e11d48 transparent transparent transparent; }
     @keyframes loader-ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
+
+  <!-- V5.3: jadual takwim penuh tanpa tatal mendatar; komponen lain tidak disentuh -->
+  <style>
+    .v53-calendar-viewport { width:100%; max-width:100%; overflow-x:hidden; }
+    .v53-calendar-table { width:100%; max-width:100%; min-width:0 !important; table-layout:fixed; }
+    .v53-calendar-table th,
+    .v53-calendar-table td { box-sizing:border-box; min-width:0 !important; overflow-wrap:anywhere; white-space:normal; }
+    .v53-calendar-table thead th { font-size:11px; line-height:1.35; word-break:normal; }
+    .v53-calendar-table td.v53-date-cell { text-align:center; vertical-align:middle; }
+    .v53-calendar-table td .v53-edit-icon {
+      position:absolute; bottom:3px; right:4px; font-size:9px;
+      line-height:1; opacity:.48;
+    }
+    .v53-calendar-table td.v53-event-cell { padding-right:15px; }
+    .v53-calendar-table td.v53-event-cell:hover .v53-edit-icon,
+    .v53-calendar-table td.v53-event-cell:focus-visible .v53-edit-icon { opacity:1; }
+    .v53-calendar-table td.v53-event-cell:focus-visible { outline:2px solid #2563eb; outline-offset:-3px; }
+    @media (max-width:820px) {
+      .v53-calendar-table thead th { font-size:10px; padding:5px 2px; }
+      .v53-calendar-table tbody td { padding-left:3px; padding-right:3px; }
+      .v53-calendar-table tbody td.v53-event-cell { padding-right:12px; }
+    }
+    @media (max-width:540px) {
+      .v53-calendar-table thead th { font-size:9px; }
+      .v53-calendar-table tbody td { font-size:10px; }
+      .v53-calendar-table tbody td.v53-event-cell .text-sm { font-size:11px; }
+      .v53-calendar-table tbody td.v53-event-cell .text-base { font-size:13px; }
+      .v53-calendar-table tbody td.v53-event-cell .md\:text-lg { font-size:13px; }
+    }
+  </style>
 </head>
 <body class="min-h-screen flex text-slate-800 bg-slate-100">
 
@@ -3533,7 +3563,7 @@ function v51CellEventList(date,unit,search,kind){
   return v5EventsAt(date,unit).filter(e=>v51CalendarMatch(e,search,kind));
 }
 function v51EventInline(e){
-  return `<div class="text-xs mt-1 border-t border-current/20 pt-1 whitespace-normal break-words">${v5E(e.Tajuk)} <button data-id="${v5E(e.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id);event.stopPropagation()" aria-label="Edit aktiviti tambahan" class="ml-1 underline">Edit</button></div>`;
+  return `<div data-id="${v5E(e.ID_Acara)}" role="button" tabindex="0" onclick="event.stopPropagation();v4OpenCalendarEditor(this.dataset.id)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();v4OpenCalendarEditor(this.dataset.id)}" class="text-xs mt-1 border-t border-current/20 pt-1 whitespace-normal break-words cursor-pointer" title="Klik untuk edit aktiviti tambahan">${v5E(e.Tajuk)} <i class="fa-solid fa-pen ml-1 text-[9px] opacity-60" aria-hidden="true"></i></div>`;
 }
 // Fungsi asal V5 masih wujud untuk keserasian API; paparan sahaja dinaik taraf.
 window.v5RenderCalendar=function(){
@@ -3576,18 +3606,17 @@ window.v5RenderCalendar=function(){
           const holiday=v51WeekIsHoliday(week);
           const weekBackground=holiday?'bg-rose-100 border-rose-300':week?.Jenis_Minggu==='KESEDIAAN'?'bg-amber-50 border-amber-200':week?'bg-blue-50 border-blue-200':'bg-slate-50 border-slate-200';
           const title=v51WeekTitle(week),groupName=v51WeekGroupName(week);
-          row+=`<td rowspan="${span}" class="border-2 ${weekBackground} p-3 align-middle text-center min-w-[165px]">
+          row+=`<td rowspan="${span}" class="border-2 ${weekBackground} px-1.5 py-2 align-middle text-center">
              <button onclick="v5EditWeek('${date}')" class="block mx-auto text-center w-full group" title="Tetapkan minggu/cuti">
                <span class="block text-base font-extrabold leading-snug ${holiday?'text-rose-900':'text-slate-900'}">${v5E(title)}</span>
                ${holiday?`<span class="block text-sm font-bold text-rose-800 mt-2">${v5E(week.Nama_Cuti||'')}</span>`:''}
                ${groupName?`<span class="block text-[12px] font-bold text-indigo-800 mt-2">${v5E(groupName)}</span>`:''}
                <i class="fa-solid fa-pen text-[11px] mt-3 text-rose-600 group-hover:text-rose-900"></i>
              </button>
-             <div class="text-xs font-semibold mt-2 text-slate-800 leading-normal break-words">${week?v5E(v52FormatWeekDate(week.Tarikh_Mula)+' – '+v52FormatWeekDate(week.Tarikh_Tamat)):'Klik ikon untuk menetapkan minggu'}</div>
            </td>`;
         }
         const weekday=V5_WEEKDAYS[new Date(date+'T12:00:00').getDay()];
-        row+=`<td class="border border-slate-200 bg-white px-2 py-1.5 h-[40px] align-middle text-xs whitespace-nowrap"><span class="font-extrabold">${v5E(weekday)}</span><span class="text-slate-700 font-semibold"> - ${date.slice(8)}</span></td>`;
+        row+=`<td class="v53-date-cell border border-slate-200 bg-white px-1 py-1.5 h-[40px] align-middle text-center text-xs"><span class="font-extrabold">${v5E(weekday)} - ${date.slice(8)}</span></td>`;
         if(v51WeekIsHoliday(week)){
           const pos=date+'_0';
           if(!booked.has(pos)){
@@ -3598,9 +3627,9 @@ window.v5RenderCalendar=function(){
             for(let n=0;n<rowspan;n++)for(const unit of V5_UNITS)
               for(const ev of v51CellEventList(dates[i+n],unit,search,kind))otherEvents.set(String(ev.ID_Acara),ev);
             const extras=[...otherEvents.values()].filter(ev=>String(ev.Jenis)!=='CUTI').map(v51EventInline).join('');
-            row+=`<td rowspan="${rowspan}" colspan="4" class="border-2 border-rose-400 bg-rose-100 px-3 py-2 text-center align-middle">
-               <div class="text-rose-900 text-base md:text-lg font-extrabold leading-snug whitespace-normal break-words [overflow-wrap:anywhere]">${v5E(week.Nama_Cuti||'Cuti Persekolahan')}</div>
-               <div class="text-rose-700 text-xs mt-1">CUTI</div>${extras}
+            row+=`<td rowspan="${rowspan}" colspan="4" onclick="v5EditWeek('${date}')" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();v5EditWeek('${date}')}" title="Klik untuk mengubah tetapan cuti" class="v53-event-cell relative group cursor-pointer border-2 border-rose-400 bg-rose-100 px-3 py-2 text-center align-middle">
+               <div class="text-rose-900 text-base md:text-lg font-extrabold leading-snug whitespace-normal break-words [overflow-wrap:anywhere]">${v5E(week.Nama_Cuti||'Cuti Persekolahan')}</div>${extras}
+               <span class="v53-edit-icon pointer-events-none" aria-hidden="true"><i class="fa-solid fa-pen"></i></span>
              </td>`;
           }
           return row+'</tr>';
@@ -3609,7 +3638,7 @@ window.v5RenderCalendar=function(){
           const pos=date+'_'+col;if(booked.has(pos))continue;
           const unit=V5_UNITS[col],events=v51CellEventList(date,unit,search,kind);
           if(!events.length){
-            row+=`<td onclick="v5OpenCalendarCell('${date}','${unit}')" class="border border-slate-200 px-2 py-1.5 text-center cursor-pointer hover:bg-blue-50" title="Klik untuk menambah aktiviti"><span class="text-slate-300">+</span></td>`;
+            row+=`<td onclick="v5OpenCalendarCell('${date}','${unit}')" class="border border-slate-200 px-1 py-1 text-center cursor-pointer hover:bg-blue-50" title="Klik untuk menambah aktiviti"><span class="text-slate-300">+</span></td>`;
             continue;
           }
           const ev=events[0];let colspan=1;
@@ -3636,17 +3665,16 @@ window.v5RenderCalendar=function(){
           for(let r=0;r<rowspan;r++)for(let c=0;c<colspan;c++)booked.add(dates[i+r]+'_'+(col+c));
           const theme=v51EventTheme(ev.Jenis);
           const extras=events.slice(1).map(v51EventInline).join('');
-          row+=`<td rowspan="${rowspan}" colspan="${colspan}" class="border-2 ${theme} px-2 py-1.5 text-center align-middle">
+          row+=`<td rowspan="${rowspan}" colspan="${colspan}" data-id="${v5E(ev.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();v4OpenCalendarEditor(this.dataset.id)}" title="Klik untuk mengubah aktiviti" class="v53-event-cell relative group cursor-pointer border-2 ${theme} px-1.5 py-1.5 text-center align-middle">
             <div class="${v52EventFontClass(rowspan,colspan)} font-extrabold leading-snug whitespace-normal break-words [overflow-wrap:anywhere]">${v5E(ev.Tajuk)}</div>
-            <div class="text-[10px] font-semibold opacity-75 mt-1">${v5E(ev.Jenis)}</div>
-            <button data-id="${v5E(ev.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id)" title="Edit aktiviti" class="mt-1 text-[11px] underline font-bold"><i class="fa-solid fa-pen mr-1"></i> Edit</button>
             ${extras}
+            <span class="v53-edit-icon pointer-events-none" aria-hidden="true"><i class="fa-solid fa-pen"></i></span>
           </td>`;
           col+=colspan-1;
         }
         return row+'</tr>';
       }).join('');
-      calendar=`<div class="overflow-x-auto" aria-label="Takwim bulanan, tatal mendatar jika perlu"><table class="w-full min-w-[1080px] border-collapse table-fixed"><colgroup><col style="width:176px"><col style="width:122px">${V5_UNITS.map(()=>'<col style="width:195px">').join('')}</colgroup><thead><tr class="bg-slate-100 text-xs"><th class="border px-2 py-2 whitespace-nowrap">Minggu / Cuti</th><th class="border px-2 py-2 whitespace-nowrap">Tarikh & Hari</th>${V5_UNITS.map(unit=>`<th class="border px-2 py-2 text-center whitespace-nowrap">${v5E(unit)}</th>`).join('')}</tr></thead><tbody>${rows||'<tr><td colspan="6" class="p-4 text-center">Tiada tarikh.</td></tr>'}</tbody></table></div>`;
+      calendar=`<div class="v53-calendar-viewport" aria-label="Takwim bulanan dipaparkan penuh tanpa tatal mendatar"><table class="v53-calendar-table w-full border-collapse table-fixed"><colgroup><col style="width:16.5%"><col style="width:12.5%">${V5_UNITS.map(()=>'<col style="width:17.75%">').join('')}</colgroup><thead><tr class="bg-slate-100 text-xs"><th class="border px-1.5 py-2">Minggu / Cuti</th><th class="border px-1.5 py-2">Tarikh & Hari</th>${V5_UNITS.map(unit=>`<th class="border px-1.5 py-2 text-center">${v5E(unit)}</th>`).join('')}</tr></thead><tbody>${rows||'<tr><td colspan="6" class="p-4 text-center">Tiada tarikh.</td></tr>'}</tbody></table></div>`;
     }
     return `<section class="bg-white border border-slate-200 rounded-2xl mb-4 overflow-hidden shadow-sm">
       <button type="button" onclick="v51OpenMonth('${key}')" aria-expanded="${open?'true':'false'}" class="w-full flex justify-between items-center gap-3 text-left bg-slate-900 text-white px-5 py-4 font-extrabold text-sm hover:bg-slate-800">
