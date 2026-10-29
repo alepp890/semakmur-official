@@ -3527,7 +3527,7 @@ function v52FormatWeekDate(value){
 // Font aktiviti: biasa = 14px (satu tahap lebih besar daripada V5 asal),
 // aktiviti bergabung = 16px/18px (maksimum saiz V5.1 sekarang).
 function v52EventFontClass(rowspan,colspan){
-  return rowspan>1||colspan>1?'text-base md:text-[15px]':'text-[11px]';
+  return rowspan>1||colspan>1?'text-base md:text-lg':'text-xs';
 }
 function v51WeekGroupKey(date,w){
   if(w) return 'w:'+String(w.ID_Minggu||w.Tarikh_Mula);
