@@ -1,483 +1,486 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log Masuk - SeMAKMUR Digital (V3 Ujian)</title>
-
-    <!-- Google Identity Services SDK -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { 
-                        brandDark: '#0F172A',
-                        brandNavy: '#1E3A8A',
-                        brandAccent: '#2563EB',
-                        brandGold: '#D97706',
-                        brandBg: '#F8FAFC',
-                        brandBorder: '#E2E8F0'
-                    },
-                    fontFamily: { 
-                        sans: ['Plus Jakarta Sans', 'sans-serif'] 
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #0F172A; 
-            color: #0F172A; 
-            font-size: 15px;
-            line-height: 1.5;
-        }
-
-        .card-custom {
-            background: #FFFFFF;
-            border: 1px solid #E2E8F0;
-            box-shadow: 0 20px 35px -10px rgba(15, 23, 42, 0.3);
-            border-radius: 1.5rem;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .btn-gradient-dark {
-            background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
-            transition: all 0.25s ease;
-        }
-        .btn-gradient-dark:hover {
-            background: linear-gradient(135deg, #334155 0%, #1E293B 100%);
-            box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.4);
-        }
-
-        /* Interaktif & Ringan Loader Spinner */
-        .loader-ring {
-            display: inline-block;
-            position: relative;
-            width: 56px;
-            height: 56px;
-        }
-        .loader-ring div {
-            box-sizing: border-box;
-            display: block;
-            position: absolute;
-            width: 44px;
-            height: 44px;
-            margin: 6px;
-            border: 4px solid #2563EB;
-            border-radius: 50%;
-            animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-            border-color: #2563EB transparent transparent transparent;
-        }
-        .loader-ring div:nth-child(1) { animation-delay: -0.45s; }
-        .loader-ring div:nth-child(2) { animation-delay: -0.3s; }
-        .loader-ring div:nth-child(3) { animation-delay: -0.15s; }
-        @keyframes loader-ring {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .toast-enter { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes slideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
-
-        .animate-scale-up { animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes scaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#171d47" />
+  <meta name="color-scheme" content="light" />
+  <title>Log Masuk | SeMAKMUR Digital</title>
+  <meta name="description" content="Log masuk ke SeMAKMUR Digital, portal pengurusan bersepadu SK Segambut Makmur." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;650;700;750;800&display=swap" rel="stylesheet" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    /* SE-MAKMUR DESIGN SYSTEM — PROFESSIONAL NAVY / SKY / WHITE */
+    :root {
+      --navy-950: #101633;
+      --navy-900: #171d47;
+      --navy-800: #222d5b;
+      --navy-700: #2b4071;
+      --blue-600: #366ed0;
+      --sky-500: #6aadd5;
+      --sky-200: #cadfef;
+      --ice-100: #eff5fb;
+      --ice-50: #f7f9fd;
+      --ink: #1b2942;
+      --muted: #718098;
+      --line: #e3eaf3;
+      --white: #fff;
+      --error: #b33f4f;
+      --error-bg: #fff4f5;
+      --success: #236d60;
+      --success-bg: #eef8f4;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; min-height: 100vh; min-height: 100dvh;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 11% 92%, #37648c 0%, transparent 43%),
+        radial-gradient(ellipse at 92% 2%, #252e61 0%, transparent 40%),
+        linear-gradient(150deg, #121836, #1a2450 72%, #193b60);
+      display: flex; align-items: center; justify-content: center;
+      padding: 34px 24px;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: progress; }
+    a { color: inherit; }
+    .app-frame {
+      width: min(1120px, 100%); min-height: 642px;
+      display: grid; grid-template-columns: minmax(0, 1.06fr) minmax(420px, .94fr);
+      overflow: hidden; border-radius: 23px; background: var(--white);
+      border: 1px solid rgba(255,255,255,.2);
+      box-shadow: 0 32px 90px rgba(5,14,42,.32), 0 5px 20px rgba(10,20,45,.14);
+      isolation: isolate;
+    }
+    .brand-side {
+      background:
+        radial-gradient(circle at 88% 85%, rgba(114,176,212,.28), transparent 45%),
+        linear-gradient(155deg, #151b44 0%, #1b2754 52%, #315c82 100%);
+      padding: 43px 47px 34px; position: relative; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: space-between;
+      color: #fff;
+    }
+    .brand-side::before {
+      content: ''; position:absolute; width: 550px; height:550px; right:-340px; top:90px;
+      border:1px solid rgba(200,229,250,.12); border-radius:50%;
+      box-shadow: 0 0 0 70px rgba(192,223,246,.035), 0 0 0 145px rgba(192,223,246,.025);
+      pointer-events: none;
+    }
+    .brand-side::after {
+      content: ''; pointer-events: none;
+      position: absolute; inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,.19) .65px, transparent .65px);
+      background-size: 19px 19px; opacity: .13;
+      mask-image: linear-gradient(110deg, transparent 0%, black 100%);
+    }
+    .brand-side > * { position: relative; z-index: 1; }
+    .brand-logo { display:flex; align-items:center; gap:12px; width: fit-content; }
+    .brand-mark {
+      display:grid; place-items:center; width:43px; height:43px;
+      border: 1px solid rgba(178,216,242,.4); border-radius: 12px;
+      background: rgba(188,218,241,.10); color:#b8ddf6;
+    }
+    .brand-word { font-size: 19px; letter-spacing:.012em; font-weight:800; line-height:1.1; }
+    .brand-word small { display:block; font-size:9px; font-weight:700; letter-spacing:.24em; color:#b7d6ed; margin-top:5px; }
+    .hero { padding-top: 58px; max-width: 460px; }
+    .eyebrow { font-size: 10px; letter-spacing:.22em; font-weight:800; color:#acd7f5; text-transform: uppercase; }
+    .hero h1 { margin: 18px 0 16px; font-size: clamp(34px, 3.4vw, 44px); line-height: 1.19; letter-spacing:-.045em; font-weight:800; }
+    .hero h1 span { color:#8fc9ed; }
+    .hero p { font-size:14px; line-height:1.95; color:#d1dfed; max-width:370px; margin: 0; }
+    .module-preview { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top: 38px; }
+    .preview-tile { min-height: 93px; padding:14px 11px 11px; border-radius: 13px;
+      background: rgba(245,251,255,.085); border:1px solid rgba(230,245,255,.13);
+      backdrop-filter: blur(12px); }
+    .preview-tile svg { color:#a9d8f2; width:20px; height:20px; }
+    .preview-tile strong { display:block; font-size:10.5px; line-height:1.45; letter-spacing:.01em; margin-top:11px; color:#eff8ff; }
+    .brand-foot { margin-top: 35px; display:flex; justify-content:space-between; align-items:center; color:rgba(213,231,244,.64); gap:16px; font-size:10px; letter-spacing:.04em; }
+    .brand-foot .separation { width:24px; height:1px; background:rgba(220,241,255,.4); }
+    .login-side { background:linear-gradient(165deg, #fcfdff 0%, #f1f6fb 100%); padding:45px 57px 35px;
+      display:flex; flex-direction:column; justify-content:center; position:relative; }
+    .login-side::after { content:'';position:absolute;top:0;right:0;width:150px;height:150px;background:radial-gradient(circle at 100% 0%,rgba(123,171,212,.1), transparent 70%);pointer-events:none; }
+    .top-line { display:flex; justify-content:space-between; align-items:center; margin-bottom: 58px; gap:14px; }
+    .top-line .caption { display:flex; align-items:center; gap:8px; color:#647995; text-transform:uppercase; letter-spacing:.17em; font-size:10px; font-weight:800; }
+    .online-point { display:inline-block; width:7px; height:7px; border-radius:50%; background:#74b7aa; box-shadow:0 0 0 4px rgba(116,183,170,.13); }
+    .portal-link { text-decoration:none; display:inline-flex; align-items:center; gap:6px; color:#72809a; font-size:11px; font-weight:700; white-space:nowrap; }
+    .portal-link:hover { color:var(--blue-600); }
+    .portal-link svg { width:13px; height:13px; }
+    .login-body { width:100%; max-width:380px; margin:0 auto; }
+    .login-kicker { display:inline-flex; align-items:center; gap:8px; color:#3a6f9e; font-size:10px; letter-spacing:.18em; text-transform:uppercase; font-weight:800; }
+    .login-kicker svg { height:17px; width:17px; }
+    h2 { margin:17px 0 9px; font-size:31px; line-height:1.24; letter-spacing:-.052em; font-weight:800; color:#1a284b; }
+    .login-subtitle { font-size:13px; line-height:1.85; color:#718097; margin:0 0 32px; }
+    .auth-panel { padding:25px 23px 23px; background:#fff; border:1px solid #e1e9f3; border-radius:16px; box-shadow:0 14px 40px rgba(38,69,117,.06); }
+    .field-title { font-weight:800; font-size:11px; letter-spacing:.11em; text-transform:uppercase; color:#586c88; margin:0 0 14px; }
+    #google-signin-button { width:100%; min-height:45px; display:flex; justify-content:center; align-items:center; }
+    #google-signin-button > div { max-width:100%; }
+    .auth-note { font-size:11px; color:#7b879c; line-height:1.8; margin:15px 0 0; text-align:center; }
+    .divider { display:flex; align-items:center; gap:13px; margin:25px 0 20px; color:#a0acbd; font-size:10px; font-weight:700; letter-spacing:.11em; }
+    .divider::before,.divider::after { content:'';flex:1;height:1px;background:#e1e8f0; }
+    .tip-box { display:flex; gap:12px; padding:14px 15px; border:1px solid #dce8f3; background:#edf5fb; border-radius:12px; }
+    .tip-box svg { width:17px; height:17px; flex:none; color:#547ea5; margin-top:1px; }
+    .tip-box strong { display:block; font-size:11px; color:#3a5275; font-weight:800; margin-bottom:4px; }
+    .tip-box p { margin:0; color:#697f98; line-height:1.8; font-size:10.5px; }
+    .login-bottom { text-align:center; margin-top: 30px; color:#95a2b5; font-size:10.5px; line-height:1.8; }
+    .status-message { display:none; gap:10px; align-items:flex-start; padding:12px 13px; border-radius:11px; margin:17px 0 0; background:var(--error-bg); color:var(--error); border:1px solid #f0d8dc; text-align:left; }
+    .status-message.visible { display:flex; }
+    .status-message.success { background:var(--success-bg); border-color:#d4e9e1; color:var(--success); }
+    .status-message.info { background:#eef5fc; border-color:#d8e7f5; color:#466d99; }
+    .status-message svg { width:17px;height:17px;flex:none;margin-top:2px; }
+    .status-message strong { font-size:11px;display:block;line-height:1.4;margin-bottom:3px; }
+    .status-message p { font-size:11px;line-height:1.65;margin:0;overflow-wrap:anywhere; }
+    .loading-row { display:none; align-items:center; justify-content:center; gap:10px; padding:13px 0 0; color:#637a98; font-size:11px;font-weight:700; }
+    .loading-row.visible { display:flex; }
+    .spinner { width:15px;height:15px;border-radius:50%;border:2px solid #d5e5f7;border-top-color:#366ed0;animation:spin .75s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .admin-area { display:none; animation: rise .24s ease-out; }
+    .admin-area.visible { display:block; }
+    .login-area.hidden { display:none; }
+    @keyframes rise { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
+    .admin-intro { color:#73839a;font-size:12px;line-height:1.8;margin:0 0 21px; }
+    .workspace-list { display:grid;gap:11px; }
+    .workspace-card { display:flex;align-items:center;gap:13px;padding:15px 14px;text-align:left;border:1px solid #dae5f0;background:#fff;border-radius:13px;width:100%;transition:background .2s,border-color .2s,transform .2s; }
+    .workspace-card:hover { transform:translateY(-2px); background:#f5f9fe;border-color:#a9c2df; }
+    .workspace-card.primary { background:#1c2753;border-color:#1c2753;color:#fff; }
+    .workspace-card.primary:hover { background:#273a6d; }
+    .workspace-card .workspace-icon { display:grid;place-items:center;flex:none;width:39px;height:39px;border-radius:10px;background:#eaf2fb;color:#416e9c; }
+    .workspace-card.primary .workspace-icon { background:rgba(255,255,255,.12);color:#badffc; }
+    .workspace-card svg { width:19px;height:19px; }
+    .workspace-card .workspace-meta { flex:1;min-width:0; }
+    .workspace-card strong { display:block;font-size:12px;line-height:1.35;font-weight:800; }
+    .workspace-card small { display:block;margin-top:3px;font-size:10px;line-height:1.55;color:#73849b; }
+    .workspace-card.primary small { color:#c6d5ea; }
+    .workspace-card .go { width:17px;height:17px;color:#8092ac; }
+    .workspace-card.primary .go { color:#b7d8f0; }
+    .back-button { margin-top:20px;padding:8px 0;border:0;background:transparent;color:#6d819b;font-size:11px;font-weight:750; }
+    .back-button:hover { color:var(--blue-600); }
+    @media (max-width: 900px) {
+      body { padding:18px; }
+      .app-frame { grid-template-columns: minmax(0, .82fr) minmax(400px,1fr); min-height:630px; }
+      .brand-side { padding:34px 30px 27px; }
+      .hero h1 { font-size:32px; }
+      .module-preview { grid-template-columns:1fr;gap:7px; }
+      .preview-tile { min-height:55px;display:flex;align-items:center;gap:12px; }
+      .preview-tile strong { margin-top:0; }
+      .login-side { padding:37px 32px 30px; }
+    }
+    @media (max-width: 700px) {
+      body { padding:12px;align-items:flex-start; }
+      .app-frame { display:flex;flex-direction:column;min-height:calc(100dvh - 24px); border-radius:18px; }
+      .brand-side { padding:25px 26px 21px; min-height:190px; }
+      .hero { padding-top:20px; }
+      .hero h1 { font-size:25px;margin:10px 0 6px; max-width:410px; }
+      .hero p { font-size:11px;line-height:1.65; }
+      .module-preview,.brand-foot { display:none; }
+      .brand-word { font-size:16px; }
+      .brand-mark { width:35px;height:35px; }
+      .login-side { padding:27px 24px 25px;flex:1;justify-content:flex-start; }
+      .top-line { margin-bottom:31px; }
+      .login-body { max-width:410px; }
+      h2 { font-size:28px;margin:13px 0 8px; }
+      .login-subtitle { margin-bottom:22px; }
+      .auth-panel { padding:20px 16px; }
+      .login-bottom { margin-top:23px; }
+    }
+    @media (max-width: 370px) {
+      body { padding:0; }
+      .app-frame { border-radius:0; min-height:100dvh; }
+      .brand-side { padding:22px 21px 18px; }
+      .login-side { padding:24px 17px 22px; }
+      .top-line .caption { letter-spacing:.1em;font-size:9px; }
+      .portal-link { font-size:10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *,*::before,*::after {animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
+    }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-slate-950 via-brandDark to-brandNavy antialiased h-screen w-screen overflow-hidden flex items-center justify-center p-3 sm:p-4 selection:bg-brandNavy selection:text-white">
-
-    <!-- GLOBAL INTERAKTIF SKRIN PEMUATAN (LOADING PAGE) -->
-    <div id="global-loader" class="fixed inset-0 bg-brandDark/85 backdrop-blur-md z-[9999] flex flex-col items-center justify-center hidden transition-all duration-300">
-        <div class="relative flex items-center justify-center mb-3">
-            <div class="loader-ring"><div></div><div></div><div></div><div></div></div>
-            <div class="absolute text-lg animate-pulse">🎓</div>
+<body>
+  <main class="app-frame" aria-label="Halaman log masuk SeMAKMUR Digital">
+    <section class="brand-side" aria-label="Pengenalan SeMAKMUR Digital">
+      <div class="brand-logo">
+        <!-- Simbol geometrik sementara; BUKAN logo rasmi sekolah -->
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="27" height="27" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m16 3 11.25 6.5v13L16 29 4.75 22.5v-13L16 3Z"/><path d="m16 10 5.6 3.2v6.4L16 23l-5.6-3.4v-6.4L16 10Z"/><path d="M4.75 9.5 10.4 13m11.2 0 5.65-3.5"/></svg>
+        </span>
+        <span class="brand-word">SeMAKMUR <small>DIGITAL · SCHOOL PLATFORM</small></span>
+      </div>
+      <div class="hero">
+        <div class="eyebrow">Ekosistem Sekolah Bersepadu</div>
+        <h1>Satu platform.<br /><span>Lebih masa</span><br />untuk mendidik.</h1>
+        <p>Menyatukan urusan pengurusan, pengajaran dan pemantauan sekolah dalam pengalaman digital yang lebih teratur.</p>
+        <div class="module-preview" aria-label="Bidang utama portal">
+          <div class="preview-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><strong>Pengurusan<br/>Bersepadu</strong></div>
+          <div class="preview-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 12 3l9 3.5v11L12 21l-9-3.5v-11Z"/><path d="M12 3v18M3 6.5l9 3.5 9-3.5"/></svg><strong>Pengajaran &<br/>Pembelajaran</strong></div>
+          <div class="preview-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/><path d="M2 21h20"/></svg><strong>Analisis &<br/>Pemantauan</strong></div>
         </div>
-        <p class="text-white text-center font-bold text-sm tracking-wide drop-shadow-md" id="loader-text">Memuatkan sistem...</p>
-        <span class="text-xs text-blue-300/80 font-medium mt-0.5">Sila tunggu sebentar</span>
-    </div>
+      </div>
+      <div class="brand-foot"><span>SK SEGAMBUT MAKMUR</span><span class="separation"></span><span>MEMACU TRANSFORMASI DIGITAL</span></div>
+    </section>
 
-    <!-- POPUP NOTIFIKASI TOAST CONTAINER -->
-    <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 pointer-events-none"></div>
-
-    <!-- POPUP MODAL NOTIFIKASI / RALAT / KEJAYAAN -->
-    <div id="popup-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9995] flex items-center justify-center p-4 hidden">
-        <div class="card-custom w-full max-w-sm p-5 sm:p-6 bg-white text-center space-y-4 animate-scale-up shadow-2xl border-t-4 border-t-red-500 rounded-2xl">
-            <div id="popup-icon-wrapper" class="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-red-100">
-                <span id="popup-icon">⚠️</span>
-            </div>
-            <div class="space-y-1">
-                <h3 id="popup-title" class="text-base sm:text-lg font-black text-brandDark tracking-tight">Maklum Balas Sistem</h3>
-                <p id="popup-message" class="text-xs sm:text-sm text-slate-600 font-semibold leading-relaxed">Mesej ralat akan dipaparkan di sini.</p>
-            </div>
-            <div class="pt-1">
-                <button onclick="closePopupModal()" class="w-full py-2.5 px-4 bg-brandDark hover:bg-brandNavy text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition active:scale-[0.98]">
-                    Tutup
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TETINGKAP MODAL PILIHAN DASHBOARD (UNTUK GURU BERSTATUS ADMIN) -->
-    <div id="admin-choice-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[9990] flex items-center justify-center p-4 hidden">
-        <div class="card-custom w-full max-w-md p-6 bg-white text-center space-y-5 animate-scale-up shadow-2xl border border-slate-100 rounded-3xl">
-            <div class="w-16 h-16 bg-gradient-to-tr from-brandDark to-brandNavy text-amber-400 rounded-2xl flex items-center justify-center mx-auto text-3xl shadow-lg border border-white/20">
-                ⚙️
-            </div>
-            <div class="space-y-1">
-                <h3 class="text-lg sm:text-xl font-black text-brandDark tracking-tight">Akses Pentadbir Dikesan</h3>
-                <p class="text-xs sm:text-sm text-slate-500 font-semibold">Sila pilih peranan dashboard yang ingin anda akses:</p>
-            </div>
-            <div class="space-y-2.5 pt-1">
-                <button onclick="selectAdminDashboard('admin')" class="w-full py-3 px-4 bg-gradient-to-r from-brandNavy via-brandDark to-slate-900 text-white font-black text-xs sm:text-sm rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all flex items-center justify-between border border-blue-500/30 group">
-                    <span class="flex items-center gap-3">
-                        <span class="p-2 bg-white/10 rounded-xl text-base">⚙️</span>
-                        <span class="text-left">
-                            <span class="block">Dashboard Pentadbir</span>
-                            <span class="block text-[10px] text-blue-200/80 font-normal">Pengurusan Sistem & Kandungan</span>
-                        </span>
-                    </span>
-                    <span class="text-amber-400 group-hover:translate-x-1 transition">&rarr;</span>
-                </button>
-                <button onclick="selectAdminDashboard('guru')" class="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 text-slate-800 font-black text-xs sm:text-sm rounded-2xl transition-all flex items-center justify-between border border-slate-200 group hover:scale-[1.01]">
-                    <span class="flex items-center gap-3">
-                        <span class="p-2 bg-amber-500/10 text-amber-600 rounded-xl text-base">👨‍🏫</span>
-                        <span class="text-left">
-                            <span class="block">Dashboard Guru</span>
-                            <span class="block text-[10px] text-slate-500 font-normal">Pengurusan PdP & Kehadiran</span>
-                        </span>
-                    </span>
-                    <span class="text-slate-400 group-hover:translate-x-1 transition">&rarr;</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- KAD LOG MASUK UTAMA -->
-    <div class="card-custom w-full max-w-md p-5 sm:p-6 relative z-10 mx-auto bg-white rounded-3xl shadow-2xl my-auto flex flex-col justify-between max-h-[95vh] overflow-y-auto sm:overflow-visible">
-        
-        <!-- Butang Lencana Portal Awam Pro -->
-        <a href="index.html?mode=portal" class="absolute top-4 right-4 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center gap-1.5 text-xs font-black border border-slate-200/80 shadow-xs group" title="Kembali ke Portal Awam">
-            <svg class="w-3.5 h-3.5 text-brandNavy" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-            <span>Portal Awam</span>
-            <span class="text-slate-400 group-hover:text-slate-700 transition font-extrabold ml-0.5">✕</span>
+    <section class="login-side" aria-label="Akses pengguna">
+      <div class="top-line">
+        <span class="caption"><i class="online-point" aria-hidden="true"></i> PORTAL AKSES</span>
+        <a class="portal-link" href="index.html?mode=portal" title="Kembali ke portal awam">Portal Awam
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
         </a>
-
-        <div>
-            <div class="text-center mb-4 mt-1">
-                <div class="h-12 w-12 bg-gradient-to-tr from-brandDark via-brandNavy to-brandAccent text-white rounded-2xl flex items-center justify-center mx-auto mb-2 shadow-md border border-white/20">
-                    <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                </div>
-                <h1 class="text-lg sm:text-xl font-black text-brandDark tracking-tight">Log Masuk Portal Sekolah</h1>
+      </div>
+      <div class="login-body">
+        <div class="login-area" id="login-area">
+          <div class="login-kicker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            AKSES AKAUN
+          </div>
+          <h2>Selamat kembali.</h2>
+          <p class="login-subtitle">Log masuk dengan akaun Google yang telah didaftarkan dalam Data Induk SeMAKMUR.</p>
+          <div class="auth-panel">
+            <p class="field-title">Log Masuk Dengan Google</p>
+            <div id="google-signin-button" aria-label="Butang rasmi Google Sign-In"></div>
+            <p class="auth-note">Guru dan murid: akaun MOE / DELIMa.<br/>Penjaga: akaun Google yang didaftarkan.</p>
+            <div id="loading-row" class="loading-row" aria-live="polite"><span class="spinner" aria-hidden="true"></span><span id="loading-text">Mengesahkan akaun…</span></div>
+            <div id="status-message" class="status-message" role="alert" aria-live="polite">
+              <svg id="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>
+              <div><strong id="status-title">Maklumat login</strong><p id="status-body"></p></div>
             </div>
-
-            <!-- 1. LOG MASUK AKAUN MOE MELALUI GOOGLE IDENTITY SERVICES -->
-            <div class="mb-4 space-y-2">
-                <p class="text-[11px] sm:text-xs text-slate-500 font-bold text-center">Guru/Murid: Google DELIMa. Ibu bapa: Google Gmail yang didaftarkan.</p>
-                <div id="google-signin-button" class="flex justify-center min-h-[40px]"></div>
-                
-                <div class="relative flex py-2 items-center">
-                    <div class="flex-grow border-t border-slate-200"></div>
-                    <span class="flex-shrink mx-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Pilihan login kata laluan waris akan disediakan kemudian</span>
-                    <div class="flex-grow border-t border-slate-200"></div>
-                </div>
-            </div>
-
-            <!-- 2. BORANG LOG MASUK MANUAL (EMEL & KATA LALUAN) -->
-            <form id="login-form" onsubmit="handleManualLogin(event)" class="space-y-3 hidden" aria-hidden="true">
-                <div>
-                    <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-1">Alamat E-Mel</label>
-                    <input type="email" id="login-email" required placeholder="nama@sekolah.edu.my / waris@gmail.com" class="w-full px-3.5 py-2.5 rounded-xl border border-brandBorder focus:border-brandAccent focus:ring-2 focus:ring-brandAccent/20 outline-none bg-slate-50 text-xs sm:text-sm font-medium transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-black text-brandDark uppercase tracking-wider mb-1">Kata Laluan</label>
-                    <input type="password" id="login-pass" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-brandBorder focus:border-brandAccent focus:ring-2 focus:ring-brandAccent/20 outline-none bg-slate-50 text-xs sm:text-sm font-medium transition">
-                </div>
-                <button type="submit" class="btn-gradient-dark w-full py-3 px-4 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition hover:scale-[1.01] active:scale-[0.99]">
-                    Log Masuk Waris
-                </button>
-            </form>
+          </div>
+          <div class="divider">SISTEM BERSEPADU</div>
+          <div class="tip-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6m0-10h.01"/></svg>
+            <div><strong>Penggunaan akaun berdaftar</strong><p>Akses diberikan mengikut identiti dan status pengguna dalam pangkalan data sekolah.</p></div>
+          </div>
         </div>
-    </div>
 
-    <!-- SAMBUNGAN FAIL CONFIG BACKEND -->
-    <script src="config.js"></script>
+        <div class="admin-area" id="admin-area">
+          <div class="login-kicker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5.3 3.4 9.1 8 11 4.6-1.9 8-5.7 8-11V5l-8-3Z"/><path d="m8.5 12 2.3 2.2 4.8-4.8"/></svg>
+            IDENTITI DISAHKAN
+          </div>
+          <h2>Pilih ruang kerja.</h2>
+          <p class="admin-intro" id="admin-greeting">Akaun ini mempunyai akses pentadbir sistem. Pilih ruang kerja untuk diteruskan.</p>
+          <div class="workspace-list">
+            <button class="workspace-card primary" type="button" onclick="selectAdminDashboard('admin')">
+              <span class="workspace-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+              <span class="workspace-meta"><strong>Dashboard Pentadbir</strong><small>Konfigurasi dan pengurusan sistem</small></span>
+              <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
+            </button>
+            <button class="workspace-card" type="button" onclick="selectAdminDashboard('guru')">
+              <span class="workspace-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5 12 4l9 3.5-9 3.5L3 7.5Z"/><path d="M7 10v6c2.6 2.5 7.4 2.5 10 0v-6M21 8v7"/></svg></span>
+              <span class="workspace-meta"><strong>Dashboard Guru</strong><small>Pengajaran, tugas dan maklumat harian</small></span>
+              <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
+            </button>
+          </div>
+          <button class="back-button" type="button" onclick="returnToLogin()">Kembali ke halaman login</button>
+        </div>
 
-    <!-- LOGIK JAVASCRIPT LOG MASUK -->
-    <script>
+        <div class="login-bottom">© <span id="copyright-year"></span> SeMAKMUR Digital · SK Segambut Makmur</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Fail config.js WAJIB berada dalam folder yang sama dengan LoginSession.html. -->
+  <script src="config.js"></script>
+  <script>
+    'use strict';
     let PENDING_ADMIN_USER = null;
+    let AUTH_BUSY = false;
+    let GOOGLE_INITIALIZED = false;
 
-    /* SKRIN PEMUATAN (LOADING) */
-    function showLoader(txt = "Memuatkan sistem...") {
-        const loader = document.getElementById('global-loader');
-        const lTxt = document.getElementById('loader-text');
-        if (lTxt) lTxt.innerText = txt;
-        if (loader) loader.classList.remove('hidden');
+    function setStatus(type, title, message) {
+      const panel = document.getElementById('status-message');
+      panel.className = 'status-message visible' + (type === 'success' ? ' success' : type === 'info' ? ' info' : '');
+      document.getElementById('status-title').textContent = String(title || 'Maklumat');
+      document.getElementById('status-body').textContent = String(message || '');
+    }
+    function clearStatus() {
+      const panel = document.getElementById('status-message');
+      panel.className = 'status-message';
+      document.getElementById('status-title').textContent = '';
+      document.getElementById('status-body').textContent = '';
+    }
+    function showLoader(message) {
+      AUTH_BUSY = true;
+      document.getElementById('loading-text').textContent = message || 'Menyemak akses…';
+      document.getElementById('loading-row').classList.add('visible');
     }
     function hideLoader() {
-        const loader = document.getElementById('global-loader');
-        if (loader) loader.classList.add('hidden');
+      AUTH_BUSY = false;
+      document.getElementById('loading-row').classList.remove('visible');
+    }
+    // Kekal sebagai alias untuk keserasian logik lama; kini mesej inline, BUKAN popup.
+    function showPopupModal(message, title = 'Maklum balas sistem') {
+      setStatus('error', title, message);
+    }
+    function closePopupModal() { clearStatus(); }
+    function showToast(message, type = 'success') {
+      setStatus(type === 'success' ? 'success' : 'error',
+        type === 'success' ? 'Pengesahan berjaya' : 'Maklum balas sistem', message);
     }
 
-    /* POPUP NOTIFIKASI TOAST RINGKAS */
-    function showToast(msg, type = 'success') {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
-        const toast = document.createElement('div');
-        toast.className = `toast-enter pointer-events-auto px-4 py-3 rounded-2xl text-xs font-extrabold text-white shadow-xl flex items-center gap-2 ${type==='success'?'bg-emerald-600':'bg-red-600'}`;
-        const icon = document.createElement('span'); 
-        icon.textContent = type === 'success' ? '✅' : '⚠️';
-        const text = document.createElement('span'); 
-        text.textContent = String(msg || 'Ralat tidak diketahui.');
-        toast.append(icon, text); 
-        container.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
-    }
-
-    /* POPUP MODAL INTERAKTIF UNTUK RALAT / AMARAN / MAKLUM BALAS PENTING */
-    function showPopupModal(msg, title = "Maklum Balas Sistem", icon = "⚠️", isSuccess = false) {
-        const modal = document.getElementById('popup-modal');
-        const msgEl = document.getElementById('popup-message');
-        const titleEl = document.getElementById('popup-title');
-        const iconEl = document.getElementById('popup-icon');
-        const iconWrapper = document.getElementById('popup-icon-wrapper');
-
-        if (msgEl) msgEl.innerText = msg;
-        if (titleEl) titleEl.innerText = title;
-        if (iconEl) iconEl.innerText = icon;
-
-        if (iconWrapper) {
-            if (isSuccess) {
-                iconWrapper.className = "w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-emerald-100";
-            } else {
-                iconWrapper.className = "w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto text-2xl shadow-inner border border-red-100";
-            }
-        }
-
-        if (modal) modal.classList.remove('hidden');
-    }
-
-    function closePopupModal() {
-        const modal = document.getElementById('popup-modal');
-        if (modal) modal.classList.add('hidden');
-    }
-
-    /* INISIALISASI GOOGLE IDENTITY SERVICES (SSO LOG MASUK) */
-    function initGoogleIdentity() {
-        const clientIdToUse = (typeof GOOGLE_CLIENT_ID !== 'undefined') ? GOOGLE_CLIENT_ID : '';
-        if (!clientIdToUse) { showPopupModal('Fail config.js tiada atau Google Client ID belum ditetapkan.'); return; }
-
-        if (!window.google || !google.accounts || !google.accounts.id) {
-            console.warn('Google Identity SDK belum bersedia.');
-            return;
-        }
-
-        try {
-            google.accounts.id.initialize({
-                client_id: clientIdToUse,
-                callback: handleGoogleCredential,
-                auto_select: false,
-                cancel_on_tap_outside: true
-            });
-
-            const btnContainer = document.getElementById('google-signin-button');
-            if (btnContainer) {
-                btnContainer.innerHTML = '';
-                google.accounts.id.renderButton(btnContainer, {
-                    type: 'standard',
-                    theme: 'outline',
-                    size: 'large',
-                    text: 'signin_with',
-                    shape: 'pill',
-                    logo_alignment: 'left',
-                    width: 300
-                });
-            }
-        } catch (err) {
-            console.error("Ralat rendering butang Google:", err);
-            showPopupModal("Ralat memuatkan butang Google Sign-In. Sila muat semula halaman.", "Ralat Google SSO", "⚠️");
-        }
-    }
-
-    /* PENGENDALIAN TOKEN GOOGLE DARI GOOGLE SIGN-IN */
-    async function handleGoogleCredential(response) {
-        if (!response || !response.credential) {
-            showPopupModal("Google tidak memulangkan token pengesahan identiti.", "Ralat Pengesahan", "⚠️");
-            return;
-        }
-        showLoader('Mengesahkan identiti Google...');
-        try {
-            const res = await postToBackend({
-                action: 'googleIdentityLogin',
-                data: { credential: response.credential }
-            });
-            hideLoader();
-
-            if (!res || !res.success || !res.user) {
-                let errorMsg = (res && res.error) ? res.error : 'Akaun Google tidak berjaya disahkan.';
-                if (errorMsg.includes('tidak dijumpai sebagai Guru atau Murid')) {
-                    errorMsg = 'Akaun Google ini tidak didaftarkan dalam Data Induk SeMAKMUR.';
-                }
-                showPopupModal(errorMsg, 'Log Masuk Gagal', '❌');
-                return;
-            }
-
-            if (!res.sessionToken) {
-                showPopupModal('Backend belum mengeluarkan sesi login. Pastikan Code.gs dan login.gs terkini telah dideploy.', 'Sesi Belum Diaktifkan');
-                return;
-            }
-            const user = res.user;
-            localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user)); // KOMPATIBILITI: paparan sahaja
-            sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
-            sessionStorage.setItem('SEMAKMUR_SESSION_TOKEN', res.sessionToken);
-
-            showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
-            setTimeout(() => routeUser(user), 500);
-        } catch (err) {
-            hideLoader();
-            console.error('Google Identity login error:', err);
-            showPopupModal('Sistem tidak dapat menghubungi pelayan backend. Sila semak sambungan rangkaian.', 'Ralat Sambungan Backend', '🌐');
-        }
-    }
-
-    /* FUNGSI POST UTAMA KE BACKEND APPS SCRIPT */
     async function postToBackend(payload) {
-        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
-        if (!targetUrl) throw new Error('WEB_APP_URL tidak wujud dalam config.js.');
-
-        const response = await fetch(targetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload),
-            redirect: 'follow'
-        });
-
-        if (!response.ok) throw new Error('Ralat Pelayan HTTP ' + response.status);
-        return await response.json();
+      const target = (typeof WEB_APP_URL !== 'undefined') ? String(WEB_APP_URL || '').trim() : '';
+      if (!target) throw new Error('WEB_APP_URL tidak dijumpai dalam config.js.');
+      const response = await fetch(target, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+        redirect: 'follow'
+      });
+      if (!response.ok) throw new Error('Permintaan tidak berjaya (HTTP ' + response.status + ').');
+      return await response.json();
     }
 
-    // Untuk kegunaan dashboard pada fasa integrasi seterusnya. Token rahsia
-    // mesti dihantar kepada backend; jangan jadikan role dari localStorage bukti kebenaran.
-    async function semakSesiBackendV3() {
-        const token = sessionStorage.getItem('SEMAKMUR_SESSION_TOKEN');
-        if (!token) return { success: false, error: 'Tiada sesi login.' };
-        return postToBackend({ action: 'verifySession', data: { sessionToken: token } });
+    function saveSession(user, sessionToken) {
+      // Format lama dikekalkan untuk keserasian dashboard sedia ada.
+      localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
+      sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+      sessionStorage.setItem('SEMAKMUR_SESSION_TOKEN', sessionToken);
     }
-
-    /* HALUAN PENULINGAN PERANAN PENGGUNA (ROUTING) */
-    function routeUser(user) {
-        if (!user) return;
-
-        if (user.is_admin || user.role === 'admin_choice') {
-            PENDING_ADMIN_USER = user;
-            document.getElementById('admin-choice-modal').classList.remove('hidden');
-        } else if (user.role === 'guru') {
-            window.location.href = 'guru/DashboardGuru.html';
-        } else if (user.role === 'murid' || user.role === 'student') {
-            window.location.href = 'DashboardMurid.html';
-        } else if (user.role === 'parent' || user.role === 'waris') {
-            window.location.href = 'DashboardParent.html';
-        } else if (user.role === 'admin') {
-            window.location.href = 'DashboardAdmin.html';
-        } else {
-            showPopupModal('Akaun anda berjaya disahkan tetapi peranan pengguna tidak dikenal pasti.', 'Peranan Tidak Sah', '⚠️');
-        }
-    }
-
-    /* MEMADAM SESI LAMA SEBELUM LOG MASUK BARU */
     function clearOldSessions() {
-        localStorage.removeItem('SAVED_MOE_USER');
-        sessionStorage.removeItem('CURRENT_USER');
-        sessionStorage.removeItem('SEMAKMUR_SESSION_TOKEN');
+      localStorage.removeItem('SAVED_MOE_USER');
+      localStorage.removeItem('currentUser');
+      sessionStorage.removeItem('CURRENT_USER');
+      sessionStorage.removeItem('SEMAKMUR_SESSION_TOKEN');
+    }
+    async function semakSesiBackendV3() {
+      const token = sessionStorage.getItem('SEMAKMUR_SESSION_TOKEN');
+      if (!token) return { success: false, error: 'Tiada sesi login.' };
+      return postToBackend({ action: 'verifySession', data: { sessionToken: token } });
     }
 
-    /* PILIHAN DASHBOARD UNTUK GURU DENGAN AKSES ADMIN */
+    function initGoogleIdentity() {
+      if (GOOGLE_INITIALIZED) return true;
+      const client = (typeof GOOGLE_CLIENT_ID !== 'undefined') ? String(GOOGLE_CLIENT_ID || '').trim() : '';
+      if (!client) {
+        setStatus('error', 'Konfigurasi belum lengkap', 'Fail config.js atau Google Client ID belum dapat dibaca. Pastikan fail berada dalam folder yang sama.');
+        return false;
+      }
+      if (!window.google || !google.accounts || !google.accounts.id) return false;
+      try {
+        google.accounts.id.initialize({
+          client_id: client,
+          callback: handleGoogleCredential,
+          auto_select: false,
+          cancel_on_tap_outside: true
+        });
+        const container = document.getElementById('google-signin-button');
+        const buttonWidth = Math.min(330, Math.max(220, Math.floor(container.clientWidth || 300)));
+        google.accounts.id.renderButton(container, {
+          type: 'standard', theme: 'outline', size: 'large', text: 'signin_with',
+          shape: 'rectangular', logo_alignment: 'left', width: buttonWidth
+        });
+        GOOGLE_INITIALIZED = true;
+        clearStatus();
+        return true;
+      } catch (error) {
+        console.error('Google Identity SDK:', error);
+        setStatus('error', 'Google Sign-In tidak tersedia', 'Butang Google gagal dimuatkan. Sila muat semula halaman dan cuba lagi.');
+        return false;
+      }
+    }
+
+    async function handleGoogleCredential(response) {
+      if (AUTH_BUSY) return;
+      clearStatus();
+      if (!response || !response.credential) {
+        setStatus('error', 'Pengesahan tidak lengkap', 'Google tidak memberikan maklumat pengesahan. Sila cuba lagi.');
+        return;
+      }
+      showLoader('Mengesahkan identiti akaun…');
+      try {
+        const res = await postToBackend({ action: 'googleIdentityLogin', data: { credential: response.credential } });
+        if (!res || !res.success || !res.user) {
+          const msg = (res && res.error) ? res.error : 'Akaun ini tidak dapat disahkan oleh sistem.';
+          setStatus('error', 'Log masuk tidak berjaya', msg);
+          return;
+        }
+        if (!res.sessionToken) {
+          setStatus('error', 'Sesi belum tersedia', 'Backend belum mengeluarkan token sesi. Semak versi deployment Apps Script semasa.');
+          return;
+        }
+        saveSession(res.user, res.sessionToken);
+        showToast('Selamat datang, ' + (res.user.name || 'pengguna') + '.', 'success');
+        setTimeout(() => routeUser(res.user), 350);
+      } catch (error) {
+        console.error('Login:', error);
+        setStatus('error', 'Tidak dapat menghubungi pelayan', 'Sambungan ke Apps Script gagal. Semak rangkaian dan cuba lagi.');
+      } finally { hideLoader(); }
+    }
+
+    function routeUser(user) {
+      if (!user) return;
+      if (user.is_admin || user.role === 'admin_choice') {
+        PENDING_ADMIN_USER = user;
+        document.getElementById('login-area').classList.add('hidden');
+        document.getElementById('admin-area').classList.add('visible');
+        document.getElementById('admin-greeting').textContent =
+          (user.name ? ('Selamat datang, ' + user.name + '. ') : '') +
+          'Akaun anda mempunyai akses pentadbir sistem. Sila pilih ruang kerja.';
+      } else if (user.role === 'guru') {
+        window.location.href = 'guru/DashboardGuru.html';
+      } else if (user.role === 'murid' || user.role === 'student') {
+        window.location.href = 'DashboardMurid.html';
+      } else if (user.role === 'parent' || user.role === 'waris') {
+        window.location.href = 'DashboardParent.html';
+      } else if (user.role === 'admin') {
+        window.location.href = 'DashboardAdmin.html';
+      } else {
+        setStatus('error', 'Peranan tidak dikenali', 'Akaun disahkan, tetapi peranan pengguna tidak tersedia. Sila hubungi pentadbir sistem.');
+      }
+    }
     function selectAdminDashboard(choice) {
-        if (!PENDING_ADMIN_USER) return;
-        const userToSave = { ...PENDING_ADMIN_USER };
-        userToSave.role = choice === 'admin' ? 'admin' : 'guru';
-        
-        localStorage.setItem('SAVED_MOE_USER', JSON.stringify(userToSave));
-        sessionStorage.setItem('CURRENT_USER', JSON.stringify(userToSave));
+      if (!PENDING_ADMIN_USER) return;
+      const user = { ...PENDING_ADMIN_USER, role: choice === 'admin' ? 'admin' : 'guru' };
+      // Pilihan UI sahaja. Hak sebenar API mesti disahkan oleh backend.
+      localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
+      sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+      window.location.href = choice === 'admin' ? 'DashboardAdmin.html' : 'guru/DashboardGuru.html';
+    }
+    function returnToLogin() {
+      PENDING_ADMIN_USER = null;
+      document.getElementById('admin-area').classList.remove('visible');
+      document.getElementById('login-area').classList.remove('hidden');
+      clearStatus();
+    }
 
-        if (choice === 'admin') {
-            window.location.href = 'DashboardAdmin.html';
+    async function tryRestoreSession() {
+      const token = sessionStorage.getItem('SEMAKMUR_SESSION_TOKEN');
+      if (!token) return;
+      showLoader('Memulihkan sesi pengguna…');
+      try {
+        const result = await semakSesiBackendV3();
+        if (result && result.success && result.user) {
+          saveSession(result.user, token);
+          routeUser(result.user);
         } else {
-            window.location.href = 'guru/DashboardGuru.html';
+          clearOldSessions();
         }
+      } catch (error) {
+        // Masalah rangkaian sementara tidak dianggap bukti sesi dicuri;
+        // paparkan login tanpa menggunakan identiti tersimpan sebagai autoriti.
+        console.warn('Semakan sesi tidak berjaya:', error);
+      } finally { hideLoader(); }
     }
 
-    /* PENGENDALIAN LOG MASUK MANUAL (WARIS / EMEL LAIN) */
-    async function handleManualLogin(e) {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value.trim();
-        const password = document.getElementById('login-pass').value;
-
-        if (!email || !password) {
-            showPopupModal("Sila isi e-mel dan kata laluan anda dengan lengkap.", "Borang Tidak Lengkap", "⚠️");
-            return;
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('copyright-year').textContent = new Date().getFullYear();
+      let n = 0;
+      const timer = setInterval(() => {
+        n++;
+        if (initGoogleIdentity() || n >= 60) {
+          clearInterval(timer);
+          if (!GOOGLE_INITIALIZED && typeof GOOGLE_CLIENT_ID !== 'undefined') {
+            setStatus('error', 'Google Sign-In belum dimuatkan', 'Tidak dapat memuatkan komponen Google. Semak sambungan internet dan muat semula halaman.');
+          }
         }
-
-        showLoader('Menyemak padanan e-mel dan kata laluan...');
-        try {
-            const res = await postToBackend({ action: 'manualLogin', data: { email, password } });
-            hideLoader();
-
-            if (res && res.success && res.user) {
-                if (!res.sessionToken) {
-                    showPopupModal('Backend belum mengeluarkan sesi login. Sila kemas kini deployment Apps Script.', 'Sesi Belum Diaktifkan');
-                    return;
-                }
-                const user = res.user;
-                localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user)); // KOMPATIBILITI: paparan sahaja
-                sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
-                sessionStorage.setItem('SEMAKMUR_SESSION_TOKEN', res.sessionToken);
-
-                showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
-                setTimeout(() => routeUser(user), 500);
-            } else {
-                showPopupModal((res && res.error) || 'E-mel atau kata laluan tidak padan dalam pangkalan data.', 'Akses Ditolak', '🔐');
-            }
-        } catch (err) {
-            hideLoader();
-            console.error('Manual Login Error:', err);
-            showPopupModal('Ralat sambungan ke pelayan backend. Sila pastikan sambungan internet stabil.', 'Ralat Rangkaian', '🌐');
-        }
-    }
-
-    /* INISIALISASI APABILA DOM SIAP DILUATKAN */
-    window.addEventListener('DOMContentLoaded', () => {
-        clearOldSessions();
-
-        let attempts = 0;
-        const timer = setInterval(() => {
-            attempts++;
-            if (window.google && google.accounts && google.accounts.id) {
-                clearInterval(timer); 
-                initGoogleIdentity();
-            } else if (attempts >= 30) {
-                clearInterval(timer);
-                console.warn('Google Identity SDK lambat dimuatkan.');
-            }
-        }, 200);
+      }, 250);
+      // Semak sesi yang masih sah dalam tab ini. Ini BUKAN sesi PWA 14 hari.
+      tryRestoreSession();
     });
-    </script>
+  </script>
 </body>
 </html>
