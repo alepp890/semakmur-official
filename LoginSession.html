@@ -211,6 +211,187 @@
     @media (prefers-reduced-motion: reduce) {
       *,*::before,*::after {animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
     }
+
+    /* PREMIUM DASHBOARD — theme and viewport-fit refinement.
+       No font declarations below 13px. No JS auth/routing changes. */
+    :root { --navy-950:#111832; --navy-900:#182449; --navy-800:#25375f; --sky-500:#74b8e2; --ink:#223453; }
+    html,body { width:100%; height:100%; overflow:hidden; }
+    body {
+      padding: clamp(10px,2.2vh,22px);
+      background: radial-gradient(ellipse at 10% 88%,#2b6089 0%,transparent 42%),
+                  radial-gradient(ellipse at 95% 7%,#374476 0%,transparent 44%),
+                  #141c3b;
+    }
+    .app-frame {
+      width:min(1140px,100%);
+      height:min(710px,calc(100dvh - clamp(20px,4.4vh,44px)));
+      min-height:0;
+      grid-template-columns:minmax(0,1.04fr) minmax(400px,.96fr);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:21px;
+      box-shadow:0 28px 80px rgba(2,9,35,.33);
+    }
+    .brand-side {
+      background: radial-gradient(circle at 84% 87%, rgba(121,181,221,.18), transparent 49%),
+                  linear-gradient(153deg,#162046 6%,#1b315b 54%,#2e6087 100%);
+      padding:clamp(22px,3.4vw,40px);
+    }
+    .brand-side::after {opacity:.08;}
+    .brand-mark { border-radius:11px; background:rgba(255,255,255,.055); }
+    .brand-word {font-size:20px;letter-spacing:-.02em;}
+    .brand-word small {letter-spacing:.13em;color:#bddbf1;}
+    .hero {padding-top:10px;}
+    .eyebrow {letter-spacing:.13em;font-size:13px;color:#b5d9f3;}
+    .hero h1 {font-size:clamp(32px,3.5vw,45px);line-height:1.18;letter-spacing:-.042em;margin:14px 0 16px;}
+    .hero h1 span {color:#a1d6f6;}
+    .hero p {font-size:14px;line-height:1.68;max-width:395px;color:#d4e3ee;}
+    .module-preview {margin-top:24px;gap:10px;}
+    .preview-tile {min-height:88px;padding:12px 12px 10px;background:rgba(241,250,255,.075);border-radius:11px;}
+    .preview-tile strong {font-weight:700;font-size:13px;margin-top:7px;}
+    .brand-foot {margin-top:12px;line-height:1.35;}
+    .brand-foot .separation {flex:0 0 14px;}
+    .login-side {padding:clamp(23px,3.4vw,43px);background:linear-gradient(158deg,#fdfefe,#f1f6fc);}
+    .top-line {margin-bottom:clamp(22px,4vh,45px);}
+    .top-line .caption {color:#556b88;letter-spacing:.13em;}
+    .login-body {max-width:382px;}
+    .login-kicker {letter-spacing:.13em;color:#4474a5;}
+    h2 {margin:14px 0 11px;font-size:clamp(29px,2.7vw,35px);letter-spacing:-.05em;}
+    .login-subtitle {font-size:14px;line-height:1.65;color:#687b96;margin-bottom:26px;max-width:370px;}
+    .auth-panel {padding:24px 22px 21px;border-radius:16px;border-color:#dce6f1;box-shadow:0 16px 36px rgba(34,68,113,.07);}
+    .field-title {text-align:center;margin:0 0 17px;color:#476386;letter-spacing:.11em;font-size:13px;}
+    #google-signin-button {min-height:45px;}
+    .auth-note {color:#7b8ca4;font-size:13px;line-height:1.55;margin:15px 0 0;}
+    .trust-line {display:flex;gap:9px;align-items:center;justify-content:center;text-align:center;
+      border:1px solid #e0e9f4;background:rgba(237,244,252,.8);border-radius:11px;
+      margin-top:22px;padding:12px 11px;color:#627b99;font-size:13px;line-height:1.4;}
+    .trust-line svg {width:18px;height:18px;flex:none;color:#43779f;}
+    .login-bottom {margin-top:20px;color:#8899ad;font-size:13px;line-height:1.5;}
+    .status-message {margin-top:12px;padding:9px 11px;border-radius:10px;}
+    .status-message strong, .status-message p {font-size:13px;}
+    .admin-intro {line-height:1.65;margin-bottom:16px;}
+    .workspace-list {gap:9px;}
+    .workspace-card {padding:13px 12px;}
+    .back-button {margin-top:16px;}
+    @media (max-height:770px) and (min-width:701px) {
+      .brand-side {padding:25px 30px;}
+      .hero h1 {font-size:clamp(30px,3vw,40px);margin:10px 0 10px;}
+      .hero p {line-height:1.55;}
+      .module-preview {margin-top:16px;}
+      .preview-tile {min-height:71px;padding:10px;}
+      .preview-tile strong {margin-top:5px;}
+      .login-side {padding:25px 34px;}
+      .top-line {margin-bottom:16px;}
+      .login-subtitle {margin-bottom:17px;}
+      .auth-panel {padding:18px 17px;}
+      .trust-line {margin-top:15px;padding:10px;}
+      .login-bottom {margin-top:14px;}
+    }
+    @media (max-height:600px) and (min-width:701px) {
+      .brand-side {padding:18px 23px;}
+      .hero h1 {font-size:29px;line-height:1.12;margin:8px 0;}
+      .hero p {line-height:1.45;}
+      .module-preview {margin-top:10px;}
+      .preview-tile {min-height:61px;padding:8px;}
+      .brand-foot {display:none;}
+      .login-side {padding:16px 25px;}
+      .top-line {margin-bottom:9px;}
+      h2 {font-size:27px;margin:8px 0 6px;}
+      .login-subtitle {font-size:13px;line-height:1.4;margin-bottom:12px;}
+      .auth-panel {padding:12px;}
+      .field-title {margin-bottom:8px;}
+      .auth-note {margin-top:9px;}
+      .trust-line {margin-top:10px;padding:8px;}
+      .login-bottom {margin-top:9px;}
+    }
+    @media (max-width:900px) and (min-width:701px) {
+      .app-frame {grid-template-columns:minmax(0,.9fr) minmax(370px,1.1fr);}
+      .brand-side {padding:24px;}
+      .login-side {padding:23px;}
+      .brand-foot {display:none;}
+      .module-preview {grid-template-columns:1fr;gap:7px;}
+      .preview-tile {display:flex;align-items:center;min-height:48px;padding:8px 11px;gap:12px;}
+      .preview-tile strong {margin:0;}
+    }
+    @media (max-width:700px) {
+      body {padding:9px;align-items:center;overflow:hidden;}
+      .app-frame {display:flex;flex-direction:column;width:100%;height:calc(100dvh - 18px);border-radius:16px;}
+      .brand-side {flex:0 0 auto;min-height:0;padding:19px 22px 16px;gap:12px;}
+      .brand-mark {width:35px;height:35px;}
+      .brand-word {font-size:18px;}
+      .brand-word small {font-size:13px;margin-top:3px;}
+      .hero {padding:0;}
+      .eyebrow {display:none;}
+      .hero h1 {font-size:21px;margin:0;line-height:1.27;letter-spacing:-.025em;}
+      .hero h1 br {display:none;}
+      .hero h1 span {color:#b2dcf8;}
+      .hero h1 span::after {content:' ';white-space:pre;}
+      .hero p,.module-preview,.brand-foot {display:none;}
+      .login-side {padding:19px 21px 15px;flex:1;min-height:0;justify-content:center;}
+      .top-line {margin:0 0 23px;}
+      .login-body {max-width:400px;}
+      h2 {font-size:29px;margin:11px 0 8px;}
+      .login-subtitle {font-size:14px;line-height:1.55;margin-bottom:20px;}
+      .auth-panel {padding:20px 14px 18px;}
+      .field-title {margin-bottom:13px;}
+      .auth-note {margin-top:13px;}
+      .trust-line {margin-top:18px;padding:11px 9px;}
+      .login-bottom {margin-top:18px;}
+      .workspace-card {padding:12px;}
+    }
+    @media (max-width:700px) and (max-height:740px) {
+      .brand-side {padding:13px 18px 11px;gap:8px;}
+      .brand-word {font-size:17px;}
+      .hero h1 {font-size:18px;}
+      .login-side {padding:12px 18px 12px;}
+      .top-line {margin-bottom:13px;}
+      h2 {font-size:25px;margin:8px 0 5px;}
+      .login-subtitle {font-size:13px;line-height:1.45;margin-bottom:12px;}
+      .auth-panel {padding:13px 12px;}
+      .field-title {margin-bottom:9px;}
+      .auth-note {margin-top:9px;}
+      .trust-line {margin-top:11px;padding:9px;}
+      .login-bottom {margin-top:11px;}
+      .admin-intro {margin-bottom:12px;}
+    }
+    @media (max-width:700px) and (max-height:615px) {
+      .brand-side {padding:9px 16px;}
+      .brand-word {font-size:16px;}
+      .brand-logo {gap:8px;}
+      .hero {display:none;}
+      .login-side {padding:9px 15px 8px;}
+      .top-line {margin-bottom:8px;}
+      .login-kicker {display:none;}
+      h2 {font-size:23px;margin:4px 0 5px;}
+      .login-subtitle {margin-bottom:8px;line-height:1.4;}
+      .auth-panel {padding:10px;}
+      .field-title {margin-bottom:7px;}
+      .auth-note {margin-top:7px;}
+      .trust-line {margin-top:7px;padding:7px;}
+      .login-bottom {margin-top:7px;}
+      .admin-intro {margin-bottom:8px;}
+      .workspace-list {gap:6px;}
+      .workspace-card {padding:9px;}
+    }
+    @media (max-width:370px) {
+      body {padding:4px;}
+      .app-frame {height:calc(100dvh - 8px);border-radius:12px;}
+      .brand-side {padding-left:14px;padding-right:14px;}
+      .login-side {padding-left:12px;padding-right:12px;}
+      .top-line .caption {letter-spacing:.07em;}
+    }
+    @media (max-width:700px) and (max-height:690px) {
+      .login-side:has(.status-message.visible) .trust-line {display:none;}
+      .login-side:has(.status-message.visible) .login-bottom {margin-top:6px;}
+      .status-message {margin-top:8px;padding:8px 10px;}
+    }
+    /* Accessibility: extraordinary narrow/short screens or large text zoom may need scrolling.
+       Prefer usable controls over clipping login/error messages. */
+    @media (max-width:700px) and (max-height:490px) {
+      html,body {overflow:auto;}
+      body {align-items:flex-start;height:auto;min-height:100dvh;}
+      .app-frame {height:auto;min-height:calc(100dvh - 8px);overflow:visible;}
+    }
+
   </style>
 </head>
 <body>
@@ -224,8 +405,8 @@
         <span class="brand-word">SeMAKMUR <small>DIGITAL · SCHOOL PLATFORM</small></span>
       </div>
       <div class="hero">
-        <div class="eyebrow">Ekosistem Sekolah Bersepadu</div>
-        <h1>Satu platform.<br /><span>Lebih masa</span><br />untuk mendidik.</h1>
+        <div class="eyebrow">EKOSISTEM SEKOLAH BERSEPADU</div>
+        <h1>Satu platform. <br /><span>Lebih masa</span><br />untuk mendidik.</h1>
         <p>Menyatukan urusan pengurusan, pengajaran dan pemantauan sekolah dalam pengalaman digital yang lebih teratur.</p>
         <div class="module-preview" aria-label="Bidang utama portal">
           <div class="preview-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><strong>Pengurusan<br/>Bersepadu</strong></div>
@@ -250,21 +431,20 @@
             AKSES AKAUN
           </div>
           <h2>Selamat kembali.</h2>
-          <p class="login-subtitle">Log masuk dengan akaun Google yang telah didaftarkan dalam Data Induk SeMAKMUR.</p>
+          <p class="login-subtitle">Akses ruang kerja anda melalui akaun yang berdaftar dengan SeMAKMUR Digital.</p>
           <div class="auth-panel">
-            <p class="field-title">Pengesahan Akaun</p>
+            <p class="field-title">TERUSKAN DENGAN GOOGLE</p>
             <div id="google-signin-button" aria-label="Butang rasmi Google Sign-In"></div>
-            <p class="auth-note">Akses akan dipadankan secara automatik mengikut peranan pengguna dalam sistem.</p>
+            <p class="auth-note">Identiti disahkan. Akses mengikut peranan anda.</p>
             <div id="loading-row" class="loading-row" aria-live="polite"><span class="spinner" aria-hidden="true"></span><span id="loading-text">Mengesahkan akaun…</span></div>
             <div id="status-message" class="status-message" role="alert" aria-live="polite">
               <svg id="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>
               <div><strong id="status-title">Maklumat login</strong><p id="status-body"></p></div>
             </div>
           </div>
-          <div class="divider">SISTEM BERSEPADU</div>
-          <div class="tip-box">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6m0-10h.01"/></svg>
-            <div><strong>Penggunaan akaun berdaftar</strong><p>Akses diberikan mengikut identiti dan status pengguna dalam pangkalan data sekolah.</p></div>
+          <div class="trust-line" aria-label="Maklumat keselamatan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5.3 3.4 9.1 8 11 4.6-1.9 8-5.7 8-11V5l-8-3Z"/><path d="m8.5 12 2.3 2.2 4.8-4.8"/></svg>
+            <span>Akses terkawal melalui Data Induk SeMAKMUR</span>
           </div>
         </div>
 
