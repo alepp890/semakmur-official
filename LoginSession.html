@@ -634,6 +634,7 @@
 
   <!-- Fail config.js WAJIB berada dalam folder yang sama dengan LoginSession.html. -->
   <script src="config.js"></script>
+  <script src="auth-client.js"></script>
   <script>
     'use strict';
     let PENDING_ADMIN_USER = null;
@@ -718,24 +719,14 @@
       return await response.json();
     }
 
-    function saveSession(user, sessionToken) {
-      // Format lama dikekalkan untuk keserasian dashboard sedia ada.
-      localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
-      localStorage.setItem('SEMAKMUR_PERNAH_LOGIN', '1');
-      sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
-      sessionStorage.setItem('SEMAKMUR_SESSION_TOKEN', sessionToken);
+    function saveSession(user, sessionToken, refreshToken, expires) {
+      SeMAKMURAuth.storeCredentials({
+        success: true, user: user, sessionToken: sessionToken,
+        refreshToken: refreshToken, sessionExpires: expires
+      });
     }
-    function clearOldSessions() {
-      localStorage.removeItem('SAVED_MOE_USER');
-      localStorage.removeItem('currentUser');
-      sessionStorage.removeItem('CURRENT_USER');
-      sessionStorage.removeItem('SEMAKMUR_SESSION_TOKEN');
-    }
-    async function semakSesiBackendV3() {
-      const token = sessionStorage.getItem('SEMAKMUR_SESSION_TOKEN');
-      if (!token) return { success: false, error: 'Tiada sesi login.' };
-      return postToBackend({ action: 'verifySession', data: { sessionToken: token } });
-    }
+    function clearOldSessions() { SeMAKMURAuth.clear(); }
+    async function semakSesiBackendV3() { return SeMAKMURAuth.verify(); }
 
     function initGoogleIdentity() {
       if (GOOGLE_INITIALIZED) return true;
@@ -787,7 +778,7 @@
           setStatus('error', 'Sesi belum tersedia', 'Backend belum mengeluarkan token sesi. Semak versi deployment Apps Script semasa.');
           return;
         }
-        saveSession(res.user, res.sessionToken);
+        saveSession(res.user, res.sessionToken, res.refreshToken, res.sessionExpires);
         showToast('Selamat datang, ' + (res.user.name || 'pengguna') + '.', 'success');
         setTimeout(() => routeUser(res.user), 350);
       } catch (error) {
@@ -833,21 +824,22 @@
     }
 
     async function tryRestoreSession() {
-      const token = sessionStorage.getItem('SEMAKMUR_SESSION_TOKEN');
-      if (!token) return;
-      showLoader('Memulihkan sesi pengguna…');
+      // Aplikasi boleh ditutup dan dibuka: token akses lama tidak diperlukan.
+      // Refresh token persisten menghasilkan access token baharu apabila dibuka.
+      if (!localStorage.getItem('SEMAKMUR_PWA_REFRESH_TOKEN')) return;
+      showLoader('Menyambung semula sesi anda…');
       try {
-        const result = await semakSesiBackendV3();
+        const result = await SeMAKMURAuth.refresh();
         if (result && result.success && result.user) {
-          saveSession(result.user, token);
           routeUser(result.user);
-        } else {
+        } else if (result && result.code === 'SESSION_EXPIRED') {
           clearOldSessions();
         }
       } catch (error) {
-        // Masalah rangkaian sementara tidak dianggap bukti sesi dicuri;
-        // paparkan login tanpa menggunakan identiti tersimpan sebagai autoriti.
-        console.warn('Semakan sesi tidak berjaya:', error);
+        // Rangkaian terganggu: jangan buang token yang mungkin masih sah.
+        console.warn('Tidak dapat menyambung semula sesi buat masa ini.');
+        setStatus('info', 'Sambungan terganggu',
+          'Tidak dapat menyambung sesi buat masa ini. Semak internet dan cuba lagi.');
       } finally { hideLoader(); }
     }
 
