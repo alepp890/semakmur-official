@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log Masuk - Portal Rasmi Sekolah</title>
+    <title>Log Masuk - SeMAKMUR Digital (V3 Ujian)</title>
 
     <!-- Google Identity Services SDK -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -195,7 +195,7 @@
                 
                 <div class="relative flex py-2 items-center">
                     <div class="flex-grow border-t border-slate-200"></div>
-                    <span class="flex-shrink mx-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Atau Guna E-mel Manual</span>
+                    <span class="flex-shrink mx-3 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Log Masuk Ibu Bapa / Waris</span>
                     <div class="flex-grow border-t border-slate-200"></div>
                 </div>
             </div>
@@ -211,14 +211,14 @@
                     <input type="password" id="login-pass" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl border border-brandBorder focus:border-brandAccent focus:ring-2 focus:ring-brandAccent/20 outline-none bg-slate-50 text-xs sm:text-sm font-medium transition">
                 </div>
                 <button type="submit" class="btn-gradient-dark w-full py-3 px-4 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md transition hover:scale-[1.01] active:scale-[0.99]">
-                    Log Masuk Sistem
+                    Log Masuk Waris
                 </button>
             </form>
         </div>
     </div>
 
     <!-- SAMBUNGAN FAIL CONFIG BACKEND -->
-    <script src="config.js"></script>
+    <script src="config_V3_UJIAN.js"></script>
 
     <!-- LOGIK JAVASCRIPT LOG MASUK -->
     <script>
@@ -281,7 +281,8 @@
 
     /* INISIALISASI GOOGLE IDENTITY SERVICES (SSO LOG MASUK) */
     function initGoogleIdentity() {
-        const clientIdToUse = (typeof GOOGLE_CLIENT_ID !== 'undefined' && GOOGLE_CLIENT_ID) ? GOOGLE_CLIENT_ID : '637460698521-djt73cs1emsa5n5m7p2q8s4feohmhnuh.apps.googleusercontent.com';
+        const clientIdToUse = (typeof GOOGLE_CLIENT_ID !== 'undefined') ? GOOGLE_CLIENT_ID : '';
+        if (!clientIdToUse) { showPopupModal('Fail config.js tiada atau Google Client ID belum ditetapkan.'); return; }
 
         if (!window.google || !google.accounts || !google.accounts.id) {
             console.warn('Google Identity SDK belum bersedia.');
@@ -338,9 +339,14 @@
                 return;
             }
 
+            if (!res.sessionToken) {
+                showPopupModal('Backend belum mengeluarkan sesi login. Pastikan Code.gs dan login.gs terkini telah dideploy.', 'Sesi Belum Diaktifkan');
+                return;
+            }
             const user = res.user;
-            localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
+            localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user)); // KOMPATIBILITI: paparan sahaja
             sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+            sessionStorage.setItem('SEMAKMUR_SESSION_TOKEN', res.sessionToken);
 
             showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
             setTimeout(() => routeUser(user), 500);
@@ -353,9 +359,8 @@
 
     /* FUNGSI POST UTAMA KE BACKEND APPS SCRIPT */
     async function postToBackend(payload) {
-        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
-            ? WEB_APP_URL 
-            : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
+        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
+        if (!targetUrl) throw new Error('WEB_APP_URL tidak wujud dalam config.js.');
 
         const response = await fetch(targetUrl, {
             method: 'POST',
@@ -366,6 +371,14 @@
 
         if (!response.ok) throw new Error('Ralat Pelayan HTTP ' + response.status);
         return await response.json();
+    }
+
+    // Untuk kegunaan dashboard pada fasa integrasi seterusnya. Token rahsia
+    // mesti dihantar kepada backend; jangan jadikan role dari localStorage bukti kebenaran.
+    async function semakSesiBackendV3() {
+        const token = sessionStorage.getItem('SEMAKMUR_SESSION_TOKEN');
+        if (!token) return { success: false, error: 'Tiada sesi login.' };
+        return postToBackend({ action: 'verifySession', data: { sessionToken: token } });
     }
 
     /* HALUAN PENULINGAN PERANAN PENGGUNA (ROUTING) */
@@ -392,6 +405,7 @@
     function clearOldSessions() {
         localStorage.removeItem('SAVED_MOE_USER');
         sessionStorage.removeItem('CURRENT_USER');
+        sessionStorage.removeItem('SEMAKMUR_SESSION_TOKEN');
     }
 
     /* PILIHAN DASHBOARD UNTUK GURU DENGAN AKSES ADMIN */
@@ -427,9 +441,14 @@
             hideLoader();
 
             if (res && res.success && res.user) {
+                if (!res.sessionToken) {
+                    showPopupModal('Backend belum mengeluarkan sesi login. Sila kemas kini deployment Apps Script.', 'Sesi Belum Diaktifkan');
+                    return;
+                }
                 const user = res.user;
-                localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
+                localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user)); // KOMPATIBILITI: paparan sahaja
                 sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+                sessionStorage.setItem('SEMAKMUR_SESSION_TOKEN', res.sessionToken);
 
                 showToast(`Selamat datang, ${user.name || 'Pengguna'}!`);
                 setTimeout(() => routeUser(user), 500);
