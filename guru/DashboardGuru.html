@@ -495,6 +495,7 @@
 
     <!-- CONFIG FILE (Keluar paras ke root) -->
     <script src="../config.js"></script>
+    <script src="../auth-client.js"></script>
 
     <!-- LOGIK JAVASCRIPT DASHBOARD -->
     <script>
@@ -565,7 +566,9 @@
         if (loader) loader.classList.add('hidden');
     }
 
-    function checkUserSession() {
+    async function checkUserSession() {
+        const verified = await SeMAKMURAuth.requireUser(['guru','admin_choice'], '../LoginSession.html');
+        if (!verified) return;
         const sessionData = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser');
         if (!sessionData) {
             window.location.href = '../LoginSession.html';
@@ -681,19 +684,7 @@
     }
 
     async function postToBackend(payload) {
-        const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
-            ? WEB_APP_URL 
-            : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
-
-        const response = await fetch(targetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload),
-            redirect: 'follow'
-        });
-
-        if (!response.ok) throw new Error('HTTP Error ' + response.status);
-        return await response.json();
+        return SeMAKMURAuth.request(payload);
     }
 
     async function fetchClassStudentsRealData(overrideClassName = null) {
@@ -721,21 +712,8 @@
     }
 
     async function fallbackFetchPortalData(className) {
-        try {
-            const targetUrl = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) ? WEB_APP_URL : '';
-            const res = await fetch(`${targetUrl}?action=getPortalData`).then(r => r.json());
-            hideLoader();
-
-            if (res && res.students) {
-                const filtered = res.students.filter(s => String(s.kelas || s.Nama_Kelas || '').toLowerCase().trim() === className.toLowerCase().trim());
-                renderStudentTable(filtered);
-            } else {
-                renderStudentTable([]);
-            }
-        } catch (e) {
-            hideLoader();
-            renderStudentTable([]);
-        }
+        // Jangan minta senarai murid melalui API awam apabila pengesahan gagal.
+        renderStudentTable([]);
     }
 
     function renderStudentTable(students) {
@@ -778,11 +756,8 @@
         sidebar.classList.toggle('-translate-x-full');
     }
 
-    function handleLogout() {
-        sessionStorage.clear();
-        localStorage.removeItem('SAVED_MOE_USER');
-        localStorage.removeItem('currentUser');
-        window.location.href = '../LoginSession.html';
+    async function handleLogout() {
+        await SeMAKMURAuth.logout('../LoginSession.html');
     }
 
     function bukaAplikasi(namaAplikasi, url) {
@@ -804,56 +779,11 @@
     }
 
     /* KEMASKINI FUNGSI MEMBUKA ErphGuru.html DI DALAM FOLDER /modulaplikasi */
-    function bukaErphModule() {
-        const storedUser = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser') || localStorage.getItem('userSession');
-        
-        if (!storedUser) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Sesi Luput',
-                    text: 'Sila log masuk semula ke Portal Guru.',
-                    confirmButtonColor: '#1f7a9c'
-                }).then(() => {
-                    window.location.href = '../LoginSession.html';
-                });
-            } else {
-                alert('Sesi Luput. Sila log masuk semula.');
-                window.location.href = '../LoginSession.html';
-            }
-            return;
-        }
-
-        try {
-            const parsed = JSON.parse(storedUser);
-            localStorage.setItem('currentUser', JSON.stringify(parsed));
-
-            const userEmail = (parsed.email || parsed.Email || parsed.emel || parsed.Emel || parsed.username || '').toString().trim().toLowerCase();
-            if (!userEmail) {
-                alert('Ralat: Emel pengguna tidak ditemui.');
-                return;
-            }
-
-            const encodedEmail = encodeURIComponent(userEmail);
-            
-            const timestamp = Date.now();
-            const randStr = Math.random().toString(36).substring(2, 7).toUpperCase();
-            const launchToken = `ERPH_TOK_${timestamp}_${randStr}`;
-
-            const tokenData = {
-                token: launchToken,
-                timestamp: timestamp
-            };
-
-            sessionStorage.setItem('ERPH_LAUNCH_TOKEN_DATA', JSON.stringify(tokenData));
-            localStorage.setItem('ERPH_LAUNCH_TOKEN_DATA', JSON.stringify(tokenData));
-
-            // Membuka ErphGuru.html di dalam modulaplikasi
-            window.open(`modulaplikasi/ErphGuru.html?launchToken=${launchToken}&usr=${encodedEmail}`, '_blank');
-        } catch(e) {
-            console.error("Ralat melancarkan e-RPH:", e);
-            window.open('modulaplikasi/ErphGuru.html', '_blank');
-        }
+    async function bukaErphModule() {
+        const user = await SeMAKMURAuth.requireUser(['guru','admin_choice'], '../LoginSession.html');
+        if (!user) return;
+        // Akses sebenar disemak oleh backend; token dan e-mel tidak melalui URL.
+        window.open('modulaplikasi/ErphGuru.html', '_blank', 'noopener');
     }
 
     window.addEventListener('DOMContentLoaded', () => {
