@@ -2,7 +2,7 @@
  * TETAPAN UTAMA PORTAL SEMAKMUR DIGITAL
  * URL deployment rasmi dikekalkan. Client ID Google ialah ID awam, bukan rahsia.
  */
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwYYaandGjA6Ap8piJgRRaZI29043WmbsBP_rMNGVZPOYX-E2MsOSIQ4CXp6WnJVRLB/exec';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx1AYVMs2oYwuiMgbO82VerTj9wz5FryCeUwoH1oD4MAnANdTimyUbx0M3A-PuduagB/exec';
 const GOOGLE_CLIENT_ID = '637460698521-djt73cs1emsa5n5m7p2q8s4feohmhnuh.apps.googleusercontent.com';
 // Classroom belum diaktifkan; dikekalkan untuk kompatibiliti.
 const CLASSROOM_SCOPES = 'email profile';
