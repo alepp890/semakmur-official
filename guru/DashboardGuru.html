@@ -104,7 +104,7 @@
     </style>
   <link rel="stylesheet" href="dashboard.css">
 </head>
-<body class="h-full overflow-hidden antialiased flex dashboard-v3">
+<body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4">
   <div id="sidebar-backdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
   <aside id="sidebar-container" class="side-bg text-white flex flex-col shrink-0 h-full z-40 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-200 shadow-lg w-64" aria-label="Menu utama">
     <div class="min-h-0 flex flex-col flex-1">
@@ -112,11 +112,11 @@
         <div class="brand-identity-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M16 2.5 28 9v14L16 29.5 4 23V9L16 2.5Z" stroke="currentColor" stroke-width="1.7"/><path d="M16 9 22 12.5v7L16 23l-6-3.5v-7L16 9Z" stroke="currentColor" stroke-width="1.7"/><path d="M4 9 10 12.5M28 9l-6 3.5" stroke="currentColor" stroke-width="1.7"/></svg></div>
         <div class="min-w-0"><h1 class="font-extrabold text-xl text-white tracking-tight leading-none">SeMAKMUR</h1><p class="text-[13px] text-teal-100 font-medium tracking-wide mt-1">Digital Dashboard</p></div>
       </div>
-      <div class="side-profile mx-3 my-4 p-3 flex gap-3 items-center">
-        <div id="sidebar-avatar" class="profile-avatar desktop-profile-avatar w-11 h-11 border-2 border-white/75" aria-hidden="true">G</div>
-        <div class="min-w-0 flex-1"><h2 id="user-display-name" class="font-bold text-[13px] truncate text-white">Guru SeMAKMUR</h2>
-          <p id="user-email-display" class="text-[13px] text-sky-100 truncate mt-1" title="Akaun MOE">—</p>
-          <button onclick="openProfile()" class="text-[13px] text-sky-100 hover:text-white underline underline-offset-2 mt-1">Edit Profil </button>
+      <div class="side-profile side-profile-portrait mx-3 my-4 p-3">
+        <div id="sidebar-avatar" class="profile-avatar desktop-profile-avatar profile-portrait" aria-label="Gambar profil guru"><span id="sidebar-avatar-initial">G</span><img id="sidebar-avatar-photo" alt="" decoding="async" referrerpolicy="no-referrer" hidden></div>
+        <div class="profile-caption"><h2 id="user-display-name" class="font-bold text-white">Guru SeMAKMUR</h2>
+          <p id="user-email-display" class="text-[13px] text-sky-100" title="Akaun MOE">—</p>
+          <button onclick="openProfile()" class="profile-edit-link" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>Edit Profil</button>
         </div>
       </div>
       <nav class="px-3 space-y-1 overflow-y-auto" id="desktop-nav" aria-label="Bidang pengurusan">
@@ -141,7 +141,7 @@
         <button id="top-notifications" onclick="showInfo('Notifikasi peribadi akan dipaparkan apabila modul berkaitan disambungkan.')" class="header-icon-button" aria-label="Notifikasi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></button>
         <div class="header-divider"></div>
         <div class="header-clock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><div><span id="header-date">Tarikh hari ini</span><strong id="header-time">—</strong></div></div>
-        <button onclick="openProfile()" id="mobile-header-avatar" class="mobile-mini-avatar profile-avatar" aria-label="Edit profil guru">G</button>
+        <button onclick="openProfile()" id="mobile-header-avatar" class="mobile-mini-avatar profile-avatar" aria-label="Edit profil guru"><span id="mobile-avatar-initial">G</span><img id="mobile-avatar-photo" alt="" decoding="async" referrerpolicy="no-referrer" hidden></button>
         <button id="mobile-action-menu" onclick="toggleMobileMenu()" class="header-icon-button mobile-menu-button" aria-label="Buka menu navigasi" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       </div>
     </header>
@@ -149,7 +149,7 @@
       <div id="service-notice" class="hidden card-coligo border-amber-200 bg-amber-50 text-amber-900 p-3 text-[13px]" role="status"></div>
       <section id="home-quicklinks" class="quicklinks-shell" aria-labelledby="home-modules-title">
         <div class="quicklinks-topline"><h2 id="home-modules-title"><span class="quick-head-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.8 2 5 13h6l-.8 9L19 10h-6l.8-8Z"/></svg></span>Pautan Pantas</h2>
-          <button type="button" class="all-links-button" onclick="switchMainMenu('kurikulum')">Lihat Modul <span aria-hidden="true">→</span></button>
+
         </div>
         <div id="home-modules" class="quicklinks-grid" aria-label="Akses aplikasi pilihan"></div>
       </section>
@@ -157,8 +157,8 @@
       <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start" id="dashboard-grid-container">
         <section class="xl:col-span-8 space-y-5 min-w-0" id="main-left-column">
           <div id="page-laman_utama" class="space-y-5 dashboard-page">
-            <section aria-labelledby="ringkasan-title">
-              <div class="flex items-center justify-between mb-3 gap-2"><h2 id="ringkasan-title" class="section-heading">Ringkasan Hari Ini</h2><span class="section-hint">Disesuaikan mengikut akaun anda</span></div>
+            <section id="summary-section" class="card-coligo home-summary-shell" aria-labelledby="ringkasan-title">
+              <div class="right-card-head home-summary-title"><h2 id="ringkasan-title"><span class="right-head-icon blue-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 18V9m5 9V5m5 13v-7m5 7V8"/></svg></span>Ringkasan Hari Ini</h2><span class="muted-caption">Keutamaan hari ini</span></div>
               <div id="home-summary" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4 gap-3"></div>
             </section>
           </div>
@@ -166,18 +166,18 @@
             <div class="card-coligo p-5"><div class="section-eyebrow" id="category-label">RUANG KERJA</div><h2 class="font-extrabold text-xl text-slate-800 mt-1" id="category-title">Kurikulum</h2><p class="text-[13px] text-slate-500 mt-2 leading-relaxed" id="category-desc"></p></div>
             <div class="card-coligo p-4 md:p-5"><div class="flex justify-between gap-2 items-center"><h3 class="soft-title">Ringkasan Bidang</h3><i class="fa-solid fa-chart-simple text-[#3b8eb2]"></i></div><div id="category-overview" class="mt-3 space-y-2"></div></div>
             <div class="card-coligo p-4 md:p-5"><div class="flex justify-between gap-2 items-center"><h3 class="soft-title">Peranan & Tanggungjawab Saya</h3><span class="info-pill" id="role-count">0</span></div><div id="category-roles" class="mt-3 space-y-2"></div></div>
-            <div class="card-coligo p-4 md:p-5"><h3 class="soft-title">Modul & Aplikasi</h3><p class="text-[13px] text-slate-500 mt-1">Pilih modul untuk meneruskan urusan dalam bidang ini.</p><div id="category-modules" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-4"></div></div>
+            <div class="card-coligo p-4 md:p-5 category-info-note"><h3 class="soft-title">Ruang Kerja Bidang</h3><p class="text-[13px] text-slate-500 mt-1">Pautan aplikasi bidang ini tersedia pada bahagian atas. Pilih aplikasi yang aktif atau teruskan semakan dalam ruang kerja ini.</p></div>
           </div>
         </section>
         <aside id="right-panel" class="xl:col-span-4 right-dashboard-panels space-y-4" aria-label="Widget maklumat sampingan">
+          <section class="card-coligo right-card" id="right-timetable">
+            <div class="right-card-head"><h2><span class="right-head-icon blue-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/></svg></span>Jadual Waktu Hari Ini</h2><span id="schedule-today-label" class="schedule-day-label">Hari ini</span></div>
+            <div id="schedule-context" class="schedule-context"></div>
+            <div id="right-schedule-list" class="schedule-card-list"></div>
+          </section>
           <section class="card-coligo right-card" id="right-announcements">
             <div class="right-card-head"><h2><span class="right-head-icon pink-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span>Pengumuman Terkini</h2><span class="muted-caption">Makluman sekolah</span></div>
             <div id="right-announcement-list" class="right-card-body"></div>
-          </section>
-          <section class="card-coligo right-card" id="right-timetable">
-            <div class="right-card-head"><h2><span class="right-head-icon blue-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/></svg></span>Jadual Waktu Hari Ini</h2><label for="schedule-day-picker" class="sr-only">Pilih hari jadual</label><select id="schedule-day-picker" class="schedule-day-picker" aria-label="Pilih hari jadual"><option value="Isnin">Isnin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option><option value="Khamis">Khamis</option><option value="Jumaat">Jumaat</option></select></div>
-            <div id="schedule-context" class="schedule-context"></div>
-            <div id="right-schedule-list" class="schedule-card-list"></div>
           </section>
           <section class="card-coligo right-card" id="right-tasks">
             <div class="right-card-head"><h2><span class="right-head-icon indigo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="m8 12 3 3 5-6"/></svg></span>Tugasan / Peringatan</h2><span class="muted-caption">Untuk anda</span></div>
@@ -282,8 +282,17 @@
     $('user-display-name').textContent=nick;
     $('user-email-display').textContent=p.email||currentUser?.email||'Akaun MOE';
     $('user-email-display').title=p.email||currentUser?.email||'';
-    $('sidebar-avatar').textContent=initials(nick);
-    $('mobile-header-avatar').textContent=initials(nick);
+    $('sidebar-avatar-initial').textContent=initials(nick);
+    $('mobile-avatar-initial').textContent=initials(nick);
+    const photo=String(p.gambarProfil||p.fotoUrl||currentUser?.picture||currentUser?.photoUrl||'').trim();
+    // Foto pilihan hanya dimuatkan dari URL HTTPS, tanpa imej rekaan.
+    const safePhoto=/^https:\/\/[^\s<>"']+$/i.test(photo)?photo:'';
+    [['sidebar-avatar-photo','sidebar-avatar-initial'],['mobile-avatar-photo','mobile-avatar-initial']].forEach(pair=>{
+      const img=$(pair[0]),fallback=$(pair[1]);
+      img.hidden=true; fallback.hidden=false;
+      if(safePhoto){img.onload=()=>{img.hidden=false;fallback.hidden=true;};img.onerror=()=>{img.hidden=true;fallback.hidden=false;};img.src=safePhoto;}
+      else img.removeAttribute('src');
+    });
     $('profile-fullname').value=name;
     $('profile-nickname').value=p.namaSamaran||'';
     $('profile-phone').value=p.telefon||'';
@@ -299,13 +308,13 @@
   }
   function moduleCard(id){const m=MODULES[id];if(!m)return '';
     if(id==='jadual'&&!bolehUrusJadual())return '';
-    return `<button class="module-card" type="button" data-module="${escapeHtml(id)}" ${m.url?'':'disabled title="Modul belum tersedia"'}>
+    return `<button class="module-card" type="button" data-module="${escapeHtml(id)}" ${m.url?'':'disabled'}>
       <span class="module-icon ${escapeHtml(m.tone)}">${qIcon(({erph:'book',manual:'settings',jadual:'calendar',ssdm:'attendance',splkpm:'graduation',pajsk:'chart',hrmis:'settings',eminit:'mail',eprogram:'calendar',eopr:'report',bertugas:'report',relief:'calendar',epbd:'chart',tmk:'book',kehadiran:'attendance',apdm:'attendance',spbt:'book',rmt:'attendance',beruniform:'attendance',kelab:'attendance',sukan:'chart',bilik:'settings',dokumen:'report'})[id]||'book')}</span>
-      <span class="text-slate-700">${escapeHtml(m.title)}</span>${!m.url?'<span class="text-[13px] text-slate-400 font-semibold">Akan datang</span>':''}</button>`;
+      <span class="text-slate-700">${escapeHtml(m.title)}</span></button>`;
   }
   function openModule(id){const m=MODULES[id];if(!m)return;
     if(id==='jadual'&&!bolehUrusJadual()){showInfo('Akses modul ini terhad kepada pentadbir dan penyelaras jadual waktu.');return;}
-    if(!m.url){showInfo('Modul ini masih dalam pembangunan.');return;}
+    if(!m.url)return; // Kad tanpa pautan kekal tidak aktif, tiada mesej atau animasi mengelirukan.
     window.open(m.url,'_blank','noopener');
   }
   // SVG Lucide-style inline: crisp and also works when external icon CDN is unavailable.
@@ -322,10 +331,19 @@
   function qIcon(type){return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${QUICK_ICONS[type]||QUICK_ICONS.book}</svg>`;}
   function shortcutCard(id,idx){const m=MODULES[id];if(!m)return '';
     const details={kehadiran:['Kehadiran','Rekod & Analisis','attendance'],erph:['e-RPH','Rancangan Pengajaran','book'],jadual:['Jadual Waktu','Kelas & Tugasan','calendar'],splkpm:['Latihan','Pembangunan Guru','graduation'],epbd:['PBD','Pentaksiran Murid','chart'],eopr:['Laporan','Laporan & Statistik','report'],eminit:['Surat','Surat & Tindakan','mail'],manual:['Pengurusan','Manual Sekolah','settings']};
-    const data=details[id]||[m.title,'Aplikasi SeMAKMUR','book'];
-    return `<button class="shortcut-card shortcut-tone-${idx%7}" type="button" data-module="${escapeHtml(id)}" ${m.url?'':'aria-disabled="true"'} title="${escapeHtml(data[0]+(m.url?'':' · Akan datang'))}"><span class="shortcut-icon">${qIcon(data[2])}</span><span class="shortcut-title">${escapeHtml(data[0])}</span><span class="shortcut-description">${escapeHtml(data[1])}</span>${!m.url?'<span class="shortcut-coming">Akan datang</span>':''}<span class="shortcut-arrow" aria-hidden="true">→</span></button>`;
+    const iconMap={hrmis:'settings',ssdm:'attendance',splkpm:'graduation',pajsk:'chart',apdm:'attendance',bilik:'calendar',kehadiran:'attendance',eprogram:'calendar',eopr:'report',bertugas:'report',beruniform:'attendance',kelab:'attendance',sukan:'chart',epbd:'chart',tmk:'book',relief:'calendar'};
+    const data=details[id]||[m.title,'Aplikasi SeMAKMUR',iconMap[id]||'book'];
+    return `<button class="shortcut-card shortcut-tone-${idx%7} ${m.url?'':'shortcut-inactive'}" type="button" data-module="${escapeHtml(id)}" ${m.url?'':'disabled'} title="${escapeHtml(data[0])}"><span class="shortcut-icon">${qIcon(data[2])}</span><span class="shortcut-title">${escapeHtml(data[0])}</span><span class="shortcut-description">${escapeHtml(data[1])}</span><span class="shortcut-arrow" aria-hidden="true">→</span></button>`;
   }
-  function quickShortcutIds(){return ['kehadiran','erph',bolehUrusJadual()?'jadual':'splkpm','epbd','eopr','eminit','manual'];}
+  function quickShortcutIds(page=activePage){
+    if(page==='laman_utama') return ['kehadiran','erph',bolehUrusJadual()?'jadual':'splkpm','epbd','eopr','eminit','manual'];
+    return (CATEGORY_MODULES[page]||[]).filter(id=>id!=='jadual'||bolehUrusJadual()).slice(0,7);
+  }
+  function renderShortcuts(page=activePage){
+    const label=page==='laman_utama'?'Pautan Pantas':'Pautan Pantas · '+MENUS[page].title;
+    $('home-modules-title').lastChild.textContent=label;
+    $('home-modules').innerHTML=quickShortcutIds(page).map((id,i)=>shortcutCard(id,i)).join('');
+  }
   const SUBJEK_PENUH={
     BM:'Bahasa Melayu',BI:'Bahasa Inggeris',MT:'Matematik',MAT:'Matematik',
     SN:'Sains',SEJ:'Sejarah',PI:'Pendidikan Islam',PM:'Pendidikan Moral',
@@ -368,7 +386,7 @@
     return `<div class="font-extrabold text-slate-800">${escapeHtml(block.subjek)}</div>
       <div class="text-slate-600">${escapeHtml(block.kelas||'Kelas tidak dinyatakan')}</div>
       <div class="text-[#1f7a9c] font-extrabold">${escapeHtml(masaPaparan(block.mula))} – ${escapeHtml(masaPaparan(block.tamat))}</div>
-      ${block.bilWaktu>1?`<div class="text-slate-400">${block.bilWaktu} waktu berturut-turut</div>`:''}`;
+`;
   }
   function waktuKiniDanSeterusnya(){
     if(!dashboardData?.jadualTersedia)return `<div class="inline-state">Jadual peribadi belum tersedia.</div>`;
@@ -384,32 +402,67 @@
   function tugasHariIni(){const x=dashboardData?.tugasBertugas;
     if(x?.disahkan===true){if(x.bertugas===false)return `<div class="status-copy">Kumpulan anda tidak bertugas minggu ini.</div>`;
     if(x.bertugas===true)return `<div class="highlight-copy">${escapeHtml(x.kumpulan||'Guru Bertugas')}</div><div class="status-copy">${escapeHtml(x.catatan||'Sila semak tugasan anda.')}</div>`;}
-    return `<div class="status-copy">Status guru bertugas belum diselaraskan.</div>`;}
+    return `<div class="status-copy">Maklumat tugas hari ini belum tersedia.</div>`;}
   function reliefHariIni(){const r=dashboardData?.reliefHariIni;
     if(r?.disahkan===true){const n=Array.isArray(r.sesi)?r.sesi.length:r.jumlah;
       if(Number.isFinite(n))return `<span class="big-metric">${n}</span><span class="status-copy">${n?'Waktu relief ditugaskan':'Tiada relief hari ini'}</span>`;}
-    return `<div class="status-copy">Maklumat relief belum tersedia.</div>`;}
+    return `<div class="status-copy">Maklumat relief hari ini belum tersedia.</div>`;}
   function tindakanSaya(){const t=dashboardData?.tindakanSaya;
     if(t?.disahkan===true&&Number.isFinite(t.jumlah))return `<span class="big-metric">${t.jumlah}</span><span class="status-copy">${t.jumlah?'Tindakan memerlukan perhatian':'Tiada tindakan tertunggak'}</span>`;
-    return `<div class="status-copy">Ringkasan tindakan belum tersedia.</div>`;}
+    return `<div class="status-copy">Maklumat tindakan hari ini belum tersedia.</div>`;}
   function summaryWidget(kind,title,content,icon){return `<article class="card-coligo summary-widget theme-${kind}"><div class="summary-head"><div class="summary-icon">${qIcon(icon)}</div><h3>${escapeHtml(title)}</h3></div><div class="summary-content">${content}</div></article>`;}
-  function applySummary(){const ids=quickShortcutIds();
-    $('home-modules').innerHTML=ids.map((id,i)=>shortcutCard(id,i)).join('');
+  function applySummary(){
+    renderShortcuts();
     $('home-summary').innerHTML=summaryWidget('blue','Waktu Terkini & Seterusnya',waktuKiniDanSeterusnya(),'calendar')+
       summaryWidget('green','Tugas Hari Ini',tugasHariIni(),'attendance')+
       summaryWidget('amber','Relief Hari Ini',reliefHariIni(),'calendar')+
       summaryWidget('violet','Tindakan Saya',tindakanSaya(),'report');
     renderRightSide();
   }
-  function renderTimetable(){const select=$('schedule-day-picker'),root=$('right-schedule-list'),hint=$('schedule-context');if(!select||!root)return;
-    const today=todayDay(),day=activeDay||((DAYS.includes(today))?today:'Isnin');
-    select.value=day;hint.textContent=DAYS.includes(today)&&today===day?'Jadual pengajaran hari ini':'Paparan jadual '+day;
-    if(!dashboardData?.jadualTersedia){root.innerHTML='<div class="schedule-empty">Jadual peribadi belum tersedia.</div>';return;}
+  function scheduleDay(day){
+    if(!dashboardData?.jadualTersedia)return '<div class="empty-info">Jadual peribadi belum tersedia.</div>';
+    const blocks=blokBergabung(day);
+    if(!blocks.length)return '<div class="empty-info">Tiada waktu mengajar direkodkan.</div>';
+    return blocks.map(s=>`<div class="slot-item"><span class="time">${escapeHtml(masaPaparan(s.mula))} – ${escapeHtml(masaPaparan(s.tamat))}</span><div><strong>${escapeHtml(s.subjek)}</strong><div class="text-quiet">${escapeHtml(s.kelas||'Kelas tidak dinyatakan')}</div></div></div>`).join('');
+  }
+  function rphForSlot(s){
+    const records=dashboardData?.rphStatusHariIni||[];
+    const match=records.find(r=>String(r.kelas||'').trim().toUpperCase()===String(s.kelas||'').trim().toUpperCase() && namaSubjek(r.subjek).toUpperCase()===namaSubjek(s.subjek).toUpperCase() && (
+      (r.mula&&masaKeMinit(r.mula)===s.startMin) ||
+      (r.mula&&r.tamat&&masaKeMinit(r.mula)>=s.startMin&&masaKeMinit(r.tamat)<=s.endMin) ||
+      (!r.mula&&!r.tamat)
+    ));
+    return match?.status||'';
+  }
+  function rphBadge(s){
+    const st=rphForSlot(s);
+    const key=String(st).toLowerCase().trim();
+    const display=key==='hantar'||key==='dihantar'?'Hantar':key==='draf'?'Draf':key.includes('refleksi')?'Menunggu refleksi':'';
+    return `<span class="rph-status ${display?'rph-'+(display==='Hantar'?'sent':display==='Draf'?'draft':'reflect'):'rph-unknown'}" title="${display?'Status e-RPH: '+escapeHtml(display):'Status e-RPH belum diselaraskan'}">${display?escapeHtml(display):'RPH —'}</span>`;
+  }
+  function renderTimetable(){
+    const root=$('right-schedule-list'),hint=$('schedule-context'),dayLabel=$('schedule-today-label');
+    if(!root)return;
+    const day=todayDay(),weekend=!DAYS.includes(day),holiday=dashboardData?.cutiHariIni;
+    dayLabel.textContent=day;
+    hint.textContent=day+', '+new Intl.DateTimeFormat('ms-MY',{day:'numeric',month:'long',timeZone:'Asia/Kuala_Lumpur'}).format(new Date());
+    if(weekend){root.innerHTML='<div class="schedule-empty"><strong>Tiada jadual waktu hari ini.</strong><span>Hari minggu — Sabtu dan Ahad.</span></div>';return;}
+    if(holiday?.disahkan===true&&holiday?.cuti===true){
+      root.innerHTML='<div class="schedule-empty"><strong>Cuti sekolah hari ini.</strong><span>'+escapeHtml(holiday.nama||'Tiada sesi pengajaran dijadualkan.')+'</span></div>';return;
+    }
+    if(!dashboardData?.jadualTersedia){root.innerHTML='<div class="schedule-empty">Maklumat jadual waktu belum tersedia.</div>';return;}
     const all=blokBergabung(day);
-    if(!all.length){root.innerHTML='<div class="schedule-empty">Tiada sesi mengajar direkodkan bagi hari yang dipilih.</div>';return;}
+    if(!all.length){root.innerHTML='<div class="schedule-empty">Tiada jadual waktu hari ini.</div>';return;}
     const n=nowMsia(),minute=n.getHours()*60+n.getMinutes();
-    root.innerHTML=all.map((s,i)=>{const active=today===day&&s.startMin<=minute&&minute<s.endMin;
-      return `<div class="daily-schedule-card ${active?'current':''}"><div class="schedule-time"><span>${escapeHtml(masaPaparan(s.mula))}</span><span class="schedule-range-dash">–</span><span>${escapeHtml(masaPaparan(s.tamat))}</span></div><div class="schedule-subject"><strong>${escapeHtml(s.subjek)}</strong><span>${escapeHtml(s.kelas||'Kelas belum dinyatakan')}${s.bilWaktu>1?' · '+s.bilWaktu+' waktu berturut-turut':''}</span></div><span class="schedule-status-dot ${active?'current':''}" aria-hidden="true"></span></div>`;
+    root.innerHTML=all.map(s=>{
+      const active=s.startMin<=minute&&minute<s.endMin,ended=s.endMin<=minute;
+      const state=active?'current':ended?'done':'upcoming';
+      const label=active?'Sedang berlangsung':ended?'Selesai':'Akan datang';
+      return `<div class="daily-schedule-card ${state}">
+        <div class="schedule-time"><span>${escapeHtml(masaPaparan(s.mula))}</span><span class="schedule-range-dash">–</span><span>${escapeHtml(masaPaparan(s.tamat))}</span></div>
+        <div class="schedule-subject"><strong>${escapeHtml(s.subjek)}</strong><span>${escapeHtml(s.kelas||'Kelas belum dinyatakan')}</span></div>
+        ${rphBadge(s)}<span class="schedule-status-dot ${state}" aria-label="${label}" title="${label}"></span>
+      </div>`;
     }).join('');
   }
   function renderRightSide(){if(!$('right-announcement-list'))return;
@@ -458,11 +511,11 @@
     } else {
       $('category-overview').innerHTML=`<div class="empty-info">${escapeHtml(CATEGORY_BLURB[key])}</div>`;
     }
-    $('category-modules').innerHTML=(CATEGORY_MODULES[key]||[]).filter(id=>id!=='jadual'||bolehUrusJadual()).map(moduleCard).join('');
+    // Pautan modul bidang telah dipindahkan ke bahagian atas, tanpa pendua di bawah.
   }
   function switchMainMenu(key){if(!MENUS[key])return;activePage=key;
     $('breadcrumb-text').textContent=MENUS[key].title;
-    $('home-quicklinks').classList.toggle('hidden',key!=='laman_utama');
+    renderShortcuts(key);
     $('right-my-roles-panel').classList.toggle('hidden',key==='laman_utama');
     $('page-laman_utama').classList.toggle('hidden',key!=='laman_utama');
     $('page-category').classList.toggle('hidden',key==='laman_utama');
@@ -502,7 +555,13 @@
     }
     location.replace('../LoginSession.html');
   }
-  function updateClock(){const d=new Date();$('header-date').textContent=dateText(d);$('header-time').textContent=new Intl.DateTimeFormat('ms-MY',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'Asia/Kuala_Lumpur'}).format(d).replace(/am/i,'pagi').replace(/pm/i,'petang');}
+  function updateClock(){
+    const d=nowMsia(),hour=d.getHours(),displayHour=hour%12||12;
+    $('header-date').textContent=dateText(new Date());
+    const period=hour<12?'pagi':hour<14?'tengah hari':hour<19?'petang':'malam';
+    $('header-time').textContent=displayHour+':'+String(d.getMinutes()).padStart(2,'0')+' '+period;
+    if(dashboardData)renderTimetable(); // titik penanda berubah mengikut waktu semasa
+  }
   async function boot(){
     $('copyright-year').textContent=String(new Date().getFullYear());
     updateClock();setInterval(updateClock,30000);
@@ -511,7 +570,7 @@
       const page=e.target.closest('[data-page]');if(page){switchMainMenu(page.dataset.page);return;}
       const day=e.target.closest('[data-day]');if(day){activeDay=day.dataset.day;renderTimetable();}
     });
-    $('schedule-day-picker').addEventListener('change',e=>{activeDay=e.target.value;renderTimetable();});
+    // Widget jadual sentiasa mengikut hari semasa, tanpa pemilih hari.
     $('profile-form').addEventListener('submit',saveProfile);
     $('profile-modal').addEventListener('click',e=>{if(e.target===$('profile-modal'))closeProfile();});
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeProfile();closeMobileMenu();}});
