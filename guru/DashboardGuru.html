@@ -103,6 +103,21 @@
       @media(prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
     </style>
   <link rel="stylesheet" href="dashboard.css">
+  <style>
+    /* Instant Dashboard V2: hanya paparan sementara, tidak mengubah gaya V5. */
+    .sema-loading-line {
+      height: 13px; max-width: 100%; border-radius: 7px;
+      background: linear-gradient(100deg,#e7eef5 18%,#f8fbfe 40%,#e7eef5 63%);
+      background-size: 250% 100%; animation:sema-shimmer 1.6s ease-in-out infinite;
+    }
+    .sema-loading-line.short { width: 42%; }
+    .sema-loading-line.medium { width: 66%; }
+    .sema-loading-line.long { width: 87%; }
+    .sema-loading-row {display:flex; flex-direction:column; gap:11px; padding:7px 0;}
+    .sema-loading-block { min-height: 65px; display:flex; flex-direction:column; justify-content:center; gap:9px; padding:12px; background:#f8fbff; border:1px solid #e8eff6; border-radius:11px; }
+    @keyframes sema-shimmer { 0%{background-position:100% 50%}100%{background-position:0 50%} }
+    @media(prefers-reduced-motion:reduce){.sema-loading-line{animation:none}}
+</style>
 </head>
 <body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5">
   <div id="sidebar-backdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
@@ -117,7 +132,7 @@
           <div id="sidebar-avatar" class="profile-avatar desktop-profile-avatar profile-portrait" aria-label="Gambar profil guru"><span id="sidebar-avatar-initial">G</span><img id="sidebar-avatar-photo" alt="" decoding="async" referrerpolicy="no-referrer" hidden></div>
           <button onclick="openProfile()" class="profile-edit-overlay" type="button" aria-label="Edit Profil" title="Edit Profil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>
         </div>
-        <div class="profile-caption"><h2 id="user-display-name" class="font-bold text-white">Guru SeMAKMUR</h2>
+        <div class="profile-caption"><h2 id="user-display-name" class="font-bold text-white">SeMAKMUR</h2>
           <p id="user-email-display" class="text-[13px] text-sky-100" title="Akaun MOE">—</p>
         </div>
       </div>
@@ -136,7 +151,7 @@
     <header class="dashboard-main-header" aria-label="Kepala dashboard guru">
       <div class="header-layout flex-1 min-w-0">
         <div id="greeting-text" class="header-caption">Selamat Datang,</div>
-        <h1 id="header-user-name" class="dashboard-name" title="Guru SeMAKMUR">Guru SeMAKMUR</h1>
+        <h1 id="header-user-name" class="dashboard-name" title="Dashboard Guru">Dashboard Guru</h1>
         <p class="header-mobile-subtitle">Dashboard Guru · SK Segambut Makmur</p>
       </div>
       <div class="header-tools">
@@ -155,7 +170,7 @@
         </div>
         <div id="home-modules" class="quicklinks-grid" aria-label="Akses aplikasi pilihan"></div>
       </section>
-      <div class="dashboard-section-bar"><div class="bread-label"><span id="breadcrumb-text">Laman Utama</span><span class="bread-separator">/</span><span id="header-status">Memuatkan maklumat…</span></div><button id="btn-toggle-right" type="button" onclick="toggleRightPanel()" class="right-toggle-btn" aria-expanded="true"><span id="toggle-right-text">Sorok Panel Kanan</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg></button></div>
+      <div class="dashboard-section-bar"><div class="bread-label"><span id="breadcrumb-text">Laman Utama</span><span class="bread-separator">/</span><span id="header-status">Menyemak sesi…</span></div><button id="btn-toggle-right" type="button" onclick="toggleRightPanel()" class="right-toggle-btn" aria-expanded="true"><span id="toggle-right-text">Sorok Panel Kanan</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg></button></div>
       <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start" id="dashboard-grid-container">
         <section class="xl:col-span-8 space-y-5 min-w-0" id="main-left-column">
           <div id="page-laman_utama" class="space-y-5 dashboard-page">
@@ -266,6 +281,7 @@
     lain_lain:'Pautan kepada sumber digital dan kemudahan sekolah yang merentas bidang.'
   };
   let currentUser=null, dashboardData=null, activePage='laman_utama', activeDay=null, toastTimer=null;
+  let dashboardAuthenticated=false, dashboardRequestPending=false;
   // Jadual tersimpan hanya untuk pengguna sama dan hanya selepas sesi disahkan.
   // Tidak menyimpan rekod murid, status e-RPH, surat, profil rasmi atau token sesi.
   const SCHEDULE_CACHE_KEY='SEMAKMUR_GURU_JADUAL_V1';
@@ -345,6 +361,7 @@
       <span class="text-slate-700">${escapeHtml(m.title)}</span></button>`;
   }
   function openModule(id){const m=MODULES[id];if(!m)return;
+    if(!dashboardAuthenticated){showInfo('Akses sedang disahkan. Sila cuba sebentar lagi.');return;}
     if(id==='jadual'&&!bolehUrusJadual()){showInfo('Akses modul ini terhad kepada pentadbir dan penyelaras jadual waktu.');return;}
     if(!m.url)return; // Kad tanpa pautan kekal tidak aktif, tiada mesej atau animasi mengelirukan.
     window.open(m.url,'_blank','noopener');
@@ -573,7 +590,7 @@
   function toggleMobileMenu(){const side=$('sidebar-container');const open=side.classList.contains('-translate-x-full');
     side.classList.toggle('-translate-x-full',!open);$('sidebar-backdrop').classList.toggle('active',open);$('mobile-action-menu').setAttribute('aria-expanded',String(open));}
   function closeMobileMenu(){if(window.innerWidth>=768)return; $('sidebar-container').classList.add('-translate-x-full');$('sidebar-backdrop').classList.remove('active');$('mobile-action-menu').setAttribute('aria-expanded','false');}
-  function openProfile(){closeMobileMenu();applyProfile();$('profile-message').classList.add('hidden');$('profile-modal').classList.remove('hidden');$('profile-modal').classList.add('flex');$('profile-nickname').focus();}
+  function openProfile(){if(!dashboardAuthenticated){showInfo('Akses sedang disahkan.');return;}closeMobileMenu();applyProfile();$('profile-message').classList.add('hidden');$('profile-modal').classList.remove('hidden');$('profile-modal').classList.add('flex');$('profile-nickname').focus();}
   function closeProfile(){$('profile-modal').classList.add('hidden');$('profile-modal').classList.remove('flex');}
   async function saveProfile(event){event.preventDefault();const btn=$('profile-save');const msg=$('profile-message');btn.disabled=true;btn.textContent='Menyimpan…';msg.classList.add('hidden');
     try { const response=await SeMAKMURAuth.request({action:'updateGuruProfileSelf',data:{namaSamaran:$('profile-nickname').value.trim(),telefon:$('profile-phone').value.trim()}});
@@ -609,7 +626,100 @@
     $('header-time').textContent=displayHour+':'+String(d.getMinutes()).padStart(2,'0')+' '+period;
     if(dashboardData)renderTimetable(); // titik penanda berubah mengikut waktu semasa
   }
-  async function boot(){
+  // Paparkan kerangka dashboard segera. Tiada data pengguna digunakan sebelum backend mengesahkan sesi.
+  function loadingLines(){return '<div class="sema-loading-row" aria-hidden="true"><div class="sema-loading-line long"></div><div class="sema-loading-line medium"></div><div class="sema-loading-line short"></div></div>';}
+  function showInstantShell(){
+    renderShortcuts();
+    const mini='<div class="class-mini-pair">'+
+      '<div class="class-mini class-mini-now"><div class="class-mini-label"><span class="class-mini-dot"></span>Sekarang</div>'+loadingLines()+'</div>'+ 
+      '<div class="class-mini class-mini-next"><div class="class-mini-label"><span class="class-mini-dot"></span>Selepas</div>'+loadingLines()+'</div></div>';
+    $('home-summary').innerHTML=
+      summaryWidget('blue','Kelas Sekarang',mini,'calendar')+
+      summaryWidget('green','Tugas Hari Ini',loadingLines(),'attendance')+
+      summaryWidget('amber','Relief Hari Ini',loadingLines(),'calendar')+
+      summaryWidget('violet','Tindakan Saya',loadingLines(),'report');
+    $('schedule-today-label').textContent=todayDay();
+    $('schedule-context').textContent='';
+    $('right-schedule-list').innerHTML='<div class="sema-loading-block" aria-label="Menyiapkan jadual">'+loadingLines()+'</div><div class="sema-loading-block">'+loadingLines()+'</div>';
+    $('right-announcement-list').innerHTML='<div class="sema-loading-block">'+loadingLines()+'</div>';
+    $('right-action-list').innerHTML='<div class="sema-loading-block">'+loadingLines()+'</div>';
+  }
+  // Nama terakhir sahaja boleh ditunjukkan sebelum pengesahan; bukan bukti akses dan tidak digunakan untuk API.
+  function showRememberedGreeting(){
+    try {
+      const loggedIn=Boolean(localStorage.getItem('SEMAKMUR_PWA_REFRESH_TOKEN') || sessionStorage.getItem('SEMAKMUR_SESSION_TOKEN'));
+      if(!loggedIn)return;
+      const raw=sessionStorage.getItem('CURRENT_USER')||localStorage.getItem('SAVED_MOE_USER');
+      if(!raw)return;
+      const saved=JSON.parse(raw);
+      if(!saved || !['guru','admin','admin_choice'].includes(String(saved.role||'')) && saved.is_admin!==true)return;
+      const name=String(saved.name||saved.nama||saved.Nama_Penuh||'').trim();
+      if(name && name.length<=130){$('header-user-name').textContent=name;$('header-user-name').title=name;}
+      const nick=String(saved.Nama_Samaran||saved.namaSamaran||'').trim();
+      if(nick&&nick.length<=50){$('user-display-name').textContent=nick;$('sidebar-avatar-initial').textContent=initials(nick);$('mobile-avatar-initial').textContent=initials(nick);}
+      requestAnimationFrame(fitName);
+    }catch(_e){ /* Paparan tetap berfungsi tanpa maklumat sebelumnya. */ }
+  }
+  function sendToLogin(){
+    dashboardAuthenticated=false;
+    try{SeMAKMURAuth?.clear?.();}catch(_e){}
+    location.replace('../LoginSession.html');
+  }
+  async function hydrateDashboard(){
+    if(dashboardRequestPending)return;
+    dashboardRequestPending=true;
+    $('header-status').textContent='Menyemak maklumat…';
+    try{
+      // Satu panggilan API: router Apps Script sudah mengesahkan token & peranan.
+      // Tidak perlu verifySession -> getGuruDashboardData secara berturutan.
+      const res=await SeMAKMURAuth.request({action:'getGuruDashboardData'});
+      if(!res?.success){
+        if(['SESSION_EXPIRED','ACCESS_REVOKED','ACCESS_EXPIRED','AUTH_REQUIRED','UNAUTHORIZED'].includes(String(res?.code||''))){sendToLogin();return;}
+        throw new Error('Maklumat belum dapat dimuatkan.');
+      }
+      if(!res.profile?.email)throw new Error('Profil belum dapat disahkan.');
+      let saved=null;
+      try{saved=JSON.parse(sessionStorage.getItem('CURRENT_USER')||localStorage.getItem('SAVED_MOE_USER')||'null');}catch(_e){}
+      const verifiedEmail=String(res.profile.email||'').trim().toLowerCase();
+      const previousEmail=String(saved?.email||'').trim().toLowerCase();
+      // Elak memaparkan data orang lain apabila akaun ditukar dalam pelayar sama.
+      if(previousEmail&&previousEmail!==verifiedEmail){sendToLogin();return;}
+      const role=String(saved?.role||'guru');
+      if(saved && !['guru','admin','admin_choice'].includes(role) && saved.is_admin!==true){sendToLogin();return;}
+      currentUser={...saved,role:role||'guru',email:verifiedEmail,
+        name:res.profile.namaPenuh||saved?.name||'',is_admin:Boolean(saved?.is_admin)};
+      dashboardAuthenticated=true;
+      dashboardData=res;
+      simpanJadualTersimpan(currentUser,res);
+      applyProfile();
+      applySummary(); // pautan, 4 kad dan panel kanan: satu kemas kini selepas data sah
+      $('right-my-roles').innerHTML=renderRoleList(res.peranan);
+      if(activePage!=='laman_utama')renderCategories(activePage);
+      $('header-status').textContent='Data terkini';
+      setNotice('');
+    }catch(err){
+      // Masalah rangkaian: jangan paparkan jadual cached tanpa pengesahan semasa.
+      dashboardAuthenticated=false;
+      console.warn('Dashboard sync:',err?.message||err);
+      $('header-status').textContent='Sambungan belum tersedia';
+      setNotice('Maklumat belum dapat dikemas kini. Semak sambungan internet dan cuba lagi.');
+      const btn=document.createElement('button');
+      btn.type='button';btn.textContent='Cuba Lagi';
+      btn.className='ml-3 font-extrabold underline underline-offset-2';
+      btn.addEventListener('click',()=>{setNotice('');showInstantShell();hydrateDashboard();});
+      $('service-notice').appendChild(btn);
+      // Sekiranya permintaan API gagal, kerangka UI kekal boleh dilihat.
+      $('home-summary').innerHTML=
+        summaryWidget('blue','Kelas Sekarang','<div class="status-copy">Maklumat kelas belum tersedia.</div>','calendar')+
+        summaryWidget('green','Tugas Hari Ini','<div class="status-copy">Maklumat tugas belum tersedia.</div>','attendance')+
+        summaryWidget('amber','Relief Hari Ini','<div class="status-copy">Maklumat relief belum tersedia.</div>','calendar')+
+        summaryWidget('violet','Tindakan Saya','<div class="status-copy">Maklumat tindakan belum tersedia.</div>','report');
+      $('right-schedule-list').innerHTML='<div class="schedule-empty">Jadual belum dapat diselaraskan.</div>';
+      $('right-announcement-list').innerHTML='<div class="info-placeholder">Makluman belum dapat dikemas kini.</div>';
+      $('right-action-list').innerHTML='<div class="info-placeholder">Tugasan belum dapat dikemas kini.</div>';
+    }finally{dashboardRequestPending=false;}
+  }
+  function boot(){
     $('copyright-year').textContent=String(new Date().getFullYear());
     updateClock();setInterval(updateClock,30000);
     $('greeting-text').textContent='Selamat Datang';
@@ -617,39 +727,19 @@
       const page=e.target.closest('[data-page]');if(page){switchMainMenu(page.dataset.page);return;}
       const day=e.target.closest('[data-day]');if(day){activeDay=day.dataset.day;renderTimetable();}
     });
-    // Widget jadual sentiasa mengikut hari semasa, tanpa pemilih hari.
     $('profile-form').addEventListener('submit',saveProfile);
     $('profile-modal').addEventListener('click',e=>{if(e.target===$('profile-modal'))closeProfile();});
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeProfile();closeMobileMenu();}});
     window.addEventListener('resize',()=>{fitName();if(window.innerWidth>=768){$('sidebar-container').classList.remove('-translate-x-full');$('sidebar-backdrop').classList.remove('active');}else{$('sidebar-container').classList.add('-translate-x-full');}});
-    if(!window.SeMAKMURAuth){setNotice('Sambungan akaun belum tersedia. Sila log masuk semula melalui portal.');$('header-status').textContent='Sesi tidak tersedia';return;}
-    try {
-      currentUser=await SeMAKMURAuth.requireUser(['guru','admin_choice'],'../LoginSession.html');
-      if(!currentUser)return;
-      // Tunjuk identiti lebih awal, tanpa menunggu data modul besar.
-      dashboardData={profile:{namaPenuh:currentUser.name||currentUser.nama||'Guru SeMAKMUR', namaSamaran:currentUser.Nama_Samaran||'', email:currentUser.email||'',guruKelas:currentUser.guru_kelas||''},peranan:[],jadual:[],jadualTersedia:false};
-      const cache=bacaJadualTersimpan(currentUser);
-      if(cache){
-        dashboardData.jadual=cache.jadual;
-        dashboardData.jadualTersedia=cache.jadualTersedia;
-        $('header-status').textContent='Jadual tersimpan';
-        setNotice('Memaparkan jadual tersimpan sementara menyemak data terkini.');
-      }
-      applyProfile();applySummary();renderTimetable();$('right-my-roles').innerHTML=renderRoleList([]);
-      const res=await SeMAKMURAuth.request({action:'getGuruDashboardData'});
-      if(!res?.success)throw new Error('Dashboard belum dapat diselaraskan.');
-      dashboardData=res;
-      simpanJadualTersimpan(currentUser,res);
-      applyProfile();applySummary();renderTimetable();$('right-my-roles').innerHTML=renderRoleList(res.peranan);
-      if(activePage!=='laman_utama')renderCategories(activePage);
-      $('header-status').textContent='Data terkini';setNotice('');
-    } catch(err){ console.warn('Dashboard initialization failed:',err?.message||err);
-      const cacheVisible=Boolean(dashboardData?.jadualTersedia);
-      $('header-status').textContent=cacheVisible?'Jadual tersimpan':'Perlu sambungan';
-      setNotice(cacheVisible?
-        'Sambungan belum berjaya. Jadual yang dipaparkan ialah salinan terakhir dan mungkin telah berubah.':
-        'Maklumat peribadi belum dapat diselaraskan. Semak internet dan cuba lagi.');
+    showInstantShell();
+    showRememberedGreeting();
+    if(!window.SeMAKMURAuth){
+      $('header-status').textContent='Sesi tidak tersedia';
+      setNotice('Sambungan akaun tidak tersedia. Sila buka semula aplikasi.');
+      return;
     }
+    // Biar browser cat UI dahulu; API dan pembacaan Google Sheets dilakukan secara async.
+    requestAnimationFrame(()=>{hydrateDashboard();});
     if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
       navigator.serviceWorker.register('../service-worker.js',{scope:'../'}).catch(()=>{});
     }
