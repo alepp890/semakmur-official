@@ -550,8 +550,6 @@
     }
 
   </style>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="assets/icon-192.png" type="image/png">
 </head>
 <body>
   <main class="app-frame" aria-label="Halaman log masuk SeMAKMUR Digital">
@@ -789,8 +787,20 @@
       } finally { hideLoader(); }
     }
 
+    function isInstalledMobilePWA() {
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+      const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        window.matchMedia('(max-width: 820px) and (pointer: coarse)').matches;
+      return standalone && mobile;
+    }
     function routeUser(user) {
       if (!user) return;
+      // Pengguna admin dalam PWA telefon: ruang kerja utama ialah Dashboard Guru.
+      // Hak sebenar admin/guru kekal disahkan pada Apps Script.
+      if ((user.is_admin || user.role === 'admin_choice') && isInstalledMobilePWA()) {
+        window.location.replace('guru/DashboardGuru.html');
+        return;
+      }
       if (user.is_admin || user.role === 'admin_choice') {
         PENDING_ADMIN_USER = user;
         document.getElementById('login-area').classList.add('hidden');
@@ -861,11 +871,6 @@
       // Semak sesi yang masih sah dalam tab ini. Ini BUKAN sesi PWA 14 hari.
       tryRestoreSession();
     });
-  </script>
-  <script>
-    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-      navigator.serviceWorker.register('./service-worker.js').catch(() => {});
-    }
   </script>
 </body>
 </html>
