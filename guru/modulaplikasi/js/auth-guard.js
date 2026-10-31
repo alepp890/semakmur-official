@@ -8,6 +8,7 @@
   function inlineError() {
     // Tiada popup. Beri mesej sopan yang tidak mendedahkan maklumat teknikal.
     const show = () => {
+      document.getElementById('erph-opening-screen')?.remove();
       if (document.getElementById('erph-access-unavailable')) return;
       const box = document.createElement('section');
       box.id = 'erph-access-unavailable';
@@ -43,6 +44,7 @@
         window.currentUser = user;
         const main = document.getElementById('mainBody');
         if (main) { main.style.display = 'flex'; main.classList.remove('hidden'); }
+        document.getElementById('erph-opening-screen')?.remove();
         resolve(user);
       } catch (error) {
         // Jangan dedahkan ralat backend atau sebarang token kepada pengguna.
