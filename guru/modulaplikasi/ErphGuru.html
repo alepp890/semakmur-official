@@ -114,6 +114,20 @@
     </div>
   </div>
 
+  <script>
+    // Hanya kurangkan header berulang apabila e-RPH dibuka DI DALAM Dashboard Guru.
+    // Tidak mengubah autentikasi, data, atau navigasi tab dalaman e-RPH.
+    if (new URLSearchParams(location.search).get('embed') === '1') {
+      document.documentElement.classList.add('semakmur-erph-embedded');
+    }
+  </script>
+  <style>
+    html.semakmur-erph-embedded body > header > div:first-child { display:none !important; }
+    html.semakmur-erph-embedded body > header {position:relative !important; top:auto !important;}
+    html.semakmur-erph-embedded body > main {padding-top:12px !important;}
+    html.semakmur-erph-embedded body { min-height:100dvh; }
+  </style>
+
   <!-- TOP HEADER / NAVBAR -->
   <header class="bg-gradient-to-r from-brand-700 via-brand-600 to-brand-800 text-white shadow-md sticky top-0 z-40 no-print">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4 border-b border-white/10">
