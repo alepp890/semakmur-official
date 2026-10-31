@@ -135,12 +135,10 @@ function parseTakwimDateHelper(dateStr) {
   return !isNaN(d.getTime()) ? d : null;
 }
 
-function initUserSession() {
-  const sessionData = localStorage.getItem('currentUser') || 
-                      sessionStorage.getItem('CURRENT_USER') || 
-                      localStorage.getItem('SAVED_MOE_USER') ||
-                      localStorage.getItem('user') ||
-                      sessionStorage.getItem('user');
+function initUserSession(verifiedUser) {
+  // Tunggu pengesahan akses Apps Script: profil dalam localStorage BUKAN bukti kebenaran.
+  if (!verifiedUser || !['guru', 'admin_choice'].includes(verifiedUser.role)) return;
+  const sessionData = JSON.stringify(verifiedUser);
 
   if (sessionData) {
     try {
@@ -878,6 +876,9 @@ function showToast(message, icon = '🔔') {
   }, 3000);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  initUserSession();
+window.addEventListener('DOMContentLoaded', async () => {
+  // Bersama auth-guard.js, tunggu token Google/SeMAKMUR disahkan dahulu.
+  const user = await window.SEMAKMUR_ERPH_AUTH_READY;
+  if (!user) return;
+  initUserSession(user);
 });
