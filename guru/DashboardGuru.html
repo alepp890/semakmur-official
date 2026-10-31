@@ -104,7 +104,7 @@
     </style>
   <link rel="stylesheet" href="dashboard.css">
 </head>
-<body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4">
+<body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5">
   <div id="sidebar-backdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
   <aside id="sidebar-container" class="side-bg text-white flex flex-col shrink-0 h-full z-40 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-200 shadow-lg w-64" aria-label="Menu utama">
     <div class="min-h-0 flex flex-col flex-1">
@@ -113,10 +113,12 @@
         <div class="min-w-0"><h1 class="font-extrabold text-xl text-white tracking-tight leading-none">SeMAKMUR</h1><p class="text-[13px] text-teal-100 font-medium tracking-wide mt-1">Digital Dashboard</p></div>
       </div>
       <div class="side-profile side-profile-portrait mx-3 my-4 p-3">
-        <div id="sidebar-avatar" class="profile-avatar desktop-profile-avatar profile-portrait" aria-label="Gambar profil guru"><span id="sidebar-avatar-initial">G</span><img id="sidebar-avatar-photo" alt="" decoding="async" referrerpolicy="no-referrer" hidden></div>
+        <div class="profile-avatar-wrap">
+          <div id="sidebar-avatar" class="profile-avatar desktop-profile-avatar profile-portrait" aria-label="Gambar profil guru"><span id="sidebar-avatar-initial">G</span><img id="sidebar-avatar-photo" alt="" decoding="async" referrerpolicy="no-referrer" hidden></div>
+          <button onclick="openProfile()" class="profile-edit-overlay" type="button" aria-label="Edit Profil" title="Edit Profil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>
+        </div>
         <div class="profile-caption"><h2 id="user-display-name" class="font-bold text-white">Guru SeMAKMUR</h2>
           <p id="user-email-display" class="text-[13px] text-sky-100" title="Akaun MOE">—</p>
-          <button onclick="openProfile()" class="profile-edit-link" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>Edit Profil</button>
         </div>
       </div>
       <nav class="px-3 space-y-1 overflow-y-auto" id="desktop-nav" aria-label="Bidang pengurusan">
@@ -388,16 +390,30 @@
       <div class="text-[#1f7a9c] font-extrabold">${escapeHtml(masaPaparan(block.mula))} – ${escapeHtml(masaPaparan(block.tamat))}</div>
 `;
   }
+  // Ringkasan padat: paparan kod subjek sahaja pada kad ini.
+  // Widget jadual harian di sebelah kanan kekal memaparkan nama penuh subjek.
+  const KOD_SUBJEK_KAD={
+    'Bahasa Melayu':'BM','Bahasa Inggeris':'BI','Matematik':'MT',
+    'Sains':'SN','Sejarah':'SEJ','Pendidikan Islam':'PI',
+    'Pendidikan Moral':'PM','Pendidikan Muzik':'PMZ',
+    'Bahasa Arab':'BA','Pendidikan Jasmani':'PJ',
+    'Pendidikan Jasmani dan Kesihatan':'PJK','Pendidikan Kesihatan':'PK',
+    'Pendidikan Seni Visual':'PSV','Reka Bentuk dan Teknologi':'RBT'
+  };
+  function kodSubjekKad(subjek){const full=namaSubjek(subjek);return KOD_SUBJEK_KAD[full]||full;}
   function waktuKiniDanSeterusnya(){
-    if(!dashboardData?.jadualTersedia)return `<div class="inline-state">Jadual peribadi belum tersedia.</div>`;
-    const now=nowMsia(),day=todayDay(),minute=now.getHours()*60+now.getMinutes();
-    const list=blokBergabung(day),current=list.find(x=>x.startMin<=minute&&minute<x.endMin),next=list.find(x=>x.startMin>minute);
-    const nextDay=()=>{const days=['Isnin','Selasa','Rabu','Khamis','Jumaat'];let idx=days.indexOf(day);
-      for(let n=1;n<=5;n++){const d=days[(idx+n+5)%5],slots=blokBergabung(d);if(slots.length)return {hari:d,slot:slots[0]};}return null;};
-    const nextInfo=next?{hari:day,slot:next}:nextDay();
-    function row(label,slot,hari,isCurrent){const description=slot?`<div class="current-class"><strong>${escapeHtml(slot.subjek)}</strong><span>${escapeHtml(slot.kelas||'Kelas belum dinyatakan')}</span><span class="current-time">${escapeHtml(masaPaparan(slot.mula))} – ${escapeHtml(masaPaparan(slot.tamat))}${hari&&hari!==day?' · '+escapeHtml(hari):''}</span></div>`:`<div class="slot-empty">${isCurrent?'Tiada kelas sedang berlangsung':'Tiada waktu berikutnya direkodkan'}</div>`;
-      return `<div class="current-row"><span class="current-dot ${isCurrent?'is-now':'is-next'}"></span><div class="current-detail"><span class="current-label">${label}</span>${description}</div></div>`;}
-    return `<div class="current-pair">${row('Waktu Terkini',current,day,true)}${row('Waktu Seterusnya',nextInfo?.slot,nextInfo?.hari,false)}</div>`;
+    const day=todayDay(),now=nowMsia(),minute=now.getHours()*60+now.getMinutes();
+    const available=Boolean(dashboardData?.jadualTersedia);
+    const list=available?blokBergabung(day):[];
+    const current=list.find(s=>s.startMin<=minute&&minute<s.endMin);
+    const next=list.find(s=>s.startMin>minute);
+    function tile(label,s,isCurrent){
+      const absent=available?(isCurrent?'Tiada kelas sekarang':'Tiada kelas selepas ini'):'Belum tersedia';
+      return `<div class="class-mini ${isCurrent?'class-mini-now':'class-mini-next'}"><div class="class-mini-label"><span class="class-mini-dot"></span>${label}</div>`+
+        (s?`<strong class="class-mini-subject" title="${escapeHtml(s.subjek)}">${escapeHtml(kodSubjekKad(s.subjek))}</strong><span class="class-mini-class">${escapeHtml(s.kelas||'Kelas tidak dinyatakan')}</span><span class="class-mini-time">${escapeHtml(masaPaparan(s.mula))} – ${escapeHtml(masaPaparan(s.tamat))}</span>`:
+        `<span class="class-mini-absent">${absent}</span>`)+`</div>`;
+    }
+    return `<div class="class-mini-pair">${tile('Sekarang',current,true)}${tile('Selepas',next,false)}</div>`;
   }
   function tugasHariIni(){const x=dashboardData?.tugasBertugas;
     if(x?.disahkan===true){if(x.bertugas===false)return `<div class="status-copy">Kumpulan anda tidak bertugas minggu ini.</div>`;
@@ -413,7 +429,7 @@
   function summaryWidget(kind,title,content,icon){return `<article class="card-coligo summary-widget theme-${kind}"><div class="summary-head"><div class="summary-icon">${qIcon(icon)}</div><h3>${escapeHtml(title)}</h3></div><div class="summary-content">${content}</div></article>`;}
   function applySummary(){
     renderShortcuts();
-    $('home-summary').innerHTML=summaryWidget('blue','Waktu Terkini & Seterusnya',waktuKiniDanSeterusnya(),'calendar')+
+    $('home-summary').innerHTML=summaryWidget('blue','Kelas Sekarang',waktuKiniDanSeterusnya(),'calendar')+
       summaryWidget('green','Tugas Hari Ini',tugasHariIni(),'attendance')+
       summaryWidget('amber','Relief Hari Ini',reliefHariIni(),'calendar')+
       summaryWidget('violet','Tindakan Saya',tindakanSaya(),'report');
