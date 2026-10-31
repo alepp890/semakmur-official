@@ -1,4 +1,4 @@
-/** Official session guard for the e-RPH module. No UI role is trusted.. */
+/** Official session guard for the e-RPH module. No UI role is trusted. */
 (function () {
   'use strict';
   async function boot() {
