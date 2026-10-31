@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Guru SeMAKMUR - Portal Rasmi Sekolah</title>
+    <title>Dashboard Guru | SeMAKMUR Digital</title>
+    <meta name="theme-color" content="#1b587a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="description" content="Dashboard Guru SK Segambut Makmur">
+    <link rel="manifest" href="../manifest.webmanifest">
+    <link rel="icon" type="image/png" href="../assets/icon-192.png">
 
     <!-- Google Fonts: Inter / Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,782 +19,373 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind terjana setempat: lebih pantas, tidak bergantung pada CDN -->
+    <link rel="stylesheet" href="dashboard.css">
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { 
-                        tealTheme: '#1f7a9c',
-                        tealDark: '#175d78',
-                        tealLight: '#2ca2cd',
-                        tealBg: '#eef6f9',
-                        cardBg: '#ffffff',
-                        sidebarBg: '#1a6485'
-                    },
-                    fontFamily: { 
-                        sans: ['Plus Jakarta Sans', 'sans-serif'] 
-                    }
-                }
-            }
-        }
-    </script>
+
 
     <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            background-color: #EEF6F9;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            color: #2D3748;
-        }
-
-        .card-coligo {
-            background: #FFFFFF;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.03);
-            border: 1px solid #E2E8F0;
-        }
-
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .loader-ring {
-            display: inline-block;
-            position: relative;
-            width: 44px;
-            height: 44px;
-        }
-        .loader-ring div {
-            box-sizing: border-box;
-            display: block;
-            position: absolute;
-            width: 34px;
-            height: 34px;
-            margin: 5px;
-            border: 3.5px solid #1f7a9c;
-            border-radius: 50%;
-            animation: loader-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-            border-color: #1f7a9c transparent transparent transparent;
-        }
-        @keyframes loader-ring {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+      * { box-sizing:border-box; }
+      html,body { height:100%; margin:0; font-family:'Plus Jakarta Sans',sans-serif; background:#eef6f9; color:#28364d; }
+      .card-coligo { background:#fff; border:1px solid #e2e8f0; border-radius:16px; box-shadow:0 3px 13px rgba(19,59,84,.045); }
+      .side-bg { background:linear-gradient(165deg,#193e60 0%,#1b6287 44%,#2284b0 100%); }
+      .nav-link { width:100%; display:flex; align-items:center; gap:13px; text-align:left; color:#d4edf8; font-size:13px; font-weight:600; border-radius:0 999px 999px 0; padding:13px 16px; transition:all .2s; }
+      .nav-link:hover { background:#ffffff17; color:#fff; }
+      .nav-link.active { background:#fff; color:#1b6287; font-weight:800; box-shadow:0 3px 12px #0d345033; }
+      .nav-link i { width:21px; text-align:center; font-size:16px; }
+      .soft-title { font-size:15px; color:#203b56; font-weight:800; }
+      .section-eyebrow { font-size:13px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:#4586a6; }
+      .module-card { min-height:105px; padding:14px 8px; border-radius:14px; border:1px solid #e2eaf2; background:#f9fbfd; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; transition:.18s; font-size:13px; font-weight:750; line-height:1.35; }
+      .module-card:not(:disabled):hover { background:#eef8fc; border-color:#7fbed7; transform:translateY(-2px); box-shadow:0 5px 12px #134c7212; }
+      .module-card:disabled { opacity:.65; cursor:not-allowed; }
+      .module-icon { width:43px;height:43px; flex:none; display:grid; place-items:center; color:white; border-radius:13px; font-size:18px; background:linear-gradient(145deg,#276b93,#3eafc8); }
+      .module-icon.blue { background:linear-gradient(135deg,#3463bd,#5aa6db); }
+      .module-icon.purple { background:linear-gradient(135deg,#6757bb,#8c87d3); }
+      .module-icon.orange { background:linear-gradient(135deg,#c47e31,#e9b55e); }
+      .module-icon.green { background:linear-gradient(135deg,#228c7c,#62b7a8); }
+      .module-icon.rose { background:linear-gradient(135deg,#b65176,#da8398); }
+      .module-icon.gray { background:linear-gradient(135deg,#7890a0,#a4b2bf); }
+      .info-pill { padding:6px 11px; border-radius:999px; background:#edf6fa; color:#316d8d; font-size:13px; font-weight:700; }
+      .dashboard-name { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; font-size:26px; line-height:1.28; letter-spacing:-.03em; }
+      .header-layout { min-width:0; }
+      .header-caption { font-size:13px; font-weight:650; color:#64758b; }
+      .side-profile { background:#ffffff14; border:1px solid #ffffff26; border-radius:14px; }
+      #mobile-header-avatar { display:none; }
+      .profile-avatar { background:linear-gradient(145deg,#d8f1ff,#89bed9); color:#174b6f; font-weight:800; display:grid; place-items:center; border-radius:50%; flex:none; }
+      .day-btn { border-radius:9px; border:1px solid #dce7ef; background:#f7fafc; padding:9px 11px; color:#667b8d; font-weight:800; font-size:13px; }
+      .day-btn.active { background:#1e6b93; border-color:#1e6b93; color:white; }
+      .slot-item { border:1px solid #e8eef4; background:#fbfdff; border-radius:12px; padding:12px; display:flex; gap:13px; align-items:center; }
+      .slot-item .time { min-width:88px; font-size:13px; font-weight:800; color:#317193; line-height:1.6; }
+      .text-quiet { color:#718399; }
+      .empty-info { background:#f7fafc; border:1px dashed #d8e5ef; color:#637b92; border-radius:13px; padding:18px; font-size:13px; line-height:1.8; }
+      .field-label { font-size:13px; font-weight:750; color:#405b72; display:block; margin-bottom:7px; }
+      .field-input { display:block; width:100%; border:1px solid #d8e3ed; background:#fff; border-radius:10px; padding:11px 13px; font-size:14px; color:#243851; outline:none; }
+      .field-input:focus { border-color:#3c8bb2; box-shadow:0 0 0 3px #4aa0ca1e; }
+      .screen-toast { position:fixed; top:92px; right:18px; width:min(360px,calc(100vw - 30px)); padding:13px 15px; border:1px solid #d2e4ef; background:#fff; border-radius:14px; box-shadow:0 16px 42px #102f492e; z-index:70; font-size:13px; }
+      #mobile-bottom-nav { display:none; }
+      #sidebar-backdrop { display:none; }
+      #page-scroll { overscroll-behavior:contain; }
+      .profile-dialog { max-height:92dvh; overflow-y:auto; }
+      .app-footer { font-size:11px; color:#92a4b6; }
+      @media (max-width: 767px) {
+        .dashboard-name { font-size:21px; }
+        #sidebar-backdrop.active { display:block; position:fixed; inset:0; background:#071f3988; z-index:39; }
+        #sidebar-container { width:min(280px,84vw); }
+        #mobile-bottom-nav { display:flex; position:fixed; bottom:0; left:0;right:0; z-index:30; background:#fff; border-top:1px solid #dfeaf2; box-shadow:0 -5px 20px #102f4917; padding:8px 4px max(8px,env(safe-area-inset-bottom)); justify-content:space-around; }
+        .bottom-btn { font-size:13px; min-width:0; width:19%; display:flex; flex-direction:column; align-items:center; gap:4px; padding:7px 1px; border-radius:12px; color:#718398; font-weight:750; }
+        .bottom-btn i { font-size:19px; }
+        .bottom-btn.active { color:#1e6d96; background:#e9f4f9; }
+        .bottom-btn span { white-space:nowrap; }
+        .page-main { padding:14px 13px 105px !important; }
+        #right-panel { display:none; }
+        .mobile-mini-avatar { display:grid !important; }
+        .desktop-profile-avatar { display:none !important; }
+        #top-notifications { display:none; }
+        .screen-toast { top:83px; }
+      }
+      @media(min-width:768px) { #mobile-action-menu { display:none !important; } }
+      @media(prefers-reduced-motion:reduce) { * { transition:none !important; animation:none !important; } }
     </style>
 </head>
-<body class="bg-[#eef6f9] text-slate-800 h-full flex overflow-hidden antialiased">
-
-    <!-- GLOBAL LOADER -->
-    <div id="global-loader" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-[9999] flex flex-col items-center justify-center transition-all duration-200">
-        <div class="loader-ring mb-3"><div></div><div></div><div></div></div>
-        <p class="text-white font-bold text-sm tracking-wide" id="loader-text">Memuatkan Dashboard...</p>
-    </div>
-
-    <!-- 1. SIDEBAR KIRI -->
-    <aside id="sidebar-container" class="w-64 bg-gradient-to-b from-[#1b587a] via-[#1e6f96] to-[#2284b0] text-white flex flex-col justify-between shrink-0 h-full z-30 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-200 shadow-lg">
-        <div>
-            <!-- LOGO HEADER -->
-            <div class="h-20 flex items-center px-6 border-b border-white/10 gap-3">
-                <div class="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center font-extrabold text-xl text-white border border-white/20 shadow-xs">
-                    🎓
-                </div>
-                <div>
-                    <h1 class="font-extrabold text-xl text-white tracking-tight leading-none">SeMAKMUR</h1>
-                    <p class="text-[10px] text-teal-100 font-medium tracking-wider uppercase mt-1">Portal Guru v2.0</p>
-                </div>
-            </div>
-
-            <!-- PROFIL GURU RINGKAS -->
-            <div class="p-4 mx-3 my-3 bg-white/10 rounded-xl border border-white/15 backdrop-blur-xs flex items-center gap-3">
-                <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" alt="Avatar Guru" class="w-11 h-11 rounded-full object-cover border-2 border-white/80 shadow-xs shrink-0">
-                <div class="overflow-hidden">
-                    <h2 id="user-display-name" class="font-bold text-xs text-white truncate">Nama Guru</h2>
-                    <p id="user-email-display" class="text-[11px] text-teal-100 truncate">guru@moe-dl.edu.my</p>
-                    <span id="class-badge-text" class="inline-block px-1.5 py-0.5 mt-1 text-[10px] bg-amber-400 text-slate-900 font-bold rounded">
-                        1 IRIS
-                    </span>
-                </div>
-            </div>
-
-            <!-- NAVIGASI MENU UTAMA -->
-            <nav class="px-3 space-y-1.5 mt-2">
-                <button onclick="switchMainMenu('laman_utama')" id="nav-laman_utama" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-white text-[#1b6287] shadow-sm">
-                    <i class="fa-solid fa-house w-5 text-center text-base"></i>
-                    <span>Laman Utama</span>
-                </button>
-
-                <button onclick="switchMainMenu('pentadbiran')" id="nav-pentadbiran" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <i class="fa-solid fa-building-user w-5 text-center text-base"></i>
-                    <span>Pentadbiran</span>
-                </button>
-
-                <button onclick="switchMainMenu('kurikulum')" id="nav-kurikulum" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <i class="fa-solid fa-book-open-reader w-5 text-center text-base"></i>
-                    <span>Kurikulum</span>
-                </button>
-
-                <button onclick="switchMainMenu('hem')" id="nav-hem" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <i class="fa-solid fa-user-shield w-5 text-center text-base"></i>
-                    <span>Hal Ehwal Murid</span>
-                </button>
-
-                <button onclick="switchMainMenu('kokurikulum')" id="nav-kokurikulum" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <i class="fa-solid fa-trophy w-5 text-center text-base"></i>
-                    <span>Ko Kurikulum</span>
-                </button>
-
-                <button onclick="switchMainMenu('lain_lain')" id="nav-lain_lain" class="menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3">
-                    <i class="fa-solid fa-ellipsis-stroke w-5 text-center text-base"></i>
-                    <span>Lain-lain</span>
-                </button>
-            </nav>
+<body class="h-full overflow-hidden antialiased flex">
+  <div id="sidebar-backdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
+  <aside id="sidebar-container" class="side-bg text-white flex flex-col shrink-0 h-full z-40 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-200 shadow-lg w-64" aria-label="Menu utama">
+    <div class="min-h-0 flex flex-col flex-1">
+      <div class="h-20 flex shrink-0 items-center px-5 border-b border-white/10 gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/15 border border-white/20 flex justify-center items-center text-xl">🎓</div>
+        <div class="min-w-0"><h1 class="font-extrabold text-xl text-white tracking-tight leading-none">SeMAKMUR</h1><p class="text-[13px] text-teal-100 font-medium tracking-wide uppercase mt-1">DIGITAL · PORTAL GURU</p></div>
+      </div>
+      <div class="side-profile mx-3 my-4 p-3 flex gap-3 items-center">
+        <div id="sidebar-avatar" class="profile-avatar desktop-profile-avatar w-11 h-11 border-2 border-white/75" aria-hidden="true">G</div>
+        <div class="min-w-0 flex-1"><h2 id="user-display-name" class="font-bold text-[13px] truncate text-white">Guru SeMAKMUR</h2>
+          <button onclick="openProfile()" class="text-[13px] text-sky-100 hover:text-white underline underline-offset-2 mt-1">Edit Profil <i class="fa-solid fa-pen ml-1 text-[11px]"></i></button>
         </div>
-
-        <div class="p-4 border-t border-white/10 flex items-center justify-between text-xs text-teal-100">
-            <span>SK SeMAKMUR © 2026</span>
-            <button onclick="handleLogout()" class="text-white hover:text-red-300 transition font-bold">
-                Log Keluar
-            </button>
-        </div>
-    </aside>
-
-    <!-- 2. AREA KANDUNGAN UTAMA -->
-    <div class="flex-1 flex flex-col h-full overflow-hidden">
-        
-        <!-- HEADER ATAS -->
-        <header class="h-20 bg-white border-b border-slate-200 shrink-0 flex items-center justify-between px-6 z-20">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleMobileSidebar()" class="md:hidden p-2 text-slate-600 hover:text-slate-900">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
-                <h1 class="text-xl sm:text-2xl font-extrabold text-slate-800 tracking-tight" id="header-greeting">
-                    Selamat Datang <span id="header-user-name" class="text-[#1f7a9c]">Cikgu</span>,
-                </h1>
-            </div>
-
-            <!-- CARIAN & BUTANG NOTIFIKASI -->
-            <div class="flex items-center gap-4">
-                <div class="relative hidden sm:block">
-                    <input type="text" placeholder="Carian sistem..." class="w-48 lg:w-64 pl-9 pr-4 py-1.5 text-xs rounded-full bg-slate-100 border border-slate-200 focus:outline-none focus:border-[#1f7a9c] transition">
-                    <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
-
-                <button class="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition">
-                    <svg class="w-5 h-5 text-[#1f7a9c]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 01-6 0v-1m6 0H9"></path></svg>
-                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                </button>
-
-                <button class="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition">
-                    <svg class="w-5 h-5 text-[#1f7a9c]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                </button>
-
-                <!-- PAUTAN DENGAN KELUAR FOLDER PARA HARUS UNTUK INDEX PORTAL -->
-                <a href="../index.html?mode=portal" class="p-1 rounded-full hover:bg-slate-100 border border-slate-200" title="Ke Portal Utama">
-                    <img id="header-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" class="w-8 h-8 rounded-full object-cover">
-                </a>
-            </div>
-        </header>
-
-        <!-- KANDUNGAN DASHBOARD UTAMA -->
-        <main class="flex-1 overflow-y-auto p-5 space-y-5">
-
-            <!-- LOKASI BREADCRUMB TEKS -->
-            <div class="flex items-center justify-between text-xs font-semibold text-slate-500 pb-1 border-b border-slate-200">
-                <div>
-                    <span>Lokasi: </span>
-                    <span id="breadcrumb-text" class="text-[#1f7a9c] font-bold">Dashboard / Laman Utama</span>
-                </div>
-                <button onclick="toggleRightPanel()" id="btn-toggle-right" class="text-xs text-[#1f7a9c] font-bold hover:underline flex items-center gap-1 bg-white px-3 py-1 rounded-full border border-slate-200 shadow-2xs">
-                    <i class="fa-solid fa-columns text-[10px]"></i>
-                    <span id="toggle-right-text">Sorok Panel Kanan</span>
-                </button>
-            </div>
-
-            <!-- GRID UTAMA DASHBOARD -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start" id="dashboard-grid-container">
-                
-                <!-- KOLUM KIRI UTAMA -->
-                <div class="lg:col-span-8 space-y-5 transition-all duration-300" id="main-left-column">
-
-                    <!-- CONTAINER WIDGET LAMAN UTAMA -->
-                    <div id="laman-utama-widgets" class="space-y-5">
-
-                        <!-- SEKSYEN MODUL & APLIKASI UTAMA GURU -->
-                        <div class="card-coligo p-4 space-y-3 bg-white shadow-xs border border-slate-200">
-                            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-2 h-2 rounded-full bg-[#1f7a9c]"></span>
-                                    <h2 class="font-extrabold text-sm text-slate-800">Modul & Aplikasi Utama Guru</h2>
-                                </div>
-                                <span class="text-[11px] text-slate-400 font-semibold px-2 py-0.5 bg-slate-100 rounded-full">7 Modul</span>
-                            </div>
-
-                            <!-- GRID KAD PETAK UTAMA -->
-                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                                
-                                <!-- MODUL 1: e-RPH Digital -->
-                                <div onclick="bukaErphModule()" class="group cursor-pointer bg-slate-50 hover:bg-teal-50/60 border border-slate-200 hover:border-teal-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-teal-600 to-teal-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                        <i class="fa-solid fa-book-open"></i>
-                                    </div>
-                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-teal-700 transition-colors leading-tight">e-RPH Digital</h3>
-                                </div>
-
-                                <!-- MODUL 2: Manual Pengurusan 2027 -->
-                                <div onclick="bukaAplikasi('Manual Pengurusan 2027', 'modulaplikasi/ManualPengurusan.html')" class="group cursor-pointer bg-slate-50 hover:bg-blue-50/60 border border-slate-200 hover:border-blue-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 to-sky-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                        <i class="fa-solid fa-book-bookmark"></i>
-                                    </div>
-                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-blue-700 transition-colors leading-tight">Manual Pengurusan</h3>
-                                </div>
-
-                                <!-- MODUL BAHARU: Jadual Waktu -->
-                                <div onclick="bukaAplikasi('Jadual Waktu', 'modulaplikasi/JadualWaktu.html')" class="group cursor-pointer bg-slate-50 hover:bg-sky-50/60 border border-slate-200 hover:border-sky-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                        <i class="fa-solid fa-calendar-days"></i>
-                                    </div>
-                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-sky-700 transition-colors leading-tight">Jadual Waktu</h3>
-                                </div>
-
-                                <!-- MODUL 3: SSDM Disiplin -->
-                                <div onclick="bukaAplikasi('SSDM', 'https://ssdm.moe.gov.my')" class="group cursor-pointer bg-slate-50 hover:bg-amber-50/60 border border-slate-200 hover:border-amber-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                        <i class="fa-solid fa-shield-halved"></i>
-                                    </div>
-                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-amber-700 transition-colors leading-tight">SSDM Disiplin</h3>
-                                </div>
-
-                                <!-- MODUL 4: SPLKPM Latihan -->
-                                <div onclick="bukaAplikasi('SPLKPM', 'https://splkpm.moe.gov.my')" class="group cursor-pointer bg-slate-50 hover:bg-purple-50/60 border border-slate-200 hover:border-purple-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                        <i class="fa-solid fa-graduation-cap"></i>
-                                    </div>
-                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-purple-700 transition-colors leading-tight">SPLKPM Latihan</h3>
-                                </div>
-
-                                <!-- MODUL 5: PAJSK Koko -->
-                                <div onclick="bukaAplikasi('PAJSK', '#')" class="group cursor-pointer bg-slate-50 hover:bg-emerald-50/60 border border-slate-200 hover:border-emerald-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                        <i class="fa-solid fa-trophy"></i>
-                                    </div>
-                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-emerald-700 transition-colors leading-tight">PAJSK Koko</h3>
-                                </div>
-
-                                <!-- MODUL 6: HRMIS / CRK -->
-                                <div onclick="bukaAplikasi('HRMIS', 'https://hrmis2.ecomponent.my')" class="group cursor-pointer bg-slate-50 hover:bg-rose-50/60 border border-slate-200 hover:border-rose-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-rose-600 to-pink-400 text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                                        <i class="fa-solid fa-id-card"></i>
-                                    </div>
-                                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-rose-700 transition-colors leading-tight">HRMIS / CRK</h3>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <!-- SEKSYEN PENGUMUMAN & PEMBERITAHUAN -->
-                        <div id="courses-progress-card" class="card-coligo p-5">
-                            <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-3">
-                                <div>
-                                    <h2 class="font-extrabold text-base text-slate-800">Pengumuman & Pemberitahuan</h2>
-                                    <p class="text-xs text-slate-400 font-medium italic">Makluman dan notis rasmi sekolah terkini</p>
-                                </div>
-                                <button class="text-xs font-bold text-[#1f7a9c] hover:underline">+ Baru</button>
-                            </div>
-
-                            <div class="space-y-3">
-                                <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition">
-                                    <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
-                                        <span class="px-2 py-0.5 bg-teal-100 text-[#1f7a9c] rounded">PENTADBIRAN</span>
-                                        <span class="text-slate-400 font-normal">15 Okt 2026</span>
-                                    </div>
-                                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 mb-1">Mesyuarat Kurikulum Bil 3/2026</h3>
-                                    <p class="text-xs text-slate-600 leading-relaxed">Penyertaan semua Guru Mata Pelajaran adalah wajib. Mesyuarat akan bermula jam 2.00 petang di Bilik Gerakan sekolah.</p>
-                                </div>
-
-                                <div class="p-3.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-slate-200 transition">
-                                    <div class="flex items-center justify-between text-[11px] font-bold text-[#1f7a9c] mb-1">
-                                        <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded">HEM</span>
-                                        <span class="text-slate-400 font-normal">12 Okt 2026</span>
-                                    </div>
-                                    <h3 class="font-bold text-xs sm:text-sm text-slate-800 mb-1">Pengesahan Kehadiran Murid APDM</h3>
-                                    <p class="text-xs text-slate-600 leading-relaxed">Semua Guru Kelas diminta mengemaskini dan mengesahkan rekod kehadiran harian murid sebelum jam 9.00 pagi setiap hari persekolahan.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- CARD 2: TUGASAN & STATUS PENGHANTARAN -->
-                        <div class="card-coligo p-5">
-                            <div class="flex items-center justify-between mb-1">
-                                <div>
-                                    <h2 class="font-extrabold text-base text-slate-800">Semakan Tugasan & e-RPH</h2>
-                                    <p class="text-xs text-slate-400 font-medium italic">Status penghantaran buku latihan & rekod mengajar minggu ini</p>
-                                </div>
-                                <select class="text-xs border border-slate-200 rounded-lg px-3 py-1.5 bg-slate-50 text-slate-700 font-semibold focus:outline-none">
-                                    <option>Semua Kelas</option>
-                                    <option>1 IRIS</option>
-                                    <option>2 ROS</option>
-                                </select>
-                            </div>
-
-                            <div class="overflow-x-auto mt-4">
-                                <table class="w-full text-left text-xs">
-                                    <thead>
-                                        <tr class="text-slate-400 border-b border-slate-200 uppercase tracking-wider font-semibold">
-                                            <th class="pb-3 font-semibold">Subjek | Topik</th>
-                                            <th class="pb-3 font-semibold">Tarikh Akhir</th>
-                                            <th class="pb-3 font-semibold">Kadar Hantar</th>
-                                            <th class="pb-3 font-semibold">Status</th>
-                                            <th class="pb-3 text-right font-semibold">Tindakan</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100 font-medium">
-                                        <tr>
-                                            <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
-                                                <span class="p-1.5 bg-teal-50 text-[#1f7a9c] rounded-md">📋</span>
-                                                Bahasa Melayu 1I | Latihan Karangan Pendek
-                                            </td>
-                                            <td class="py-3.5 text-slate-500">20 Okt 2026</td>
-                                            <td class="py-3.5 font-bold text-slate-800">85 %</td>
-                                            <td class="py-3.5">
-                                                <span class="text-amber-600 italic font-semibold">Menunggu Penghantaran</span>
-                                            </td>
-                                            <td class="py-3.5 text-right text-slate-400">⋮</td>
-                                        </tr>
-
-                                        <tr>
-                                            <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
-                                                <span class="p-1.5 bg-amber-50 text-amber-600 rounded-md">⏳</span>
-                                                Sejarah 2R | Bab 3 Kesultanan Melayu
-                                            </td>
-                                            <td class="py-3.5 text-slate-500">18 Okt 2026</td>
-                                            <td class="py-3.5 font-bold text-slate-800">98 %</td>
-                                            <td class="py-3.5">
-                                                <span class="text-amber-500 italic font-semibold">Sedia untuk disemak</span>
-                                            </td>
-                                            <td class="py-3.5 text-right text-slate-400">⋮</td>
-                                        </tr>
-
-                                        <tr>
-                                            <td class="py-3.5 flex items-center gap-2.5 font-bold text-slate-800">
-                                                <span class="p-1.5 bg-emerald-50 text-emerald-600 rounded-md">✓</span>
-                                                Bahasa Melayu 3D | E-RPH Minggu 38
-                                            </td>
-                                            <td class="py-3.5 text-slate-500">16 Okt 2026</td>
-                                            <td class="py-3.5 font-bold text-slate-800">100 %</td>
-                                            <td class="py-3.5">
-                                                <span class="text-emerald-600 italic font-semibold">Disahkan Pentadbir!</span>
-                                            </td>
-                                            <td class="py-3.5 text-right text-slate-400">⋮</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- SENARAI MURID VIEW -->
-                        <div id="students-table-view" class="card-coligo p-5 hidden">
-                            <div class="flex items-center justify-between mb-4">
-                                <h2 class="font-extrabold text-base text-slate-800" id="students-card-title">Senarai Murid Kelas</h2>
-                                <button onclick="fetchClassStudentsRealData()" class="px-3 py-1.5 bg-[#1f7a9c] hover:bg-[#175d78] text-white font-bold text-xs rounded-lg transition">
-                                    🔄 Kemaskini
-                                </button>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs border-collapse">
-                                    <thead>
-                                        <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                                            <th class="p-3 w-12 text-center">Bil</th>
-                                            <th class="p-3">Nama Murid</th>
-                                            <th class="p-3">ID DELIMa / E-Mel</th>
-                                            <th class="p-3 text-center">Jantina</th>
-                                            <th class="p-3 text-center">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="students-table-body" class="divide-y divide-slate-100 font-medium">
-                                        <tr>
-                                            <td colspan="5" class="p-4 text-center text-slate-400 italic">
-                                                Sedang menarik data murid...
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- CONTAINER SUB-MENU MODUL IKON -->
-                    <div id="page-submodule-view" class="card-coligo p-4 space-y-3 bg-white shadow-xs border border-slate-200 hidden">
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-[#1f7a9c]"></span>
-                                <h2 class="font-extrabold text-sm text-slate-800" id="page-submodule-title">Modul & Aplikasi Pengurusan Pentadbiran</h2>
-                            </div>
-                            <span class="text-[11px] text-slate-400 font-semibold px-2 py-0.5 bg-slate-100 rounded-full" id="page-submodule-count">5 Modul</span>
-                        </div>
-
-                        <div id="submodule-grid-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                            <!-- Dijana melalui JS -->
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- KOLUM KANAN / SIDEBAR PANEL -->
-                <aside class="lg:col-span-4 space-y-5 shrink-0 transition-all duration-300" id="right-panel">
-
-                    <div class="card-coligo p-5">
-                        <div class="mb-4 flex items-center justify-between border-b border-slate-100 pb-2">
-                            <div>
-                                <h2 class="font-extrabold text-base text-slate-800">Jadual Hari Ini</h2>
-                                <p class="text-xs text-slate-400 font-medium italic">Sesi waktu mengajar yang dijadualkan</p>
-                            </div>
-                            <span class="p-2 bg-teal-50 text-[#1f7a9c] rounded-lg text-sm font-bold">📅</span>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div class="flex items-start gap-3">
-                                <div class="p-2 bg-teal-50 text-[#1f7a9c] rounded-full shrink-0 mt-0.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </div>
-                                <div class="space-y-0.5">
-                                    <h3 class="font-bold text-xs text-slate-800">Masa 3 | 10:45 AM - 11:30 AM</h3>
-                                    <p class="text-xs text-slate-600"><span class="font-semibold text-[#1f7a9c]">Subjek:</span> Bahasa Melayu</p>
-                                    <p class="text-xs text-slate-600"><span class="font-semibold text-slate-500">Topik:</span> Tatabahasa & Kata Kerja</p>
-                                    <p class="text-[11px] text-slate-400">Tempat: Kelas 1 IRIS</p>
-                                </div>
-                            </div>
-
-                            <hr class="border-slate-100">
-
-                            <div class="flex items-start gap-3">
-                                <div class="p-2 bg-teal-50 text-[#1f7a9c] rounded-full shrink-0 mt-0.5">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </div>
-                                <div class="space-y-0.5">
-                                    <h3 class="font-bold text-xs text-slate-800">Masa 5 | 12:00 PM - 12:45 PM</h3>
-                                    <p class="text-xs text-slate-600"><span class="font-semibold text-[#1f7a9c]">Subjek:</span> Sejarah</p>
-                                    <p class="text-xs text-slate-600"><span class="font-semibold text-slate-500">Topik:</span> Bab 3 Kesultanan Melayu</p>
-                                    <p class="text-[11px] text-slate-400">Tempat: Kelas 2 ROS</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-6 pt-3 border-t border-slate-100 text-center">
-                            <p class="text-xs text-slate-400 font-medium italic">Sesi P&P tamat jam 1:30 PM :) Selamat mengajar!</p>
-                        </div>
-                    </div>
-
-                </aside>
-
-            </div>
-
-        </main>
+      </div>
+      <nav class="px-3 space-y-1 overflow-y-auto" id="desktop-nav" aria-label="Bidang pengurusan">
+        <button class="nav-link active" data-page="laman_utama"><i class="fa-solid fa-house"></i><span>Laman Utama</span></button>
+        <button class="nav-link" data-page="pentadbiran"><i class="fa-solid fa-building-user"></i><span>Pentadbiran</span></button>
+        <button class="nav-link" data-page="kurikulum"><i class="fa-solid fa-book-open-reader"></i><span>Kurikulum</span></button>
+        <button class="nav-link" data-page="hem"><i class="fa-solid fa-user-shield"></i><span>Hal Ehwal Murid</span></button>
+        <button class="nav-link" data-page="kokurikulum"><i class="fa-solid fa-trophy"></i><span>Kokurikulum</span></button>
+        <button class="nav-link" data-page="lain_lain"><i class="fa-solid fa-grip"></i><span>Lain-lain</span></button>
+      </nav>
     </div>
-
-    <!-- CONFIG FILE (Keluar paras ke root) -->
-    <script src="../config.js"></script>
-    <script src="../auth-client.js"></script>
-
-    <!-- LOGIK JAVASCRIPT DASHBOARD -->
-    <script>
-    let CURRENT_GURU_USER = null;
-    let ACTIVE_MAIN_MENU = 'laman_utama';
-
-    const MENU_LABELS = {
-        'laman_utama': 'Dashboard / Laman Utama',
-        'pentadbiran': 'Pengurusan Pentadbiran',
-        'kurikulum': 'Pengurusan Kurikulum',
-        'hem': 'Hal Ehwal Murid (HEM)',
-        'kokurikulum': 'Pengurusan Ko Kurikulum',
-        'lain_lain': 'Lain-lain & Dokumen'
-    };
-
-    const MENU_MODULE_TITLES = {
-        'pentadbiran': 'Modul & Aplikasi Pengurusan Pentadbiran',
-        'kurikulum': 'Modul & Aplikasi Pengurusan Kurikulum',
-        'hem': 'Modul & Aplikasi Hal Ehwal Murid',
-        'kokurikulum': 'Modul & Aplikasi Pengurusan Ko Kurikulum',
-        'lain_lain': 'Modul & Aplikasi Lain-lain'
-    };
-
-    const PAGE_SUBMODULES = {
-        'pentadbiran': [
-            { id: 'profil', title: 'Profil Sekolah', icon: 'fa-building', color: 'from-blue-600 to-indigo-500', action: 'bukaAplikasi("Profil Sekolah", "#")' },
-            { id: 'carta', title: 'Carta Organisasi', icon: 'fa-sitemap', color: 'from-indigo-600 to-purple-500', action: 'bukaAplikasi("Carta Organisasi", "#")' },
-            { id: 'skpmg', title: 'SKPMG / PBPPP', icon: 'fa-award', color: 'from-emerald-600 to-teal-500', action: 'bukaAplikasi("SKPMG / PBPPP", "#")' },
-            { id: 'kewangan', title: 'Pengurusan Kewangan', icon: 'fa-wallet', color: 'from-amber-500 to-yellow-500', action: 'bukaAplikasi("Pengurusan Kewangan", "#")' },
-            { id: 'laporan', title: 'Laporan Mingguan', icon: 'fa-file-lines', color: 'from-rose-600 to-pink-500', action: 'bukaAplikasi("Laporan Mingguan", "#")' }
-        ],
-        'kurikulum': [
-            { id: 'erph', title: 'e-RPH Digital', icon: 'fa-book-open', color: 'from-teal-600 to-teal-400', action: 'bukaErphModule()' },
-            { id: 'panitia', title: 'Pengurusan Panitia', icon: 'fa-chalkboard-user', color: 'from-blue-600 to-sky-400', action: 'bukaAplikasi("Pengurusan Panitia", "#")' },
-            { id: 'jadual', title: 'Jadual Waktu', icon: 'fa-calendar-days', color: 'from-purple-600 to-indigo-400', action: 'bukaAplikasi("Jadual Waktu", "modulaplikasi/JadualWaktu.html")' },
-            { id: 'pentaksiran', title: 'Pentaksiran & PBS', icon: 'fa-pen-to-square', color: 'from-amber-500 to-yellow-400', action: 'bukaAplikasi("Pentaksiran & PBS", "#")' }
-        ],
-        'hem': [
-            { id: 'ppda', title: 'Pengurusan PPDa', icon: 'fa-shield-halved', color: 'from-rose-600 to-red-400', action: 'bukaAplikasi("Pengurusan PPDa", "#")' },
-            { id: 'disiplin', title: 'SSDM Disiplin', icon: 'fa-user-shield', color: 'from-amber-500 to-yellow-400', action: 'bukaAplikasi("SSDM Disiplin", "https://ssdm.moe.gov.my")' },
-            { id: 'apdm', title: 'APDM Kehadiran', icon: 'fa-user-check', color: 'from-blue-600 to-sky-400', action: 'bukaAplikasi("APDM Kehadiran", "https://apdm.moe.gov.my")' },
-            { id: 'spbt', title: 'SPBT & Buku Teks', icon: 'fa-book', color: 'from-orange-500 to-amber-400', action: 'bukaAplikasi("SPBT", "#")' },
-            { id: 'rmt', title: 'RMT & Kesihatan', icon: 'fa-utensils', color: 'from-emerald-600 to-teal-400', action: 'bukaAplikasi("RMT & Kesihatan", "#")' }
-        ],
-        'kokurikulum': [
-            { id: 'beruniform', title: 'Unit Beruniform', icon: 'fa-campground', color: 'from-emerald-600 to-teal-500', action: 'bukaAplikasi("Unit Beruniform", "#")' },
-            { id: 'kelab', title: 'Kelab & Persatuan', icon: 'fa-icons', color: 'from-indigo-600 to-blue-500', action: 'bukaAplikasi("Kelab & Persatuan", "#")' },
-            { id: 'sukan', title: 'Sukan & Permainan', icon: 'fa-futbol', color: 'from-amber-500 to-orange-500', action: 'bukaAplikasi("Sukan & Permainan", "#")' },
-            { id: 'pajsk', title: 'PAJSK Koko', icon: 'fa-trophy', color: 'from-purple-600 to-pink-500', action: 'bukaAplikasi("PAJSK Koko", "#")' }
-        ],
-        'lain_lain': [
-            { id: 'manual', title: 'Buku Pengurusan', icon: 'fa-book-bookmark', color: 'from-blue-600 to-indigo-500', action: 'bukaAplikasi("Buku Pengurusan", "modulaplikasi/ManualPengurusan.html")' },
-            { id: 'download', title: 'Muat Turun Dokumen', icon: 'fa-download', color: 'from-teal-600 to-emerald-500', action: 'bukaAplikasi("Muat Turun Dokumen", "#")' },
-            { id: 'galeri', title: 'Galeri Sekolah', icon: 'fa-images', color: 'from-purple-600 to-indigo-400', action: 'bukaAplikasi("Galeri Sekolah", "#")' },
-            { id: 'pautan', title: 'Pautan Luar MOE', icon: 'fa-link', color: 'from-amber-500 to-yellow-400', action: 'bukaAplikasi("Pautan Luar MOE", "#")' }
-        ]
-    };
-
-    function showLoader(txt = "Memuatkan...") {
-        const loader = document.getElementById('global-loader');
-        const lTxt = document.getElementById('loader-text');
-        if (lTxt) lTxt.innerText = txt;
-        if (loader) loader.classList.remove('hidden');
+    <div class="border-t border-white/15 p-4 flex items-center justify-between gap-3"><span class="text-[11px] text-sky-100">SK Segambut Makmur</span><button onclick="handleLogout()" class="text-white font-bold text-[13px] hover:underline">Log Keluar</button></div>
+  </aside>
+  <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+    <header class="bg-white border-b border-slate-200 shrink-0 flex items-center justify-between gap-3 py-3 px-4 md:px-7 shadow-sm min-h-[86px] z-20">
+      <div class="header-layout flex-1 min-w-0">
+        <div class="header-caption" id="greeting-text">Selamat Datang</div>
+        <h1 id="header-user-name" class="dashboard-name font-extrabold text-[#1e658a]" title="Guru SeMAKMUR">Guru SeMAKMUR</h1>
+        <p id="header-date" class="text-[13px] text-slate-500 mt-0.5 truncate">Ruang kerja guru</p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="top-notifications" onclick="showInfo('Notifikasi dan tugasan daripada modul berkaitan akan dipaparkan apabila integrasi diaktifkan.')" class="w-10 h-10 rounded-full hover:bg-sky-50 text-[#1f7a9c]" aria-label="Notifikasi"><i class="fa-regular fa-bell text-lg"></i></button>
+        <button onclick="openProfile()" id="mobile-header-avatar" class="mobile-mini-avatar profile-avatar w-10 h-10 hidden border border-sky-200" aria-label="Edit profil guru">G</button>
+        <button id="mobile-action-menu" onclick="toggleMobileMenu()" class="w-10 h-10 rounded-xl border border-sky-100 bg-sky-50 text-[#1d648a] flex items-center justify-center" aria-label="Buka menu navigasi" aria-expanded="false"><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="21" height="21" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
+    </header>
+    <main id="page-scroll" class="page-main p-5 lg:p-6 flex-1 overflow-y-auto space-y-5" aria-label="Kandungan dashboard">
+      <div class="flex items-center justify-between gap-3"><div class="flex items-center gap-2 text-[13px] text-slate-500 font-semibold"><i class="fa-solid fa-location-dot text-[#2a89ae]"></i><span id="breadcrumb-text">Laman Utama</span></div><div id="header-status" class="info-pill">Memuatkan maklumat…</div></div>
+      <div id="service-notice" class="hidden card-coligo border-amber-200 bg-amber-50 text-amber-900 p-3 text-[13px]" role="status"></div>
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start" id="dashboard-grid-container">
+        <section class="xl:col-span-8 space-y-5 min-w-0" id="main-left-column">
+          <div id="page-laman_utama" class="space-y-5 dashboard-page">
+            <div class="rounded-2xl overflow-hidden bg-gradient-to-r from-[#1d5176] to-[#2490b4] p-5 text-white relative">
+              <div class="flex items-start justify-between gap-3"><div><div class="text-[13px] font-bold text-sky-100 mb-1">PUSAT AKTIVITI HARIAN</div><h2 class="font-extrabold text-lg">Ringkasan Hari Ini</h2><p class="mt-1 text-[13px] text-sky-100 max-w-lg">Jadual, peranan dan urusan penting dalam satu ruang kerja.</p></div><i class="fa-solid fa-layer-group text-2xl text-white/50"></i></div>
+            </div>
+            <div id="home-summary" class="grid grid-cols-2 gap-3"></div>
+            <div class="card-coligo p-4 md:p-5"><div class="flex justify-between gap-3 items-start mb-3"><div><h2 class="soft-title">Jadual Saya</h2><p class="text-[13px] text-slate-500 mt-1">Waktu mengajar mengikut hari persekolahan</p></div><span id="schedule-weekend" class="info-pill hidden">Hari cuti mingguan</span></div>
+              <div id="home-day-selector" class="flex gap-2 overflow-x-auto pb-2" aria-label="Pilih hari jadual"></div>
+              <div id="home-timetable" class="space-y-2 mt-3" aria-live="polite"></div>
+              <button class="text-[#227ba3] text-[13px] font-extrabold mt-4 hover:underline" data-page="kurikulum">Lihat jadual penuh <i class="fa-solid fa-arrow-right ml-1"></i></button>
+            </div>
+            <div class="card-coligo p-4 md:p-5"><div class="flex justify-between items-start gap-3"><div><h2 class="soft-title">Perlu Perhatian Saya</h2><p class="text-[13px] text-slate-500 mt-1">Tindakan daripada modul yang disambungkan</p></div><i class="fa-solid fa-clipboard-check text-[#2b83a7]"></i></div><div id="home-actions" class="empty-info mt-4">Belum ada modul tugasan yang disepadukan ke ringkasan ini. Akses modul sedia ada masih boleh digunakan seperti biasa.</div></div>
+            <div class="card-coligo p-4 md:p-5"><div class="flex justify-between items-start gap-3"><div><h2 class="soft-title">Modul & Aplikasi Utama Guru</h2><p class="text-[13px] text-slate-500 mt-1">Akses terus ke sistem dan aplikasi berkaitan</p></div><span class="info-pill">7 Modul</span></div><div id="home-modules" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-4"></div></div>
+          </div>
+          <div id="page-category" class="dashboard-page hidden space-y-5">
+            <div class="card-coligo p-5"><div class="section-eyebrow" id="category-label">RUANG KERJA</div><h2 class="font-extrabold text-xl text-slate-800 mt-1" id="category-title">Kurikulum</h2><p class="text-[13px] text-slate-500 mt-2 leading-relaxed" id="category-desc"></p></div>
+            <div class="card-coligo p-4 md:p-5"><div class="flex justify-between gap-2 items-center"><h3 class="soft-title">Ringkasan Bidang</h3><i class="fa-solid fa-chart-simple text-[#3b8eb2]"></i></div><div id="category-overview" class="mt-3 space-y-2"></div></div>
+            <div class="card-coligo p-4 md:p-5"><div class="flex justify-between gap-2 items-center"><h3 class="soft-title">Peranan & Tanggungjawab Saya</h3><span class="info-pill" id="role-count">0</span></div><div id="category-roles" class="mt-3 space-y-2"></div></div>
+            <div class="card-coligo p-4 md:p-5"><h3 class="soft-title">Modul & Aplikasi</h3><p class="text-[13px] text-slate-500 mt-1">Pilih modul untuk meneruskan urusan dalam bidang ini.</p><div id="category-modules" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mt-4"></div></div>
+          </div>
+        </section>
+        <aside id="right-panel" class="xl:col-span-4 space-y-5">
+          <div class="card-coligo p-5"><div class="flex justify-between items-center"><div><h2 class="soft-title">Jadual Hari Ini</h2><p class="text-[13px] text-slate-500 mt-1" id="right-day-name">Memuatkan…</p></div><i class="fa-regular fa-calendar text-[#2b83a7] text-xl"></i></div><div id="today-right-schedule" class="space-y-2 mt-4"></div></div>
+          <div class="card-coligo p-5"><div class="flex justify-between items-center"><h2 class="soft-title">Peranan Saya</h2><i class="fa-solid fa-user-gear text-[#2b83a7]"></i></div><div id="right-my-roles" class="mt-3 space-y-2"></div></div>
+          <div class="card-coligo p-5"><h2 class="soft-title">Takwim & Hebahan</h2><div class="empty-info mt-3">Maklumat aktiviti dan hebahan peribadi akan dipaparkan selepas penyepaduan modul berkenaan.</div></div>
+        </aside>
+      </div>
+      <footer class="app-footer text-center pt-3 pb-2">© <span id="copyright-year"></span> SeMAKMUR Digital · SK Segambut Makmur</footer>
+    </main>
+  </div>
+  <nav id="mobile-bottom-nav" aria-label="Navigasi pantas">
+    <button class="bottom-btn active" data-page="laman_utama"><i class="fa-solid fa-house"></i><span>Utama</span></button>
+    <button class="bottom-btn" data-page="pentadbiran"><i class="fa-solid fa-building-user"></i><span>Tadbir</span></button>
+    <button class="bottom-btn" data-page="kurikulum"><i class="fa-solid fa-book-open"></i><span>Kurikulum</span></button>
+    <button class="bottom-btn" data-page="hem"><i class="fa-solid fa-users"></i><span>HEM</span></button>
+    <button class="bottom-btn" onclick="toggleMobileMenu()"><i class="fa-solid fa-grip"></i><span>Lagi</span></button>
+  </nav>
+  <div id="profile-modal" class="fixed inset-0 z-[65] bg-[#081d36aa] p-3 md:p-6 items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="profile-title">
+    <div class="profile-dialog w-full max-w-lg card-coligo shadow-2xl p-5 md:p-6"><div class="flex justify-between items-center gap-3"><div><div class="section-eyebrow">AKAUN SAYA</div><h2 id="profile-title" class="text-xl font-extrabold text-slate-800">Edit Profil</h2></div><button onclick="closeProfile()" class="w-9 h-9 rounded-lg text-slate-600 hover:bg-slate-100" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button></div>
+      <p class="text-[13px] text-slate-500 mt-2 leading-relaxed">Maklumat peribadi di sini boleh dikemas kini sendiri. Jawatan rasmi dan pelantikan tugas diurus melalui pentadbiran sekolah.</p>
+      <form id="profile-form" class="mt-5 space-y-4"><div><label class="field-label" for="profile-fullname">Nama Penuh</label><input class="field-input bg-slate-50" id="profile-fullname" readonly aria-readonly="true"></div>
+        <div><label class="field-label" for="profile-nickname">Nama Samaran</label><input class="field-input" id="profile-nickname" maxlength="48" required placeholder="Contohnya: Cikgu Aina"></div>
+        <div><label class="field-label" for="profile-phone">Nombor Telefon</label><input class="field-input" id="profile-phone" type="tel" maxlength="22" placeholder="Nombor untuk dihubungi"></div>
+        <div><label class="field-label" for="profile-email">Akaun Berdaftar</label><input class="field-input bg-slate-50" id="profile-email" readonly aria-readonly="true"></div>
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><p class="text-[13px] font-extrabold text-slate-700">Pelantikan & peranan rasmi</p><p id="profile-role-summary" class="text-[13px] text-slate-600 mt-1">Disahkan melalui pengurusan sekolah.</p><p class="text-[13px] text-slate-500 mt-1">Perubahan pelantikan perlu dibuat oleh pentadbir yang diberi kuasa.</p></div>
+        <div id="profile-message" class="hidden rounded-lg p-3 text-[13px]" role="status" aria-live="polite"></div>
+        <button id="profile-save" type="submit" class="w-full rounded-xl bg-gradient-to-r from-[#1b6287] to-[#2396b6] text-white font-extrabold py-3 text-[14px] hover:opacity-95">Simpan Perubahan</button>
+      </form>
+    </div>
+  </div>
+  <div id="toast" class="screen-toast hidden" role="status" aria-live="polite"></div>
+  <script src="../config.js"></script>
+  <script src="../auth-client.js"></script>
+  <script>
+  'use strict';
+  const DAY_NAMES=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+  const DAYS=['Isnin','Selasa','Rabu','Khamis','Jumaat'];
+  const MENUS={
+    laman_utama:{title:'Laman Utama'},
+    pentadbiran:{title:'Pentadbiran',subtitle:'Urusan pengurusan, surat, laporan dan tugasan rasmi yang melibatkan anda.'},
+    kurikulum:{title:'Kurikulum',subtitle:'Pengajaran, jadual, rekod pengajaran dan pentaksiran mengikut kelas serta mata pelajaran.'},
+    hem:{title:'Hal Ehwal Murid',subtitle:'Kehadiran, kebajikan, disiplin dan tanggungjawab guru kelas mengikut kebenaran.'},
+    kokurikulum:{title:'Kokurikulum',subtitle:'Unit beruniform, kelab, persatuan, sukan dan aktiviti kokurikulum yang anda selia.'},
+    lain_lain:{title:'Lain-lain',subtitle:'Kemudahan sekolah, dokumen sokongan dan pautan perkhidmatan tambahan.'}
+  };
+  const MODULES={
+    erph:{title:'e-RPH Digital',icon:'fa-book-open',tone:'green',url:'modulaplikasi/ErphGuru.html'},
+    manual:{title:'Manual Pengurusan',icon:'fa-book-bookmark',tone:'blue',url:'modulaplikasi/ManualPengurusan.html'},
+    jadual:{title:'Jadual Waktu',icon:'fa-calendar-days',tone:'blue',url:'modulaplikasi/JadualWaktu.html'},
+    ssdm:{title:'SSDM Disiplin',icon:'fa-shield-halved',tone:'orange',url:'https://ssdm.moe.gov.my'},
+    splkpm:{title:'SPLKPM Latihan',icon:'fa-graduation-cap',tone:'purple',url:'https://splkpm.moe.gov.my'},
+    pajsk:{title:'PAJSK Kokurikulum',icon:'fa-trophy',tone:'green',url:null},
+    hrmis:{title:'HRMIS / CRK',icon:'fa-id-card',tone:'rose',url:'https://hrmis2.ecomponent.my'},
+    eminit:{title:'e-Minit & Tindakan',icon:'fa-envelope-open-text',tone:'blue',url:null},
+    eprogram:{title:'e-Program',icon:'fa-calendar-check',tone:'green',url:null},
+    eopr:{title:'e-OPR',icon:'fa-file-lines',tone:'purple',url:null},
+    bertugas:{title:'Laporan Guru Bertugas',icon:'fa-clipboard-check',tone:'orange',url:null},
+    relief:{title:'e-Relief',icon:'fa-person-circle-check',tone:'green',url:null},
+    epbd:{title:'e-PBD',icon:'fa-chart-column',tone:'blue',url:null},
+    tmk:{title:'PdPc Modul TMK',icon:'fa-computer',tone:'purple',url:null},
+    kehadiran:{title:'Kehadiran Murid',icon:'fa-user-check',tone:'green',url:null},
+    apdm:{title:'APDM',icon:'fa-users',tone:'blue',url:'https://apdm.moe.gov.my'},
+    spbt:{title:'SPBT',icon:'fa-book',tone:'orange',url:null},
+    rmt:{title:'RMT & Kesihatan',icon:'fa-heart-pulse',tone:'rose',url:null},
+    beruniform:{title:'Unit Beruniform',icon:'fa-campground',tone:'green',url:null},
+    kelab:{title:'Kelab & Persatuan',icon:'fa-icons',tone:'purple',url:null},
+    sukan:{title:'Sukan & Permainan',icon:'fa-futbol',tone:'orange',url:null},
+    bilik:{title:'Tempahan Bilik Khas',icon:'fa-door-open',tone:'blue',url:null},
+    dokumen:{title:'Dokumen & Borang',icon:'fa-folder-open',tone:'blue',url:null}
+  };
+  const CATEGORY_MODULES={
+    pentadbiran:['manual','eminit','eprogram','eopr','bertugas','hrmis'],
+    kurikulum:['erph','jadual','epbd','tmk','relief','splkpm'],
+    hem:['kehadiran','apdm','ssdm','spbt','rmt'],
+    kokurikulum:['beruniform','kelab','sukan','pajsk','eprogram'],
+    lain_lain:['bilik','dokumen','manual','splkpm']
+  };
+  const CATEGORY_BLURB={
+    pentadbiran:'Lihat pelantikan, urusan rasmi dan laporan. Rekod tugasan akan muncul apabila modul berkaitan disambungkan.',
+    kurikulum:'Semak jadual mingguan dan buka e-RPH untuk urusan pengajaran. Status pentaksiran akan disambungkan kemudian.',
+    hem:'Urus tugas guru kelas dan kebajikan murid berdasarkan tanggungjawab yang ditetapkan.',
+    kokurikulum:'Semak pelantikan dan akses modul pengurusan aktiviti sukan, kelab, persatuan serta unit beruniform.',
+    lain_lain:'Pautan kepada sumber digital dan kemudahan sekolah yang merentas bidang.'
+  };
+  let currentUser=null, dashboardData=null, activePage='laman_utama', activeDay=null, toastTimer=null;
+  const $=(id)=>document.getElementById(id);
+  const escapeHtml=v=>String(v===null||v===undefined?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function nowMsia(){return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kuala_Lumpur'}));}
+  function dateText(d){return new Intl.DateTimeFormat('ms-MY',{weekday:'long',year:'numeric',month:'long',day:'numeric',timeZone:'Asia/Kuala_Lumpur'}).format(d);}
+  function todayDay(){return DAY_NAMES[nowMsia().getDay()];}
+  function showInfo(text){const el=$('toast');el.textContent=text;el.classList.remove('hidden');if(toastTimer) clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add('hidden'),4800);}
+  function setNotice(text){const el=$('service-notice');if(!text){el.classList.add('hidden');return;}el.textContent=text;el.classList.remove('hidden');}
+  function fitName(){const el=$('header-user-name');if(!el)return;let size=window.innerWidth<768?21:26;el.style.fontSize=size+'px';while(el.scrollWidth>el.clientWidth+1 && size>13){size--;el.style.fontSize=size+'px';} }
+  function initials(name){const parts=String(name||'G').trim().split(/\s+/).filter(Boolean);return (parts[0]?parts[0][0]:'G').toUpperCase();}
+  function applyProfile(){
+    const p=dashboardData?.profile||{};
+    const name=p.namaPenuh||currentUser?.name||'Guru SeMAKMUR';
+    const nick=p.namaSamaran||name;
+    $('header-user-name').textContent=name;
+    $('header-user-name').title=name;
+    $('user-display-name').textContent=nick;
+    $('sidebar-avatar').textContent=initials(nick);
+    $('mobile-header-avatar').textContent=initials(nick);
+    $('profile-fullname').value=name;
+    $('profile-nickname').value=p.namaSamaran||'';
+    $('profile-phone').value=p.telefon||'';
+    $('profile-email').value=p.email||currentUser?.email||'';
+    const roles=dashboardData?.peranan||[];
+    $('profile-role-summary').textContent=roles.length?roles.length+' pelantikan berkaitan anda.':'Tiada pelantikan aktif yang dipaparkan.';
+    requestAnimationFrame(fitName);
+  }
+  function moduleCard(id){const m=MODULES[id];if(!m)return '';
+    return `<button class="module-card" type="button" data-module="${escapeHtml(id)}" ${m.url?'':'disabled title="Modul belum tersedia"'}>
+      <span class="module-icon ${escapeHtml(m.tone)}"><i class="fa-solid ${escapeHtml(m.icon)}"></i></span>
+      <span class="text-slate-700">${escapeHtml(m.title)}</span>${!m.url?'<span class="text-[13px] text-slate-400 font-semibold">Akan datang</span>':''}</button>`;
+  }
+  function openModule(id){const m=MODULES[id];if(!m)return;if(!m.url){showInfo('Modul ini masih dalam pembangunan.');return;}
+    // Tab dibuka pada gesture klik asal; jangan tunggu permintaan ke pelayan.
+    window.open(m.url,'_blank','noopener');
+  }
+  function summaryCard(icon,label,value,detail){return `<div class="card-coligo p-3 sm:p-4"><div class="flex justify-between gap-2 items-start"><div><div class="text-[13px] text-slate-500 font-semibold">${escapeHtml(label)}</div><div class="text-xl font-extrabold text-[#235c7d] mt-1">${escapeHtml(value)}</div></div><i class="fa-solid ${escapeHtml(icon)} text-[#408cad] text-lg"></i></div><p class="text-[13px] text-slate-500 mt-2 leading-snug">${escapeHtml(detail)}</p></div>`;}
+  function applySummary(){
+    const d=dashboardData||{},today=todayDay(),items=(d.jadual||[]).filter(x=>x.hari===today);
+    const weekend=['Sabtu','Ahad'].includes(today);
+    const roleCount=(d.peranan||[]).length;
+    $('home-summary').innerHTML=summaryCard('fa-book-open','Waktu Mengajar',weekend?'—':(d.jadualTersedia?String(items.length):'—'),weekend?'Tiada PdPc biasa hari ini':'Berdasarkan jadual peribadi')+
+      summaryCard('fa-people-group','Peranan Aktif',String(roleCount),'Rekod tugas rasmi guru')+
+      summaryCard('fa-clipboard-list','Perlu Tindakan','—','Menunggu integrasi modul')+
+      summaryCard('fa-calendar','Takwim Sekolah','—','Belum disambungkan');
+    $('home-modules').innerHTML=['erph','manual','jadual','ssdm','splkpm','pajsk','hrmis'].map(moduleCard).join('');
+  }
+  function timeSort(v){const t=String(v||'').match(/(\d{1,2}):(\d\d)/);return t?(Number(t[1])*60+Number(t[2])):9999;}
+  function scheduleDay(day,target,max=99){
+    const data=dashboardData?.jadual||[],ready=dashboardData?.jadualTersedia;
+    if(!ready)return `<div class="empty-info">Jadual waktu belum tersedia atau belum dapat dipaparkan. Cuba semak semula melalui modul Jadual Waktu.</div>`;
+    const items=data.filter(x=>x.hari?.toLowerCase()===day.toLowerCase()).sort((a,b)=>timeSort(a.mula)-timeSort(b.mula)||String(a.slot).localeCompare(String(b.slot)));
+    if(!items.length)return `<div class="empty-info">Tiada waktu mengajar direkodkan untuk ${escapeHtml(day)} bagi akaun anda.</div>`;
+    return items.slice(0,max).map(s=>`<article class="slot-item"><div class="time">${escapeHtml(s.mula||('Slot '+(s.waktu||s.slot||'')))}${s.tamat?'<br><span class="text-slate-400 font-medium">'+escapeHtml(s.tamat)+'</span>':''}</div>
+      <div class="flex-1 min-w-0"><div class="text-[13px] font-extrabold text-slate-800">${escapeHtml(s.subjek||'Subjek')}</div><div class="text-[13px] text-slate-500 mt-0.5">${escapeHtml(s.kelas||'Kelas tidak dinyatakan')}${s.pairing?' · Guru pasangan':''}</div></div><i class="fa-regular fa-clock text-sky-400"></i></article>`).join('')+(items.length>max?`<p class="text-[13px] text-slate-500">${items.length-max} waktu lagi — lihat jadual penuh.</p>`:'');
+  }
+  function renderTimetable(){
+    const today=todayDay(),weekend=today==='Sabtu'||today==='Ahad';
+    if(!activeDay)activeDay=weekend?'Isnin':today;
+    $('schedule-weekend').classList.toggle('hidden',!weekend);
+    $('home-day-selector').innerHTML=DAYS.map(day=>`<button type="button" class="day-btn ${day===activeDay?'active':''}" data-day="${day}">${day}</button>`).join('');
+    const notice=weekend?`<div class="rounded-xl bg-sky-50 border border-sky-100 p-3 text-[13px] text-slate-600 mb-3">Hari ini ${escapeHtml(today)} — tiada PdPc biasa. Paparan awal menunjukkan jadual Isnin. Pilih hari lain untuk menyemak jadual.</div>`:'';
+    $('home-timetable').innerHTML=notice+scheduleDay(activeDay,'home');
+    $('right-day-name').textContent=today+(weekend?' · Tiada PdPc biasa':'');
+    $('today-right-schedule').innerHTML=weekend?'<div class="empty-info">Hari ini cuti mingguan. Lihat jadual Isnin hingga Jumaat di Laman Utama.</div>':scheduleDay(today,'right',4);
+  }
+  function renderRoleList(roles,limit=5){
+    if(!roles?.length)return '<div class="empty-info">Tiada pelantikan aktif untuk ditunjukkan pada masa ini.</div>';
+    return roles.slice(0,limit).map(r=>`<div class="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><div class="font-extrabold text-[13px] text-slate-700">${escapeHtml(r.peranan||'Ahli Jawatankuasa')}</div><div class="text-[13px] text-slate-500 mt-0.5">${escapeHtml(r.jawatankuasa||'Tugasan sekolah')}</div></div>`).join('');
+  }
+  function categoryRoles(key){
+    const roles=dashboardData?.peranan||[];
+    const matches={pentadbiran:/pentadbiran|pengurusan|tugas|bertugas/i,kurikulum:/kurikulum|akademik|panitia/i,hem:/hem|hal ehwal murid|kebajikan|disiplin/i,kokurikulum:/kokurikulum|ko kurikulum|sukan|kelab/i,lain_lain:/lain/i}[key];
+    return key==='lain_lain'?[]:roles.filter(r=>matches.test(r.kategori||''));
+  }
+  function renderCategories(key){
+    const menu=MENUS[key];if(!menu)return;
+    $('category-title').textContent=menu.title;
+    $('category-desc').textContent=menu.subtitle;
+    $('category-label').textContent='RUANG KERJA · '+menu.title.toUpperCase();
+    const roles=categoryRoles(key);
+    $('role-count').textContent=String(roles.length);
+    $('category-roles').innerHTML=renderRoleList(roles,15);
+    if(key==='kurikulum'){
+      const all=dashboardData?.jadual||[];
+      const count=all.length;
+      $('category-overview').innerHTML=`<p class="text-[13px] text-slate-600">${dashboardData?.jadualTersedia?count+' waktu mingguan direkodkan dalam jadual peribadi anda.':'Jadual peribadi belum tersedia.'}</p><div id="weekly-timetable" class="mt-3 space-y-3">${DAYS.map(day=>`<div><div class="font-extrabold text-[13px] text-[#24789e] py-2">${day}</div><div class="space-y-2">${scheduleDay(day,'category')}</div></div>`).join('')}</div></div>`;
+    } else if(key==='hem'&&dashboardData?.profile?.guruKelas){
+      $('category-overview').innerHTML=`<div class="info-pill inline-block">Guru Kelas: ${escapeHtml(dashboardData.profile.guruKelas)}</div><p class="text-[13px] text-slate-500 mt-2">Rekod kehadiran dan tindakan kelas akan dipaparkan selepas modul HEM disambungkan.</p>`;
+    } else {
+      $('category-overview').innerHTML=`<div class="empty-info">${escapeHtml(CATEGORY_BLURB[key])}</div>`;
     }
-
-    function hideLoader() {
-        const loader = document.getElementById('global-loader');
-        if (loader) loader.classList.add('hidden');
-    }
-
-    async function checkUserSession() {
-        const verified = await SeMAKMURAuth.requireUser(['guru','admin_choice'], '../LoginSession.html');
-        if (!verified) return;
-        const sessionData = sessionStorage.getItem('CURRENT_USER') || localStorage.getItem('SAVED_MOE_USER') || localStorage.getItem('currentUser');
-        if (!sessionData) {
-            window.location.href = '../LoginSession.html';
-            return;
-        }
-
-        try {
-            CURRENT_GURU_USER = JSON.parse(sessionData);
-            localStorage.setItem('currentUser', JSON.stringify(CURRENT_GURU_USER));
-
-            const name = CURRENT_GURU_USER.name || CURRENT_GURU_USER.nama || 'Guru Sekolah';
-            document.getElementById('user-display-name').innerText = name;
-            document.getElementById('header-user-name').innerText = name;
-            document.getElementById('user-email-display').innerText = CURRENT_GURU_USER.email || '';
-
-            const className = CURRENT_GURU_USER.guru_kelas || CURRENT_GURU_USER.class_name || CURRENT_GURU_USER.kelas || '';
-            if (className && className !== '-' && className.toLowerCase() !== 'tiada') {
-                document.getElementById('class-badge-text').innerText = className;
-                fetchClassStudentsRealData(className);
-            } else {
-                document.getElementById('class-badge-text').innerText = 'Tiada';
-                hideLoader();
-            }
-
-            switchMainMenu('laman_utama');
-        } catch (e) {
-            console.error('Session Error:', e);
-            window.location.href = '../LoginSession.html';
-        }
-    }
-
-    function switchMainMenu(menuKey) {
-        ACTIVE_MAIN_MENU = menuKey;
-
-        document.querySelectorAll('.menu-nav-btn').forEach(btn => {
-            btn.className = "menu-nav-btn w-full px-4 py-3 rounded-r-full font-medium text-xs sm:text-sm text-white/80 hover:bg-white/10 hover:text-white text-left transition flex items-center gap-3";
-            const i = btn.querySelector('i');
-            if (i) i.classList.remove('text-[#1f7a9c]');
-        });
-
-        const activeBtn = document.getElementById(`nav-${menuKey}`);
-        if (activeBtn) {
-            activeBtn.className = "menu-nav-btn w-full px-4 py-3 rounded-r-full font-bold text-xs sm:text-sm text-left transition flex items-center gap-3 bg-white text-[#1b6287] shadow-sm";
-            const i = activeBtn.querySelector('i');
-            if (i) i.classList.add('text-[#1f7a9c]');
-        }
-
-        const breadcrumbEl = document.getElementById('breadcrumb-text');
-        if (breadcrumbEl) breadcrumbEl.innerText = MENU_LABELS[menuKey] || menuKey;
-
-        const lamanUtamaWidgets = document.getElementById('laman-utama-widgets');
-        const pageSubmoduleView = document.getElementById('page-submodule-view');
-
-        if (menuKey === 'laman_utama') {
-            if (lamanUtamaWidgets) lamanUtamaWidgets.classList.remove('hidden');
-            if (pageSubmoduleView) pageSubmoduleView.classList.add('hidden');
-        } else {
-            if (lamanUtamaWidgets) lamanUtamaWidgets.classList.add('hidden');
-            if (pageSubmoduleView) pageSubmoduleView.classList.remove('hidden');
-
-            renderPageSubmodules(menuKey);
-        }
-    }
-
-    function renderPageSubmodules(menuKey) {
-        const titleEl = document.getElementById('page-submodule-title');
-        const countEl = document.getElementById('page-submodule-count');
-        const gridEl = document.getElementById('submodule-grid-container');
-
-        if (titleEl) titleEl.innerText = MENU_MODULE_TITLES[menuKey] || `Modul & Aplikasi ${MENU_LABELS[menuKey]}`;
-
-        const modules = PAGE_SUBMODULES[menuKey] || [];
-        if (countEl) countEl.innerText = `${modules.length} Modul`;
-
-        if (!modules || modules.length === 0) {
-            gridEl.innerHTML = `<p class="col-span-full text-slate-400 italic text-xs py-4 text-center">Tiada modul tersedia bagi bahagian ini.</p>`;
-            return;
-        }
-
-        let html = '';
-        modules.forEach(mod => {
-            html += `
-                <div onclick='${mod.action}' class="group cursor-pointer bg-slate-50 hover:bg-teal-50/60 border border-slate-200 hover:border-teal-400 p-3 rounded-xl transition-all flex flex-col items-center justify-center text-center aspect-square shadow-2xs hover:shadow-sm">
-                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr ${mod.color} text-white flex items-center justify-center text-base shadow-xs group-hover:scale-110 transition-transform mb-2">
-                        <i class="fa-solid ${mod.icon}"></i>
-                    </div>
-                    <h3 class="font-bold text-xs text-slate-800 group-hover:text-teal-700 transition-colors leading-tight">${mod.title}</h3>
-                </div>
-            `;
-        });
-
-        gridEl.innerHTML = html;
-    }
-
-    function toggleRightPanel() {
-        const panel = document.getElementById('right-panel');
-        const mainCol = document.getElementById('main-left-column');
-        const btnText = document.getElementById('toggle-right-text');
-
-        if (!panel || !mainCol) return;
-
-        if (panel.classList.contains('hidden')) {
-            panel.classList.remove('hidden');
-            mainCol.classList.remove('lg:col-span-12');
-            mainCol.classList.add('lg:col-span-8');
-            if (btnText) btnText.innerText = 'Sorok Panel Kanan';
-        } else {
-            panel.classList.add('hidden');
-            mainCol.classList.remove('lg:col-span-8');
-            mainCol.classList.add('lg:col-span-12');
-            if (btnText) btnText.innerText = 'Buka Panel Kanan';
-        }
-    }
-
-    async function postToBackend(payload) {
-        return SeMAKMURAuth.request(payload);
-    }
-
-    async function fetchClassStudentsRealData(overrideClassName = null) {
-        const className = overrideClassName || (CURRENT_GURU_USER ? (CURRENT_GURU_USER.guru_kelas || CURRENT_GURU_USER.class_name) : '');
-        if (!className) return;
-
-        showLoader(`Menarik data murid kelas ${className}...`);
-
-        try {
-            const res = await postToBackend({
-                action: 'getClassStudents',
-                data: { className: className }
-            });
-            hideLoader();
-
-            if (res && res.success && Array.isArray(res.students)) {
-                renderStudentTable(res.students);
-            } else {
-                fallbackFetchPortalData(className);
-            }
-        } catch (err) {
-            console.warn('Backend getClassStudents error, fallback:', err);
-            fallbackFetchPortalData(className);
-        }
-    }
-
-    async function fallbackFetchPortalData(className) {
-        // Jangan minta senarai murid melalui API awam apabila pengesahan gagal.
-        renderStudentTable([]);
-    }
-
-    function renderStudentTable(students) {
-        const tbody = document.getElementById('students-table-body');
-        const titleEl = document.getElementById('students-card-title');
-        const className = (CURRENT_GURU_USER ? (CURRENT_GURU_USER.guru_kelas || CURRENT_GURU_USER.class_name) : '') || '1 IRIS';
-        
-        if (titleEl) titleEl.innerText = `Senarai Murid Kelas ${className} (${students.length} Orang)`;
-
-        if (!students || students.length === 0) {
-            tbody.innerHTML = `
-                <tr><td colspan="5" class="p-4 text-center text-slate-400 italic">
-                    Tiada data murid dijumpai bagi kelas ini dalam Profil_Murid.
-                </td></tr>`;
-            return;
-        }
-
-        let html = '';
-        students.forEach((st, idx) => {
-            const emailDelima = st.id_delima || st.ID_Delima || st.email || st.email_delima || '-';
-            const jantina = st.jantina || st.Jantina || '-';
-            const name = st.nama || st.Nama_Murid || st.Nama || 'Murid ' + (idx + 1);
-
-            html += `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-3 text-center text-slate-500 font-bold">${idx + 1}</td>
-                    <td class="p-3 font-bold text-slate-800">${name}</td>
-                    <td class="p-3 font-mono text-[#1f7a9c] text-xs font-semibold">${emailDelima}</td>
-                    <td class="p-3 text-center text-slate-600">${jantina}</td>
-                    <td class="p-3 text-center"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[11px] font-bold">✓ Aktif</span></td>
-                </tr>
-            `;
-        });
-
-        tbody.innerHTML = html;
-    }
-
-    function toggleMobileSidebar() {
-        const sidebar = document.getElementById('sidebar-container');
-        sidebar.classList.toggle('-translate-x-full');
-    }
-
-    async function handleLogout() {
-        await SeMAKMURAuth.logout('../LoginSession.html');
-    }
-
-    function bukaAplikasi(namaAplikasi, url) {
-        if (!url || url === '#') {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'info',
-                    title: `Modul ${namaAplikasi}`,
-                    text: `Modul ${namaAplikasi} akan dipautkan dengan pangkalan data sebenar tidak lama lagi.`,
-                    confirmButtonColor: '#1f7a9c'
-                });
-            } else {
-                alert(`Modul ${namaAplikasi} belum dipautkan.`);
-            }
-            return;
-        }
-
-        window.open(url, '_blank');
-    }
-
-    /* KEMASKINI FUNGSI MEMBUKA ErphGuru.html DI DALAM FOLDER /modulaplikasi */
-    function bukaErphModule() {
-        // Buka tab pada klik asal, TANPA menunggu rangkaian.
-        // Pengawal akses e-RPH sendiri akan menyemak sesi di Apps Script sebelum memaparkan rekod.
-        // Tidak menyalin token/e-mel melalui URL.
-        window.open('modulaplikasi/ErphGuru.html', '_blank', 'noopener');
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-        checkUserSession();
+    $('category-modules').innerHTML=(CATEGORY_MODULES[key]||[]).map(moduleCard).join('');
+  }
+  function switchMainMenu(key){if(!MENUS[key])return;activePage=key;
+    $('breadcrumb-text').textContent=MENUS[key].title;
+    $('page-laman_utama').classList.toggle('hidden',key!=='laman_utama');
+    $('page-category').classList.toggle('hidden',key==='laman_utama');
+    if(key!=='laman_utama')renderCategories(key);
+    document.querySelectorAll('[data-page]').forEach(btn=>{btn.classList.toggle('active',btn.dataset.page===key);});
+    $('page-scroll').scrollTo({top:0,behavior:'instant'});
+    closeMobileMenu();
+  }
+  function toggleMobileMenu(){const side=$('sidebar-container');const open=side.classList.contains('-translate-x-full');
+    side.classList.toggle('-translate-x-full',!open);$('sidebar-backdrop').classList.toggle('active',open);$('mobile-action-menu').setAttribute('aria-expanded',String(open));}
+  function closeMobileMenu(){if(window.innerWidth>=768)return; $('sidebar-container').classList.add('-translate-x-full');$('sidebar-backdrop').classList.remove('active');$('mobile-action-menu').setAttribute('aria-expanded','false');}
+  function openProfile(){closeMobileMenu();applyProfile();$('profile-message').classList.add('hidden');$('profile-modal').classList.remove('hidden');$('profile-modal').classList.add('flex');$('profile-nickname').focus();}
+  function closeProfile(){$('profile-modal').classList.add('hidden');$('profile-modal').classList.remove('flex');}
+  async function saveProfile(event){event.preventDefault();const btn=$('profile-save');const msg=$('profile-message');btn.disabled=true;btn.textContent='Menyimpan…';msg.classList.add('hidden');
+    try { const response=await SeMAKMURAuth.request({action:'updateGuruProfileSelf',data:{namaSamaran:$('profile-nickname').value.trim(),telefon:$('profile-phone').value.trim()}});
+      if(!response?.success)throw new Error(response?.error||'Profil belum dapat dikemas kini.');
+      dashboardData.profile.namaSamaran=response.profile.namaSamaran;
+      dashboardData.profile.telefon=response.profile.telefon;
+      applyProfile();msg.textContent='Perubahan berjaya disimpan.';msg.className='rounded-lg p-3 text-[13px] bg-emerald-50 border border-emerald-200 text-emerald-800';
+    } catch(err) {msg.textContent='Perubahan belum dapat disimpan. Sila semak maklumat dan cuba lagi.';msg.className='rounded-lg p-3 text-[13px] bg-rose-50 border border-rose-200 text-rose-800';}
+    finally {btn.disabled=false;btn.textContent='Simpan Perubahan';}
+  }
+  async function handleLogout(){await SeMAKMURAuth.logout('../LoginSession.html');}
+  async function boot(){
+    $('copyright-year').textContent=String(new Date().getFullYear());
+    $('header-date').textContent=dateText(new Date());
+    $('greeting-text').textContent='Selamat Datang';
+    document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){openModule(module.dataset.module);return;}
+      const page=e.target.closest('[data-page]');if(page){switchMainMenu(page.dataset.page);return;}
+      const day=e.target.closest('[data-day]');if(day){activeDay=day.dataset.day;renderTimetable();}
     });
-    </script>
+    $('profile-form').addEventListener('submit',saveProfile);
+    $('profile-modal').addEventListener('click',e=>{if(e.target===$('profile-modal'))closeProfile();});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeProfile();closeMobileMenu();}});
+    window.addEventListener('resize',()=>{fitName();if(window.innerWidth>=768){$('sidebar-container').classList.remove('-translate-x-full');$('sidebar-backdrop').classList.remove('active');}else{$('sidebar-container').classList.add('-translate-x-full');}});
+    if(!window.SeMAKMURAuth){setNotice('Sambungan akaun belum tersedia. Sila log masuk semula melalui portal.');$('header-status').textContent='Sesi tidak tersedia';return;}
+    try {
+      currentUser=await SeMAKMURAuth.requireUser(['guru','admin_choice'],'../LoginSession.html');
+      if(!currentUser)return;
+      // Tunjuk identiti lebih awal, tanpa menunggu data modul besar.
+      dashboardData={profile:{namaPenuh:currentUser.name||currentUser.nama||'Guru SeMAKMUR', namaSamaran:currentUser.Nama_Samaran||'', email:currentUser.email||'',guruKelas:currentUser.guru_kelas||''},peranan:[],jadual:[],jadualTersedia:false};
+      applyProfile();applySummary();renderTimetable();$('right-my-roles').innerHTML=renderRoleList([]);
+      const res=await SeMAKMURAuth.request({action:'getGuruDashboardData'});
+      if(!res?.success)throw new Error('Dashboard belum dapat diselaraskan.');
+      dashboardData=res;
+      applyProfile();applySummary();renderTimetable();$('right-my-roles').innerHTML=renderRoleList(res.peranan);
+      if(activePage!=='laman_utama')renderCategories(activePage);
+      $('header-status').textContent='Data terkini';setNotice('');
+    } catch(err){ console.warn('Dashboard initialization failed:',err?.message||err);
+      $('header-status').textContent='Perlu sambungan';
+      setNotice('Maklumat peribadi belum dapat diselaraskan. Pastikan kemas kini pelayan telah dipasang, kemudian buka semula halaman ini.');
+    }
+    if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
+      navigator.serviceWorker.register('../service-worker.js',{scope:'../'}).catch(()=>{});
+    }
+  }
+  window.addEventListener('DOMContentLoaded',boot);
+  </script>
 </body>
 </html>
