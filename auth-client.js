@@ -51,6 +51,7 @@
     localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem('SAVED_MOE_USER');
     localStorage.removeItem('currentUser');
+    localStorage.removeItem('SEMAKMUR_GURU_JADUAL_V1');
   }
   function refresh() {
     if (pendingRefresh) return pendingRefresh;
