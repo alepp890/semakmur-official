@@ -52,6 +52,7 @@
     localStorage.removeItem('SAVED_MOE_USER');
     localStorage.removeItem('currentUser');
     localStorage.removeItem('SEMAKMUR_GURU_JADUAL_V1');
+    localStorage.removeItem('SEMAKMUR_GURU_SMART_CACHE_V1'); // kosongkan cache dashboard selepas logout
   }
   function refresh() {
     if (pendingRefresh) return pendingRefresh;
