@@ -550,6 +550,8 @@
     }
 
   </style>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon-192.png" type="image/png">
 </head>
 <body>
   <main class="app-frame" aria-label="Halaman log masuk SeMAKMUR Digital">
@@ -859,6 +861,11 @@
       // Semak sesi yang masih sah dalam tab ini. Ini BUKAN sesi PWA 14 hari.
       tryRestoreSession();
     });
+  </script>
+  <script>
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+    }
   </script>
 </body>
 </html>
