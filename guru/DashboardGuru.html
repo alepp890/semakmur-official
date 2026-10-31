@@ -229,6 +229,7 @@
   <div id="toast" class="screen-toast hidden" role="status" aria-live="polite"></div>
   <script src="../config.js"></script>
   <script src="../auth-client.js"></script>
+  <script src="dashboard-smart-sync.js"></script>
   <script>
   'use strict';
   const DAY_NAMES=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
@@ -282,6 +283,8 @@
   };
   let currentUser=null, dashboardData=null, activePage='laman_utama', activeDay=null, toastTimer=null;
   let dashboardAuthenticated=false, dashboardRequestPending=false;
+  let lastSmartSyncAt=0, lastSmartDay='', smartSyncTimer=null;
+  const SMART_SYNC_MIN_GAP=5*60*1000; // semak semula hanya ketika aktif
   // Jadual tersimpan hanya untuk pengguna sama dan hanya selepas sesi disahkan.
   // Tidak menyimpan rekod murid, status e-RPH, surat, profil rasmi atau token sesi.
   const SCHEDULE_CACHE_KEY='SEMAKMUR_GURU_JADUAL_V1';
@@ -606,7 +609,7 @@
     const rt=localStorage.getItem('SEMAKMUR_PWA_REFRESH_TOKEN');
     const at=sessionStorage.getItem('SEMAKMUR_SESSION_TOKEN');
     const url=(typeof WEB_APP_URL!=='undefined')?WEB_APP_URL:'';
-    try{localStorage.removeItem(SCHEDULE_CACHE_KEY);}catch(_e){}
+    try{localStorage.removeItem(SCHEDULE_CACHE_KEY);SeMAKMURSmartSync?.clear?.();}catch(_e){}
     SeMAKMURAuth.clear();
     if(url && (rt||at)){
       const body=JSON.stringify({action:'logoutSession',data:{refreshToken:rt,sessionToken:at}});
@@ -624,7 +627,11 @@
     $('header-date').textContent=dateText(new Date());
     const period=hour<12?'pagi':hour<14?'tengah hari':hour<19?'petang':'malam';
     $('header-time').textContent=displayHour+':'+String(d.getMinutes()).padStart(2,'0')+' '+period;
-    if(dashboardData)renderTimetable(); // titik penanda berubah mengikut waktu semasa
+    if(dashboardData){
+      renderTimetable();
+      const content=$('home-summary')?.querySelector('.summary-widget.theme-blue .summary-content');
+      if(content)content.innerHTML=waktuKiniDanSeterusnya(); // kalkulasi setempat ikut jam
+    }
   }
   // Paparkan kerangka dashboard segera. Tiada data pengguna digunakan sebelum backend mengesahkan sesi.
   function loadingLines(){return '<div class="sema-loading-row" aria-hidden="true"><div class="sema-loading-line long"></div><div class="sema-loading-line medium"></div><div class="sema-loading-line short"></div></div>';}
@@ -665,63 +672,92 @@
     try{SeMAKMURAuth?.clear?.();}catch(_e){}
     location.replace('../LoginSession.html');
   }
-  async function hydrateDashboard(){
-    if(dashboardRequestPending)return;
+  // Cache dibaca HANYA selepas server sahkan sesi melalui getGuruDashboardSync.
+  // Jika server belum dipasang, gunakan API asal secara selamat.
+  function identityFromResponse(res){
+    let saved=null;
+    try{saved=JSON.parse(sessionStorage.getItem('CURRENT_USER')||localStorage.getItem('SAVED_MOE_USER')||'null');}catch(_e){}
+    const email=String(res?.profile?.email||'').trim().toLowerCase();
+    if(!email)return null;
+    if(saved?.email && String(saved.email).trim().toLowerCase()!==email)return null;
+    const role=String(saved?.role||'guru');
+    if(saved && !['guru','admin','admin_choice'].includes(role) && saved.is_admin!==true)return null;
+    currentUser={...saved,role,email,name:res.profile.namaPenuh||saved?.name||'',is_admin:Boolean(saved?.is_admin)};
+    return currentUser;
+  }
+  function finishDashboard(res){
+    if(!identityFromResponse(res)){sendToLogin();return false;}
+    dashboardAuthenticated=true;
+    dashboardData=res;
+    applyProfile();applySummary();
+    $('right-my-roles').innerHTML=renderRoleList(res.peranan);
+    if(activePage!=='laman_utama')renderCategories(activePage);
+    $('header-status').textContent='Data terkini';setNotice('');
+    return true;
+  }
+  function unavailableDashboard(err){
+    console.warn('Penyegerakan dashboard belum selesai:',String(err?.message||err));
+    $('header-status').textContent='Sambungan belum tersedia';
+    setNotice('Maklumat belum dapat dikemas kini. Sila semak sambungan internet.');
+    const btn=document.createElement('button');btn.type='button';btn.textContent='Cuba Lagi';
+    btn.className='ml-3 font-extrabold underline underline-offset-2';
+    btn.addEventListener('click',()=>{setNotice('');hydrateDashboard(true);});
+    $('service-notice').appendChild(btn);
+    // UI tidak kosong; tidak memaparkan cache peribadi jika belum disahkan.
+    if(!dashboardAuthenticated){
+      $('home-summary').innerHTML=
+        summaryWidget('blue','Kelas Sekarang','<div class="status-copy">Sambungan diperlukan.</div>','calendar')+
+        summaryWidget('green','Tugas Hari Ini','<div class="status-copy">Belum dapat disahkan.</div>','attendance')+
+        summaryWidget('amber','Relief Hari Ini','<div class="status-copy">Belum dapat disahkan.</div>','calendar')+
+        summaryWidget('violet','Tindakan Saya','<div class="status-copy">Belum dapat disahkan.</div>','report');
+    }
+  }
+  async function hydrateDashboard(background=false){
+    if(dashboardRequestPending || document.hidden)return;
     dashboardRequestPending=true;
-    $('header-status').textContent='Menyemak maklumat…';
+    if(!dashboardAuthenticated)$('header-status').textContent='Menyemak maklumat…';
     try{
-      // Satu panggilan API: router Apps Script sudah mengesahkan token & peranan.
-      // Tidak perlu verifySession -> getGuruDashboardData secara berturutan.
-      const res=await SeMAKMURAuth.request({action:'getGuruDashboardData'});
+      let res=null;
+      if(window.SeMAKMURSmartSync){
+        const raw=sessionStorage.getItem('CURRENT_USER')||localStorage.getItem('SAVED_MOE_USER');
+        let saved=null;try{saved=JSON.parse(raw||'null');}catch(_e){}
+        const email=String(saved?.email||'').trim().toLowerCase();
+        // JANGAN percaya cache sebagai pengganti pengesahan. Server mengesahkan setiap respons.
+        const cached=email?SeMAKMURSmartSync.read(email):null;
+        const delta=await SeMAKMURAuth.request({action:'getGuruDashboardSync',data:{have:cached?.versions||{}}});
+        if(delta?.success && delta.protocol==='GD_SYNC_V1'){
+          if(delta.profile?.email && email && String(delta.profile.email).toLowerCase()!==email){sendToLogin();return;}
+          res=SeMAKMURSmartSync.merge(email,delta,cached);
+          // Cuti & status e-RPH harian: jika belum ada sambungan semasa, jangan reka datanya.
+        }else if(['SESSION_EXPIRED','ACCESS_REVOKED','ACCESS_EXPIRED','AUTH_REQUIRED','UNAUTHORIZED'].includes(String(delta?.code||''))){
+          sendToLogin();return;
+        }else{
+          // Compatibility: backend lama belum mempunyai action penyegerakan.
+          res=await SeMAKMURAuth.request({action:'getGuruDashboardData'});
+          if(res?.success && email)SeMAKMURSmartSync.storeLegacy(email,res);
+        }
+      }else res=await SeMAKMURAuth.request({action:'getGuruDashboardData'});
       if(!res?.success){
         if(['SESSION_EXPIRED','ACCESS_REVOKED','ACCESS_EXPIRED','AUTH_REQUIRED','UNAUTHORIZED'].includes(String(res?.code||''))){sendToLogin();return;}
-        throw new Error('Maklumat belum dapat dimuatkan.');
+        throw new Error('Dashboard belum dapat diselaraskan.');
       }
-      if(!res.profile?.email)throw new Error('Profil belum dapat disahkan.');
-      let saved=null;
-      try{saved=JSON.parse(sessionStorage.getItem('CURRENT_USER')||localStorage.getItem('SAVED_MOE_USER')||'null');}catch(_e){}
-      const verifiedEmail=String(res.profile.email||'').trim().toLowerCase();
-      const previousEmail=String(saved?.email||'').trim().toLowerCase();
-      // Elak memaparkan data orang lain apabila akaun ditukar dalam pelayar sama.
-      if(previousEmail&&previousEmail!==verifiedEmail){sendToLogin();return;}
-      const role=String(saved?.role||'guru');
-      if(saved && !['guru','admin','admin_choice'].includes(role) && saved.is_admin!==true){sendToLogin();return;}
-      currentUser={...saved,role:role||'guru',email:verifiedEmail,
-        name:res.profile.namaPenuh||saved?.name||'',is_admin:Boolean(saved?.is_admin)};
-      dashboardAuthenticated=true;
-      dashboardData=res;
-      simpanJadualTersimpan(currentUser,res);
-      applyProfile();
-      applySummary(); // pautan, 4 kad dan panel kanan: satu kemas kini selepas data sah
-      $('right-my-roles').innerHTML=renderRoleList(res.peranan);
-      if(activePage!=='laman_utama')renderCategories(activePage);
-      $('header-status').textContent='Data terkini';
-      setNotice('');
-    }catch(err){
-      // Masalah rangkaian: jangan paparkan jadual cached tanpa pengesahan semasa.
-      dashboardAuthenticated=false;
-      console.warn('Dashboard sync:',err?.message||err);
-      $('header-status').textContent='Sambungan belum tersedia';
-      setNotice('Maklumat belum dapat dikemas kini. Semak sambungan internet dan cuba lagi.');
-      const btn=document.createElement('button');
-      btn.type='button';btn.textContent='Cuba Lagi';
-      btn.className='ml-3 font-extrabold underline underline-offset-2';
-      btn.addEventListener('click',()=>{setNotice('');showInstantShell();hydrateDashboard();});
-      $('service-notice').appendChild(btn);
-      // Sekiranya permintaan API gagal, kerangka UI kekal boleh dilihat.
-      $('home-summary').innerHTML=
-        summaryWidget('blue','Kelas Sekarang','<div class="status-copy">Maklumat kelas belum tersedia.</div>','calendar')+
-        summaryWidget('green','Tugas Hari Ini','<div class="status-copy">Maklumat tugas belum tersedia.</div>','attendance')+
-        summaryWidget('amber','Relief Hari Ini','<div class="status-copy">Maklumat relief belum tersedia.</div>','calendar')+
-        summaryWidget('violet','Tindakan Saya','<div class="status-copy">Maklumat tindakan belum tersedia.</div>','report');
-      $('right-schedule-list').innerHTML='<div class="schedule-empty">Jadual belum dapat diselaraskan.</div>';
-      $('right-announcement-list').innerHTML='<div class="info-placeholder">Makluman belum dapat dikemas kini.</div>';
-      $('right-action-list').innerHTML='<div class="info-placeholder">Tugasan belum dapat dikemas kini.</div>';
-    }finally{dashboardRequestPending=false;}
+      if(finishDashboard(res)){
+        lastSmartSyncAt=Date.now();lastSmartDay=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+      }
+    }catch(err){unavailableDashboard(err);}
+    finally{dashboardRequestPending=false;}
+  }
+  function maybeSmartSync(){
+    if(!dashboardAuthenticated || dashboardRequestPending || document.hidden || !navigator.onLine)return;
+    const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    if(today!==lastSmartDay || Date.now()-lastSmartSyncAt>=SMART_SYNC_MIN_GAP)hydrateDashboard(true);
   }
   function boot(){
     $('copyright-year').textContent=String(new Date().getFullYear());
     updateClock();setInterval(updateClock,30000);
+    smartSyncTimer=setInterval(maybeSmartSync,60000);
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)maybeSmartSync();});
+    window.addEventListener('online',maybeSmartSync);
     $('greeting-text').textContent='Selamat Datang';
     document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){openModule(module.dataset.module);return;}
       const page=e.target.closest('[data-page]');if(page){switchMainMenu(page.dataset.page);return;}
