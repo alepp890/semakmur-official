@@ -266,6 +266,36 @@
     lain_lain:'Pautan kepada sumber digital dan kemudahan sekolah yang merentas bidang.'
   };
   let currentUser=null, dashboardData=null, activePage='laman_utama', activeDay=null, toastTimer=null;
+  // Jadual tersimpan hanya untuk pengguna sama dan hanya selepas sesi disahkan.
+  // Tidak menyimpan rekod murid, status e-RPH, surat, profil rasmi atau token sesi.
+  const SCHEDULE_CACHE_KEY='SEMAKMUR_GURU_JADUAL_V1';
+  const SCHEDULE_CACHE_AGE=24*60*60*1000;
+  function bacaJadualTersimpan(user){
+    try{
+      const email=String(user?.email||'').trim().toLowerCase();
+      if(!email)return null;
+      const data=JSON.parse(localStorage.getItem(SCHEDULE_CACHE_KEY)||'null');
+      if(!data||data.email!==email||!Number.isFinite(data.savedAt)||
+         Date.now()<data.savedAt||Date.now()-data.savedAt>SCHEDULE_CACHE_AGE||
+         !Array.isArray(data.jadual)||data.jadual.length>250)return null;
+      return {jadual:data.jadual,jadualTersedia:Boolean(data.jadualTersedia)};
+    }catch(_e){return null;}
+  }
+  function simpanJadualTersimpan(user,source){
+    try{
+      const email=String(user?.email||'').trim().toLowerCase();
+      if(!email)return;
+      // Jika pelayan mengesahkan jadual tidak lagi tersedia, buang cache lama.
+      if(source?.jadualTersedia===false){localStorage.removeItem(SCHEDULE_CACHE_KEY);return;}
+      if(!source?.jadualTersedia||!Array.isArray(source.jadual)||source.jadual.length>250)return;
+      // Senarai field terhad; status, RPH dan butiran peribadi tidak di-cache.
+      const jadual=source.jadual.map(x=>({
+        hari:String(x.hari||''),kelas:String(x.kelas||''),subjek:String(x.subjek||''),
+        mula:String(x.mula||''),tamat:String(x.tamat||''),pairing:String(x.pairing||'')
+      }));
+      localStorage.setItem(SCHEDULE_CACHE_KEY,JSON.stringify({email,savedAt:Date.now(),jadual,jadualTersedia:true}));
+    }catch(_e){ /* Cache pilihan; dashboard terus berfungsi walaupun quota penuh. */ }
+  }
   const $=(id)=>document.getElementById(id);
   const escapeHtml=v=>String(v===null||v===undefined?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function nowMsia(){return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kuala_Lumpur'}));}
@@ -559,6 +589,7 @@
     const rt=localStorage.getItem('SEMAKMUR_PWA_REFRESH_TOKEN');
     const at=sessionStorage.getItem('SEMAKMUR_SESSION_TOKEN');
     const url=(typeof WEB_APP_URL!=='undefined')?WEB_APP_URL:'';
+    try{localStorage.removeItem(SCHEDULE_CACHE_KEY);}catch(_e){}
     SeMAKMURAuth.clear();
     if(url && (rt||at)){
       const body=JSON.stringify({action:'logoutSession',data:{refreshToken:rt,sessionToken:at}});
@@ -597,16 +628,27 @@
       if(!currentUser)return;
       // Tunjuk identiti lebih awal, tanpa menunggu data modul besar.
       dashboardData={profile:{namaPenuh:currentUser.name||currentUser.nama||'Guru SeMAKMUR', namaSamaran:currentUser.Nama_Samaran||'', email:currentUser.email||'',guruKelas:currentUser.guru_kelas||''},peranan:[],jadual:[],jadualTersedia:false};
+      const cache=bacaJadualTersimpan(currentUser);
+      if(cache){
+        dashboardData.jadual=cache.jadual;
+        dashboardData.jadualTersedia=cache.jadualTersedia;
+        $('header-status').textContent='Jadual tersimpan';
+        setNotice('Memaparkan jadual tersimpan sementara menyemak data terkini.');
+      }
       applyProfile();applySummary();renderTimetable();$('right-my-roles').innerHTML=renderRoleList([]);
       const res=await SeMAKMURAuth.request({action:'getGuruDashboardData'});
       if(!res?.success)throw new Error('Dashboard belum dapat diselaraskan.');
       dashboardData=res;
+      simpanJadualTersimpan(currentUser,res);
       applyProfile();applySummary();renderTimetable();$('right-my-roles').innerHTML=renderRoleList(res.peranan);
       if(activePage!=='laman_utama')renderCategories(activePage);
       $('header-status').textContent='Data terkini';setNotice('');
     } catch(err){ console.warn('Dashboard initialization failed:',err?.message||err);
-      $('header-status').textContent='Perlu sambungan';
-      setNotice('Maklumat peribadi belum dapat diselaraskan. Pastikan kemas kini pelayan telah dipasang, kemudian buka semula halaman ini.');
+      const cacheVisible=Boolean(dashboardData?.jadualTersedia);
+      $('header-status').textContent=cacheVisible?'Jadual tersimpan':'Perlu sambungan';
+      setNotice(cacheVisible?
+        'Sambungan belum berjaya. Jadual yang dipaparkan ialah salinan terakhir dan mungkin telah berubah.':
+        'Maklumat peribadi belum dapat diselaraskan. Semak internet dan cuba lagi.');
     }
     if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost')){
       navigator.serviceWorker.register('../service-worker.js',{scope:'../'}).catch(()=>{});
