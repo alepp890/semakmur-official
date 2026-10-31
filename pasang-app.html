@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#075985"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="description" content="Pasang SeMAKMUR Digital pada telefon.">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>Pasang Aplikasi · SeMAKMUR Digital</title>
+  <style>
+    :root{color-scheme:light}*{box-sizing:border-box}body{margin:0;min-height:100dvh;padding:env(safe-area-inset-top) 18px env(safe-area-inset-bottom);background:radial-gradient(circle at 15% 0%,#0b9dbb 0,transparent 28%),linear-gradient(160deg,#08365d 0%,#075985 60%,#056a85 100%);font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#102746;display:grid;place-items:center}
+    .wrap{width:min(440px,100%);padding:26px 0 32px} .identity{display:flex;align-items:center;gap:12px;color:#fff;margin-bottom:22px}.identity img{width:49px;height:49px;border-radius:14px;border:1px solid #fff5}.identity strong{display:block;font-size:17px;line-height:1.3}.identity span{display:block;font-size:12px;letter-spacing:.06em;color:#c5e8f4;font-weight:700;margin-top:3px}
+    .card{background:#fff;border-radius:23px;padding:24px;box-shadow:0 24px 70px #03213f58}.app-icon{width:104px;height:104px;border-radius:25px;box-shadow:0 10px 25px #05497526;display:block;margin:0 auto 17px}.eyebrow{color:#0b809f;font-size:12px;letter-spacing:.1em;font-weight:800;text-align:center;text-transform:uppercase;margin:0 0 10px}h1{font-size:24px;line-height:1.25;text-align:center;margin:0 0 12px;color:#113452;letter-spacing:-.035em}p{color:#68819a;font-size:13px;line-height:1.75;text-align:center;margin:0 auto 17px;max-width:320px}.action{display:flex;align-items:center;justify-content:center;width:100%;border:0;border-radius:13px;padding:15px 12px;font-family:inherit;font-size:14px;font-weight:800;color:#fff;background:linear-gradient(115deg,#075985,#0891b2);cursor:pointer;text-decoration:none;box-shadow:0 6px 16px #06598028}.action:disabled{opacity:.55;cursor:not-allowed}.secondary{display:block;text-align:center;margin:15px 0 0;color:#0b7293;text-decoration:none;font-size:13px;font-weight:800}.instructions{border-top:1px solid #e5edf4;padding-top:17px;margin-top:20px;display:grid;gap:10px}.instructions strong{font-size:13px;color:#264863}.step{border-radius:12px;background:#f1f7fb;padding:11px 13px;font-size:13px;line-height:1.65;color:#4b6780}.step b{color:#115d7d}#status{min-height:22px;margin-top:13px;color:#41738e;font-size:12px;text-align:center;font-weight:600}.foot{color:#bdd7e6;font-size:11px;text-align:center;margin-top:20px}
+    @media(max-height:720px){.wrap{padding:15px 0}.card{padding:18px}.app-icon{height:82px;width:82px}h1{font-size:22px}}
+  </style>
+</head>
+<body>
+ <main class="wrap"><div class="identity"><img src="assets/icon-192.png" alt=""><div><strong>SeMAKMUR Digital</strong><span>SK SEGAMBUT MAKMUR</span></div></div>
+  <section class="card" aria-labelledby="title">
+   <img class="app-icon" src="assets/icon-192.png" alt="Ikon aplikasi SeMAKMUR Digital">
+   <div class="eyebrow">Aplikasi web sekolah</div>
+   <h1 id="title">SeMAKMUR di telefon anda</h1>
+   <p>Pasang pada skrin utama telefon untuk membuka portal seperti aplikasi, tanpa perlu mencari pautan setiap kali.</p>
+   <button class="action" type="button" id="install-btn">Pasang SeMAKMUR Digital</button>
+   <div id="status" aria-live="polite"></div>
+   <a class="secondary" href="./LoginSession.html">Buka Portal SeMAKMUR</a>
+   <div class="instructions" id="install-instructions">
+    <strong>Jika tiada tetingkap pemasangan:</strong>
+    <div class="step" id="android-step"><b>Android (Chrome):</b> Tekan menu ⋮ di penjuru pelayar → <b>Install app</b> atau <b>Add to Home screen</b>.</div>
+    <div class="step" id="ios-step"><b>iPhone (Safari):</b> Tekan butang <b>Share</b> → <b>Add to Home Screen</b> → aktifkan <b>Open as Web App</b> → <b>Add</b>.</div>
+   </div>
+  </section><div class="foot">© <span id="year"></span> SeMAKMUR Digital · SK Segambut Makmur</div>
+ </main>
+<script>
+'use strict';
+let installPrompt = null;
+const button = document.getElementById('install-btn');
+const status = document.getElementById('status');
+document.getElementById('year').textContent = String(new Date().getFullYear());
+const installed = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const isiStatus = message => { status.textContent = message; };
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('./service-worker.js', {scope:'./'}).catch(() => {});
+}
+if (installed()) {
+  button.textContent = 'Aplikasi Sudah Dibuka';
+  button.disabled = true;
+  isiStatus('Anda sedang menggunakan paparan aplikasi.');
+}
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault();
+  installPrompt = event;
+  if (!installed()) isiStatus('Aplikasi sedia untuk dipasang pada peranti ini.');
+});
+window.addEventListener('appinstalled', () => {
+  installPrompt = null;
+  isiStatus('Aplikasi berjaya dipasang. Buka ikon SeMAKMUR pada skrin utama.');
+  button.disabled = true;
+  button.textContent = 'Sudah Dipasang';
+});
+button.addEventListener('click', async () => {
+  if (installed()) { location.href = './LoginSession.html'; return; }
+  if (!installPrompt) {
+    isiStatus('Gunakan menu pelayar seperti panduan di bawah untuk menambah aplikasi pada skrin utama.');
+    document.getElementById('install-instructions').scrollIntoView({behavior:'smooth',block:'nearest'});
+    return;
+  }
+  button.disabled = true;
+  try {
+    await installPrompt.prompt();
+    const result = await installPrompt.userChoice;
+    if (result.outcome === 'accepted') isiStatus('Sila semak skrin utama telefon anda.');
+    else isiStatus('Pemasangan dibatalkan. Boleh cuba lagi melalui menu pelayar.');
+  } catch (_err) { isiStatus('Sila cuba memasang aplikasi melalui menu pelayar.'); }
+  finally { installPrompt = null; button.disabled = false; }
+});
+</script></body></html>
