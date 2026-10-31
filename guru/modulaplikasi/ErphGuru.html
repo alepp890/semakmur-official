@@ -96,8 +96,23 @@
       background: #94a3b8;
     }
   </style>
+  <style>
+    #erph-opening-screen {position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:18px;background:linear-gradient(145deg,#101633 0%,#1b2a58 55%,#315e82 100%);font-family:'Inter',system-ui,sans-serif;color:white}
+    #erph-opening-screen .opening-card {width:min(360px,100%);padding:28px;text-align:center;border:1px solid rgba(220,240,255,.21);border-radius:20px;background:rgba(255,255,255,.09);box-shadow:0 20px 65px rgba(0,0,0,.18)}
+    #erph-opening-screen .opening-spinner {height:29px;width:29px;border:3px solid rgba(255,255,255,.22);border-top-color:#bfe7fc;border-radius:50%;margin:0 auto 15px;animation:erph-start-spin .85s linear infinite}
+    #erph-opening-screen .opening-title {font-size:16px;font-weight:800;margin:0 0 7px}
+    #erph-opening-screen .opening-desc {font-size:13px;line-height:1.7;color:#d3e1f5;margin:0}
+    @keyframes erph-start-spin {to{transform:rotate(360deg)}}
+    @media (prefers-reduced-motion:reduce) {#erph-opening-screen .opening-spinner{animation:none}}
+  </style>
 </head>
-<body id="mainBody" class="min-h-screen flex flex-col antialiased" style="display: none;">
+<body id="mainBody" class="min-h-screen flex flex-col antialiased">
+  <!-- Lapisan neutral menyembunyikan kandungan sehingga Apps Script sahkan sesi -->
+  <div id="erph-opening-screen" role="status" aria-live="polite" aria-busy="true">
+    <div class="opening-card"><div class="opening-spinner" aria-hidden="true"></div>
+      <p class="opening-title">e-RPH Digital</p><p class="opening-desc">Mengesahkan akses dan menyediakan ruang kerja anda…</p>
+    </div>
+  </div>
 
   <!-- TOP HEADER / NAVBAR -->
   <header class="bg-gradient-to-r from-brand-700 via-brand-600 to-brand-800 text-white shadow-md sticky top-0 z-40 no-print">
