@@ -779,10 +779,10 @@
     }
 
     /* KEMASKINI FUNGSI MEMBUKA ErphGuru.html DI DALAM FOLDER /modulaplikasi */
-    async function bukaErphModule() {
-        const user = await SeMAKMURAuth.requireUser(['guru','admin_choice'], '../LoginSession.html');
-        if (!user) return;
-        // Akses sebenar disemak oleh backend; token dan e-mel tidak melalui URL.
+    function bukaErphModule() {
+        // Buka tab pada klik asal, TANPA menunggu rangkaian.
+        // Pengawal akses e-RPH sendiri akan menyemak sesi di Apps Script sebelum memaparkan rekod.
+        // Tidak menyalin token/e-mel melalui URL.
         window.open('modulaplikasi/ErphGuru.html', '_blank', 'noopener');
     }
 
