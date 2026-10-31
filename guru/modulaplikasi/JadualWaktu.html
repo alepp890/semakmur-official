@@ -616,22 +616,32 @@
       showLoader('', 'startup');
       try {
         // Semua maklumat diminta serta-merta; hasil jadual tidak menunggu tetapan siap.
-        const [masterResult, jwResult, hasilResult] = await Promise.all([
-          postToBackend({ action: 'getManualV2Data' }).catch(error => {
-            console.warn('Maklumat pengguna belum dapat dimuatkan:',error);
-            return null;
-          }),
+        // Data utama dibuka apabila tetapan dan jadual semasa siap.
+        // Direktori staf bukan prasyarat paparan jadual kelas; baca di belakang.
+        const staffPromise = postToBackend({ action:'getManualV2Data' })
+          .then(res => {
+            if (res && res.success) {
+              ALL_STAF = res.staf || [];
+              ALL_LOKASI = res.lokasi || [];
+              ALL_MASTER_SUBJEK_LIST = res.subjek || [];
+              if (JW_HASIL_VIEW_RENDERED && JW_AGIHAN_REVISION === 0 && !JW_AGIHAN_SAVING) {
+                // Data staf sampai selepas paparan dibuka: segarkan label dan pilihan yang diperlukan.
+                renderAgihanGuruMatrix();
+                renderGuruConstraintTable();
+                renderJadualHasilView();
+              }
+            }
+          })
+          .catch(error => console.warn('Direktori guru belum tersedia:',error));
+        // Janji ini bukan di-await supaya tidak mengunci pelancaran modul.
+        void staffPromise;
+        const [jwResult, hasilResult] = await Promise.all([
           postToBackend({ action: 'getJWConstraints' }),
           postToBackend({ action: 'getJadualWaktuHasil' }).catch(error => {
             console.warn('Jadual semasa belum dapat dimuatkan:',error);
             return null;
           })
         ]);
-        if (masterResult && masterResult.success) {
-          ALL_STAF = masterResult.staf || [];
-          ALL_LOKASI = masterResult.lokasi || [];
-          ALL_MASTER_SUBJEK_LIST = masterResult.subjek || [];
-        }
         if (!jwResult || !jwResult.success) throw new Error('Tetapan jadual tidak dapat dibaca.');
         // Biarkan animasi dipaparkan satu bingkai sebelum kerja membina matriks bermula.
         await new Promise(resolve => requestAnimationFrame(resolve));
