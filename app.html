@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#075985">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./assets/icon-192.png">
+  <title>SeMAKMUR Digital</title>
+  <style>
+    :root{color-scheme:light}*{box-sizing:border-box}
+    body{margin:0;min-height:100vh;min-height:100dvh;padding:20px;display:grid;place-items:center;overflow:hidden;color:#fff;
+      background:radial-gradient(ellipse at 84% 12%,#0f94ad88,transparent 47%),linear-gradient(145deg,#073456,#075985 50%,#087d97);
+      font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;}
+    .splash{text-align:center;width:min(380px,100%)}
+    .mark{width:72px;height:72px;border:1px solid #ffffff65;box-shadow:0 15px 35px #00182e40;border-radius:21px;display:grid;place-items:center;
+      margin:0 auto 18px;background:#ffffff16;font-weight:800;font-size:33px;letter-spacing:-.08em}
+    h1{font-size:24px;font-weight:800;line-height:1.25;letter-spacing:-.03em;margin:0 0 7px}
+    p{font-size:13px;color:#d2e9f4;line-height:1.7;margin:0}
+    .bar{height:3px;width:120px;margin:26px auto 0;border-radius:10px;overflow:hidden;background:#ffffff30}
+    .bar span{display:block;height:100%;width:35%;border-radius:10px;background:#e1faff;animation:move 1.2s ease-in-out infinite alternate}
+    @keyframes move{from{transform:translateX(0)}to{transform:translateX(190%)}}
+    .manual{display:none;align-items:center;justify-content:center;margin:18px auto 0;color:#e9f7fe;font-size:13px;text-decoration:underline}
+    .manual.visible{display:flex}
+    @media(prefers-reduced-motion:reduce){.bar span{animation:none}}
+  </style>
+</head>
+<body>
+ <main class="splash" aria-live="polite">
+   <div class="mark" aria-hidden="true">S</div>
+   <h1>SeMAKMUR Digital</h1>
+   <p id="status">Membuka ruang kerja anda…</p>
+   <div class="bar" aria-hidden="true"><span></span></div>
+   <a class="manual" id="manual" href="./LoginSession.html">Teruskan ke log masuk</a>
+ </main>
+ <script>
+ 'use strict';
+ (function(){
+   const root=new URL('./',location.href);
+   const go=path=>location.replace(new URL(path,root).href);
+   const isMobilePwa=()=>{
+     const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+     const mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||matchMedia('(max-width: 820px) and (pointer: coarse)').matches;
+     return standalone&&mobile;
+   };
+   // Ini hanya laluan navigasi, BUKAN pengesahan identiti.
+   // Semua dashboard masih perlu menyemak token dan peranan melalui backend.
+   try{
+     if(new URLSearchParams(location.search).has('login')) {go('LoginSession.html');return;}
+     const hasRefresh=!!localStorage.getItem('SEMAKMUR_PWA_REFRESH_TOKEN');
+     const hasAccess=!!sessionStorage.getItem('SEMAKMUR_SESSION_TOKEN');
+     if(!hasRefresh&&!hasAccess){go('LoginSession.html');return;}
+     const raw=localStorage.getItem('SAVED_MOE_USER')||sessionStorage.getItem('CURRENT_USER');
+     if(!raw){go('LoginSession.html');return;}
+     const user=JSON.parse(raw);
+     const role=String(user.role||'').toLowerCase();
+     const admin=Boolean(user.is_admin)||role==='admin'||role==='admin_choice';
+     if(admin){go(isMobilePwa()?'guru/DashboardGuru.html':'LoginSession.html');return;}
+     if(role==='guru'){go('guru/DashboardGuru.html');return;}
+     if(role==='murid'||role==='student'){go('DashboardMurid.html');return;}
+     if(role==='parent'||role==='waris'){go('DashboardParent.html');return;}
+     go('LoginSession.html');
+   }catch(e){
+     document.getElementById('status').textContent='Sila buka halaman log masuk untuk meneruskan.';
+     const link=document.getElementById('manual');link.classList.add('visible');
+     // Token persisten tidak dipadam apabila storan atau rangkaian terganggu.
+   }
+ })();
+ </script>
+</body>
+</html>
