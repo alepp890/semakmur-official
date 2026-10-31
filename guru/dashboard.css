@@ -1479,3 +1479,51 @@ body.dashboard-v3 { background:#f1f5f9; color:var(--sema-navy); }
   .dashboard-v5 .class-mini{padding:8px 7px;}
   .dashboard-v5 .class-mini-time{font-size:10px;}
 }
+
+
+/* ============================================================
+   SeMAKMUR SMART DASHBOARD V1 · Penambahbaikan visual sahaja
+   Header & tab telefon lebih cerah, kad putih di atas kanvas biru
+   ============================================================ */
+:root{--sema-canvas:#e8f3fb;--sema-line:#38bdf8;--sema-line-soft:#7dd3fc}
+body.dashboard-v5{background:var(--sema-canvas)}
+.dashboard-v5 .page-main{background:linear-gradient(155deg,#e7f4ff 0%,#eff7fd 48%,#dceefb 100%) !important}
+.dashboard-v5 .dashboard-main-header{
+ background:linear-gradient(102deg,#d2f1ff 0%,#b6e5fc 58%,#e5f7ff 100%) !important;
+ border-bottom:2px solid #0ea5e9 !important;box-shadow:0 3px 16px rgba(3,105,161,.10) !important;
+}
+.dashboard-v5 .header-caption{color:#075985}
+.dashboard-v5 .dashboard-name{color:#0f2853}
+.dashboard-v5 .header-icon-button{color:#075985}
+.dashboard-v5 .card-coligo{background:#fff;border-color:#7dd3fc;box-shadow:0 3px 12px rgba(10,92,148,.08)}
+.dashboard-v5 .right-card{background:#fff;border:1px solid #38bdf8}
+.dashboard-v5 .right-card-head{border-bottom:1px solid #7dd3fc}
+.dashboard-v5 .home-summary-shell{border-color:#38bdf8}
+.dashboard-v5 .summary-widget{border-width:1px;border-style:solid}
+.dashboard-v5 .summary-widget.theme-blue{border-color:#55b8f2}
+.dashboard-v5 .summary-widget.theme-green{border-color:#63d6ae}
+.dashboard-v5 .summary-widget.theme-amber{border-color:#fbbf73}
+.dashboard-v5 .summary-widget.theme-violet{border-color:#b39bff}
+.dashboard-v5 #page-category>.card-coligo{border-color:#38bdf8}
+.dashboard-v5 .daily-schedule-card{border-color:#a8dafa}
+.dashboard-v5 .service-notice {border-color:#38bdf8}
+@media(max-width:767px){
+  .dashboard-v5 #mobile-bottom-nav{
+    background:linear-gradient(110deg,#d6f2ff 0%,#b3e4fb 55%,#d8f5ff 100%) !important;
+    border-top:2px solid #0ea5e9 !important;box-shadow:0 -3px 15px rgba(3,105,161,.13) !important;
+  }
+  .dashboard-v5 .bottom-btn{color:#155e83}
+  .dashboard-v5 .bottom-btn.active{background:#0284c7;color:#fff;border-radius:13px}
+  .dashboard-v5 .bottom-btn.active svg{stroke:#fff}
+  .dashboard-v5 .home-summary-shell{
+    background:transparent!important;border:0!important;box-shadow:none!important;
+  }
+  .dashboard-v5 #right-panel .right-card{
+    border-top:2px solid #38bdf8!important;border-bottom:2px solid #38bdf8!important;
+    border-left:0!important;border-right:0!important;
+  }
+  .dashboard-v5 #page-category>.card-coligo{
+    border-top:2px solid #38bdf8!important;border-bottom:2px solid #38bdf8!important;
+    border-left:0!important;border-right:0!important;
+  }
+}
