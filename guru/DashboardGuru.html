@@ -104,6 +104,16 @@
     </style>
   <link rel="stylesheet" href="dashboard.css">
   <style>
+    /* e-RPH PWA: rangka dashboard, header dan bottom-nav kekal. */
+    .erph-workspace { flex:1; min-height:0; overflow:hidden; background:#eaf5fc; flex-direction:column; }
+    .erph-workspace:not([hidden]) { display:flex; }
+    .erph-workspace[hidden] { display:none !important; }
+    .erph-workspace-toolbar { flex:0 0 auto; min-height:48px; display:flex; gap:12px; align-items:center; padding:6px 14px; background:#f8fcff; border-bottom:2px solid #38bdf8; font-size:14px; color:#124e79; }
+    .erph-workspace-toolbar button { background:#e0f2fe; border:1px solid #38bdf8; border-radius:10px; padding:7px 12px; font-size:13px; font-weight:800; color:#075985; }
+    .erph-workspace-toolbar button:focus-visible { outline:3px solid #0ea5e9; outline-offset:2px; }
+    .erph-workspace-subtitle { margin-left:auto; font-size:11px; font-weight:700; color:#5592b3; }
+    #erph-workspace-frame { display:block; flex:1; min-height:0; width:100%; border:0; background:#fff; }
+    @media(max-width:767px) { .erph-workspace { padding-bottom:calc(76px + env(safe-area-inset-bottom)); } }
     /* Instant Dashboard V2: hanya paparan sementara, tidak mengubah gaya V5. */
     .sema-loading-line {
       height: 13px; max-width: 100%; border-radius: 7px;
@@ -162,6 +172,16 @@
         <button id="mobile-action-menu" onclick="toggleMobileMenu()" class="header-icon-button mobile-menu-button" aria-label="Buka menu navigasi" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       </div>
     </header>
+    <!-- e-RPH TERBENAM: tidak membuka tab browser baharu. -->
+    <section id="erph-workspace" class="erph-workspace" hidden aria-label="Ruang kerja e-RPH Digital">
+      <div class="erph-workspace-toolbar">
+        <button id="erph-workspace-back" type="button" onclick="closeErphWorkspace()" aria-label="Kembali ke Dashboard Guru">← Kembali</button>
+        <strong>e-RPH Digital</strong>
+        <span class="erph-workspace-subtitle">SeMAKMUR</span>
+      </div>
+      <!-- src diisi selepas guru yang telah disahkan membuka modul. -->
+      <iframe id="erph-workspace-frame" title="Modul e-RPH Digital" loading="eager" referrerpolicy="same-origin" allow="clipboard-write"></iframe>
+    </section>
     <main id="page-scroll" class="page-main p-5 lg:p-6 flex-1 overflow-y-auto space-y-5" aria-label="Kandungan dashboard">
       <div id="service-notice" class="hidden card-coligo border-amber-200 bg-amber-50 text-amber-900 p-3 text-[13px]" role="status"></div>
       <section id="home-quicklinks" class="quicklinks-shell" aria-labelledby="home-modules-title">
@@ -363,10 +383,31 @@
       <span class="module-icon ${escapeHtml(m.tone)}">${qIcon(({erph:'book',manual:'settings',jadual:'calendar',ssdm:'attendance',splkpm:'graduation',pajsk:'chart',hrmis:'settings',eminit:'mail',eprogram:'calendar',eopr:'report',bertugas:'report',relief:'calendar',epbd:'chart',tmk:'book',kehadiran:'attendance',apdm:'attendance',spbt:'book',rmt:'attendance',beruniform:'attendance',kelab:'attendance',sukan:'chart',bilik:'settings',dokumen:'report'})[id]||'book')}</span>
       <span class="text-slate-700">${escapeHtml(m.title)}</span></button>`;
   }
+  function openErphWorkspace() {
+    if (!dashboardAuthenticated) { showInfo('Sesi pengguna belum disahkan.'); return; }
+    closeMobileMenu();
+    const pane=$('erph-workspace'), frame=$('erph-workspace-frame');
+    if (!pane || !frame) return;
+    // Kekalkan iframe apabila menutup ruang kerja: draf yang sedang ditaip tidak hilang.
+    if (!frame.getAttribute('src')) frame.setAttribute('src','modulaplikasi/ErphGuru.html?embed=1');
+    $('page-scroll').classList.add('hidden');
+    pane.hidden=false;
+    pane.classList.add('is-open');
+    if (window.history && history.replaceState) history.replaceState(null,'',location.pathname+location.search+'#erph');
+  }
+  function closeErphWorkspace(keepHash) {
+    const pane=$('erph-workspace');
+    if (!pane || pane.hidden) return;
+    pane.hidden=true;
+    pane.classList.remove('is-open');
+    $('page-scroll').classList.remove('hidden');
+    if (!keepHash && location.hash==='#erph' && history.replaceState) history.replaceState(null,'',location.pathname+location.search);
+  }
   function openModule(id){const m=MODULES[id];if(!m)return;
     if(!dashboardAuthenticated){showInfo('Akses sedang disahkan. Sila cuba sebentar lagi.');return;}
     if(id==='jadual'&&!bolehUrusJadual()){showInfo('Akses modul ini terhad kepada pentadbir dan penyelaras jadual waktu.');return;}
-    if(!m.url)return; // Kad tanpa pautan kekal tidak aktif, tiada mesej atau animasi mengelirukan.
+    if(!m.url)return;
+    if(id==='erph'){ openErphWorkspace(); return; }
     window.open(m.url,'_blank','noopener');
   }
   // SVG Lucide-style inline: crisp and also works when external icon CDN is unavailable.
@@ -760,12 +801,12 @@
     window.addEventListener('online',maybeSmartSync);
     $('greeting-text').textContent='Selamat Datang';
     document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){openModule(module.dataset.module);return;}
-      const page=e.target.closest('[data-page]');if(page){switchMainMenu(page.dataset.page);return;}
+      const page=e.target.closest('[data-page]');if(page){closeErphWorkspace();switchMainMenu(page.dataset.page);return;}
       const day=e.target.closest('[data-day]');if(day){activeDay=day.dataset.day;renderTimetable();}
     });
     $('profile-form').addEventListener('submit',saveProfile);
     $('profile-modal').addEventListener('click',e=>{if(e.target===$('profile-modal'))closeProfile();});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeProfile();closeMobileMenu();}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeProfile();closeMobileMenu();}});
     window.addEventListener('resize',()=>{fitName();if(window.innerWidth>=768){$('sidebar-container').classList.remove('-translate-x-full');$('sidebar-backdrop').classList.remove('active');}else{$('sidebar-container').classList.add('-translate-x-full');}});
     showInstantShell();
     showRememberedGreeting();
