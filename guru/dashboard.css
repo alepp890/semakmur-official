@@ -1320,3 +1320,162 @@ body.dashboard-v3 { background:#f1f5f9; color:var(--sema-navy); }
   .dashboard-v4 .side-profile-portrait .profile-portrait{display:grid!important;}
   .dashboard-v4 #right-panel.hidden{display:none!important;}
 }
+
+
+/* ===========================================================================
+   SeMAKMUR DIGITAL V5 — kemasan visual sahaja, mengekalkan fungsi V4.
+   Pautan bebas bekas, palet ikon lebih terang, profil padat, kad dua kelas.
+   =========================================================================== */
+.dashboard-v5 .quicklinks-shell {
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  padding:0;
+  margin:0;
+}
+.dashboard-v5 .quicklinks-topline {padding:0 2px;margin-bottom:13px;}
+.dashboard-v5 .quicklinks-grid {gap:12px;}
+.dashboard-v5 .shortcut-card {
+  box-shadow:0 6px 16px rgba(12,44,79,.15);
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.dashboard-v5 .shortcut-card:not(:disabled):hover {box-shadow:0 13px 25px rgba(13,47,85,.23);}
+.dashboard-v5 .shortcut-tone-0{background:linear-gradient(145deg,#29c871 0%,#0ba557 100%);}
+.dashboard-v5 .shortcut-tone-1{background:linear-gradient(145deg,#299eff 0%,#086fe7 100%);}
+.dashboard-v5 .shortcut-tone-2{background:linear-gradient(145deg,#a168ff 0%,#7135e3 100%);}
+.dashboard-v5 .shortcut-tone-3{background:linear-gradient(145deg,#ffac39 0%,#f6790c 100%);}
+.dashboard-v5 .shortcut-tone-4{background:linear-gradient(145deg,#ff71ae 0%,#e82273 100%);}
+.dashboard-v5 .shortcut-tone-5{background:linear-gradient(145deg,#28cbdc 0%,#009eaf 100%);}
+.dashboard-v5 .shortcut-tone-6{background:linear-gradient(145deg,#827bff 0%,#5346e6 100%);}
+.dashboard-v5 .shortcut-icon{background:rgba(255,255,255,.18);}
+.dashboard-v5 .shortcut-inactive{opacity:.84;filter:none;}
+.dashboard-v5 .shortcut-inactive:hover{transform:none;box-shadow:0 6px 16px rgba(12,44,79,.15);}
+
+/* Profil dipadatkan; butang pensel bertindih pada bahagian bawah avatar. */
+.dashboard-v5 .side-profile-portrait {
+  padding:8px 8px 9px;
+  gap:6px;
+  margin-top:9px;
+  margin-bottom:8px;
+}
+.dashboard-v5 .profile-avatar-wrap{position:relative;width:88px;height:88px;flex:none;}
+.dashboard-v5 .profile-portrait{
+  width:88px;height:88px;
+  font-size:29px;
+  box-shadow:0 5px 15px rgba(2,29,57,.32);
+}
+.dashboard-v5 .profile-edit-overlay{
+  position:absolute;right:-3px;bottom:0;
+  width:29px;height:29px;
+  display:grid;place-items:center;
+  background:#fff;color:#075985;
+  border:2px solid #09678e;
+  border-radius:50%;
+  box-shadow:0 3px 9px #041c3540;
+  cursor:pointer;
+  transition:transform .2s ease,background .2s ease;
+}
+.dashboard-v5 .profile-edit-overlay svg{width:14px;height:14px;}
+.dashboard-v5 .profile-edit-overlay:hover{transform:scale(1.08);background:#e7f9ff;}
+.dashboard-v5 .profile-edit-overlay:focus-visible{outline:3px solid #9ce8fb;outline-offset:3px;}
+.dashboard-v5 .profile-caption{gap:3px;}
+.dashboard-v5 #user-display-name{font-size:17px;}
+.dashboard-v5 #user-email-display{font-size:12px;}
+.dashboard-v5 #desktop-nav {min-height:0;}
+.dashboard-v5 #desktop-nav .nav-link{padding:10px 13px;min-height:43px;}
+
+/* Satu kad utama mempunyai dua kad kecil yang sentiasa sebaris. */
+.dashboard-v5 .summary-widget.theme-blue .summary-head{margin-bottom:11px;}
+.dashboard-v5 .class-mini-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;width:100%;}
+.dashboard-v5 .class-mini{
+  min-width:0;min-height:110px;
+  border:1px solid #bcdff2;border-radius:12px;
+  background:linear-gradient(155deg,#f4fbff,#e5f5ff);
+  padding:10px 9px;
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:4px;
+}
+.dashboard-v5 .class-mini-next{background:linear-gradient(155deg,#f8f7ff,#f0ecff);border-color:#ddd5ff;}
+.dashboard-v5 .class-mini-label{display:flex;align-items:center;gap:5px;color:#1c729e;font-size:11px;font-weight:800;line-height:1.3;}
+.dashboard-v5 .class-mini-next .class-mini-label{color:#6553b9;}
+.dashboard-v5 .class-mini-dot{width:7px;height:7px;flex:none;border-radius:50%;background:#07a992;}
+.dashboard-v5 .class-mini-next .class-mini-dot{background:#7c69df;}
+.dashboard-v5 .class-mini-subject{font-size:20px;font-weight:800;color:#132957;line-height:1.15;overflow:hidden;text-overflow:ellipsis;max-width:100%;white-space:nowrap;}
+.dashboard-v5 .class-mini-class{color:#4b6888;font-size:12px;font-weight:700;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis;}
+.dashboard-v5 .class-mini-time{color:#1379ab;font-size:11px;font-weight:800;white-space:nowrap;letter-spacing:-.03em;}
+.dashboard-v5 .class-mini-next .class-mini-time{color:#6851b0;}
+.dashboard-v5 .class-mini-absent{margin-top:12px;color:#668199;font-size:12px;font-weight:600;line-height:1.5;}
+
+@media (min-width:768px) and (max-height:730px){
+  .dashboard-v5 .side-profile-portrait{margin-top:5px;margin-bottom:5px;gap:4px;}
+  .dashboard-v5 .profile-avatar-wrap,.dashboard-v5 .profile-portrait{width:74px;height:74px;}
+  .dashboard-v5 #desktop-nav .nav-link{min-height:39px;padding:8px 13px;}
+}
+@media (max-width:1120px){
+  .dashboard-v5 #home-summary>.summary-widget:first-child{grid-column:1/-1;}
+}
+@media (max-width:767px){
+  /* Kad pintasan tanpa lapisan seksyen, seperti ikon pada pelancar telefon. */
+  .dashboard-v5 .quicklinks-shell{
+    padding:13px max(12px,calc((100% - 500px)/2)) 10px;
+    background:transparent;border:0;border-radius:0;box-shadow:none;
+  }
+  .dashboard-v5 .quicklinks-topline{display:none;}
+  .dashboard-v5 .quicklinks-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 3px;}
+  .dashboard-v5 .shortcut-card{
+    border:0;border-radius:12px;background:transparent!important;
+    box-shadow:none!important;padding:3px 1px 7px;
+    align-items:center;justify-content:flex-start;gap:6px;
+    min-height:0;transform:none!important;
+  }
+  .dashboard-v5 .shortcut-icon{width:52px;height:52px;border-radius:14px;border:1px solid #ffffff4f;box-shadow:0 5px 12px rgba(24,62,90,.23);}
+  .dashboard-v5 .shortcut-tone-0 .shortcut-icon{background:linear-gradient(145deg,#29d477,#07a95a);}
+  .dashboard-v5 .shortcut-tone-1 .shortcut-icon{background:linear-gradient(145deg,#39aaff,#066de9);}
+  .dashboard-v5 .shortcut-tone-2 .shortcut-icon{background:linear-gradient(145deg,#aa6aff,#7634e9);}
+  .dashboard-v5 .shortcut-tone-3 .shortcut-icon{background:linear-gradient(145deg,#ffb341,#f87909);}
+  .dashboard-v5 .shortcut-tone-4 .shortcut-icon{background:linear-gradient(145deg,#ff79b5,#eb2576);}
+  .dashboard-v5 .shortcut-tone-5 .shortcut-icon{background:linear-gradient(145deg,#39dae8,#00a2b4);}
+  .dashboard-v5 .shortcut-tone-6 .shortcut-icon{background:linear-gradient(145deg,#9287ff,#5545ed);}
+  .dashboard-v5 .shortcut-title{font-size:11px;font-weight:800;line-height:1.32;}
+  .dashboard-v5 .shortcut-card:disabled{opacity:.75;}
+
+  /* Ringkasan: kad bebas tanpa bekas, tajuk seksyen disorok pada PWA sahaja. */
+  .dashboard-v5 .home-summary-shell{
+    border:0;background:transparent;border-radius:0;box-shadow:none;
+    overflow:visible;margin:0;
+  }
+  .dashboard-v5 .home-summary-title{display:none!important;}
+  .dashboard-v5 #home-summary{width:100%;max-width:526px;padding:9px 13px 14px;gap:10px;}
+  .dashboard-v5 #home-summary>.summary-widget:first-child{grid-column:1/-1;}
+  .dashboard-v5 #home-summary>.summary-widget:last-child{grid-column:1/-1;}
+  .dashboard-v5 .summary-widget{min-height:0;padding:12px;box-shadow:0 5px 15px rgba(24,56,89,.09);}
+  .dashboard-v5 .summary-head{margin-bottom:8px;}
+  .dashboard-v5 .summary-head h3{font-size:13px;}
+  .dashboard-v5 .class-mini-pair{gap:9px;}
+  .dashboard-v5 .class-mini{min-height:104px;padding:10px;}
+  .dashboard-v5 .class-mini-subject{font-size:19px;}
+  .dashboard-v5 .class-mini-time{font-size:11px;}
+  .dashboard-v5 .dashboard-section-bar{display:none;}
+  .dashboard-v5 .header-mobile-subtitle{display:none;}
+  .dashboard-v5 .right-card-head .muted-caption{display:none!important;}
+  /* Kecualikan label hari pada jadual supaya guru jelas konteks tarikh. */
+  .dashboard-v5 #schedule-today-label{display:inline-flex!important;}
+
+  /* Profil dalam menu mobile sedikit lebih besar daripada avatar header sahaja. */
+  .dashboard-v5 .side-profile-portrait{padding:7px 8px 9px;margin:7px 12px 7px;gap:5px;}
+  .dashboard-v5 .profile-avatar-wrap,.dashboard-v5 .profile-portrait{width:54px;height:54px;}
+  .dashboard-v5 .profile-portrait{font-size:18px;border-width:2px!important;}
+  .dashboard-v5 .profile-edit-overlay{width:21px;height:21px;border-width:1.5px;right:-5px;bottom:-1px;}
+  .dashboard-v5 .profile-edit-overlay svg{width:11px;height:11px;}
+  .dashboard-v5 #user-display-name{font-size:15px;}
+  .dashboard-v5 #user-email-display{font-size:11px;}
+  .dashboard-v5 #sidebar-container #desktop-nav .nav-link{padding:10px 13px;min-height:43px;}
+  .dashboard-v5 .page-main{background:#f3f7fc;}
+}
+@media (max-width:350px){
+  .dashboard-v5 .quicklinks-grid{grid-template-columns:repeat(4,minmax(0,1fr));}
+  .dashboard-v5 .shortcut-icon{width:47px;height:47px;}
+  .dashboard-v5 #home-summary{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .dashboard-v5 .class-mini{padding:8px 7px;}
+  .dashboard-v5 .class-mini-time{font-size:10px;}
+}
