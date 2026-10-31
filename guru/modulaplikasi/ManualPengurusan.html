@@ -77,10 +77,13 @@
 </head>
 <body class="min-h-screen flex text-slate-800 bg-slate-100">
 
-  <!-- GLOBAL LOADER -->
-  <div id="global-loader" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-[9999] flex flex-col items-center justify-center transition-all duration-200 hidden">
-    <div class="loader-ring mb-3"><div></div><div></div><div></div><div></div></div>
-    <p class="text-white font-bold text-xs tracking-wide" id="loader-text">Memuatkan Pangkalan Data...</p>
+  <!-- SPLASH AWAL: segera muncul sebelum auth dan data dimuatkan; tiada paparan kosong -->
+  <div id="global-loader" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-all duration-200" role="status" aria-live="polite" aria-busy="true" style="background:linear-gradient(145deg,#101633 0%,#1b2a58 55%,#315e82 100%);color:white;">
+    <div style="background:rgba(255,255,255,.1);border:1px solid rgba(220,240,255,.18);border-radius:22px;padding:30px 36px;text-align:center;width:min(340px,calc(100% - 28px));box-shadow:0 20px 65px rgba(0,0,0,.2);backdrop-filter:blur(8px)">
+      <div class="loader-ring mb-3"><div></div><div></div><div></div><div></div></div>
+      <p style="font-size:16px;font-weight:800;margin:0 0 7px">Manual Pengurusan</p>
+      <p class="font-medium" style="font-size:13px;line-height:1.7;color:#d4e4f5;margin:0" id="loader-text">Menyediakan ruang kerja anda…</p>
+    </div>
   </div>
 
   <!-- SIDEBAR NAVIGASI KIRI -->
@@ -966,6 +969,7 @@
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
+      // Splash sudah kelihatan sejak awal; setiap semakan kekal di belakangnya.
       const verified = await SeMAKMURAuth.requireUser(['admin_choice'], '../../LoginSession.html');
       if (!verified) return;
       if (!verified.is_admin) { window.location.replace('../../LoginSession.html'); return; }
@@ -1947,7 +1951,7 @@
     }
 
     async function fetchMasterStafData() {
-      showLoader('Menyelaraskan pangkalan data V2 dari Google Sheets...');
+      showLoader('Menyediakan maklumat pengurusan terkini…');
       try {
         const res = await postToBackend({ action: 'getManualV2Data' });
         hideLoader();
