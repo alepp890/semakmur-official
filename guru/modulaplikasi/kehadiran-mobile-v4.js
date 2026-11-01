@@ -11,10 +11,11 @@
     return snap.semuaKelas.map(x=>({...x,...(times.get(String(x.idKelas).toUpperCase())||{}),statusRekod:state.kelas.find(y=>y.idKelas===x.idKelas)?.statusRekod||'BELUM_SEMAK',jumlahHadir:state.kelas.find(y=>y.idKelas===x.idKelas)?.jumlahHadir??null,jumlahMurid:state.kelas.find(y=>y.idKelas===x.idKelas)?.jumlahMurid??null}));
   }
   function redrawClasses(){
+    updateTabAccess();
     const classes=list(),items=state.kelas;
     if(!classes.length){$('v4-status-note').textContent='Sedang menyediakan kelas dan murid...';return;}
     $('v4-status-note').textContent=classes.length+' kelas · '+(navigator.onLine?'Data tersedia':'Mod luar talian');
-    const render=(host)=>{host.replaceChildren();const homeroom=String(state.user?.guru_kelas||'').trim().toUpperCase();const permitted=host.id==='v4-papar-list'&&!state.user?.is_admin?classes.filter(k=>homeroom&&String(k.namaKelas).trim().toUpperCase()===homeroom):classes;
+    const render=(host)=>{host.replaceChildren();const homeroom=String(state.user?.guru_kelas||'').trim().toUpperCase();const job=String([state.user?.Jawatan,state.user?.Kategori_Staf].filter(Boolean).join(' ')).toUpperCase();const isHem=/(?:GPK|\bPK\b|PENOLONG KANAN)\s*(?:HEM|HAL EHWAL MURID)/.test(job);const roleClasses=state.staticData?.accessViewVersion===2?new Set(state.staticData.kelasGuruKelas||[]):null;const permitted=host.id==='v4-papar-list'&&!state.user?.is_admin&&!isHem&&!state.staticData?.isHem?classes.filter(k=>roleClasses?roleClasses.includes(k.idKelas.toUpperCase()):homeroom&&String(k.namaKelas).trim().toUpperCase()===homeroom):classes;
       if(!permitted.length){const message=document.createElement('p');message.className='v4-quiet';message.textContent='Tiada kelas guru kelas yang dipadankan pada akaun ini.';host.append(message);}
       for(const k of permitted){const b=document.createElement('button');b.type='button';b.className='v4-class-item';const left=document.createElement('span');left.className='v4-class-name';left.textContent=k.namaKelas;
         const note=document.createElement('small');const count=state.staticData?.muridByKelas?.[String(k.idKelas).toUpperCase()]?.length;
@@ -64,8 +65,19 @@
     }catch(_e){/* Cached class list remains usable; official status is verified on class click */}finally{summaryBusy=false;}}
   // Existing snapshot cache from V3 has no all-class roster. Reject on mobile, forcing one full V4 sync.
   const validate=validateSnapshot;
-  window.validateSnapshot=function(d){return validate(d)&&Array.isArray(d.semuaKelas)&&d.jadualSemua;};
-  $('v4-tab-isi').addEventListener('click',()=>switchTab('isi'));$('v4-tab-papar').addEventListener('click',()=>switchTab('papar'));
+  window.validateSnapshot=function(d){return validate(d)&&Array.isArray(d.semuaKelas)&&d.jadualSemua&&d.accessViewVersion===2;};
+  function updateTabAccess(){
+    const u=state.user;
+    if(!u)return;
+    const job=String([u.Jawatan,u.Kategori_Staf].filter(Boolean).join(' ')).toUpperCase();
+    const isHem=/(?:GPK|\bPK\b|PENOLONG KANAN)\s*(?:HEM|HAL EHWAL MURID)/.test(job);
+    const isClassTeacher=!!String(u.guru_kelas||'').trim();
+    const permitted=state.staticData?.accessViewVersion===2?state.staticData.bolehPapar===true:(u.is_admin===true||isHem||isClassTeacher);
+    $('v4-att-top').dataset.access=permitted?'review':'entry';
+    $('v4-tab-papar').hidden=!permitted;
+    if(!permitted && tab==='papar')switchTab('isi');
+  }
+    $('v4-tab-isi').addEventListener('click',()=>switchTab('isi'));$('v4-tab-papar').addEventListener('click',()=>switchTab('papar'));
   $('v4-dialog-close').addEventListener('click',close);
   $('v4-student-dialog').addEventListener('click',e=>{if(e.target===$('v4-student-dialog'))close();});
   $('v4-student-search').addEventListener('input',updateDialog);
