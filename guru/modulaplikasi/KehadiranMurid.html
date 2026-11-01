@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1b587a">
+  <title>Smart Kehadiran Murid | SeMAKMUR Digital</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--navy:#153c59;--blue:#1d678b;--teal:#1d9aab;--ink:#243c50;--muted:#60788b;--line:#dbe7ee;--bg:#f2f8fc;--white:#fff;--green:#15835b;--amber:#a76815;--red:#b94b45}
+    *{box-sizing:border-box} html,body{margin:0;min-height:100%;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink)}
+    button,input{font:inherit} button{cursor:pointer} button:disabled{cursor:not-allowed;opacity:.55}
+    .wrap{max-width:1120px;margin:auto;padding:22px clamp(12px,3.8vw,30px) 100px}
+    .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+    .eyebrow{font-size:11px;letter-spacing:.14em;font-weight:800;color:#297c97;text-transform:uppercase}
+    h1{font-size:clamp(22px,3.5vw,30px);line-height:1.3;margin:5px 0 6px;color:var(--navy);font-weight:800}
+    h2{font-size:15px;margin:0;font-weight:800;color:#214a65}.subtitle{font-size:12px;color:var(--muted);line-height:1.65;margin:0}
+    .chip{border-radius:20px;padding:7px 11px;background:#e5f2f9;color:#186487;font-size:11px;font-weight:800;max-width:100%}
+    .layout{display:grid;grid-template-columns:310px minmax(0,1fr);gap:15px;align-items:start}
+    .card{background:var(--white);border:1px solid var(--line);border-radius:17px;box-shadow:0 3px 15px #18425c0c;padding:18px;min-width:0}
+    .label{display:block;font-size:11px;font-weight:800;color:var(--muted);margin:0 0 7px}
+    .date{width:100%;border:1px solid #cadae5;background:#f9fcff;border-radius:10px;color:var(--navy);padding:11px;font-size:13px}
+    .date:focus-visible,.btn:focus-visible,input:focus-visible{outline:3px solid #9dd6ea;outline-offset:2px}
+    .class-list{display:grid;gap:8px;margin:12px 0 4px}
+    .class-btn{border:1px solid #dce7ef;background:#fff;border-radius:12px;padding:12px;text-align:left;color:var(--ink);width:100%;display:grid;gap:5px}
+    .class-btn.active{border-color:#1d82a4;background:#eaf7fb;box-shadow:0 0 0 1px #1d82a4}
+    .class-name{font-size:13px;font-weight:800}.class-meta{font-size:11px;color:var(--muted)}
+    .status{display:inline-flex;align-items:center;gap:5px;width:max-content;max-width:100%;font-size:10px;font-weight:800;padding:5px 9px;border-radius:30px;background:#eef3f6;color:#56748b}
+    .status.done{background:#e7f8ed;color:var(--green)} .status.pending{background:#fff3dc;color:var(--amber)}
+    .notice{padding:12px 14px;border:1px solid #cde4f2;border-radius:12px;background:#edf7fd;color:#265771;font-size:12px;line-height:1.65;margin:13px 0}
+    .notice.warn{background:#fff7e9;border-color:#f1ddb2;color:#835819}
+    .notice.error{background:#fff1ef;border-color:#f1c8c5;color:#90443f}
+    .notice[hidden]{display:none}
+    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:13px 0 16px}
+    .stat{background:#f4f8fb;border:1px solid #e7eef3;border-radius:12px;padding:11px 8px;text-align:center}
+    .stat strong{display:block;font-size:23px;color:var(--navy);font-weight:800}
+    .stat span{font-size:10px;color:var(--muted);font-weight:700}
+    .stat.absent strong{color:var(--red)} .stat.present strong{color:var(--green)}
+    .students-bar{display:flex;align-items:center;justify-content:space-between;gap:9px;flex-wrap:wrap;margin:14px 0}
+    .search{background:#f9fcff;border:1px solid #d3e2ec;border-radius:10px;padding:9px 11px;min-width:150px;max-width:100%;font-size:12px}
+    .student-list{display:grid;gap:8px;min-height:70px}
+    .student{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid #e2edf3;border-radius:12px;padding:12px}
+    .student.absent{background:#fff7f4;border-color:#efcec8}
+    .student input[type=checkbox]{width:19px;height:19px;accent-color:#b64c42;flex:none}
+    .student-main{min-width:0;flex:1}.student-name{font-size:12px;font-weight:800;line-height:1.5;overflow-wrap:anywhere}.student-note{font-size:10px;color:#60788b;margin-top:2px;line-height:1.6}
+    .tag{font-size:10px;border-radius:16px;padding:5px 7px;font-weight:800;background:#e8f4f7;color:#207087;flex-shrink:0}
+    .tag.missing{background:#fff1e3;color:#9a5c21}
+    .actions{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+    .btn{border:1px solid #cfe1ed;border-radius:11px;padding:11px 15px;background:#fff;color:#185d7f;font-weight:800;font-size:12px;min-height:42px}
+    .btn.primary{background:linear-gradient(110deg,#205d84,#1f93a9);border-color:#1c7091;color:#fff}
+    .confirm{margin-top:14px;display:flex;align-items:flex-start;gap:8px;font-size:11px;color:#425b6f;line-height:1.6}
+    .confirm input{margin-top:3px;accent-color:#198b9c}
+    .empty{padding:30px 13px;text-align:center;border:1px dashed #cedfe9;border-radius:12px;color:#5f7888;font-size:12px;line-height:1.7}
+    .tiny{font-size:10px;color:#698397;line-height:1.7;margin:12px 0 0}
+    [hidden]{display:none!important}
+    @media(max-width:760px){.layout{grid-template-columns:1fr}.wrap{padding:15px 12px 90px}.card{padding:15px}.top{margin-bottom:12px}.stats{gap:7px}.stat strong{font-size:21px}.actions .btn{flex:1}.student{padding:10px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div><div class="eyebrow">SeMAKMUR Digital · HEM</div><h1>Smart Kehadiran Murid</h1><p class="subtitle">Satu pengesahan sehari · Guru pertama atau guru berikutnya jika belum direkod</p></div>
+      <div class="chip" id="user-chip">Mengesahkan akses…</div>
+    </header>
+    <div class="layout">
+      <aside class="card">
+        <h2>Pilih kelas</h2>
+        <p class="subtitle">Kelas dipaparkan mengikut jadual rasmi guru dan kebenaran backend.</p>
+        <div style="margin-top:16px"><label class="label" for="tarikh">Tarikh kehadiran</label><input class="date" id="tarikh" type="date" aria-label="Tarikh kehadiran"></div>
+        <div id="kelas-notice" class="notice" role="status">Sedang menyemak jadual dan akses guru…</div>
+        <div id="kelas-list" class="class-list" aria-label="Senarai kelas guru"></div>
+        <div class="actions"><button class="btn" id="refresh-classes" type="button" disabled>↻ Muat semula</button></div>
+        <p class="tiny">Jika guru pertama belum merekod, guru seterusnya boleh mengambil alih berdasarkan pengesahan jadual atau relief di backend.</p>
+      </aside>
+      <main class="card" id="record-panel">
+        <div class="top" style="margin-bottom:5px"><div><h2 id="record-title">Senarai murid</h2><p class="subtitle" id="record-subtitle">Pilih kelas untuk melihat rekod kehadiran.</p></div><span class="status" id="record-status">Belum dipilih</span></div>
+        <div class="stats" aria-live="polite">
+          <div class="stat"><strong id="stat-total">—</strong><span>Jumlah murid</span></div>
+          <div class="stat present"><strong id="stat-hadir">—</strong><span>Dianggap hadir*</span></div>
+          <div class="stat absent"><strong id="stat-tiada">—</strong><span>Ditanda tidak hadir</span></div>
+        </div>
+        <div class="notice" id="record-message" role="status">Belum ada kelas yang dipilih.</div>
+        <div class="students-bar"><div><h2>Nama murid</h2><p class="subtitle">Tandakan hanya murid yang tidak hadir.</p></div><input id="search" class="search" type="search" placeholder="Cari nama murid…" aria-label="Cari nama murid" disabled></div>
+        <div class="student-list" id="student-list"><div class="empty">Senarai murid akan dipaparkan selepas kelas dipilih.</div></div>
+        <label class="confirm"><input id="ack" type="checkbox" disabled><span>Saya telah menyemak kehadiran sebenar murid. Laporan penjaga hanyalah tanda awal, bukan rekod rasmi.</span></label>
+        <div class="actions"><button class="btn" id="refresh-students" type="button" disabled>↻ Semak semula</button><button class="btn primary" id="save" type="button" disabled>Sahkan Kehadiran</button></div>
+        <p class="tiny">*Angka hadir dalam borang ialah kiraan sementara sebelum disahkan. Tiada rekod rasmi diwujudkan sehingga backend menerima pengesahan. Perubahan kepada rekod yang telah disahkan akan memerlukan proses pembetulan berjejak audit.</p>
+      </main>
+    </div>
+  </div>
+  <script src="../../config.js"></script>
+  <script src="../../auth-client.js"></script>
+  <script>
+    'use strict';
+    // API CONTRACT (BELUM DIPASANG): lihat PANDUAN_PEMASANGAN.txt. Fail ini tidak menulis terus ke Sheets.
+    const ACTION = Object.freeze({kelas:'smartKehadiranGetKelasGuru',murid:'smartKehadiranGetSenarai',simpan:'smartKehadiranSahkan'});
+    const byId = id => document.getElementById(id);
+    const state = { user:null, kelas:[], selected:null, murid:[], absent:new Set(), readOnly:true, version:null, busy:false, requestId:0 };
+    function malaysiaDate(){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const part=t=>parts.find(x=>x.type===t)?.value||'';return [part('year'),part('month'),part('day')].join('-');}
+    function msg(id,text,type=''){const e=byId(id);e.textContent=text;e.className='notice'+(type?' '+type:'');e.hidden=false;}
+    function status(text,kind=''){const e=byId('record-status');e.className='status'+(kind?' '+kind:'');e.textContent=text;}
+    function friendly(res,defaultText){if(res?.code==='SESSION_EXPIRED'||res?.code==='ACCESS_REVOKED')return 'Sesi telah tamat. Sila buka semula Dashboard Guru dan log masuk.';if(res?.code==='FORBIDDEN')return 'Anda tidak mempunyai kebenaran untuk rekod ini.';return defaultText||'Sambungan modul kehadiran belum tersedia. Hubungi pentadbir portal.';}
+    async function api(action,data){if(!window.SeMAKMURAuth || typeof window.SeMAKMURAuth.request!=='function')throw new Error('Pengesahan sesi tidak tersedia.');const res=await window.SeMAKMURAuth.request({action,data});if(!res?.success)throw new Error(friendly(res));return res.data;}
+    function resetStudents(){state.murid=[];state.absent=new Set();state.version=null;state.readOnly=true;state.selected=null;byId('student-list').replaceChildren(empty('Pilih kelas untuk melihat senarai murid.'));byId('ack').checked=false;byId('search').value='';refreshStats();toggleControls();}
+    function empty(text){const d=document.createElement('div');d.className='empty';d.textContent=text;return d;}
+    function refreshStats(){const n=state.murid.length;byId('stat-total').textContent=n||'—';byId('stat-hadir').textContent=n?String(n-state.absent.size):'—';byId('stat-tiada').textContent=n?String(state.absent.size):'—';}
+    function toggleControls(){const loaded=!!state.selected&&state.murid.length>0;byId('search').disabled=!loaded;byId('ack').disabled=!loaded||state.readOnly||state.busy;byId('refresh-students').disabled=!state.selected||state.busy;byId('save').disabled=!loaded||state.readOnly||state.busy||!byId('ack').checked;byId('refresh-classes').disabled=state.busy;byId('tarikh').disabled=state.busy;}
+    function renderClasses(){const host=byId('kelas-list');host.replaceChildren();if(!state.kelas.length){host.append(empty('Tiada kelas yang tersedia untuk tarikh dipilih.'));return;}
+      for(const k of state.kelas){const b=document.createElement('button');b.type='button';b.className='class-btn'+(state.selected?.idKelas===k.idKelas?' active':'');const nm=document.createElement('span');nm.className='class-name';nm.textContent=k.namaKelas||k.idKelas;const note=document.createElement('span');note.className='class-meta';note.textContent=[k.masa||[k.masaMula,k.masaTamat].filter(Boolean).join(' – '),k.subjek||''].filter(Boolean).join(' · ');const st=document.createElement('span');const done=k.statusRekod==='DISAHKAN';st.className='status '+(done?'done':'pending');st.textContent=done?'Telah disahkan':'Belum direkod';b.append(nm,note,st);b.addEventListener('click',()=>loadStudents(k));host.append(b);}}
+    function renderStudents(){const host=byId('student-list'),search=byId('search').value.trim().toLocaleLowerCase('ms');host.replaceChildren();let visible=0;
+      for(const s of state.murid){if(search&&!String(s.namaMurid).toLocaleLowerCase('ms').includes(search))continue;visible++;const row=document.createElement('label');row.className='student'+(state.absent.has(s.idMurid)?' absent':'');const cb=document.createElement('input');cb.type='checkbox';cb.checked=state.absent.has(s.idMurid);cb.disabled=state.readOnly||state.busy;cb.setAttribute('aria-label','Tidak hadir: '+s.namaMurid);cb.addEventListener('change',()=>{if(cb.checked)state.absent.add(s.idMurid);else state.absent.delete(s.idMurid);row.classList.toggle('absent',cb.checked);refreshStats();byId('ack').checked=false;toggleControls();});const middle=document.createElement('span');middle.className='student-main';const title=document.createElement('div');title.className='student-name';title.textContent=s.namaMurid;middle.append(title);if(s.laporanPenjaga?.ada){const small=document.createElement('div');small.className='student-note';small.textContent='Laporan penjaga diterima'+(s.laporanPenjaga.sebab?' · '+s.laporanPenjaga.sebab:'');middle.append(small);}else if(state.absent.has(s.idMurid)){const small=document.createElement('div');small.className='student-note';small.textContent='Sebab belum diterima daripada penjaga';middle.append(small);}row.append(cb,middle);if(s.laporanPenjaga?.ada){const chip=document.createElement('span');chip.className='tag';chip.textContent='Penjaga';row.append(chip);}host.append(row);}
+      if(!visible)host.append(empty(search?'Nama tidak ditemukan.':'Tiada murid untuk kelas ini.'));refreshStats();toggleControls();}
+    async function loadClasses(){state.requestId++;const req=state.requestId;state.busy=true;state.kelas=[];resetStudents();status('Belum dipilih');byId('record-title').textContent='Senarai murid';byId('record-subtitle').textContent='Pilih kelas untuk melihat rekod kehadiran.';msg('record-message','Belum ada kelas dipilih.');msg('kelas-notice','Sedang mendapatkan kelas rasmi…');renderClasses();toggleControls();try{const data=await api(ACTION.kelas,{tarikh:byId('tarikh').value});if(req!==state.requestId)return;const list=Array.isArray(data?.kelas)?data.kelas:[];state.kelas=list.filter(k=>k&&typeof k.idKelas==='string'&&k.idKelas);msg('kelas-notice',state.kelas.length?'Pilih kelas yang ingin direkod. Jika sudah disahkan, rekod hanya boleh dilihat.':'Tiada kelas yang boleh dipaparkan bagi tarikh ini.');renderClasses();}catch(e){if(req!==state.requestId)return;msg('kelas-notice','Modul belum dapat membaca jadual rasmi. Backend Smart Kehadiran perlu dipasang dan diberi kebenaran akses.','warn');renderClasses();}finally{if(req===state.requestId){state.busy=false;toggleControls();}}}
+    async function loadStudents(k){state.requestId++;const req=state.requestId;state.selected=k;state.murid=[];state.absent=new Set();state.busy=true;state.readOnly=true;renderClasses();status('Memuatkan…');byId('record-title').textContent=k.namaKelas||k.idKelas;byId('record-subtitle').textContent=[k.subjek,k.masa].filter(Boolean).join(' · ');msg('record-message','Sedang membaca murid dan laporan penjaga…');byId('student-list').replaceChildren(empty('Mendapatkan senarai murid…'));byId('ack').checked=false;refreshStats();toggleControls();try{const data=await api(ACTION.murid,{tarikh:byId('tarikh').value,idKelas:k.idKelas});if(req!==state.requestId)return;state.version=data?.version??null;state.readOnly=data?.statusRekod==='DISAHKAN'||data?.bolehSahkan!==true;state.murid=(Array.isArray(data?.murid)?data.murid:[]).filter(m=>m&&typeof m.idMurid==='string'&&typeof m.namaMurid==='string');state.absent=new Set(state.murid.filter(m=>m.statusKehadiran==='TIDAK_HADIR'||(data?.statusRekod!=='DISAHKAN'&&m.laporanPenjaga?.ada===true)).map(m=>m.idMurid));status(data?.statusRekod==='DISAHKAN'?'Disahkan':'Belum direkod',data?.statusRekod==='DISAHKAN'?'done':'pending');if(data?.statusRekod==='DISAHKAN')msg('record-message','Kehadiran sudah disahkan. Paparan ini untuk semakan sahaja. Pembetulan rasmi akan melalui log audit.');else if(state.readOnly)msg('record-message','Anda boleh melihat kelas ini tetapi tidak mempunyai kebenaran mengesahkan rekod.','warn');else msg('record-message','Nama dengan laporan penjaga telah dipratanda. Semak kehadiran sebenar sebelum mengesahkan.');renderStudents();}catch(e){if(req!==state.requestId)return;msg('record-message','Senarai murid tidak dapat dibaca. Pastikan backend Smart Kehadiran telah dipasang.','warn');byId('student-list').replaceChildren(empty('Rekod murid belum tersedia.'));status('Belum tersedia');}finally{if(req===state.requestId){state.busy=false;toggleControls();}}}
+    async function save(){if(!state.selected||state.readOnly||state.busy||!byId('ack').checked)return;state.busy=true;toggleControls();msg('record-message','Menyimpan pengesahan kehadiran…');try{await api(ACTION.simpan,{tarikh:byId('tarikh').value,idKelas:state.selected.idKelas,tidakHadir:[...state.absent],version:state.version});msg('record-message','Rekod telah disahkan. Menyegarkan paparan…');const savedId=state.selected.idKelas;await loadClasses();const refreshed=state.kelas.find(x=>x.idKelas===savedId);if(refreshed)await loadStudents(refreshed);}catch(e){msg('record-message',e.message||'Rekod belum berjaya disimpan. Sila cuba lagi.','error');}finally{state.busy=false;toggleControls();}}
+    async function boot(){const today=malaysiaDate();byId('tarikh').value=today;byId('tarikh').max=today;byId('refresh-classes').addEventListener('click',loadClasses);byId('tarikh').addEventListener('change',loadClasses);byId('refresh-students').addEventListener('click',()=>state.selected&&loadStudents(state.selected));byId('search').addEventListener('input',renderStudents);byId('ack').addEventListener('change',toggleControls);byId('save').addEventListener('click',save);
+      try{if(!window.SeMAKMURAuth)throw new Error('Pengesahan sesi tidak tersedia.');const user=await window.SeMAKMURAuth.requireUser(['guru','admin_choice'],'../../LoginSession.html');if(!user)return;state.user=user;byId('user-chip').textContent=user.nama||user.Nama_Guru||user.name||'Guru SeMAKMUR';await loadClasses();}catch(e){byId('user-chip').textContent='Sesi belum disahkan';msg('kelas-notice','Sesi tidak dapat disahkan. Sila kembali ke Dashboard Guru dan log masuk semula.','error');}}
+    document.addEventListener('DOMContentLoaded',boot);
+  </script>
+</body>
+</html>
