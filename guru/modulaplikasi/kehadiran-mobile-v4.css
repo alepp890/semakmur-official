@@ -43,4 +43,27 @@
 }
 
 /* Guru biasa: tiada tab berulang, terus ruang pengisian. */
-@media(max-width:767px){#v4-att-top[data-access="entry"] .v4-att-tabs{display:none!important}}
+@media(max-width:767px){.v4-att-top[data-access="entry"] .v4-att-tabs{display:none!important}}
+
+/* V4.3 — gaya ringkas, lebih jelas; tidak mengubah desktop. */
+@media(max-width:767px){
+  .v4-attendance:not([hidden]){padding:13px 13px 100px;background:#f4f8fb}
+  .v4-att-top{border:0;margin-bottom:14px;padding:0 1px 2px}
+  .v4-att-top strong{font-size:11px;font-weight:800;color:#50768f;background:#e6f0f6;border-radius:20px;padding:8px 10px;white-space:nowrap}
+  #v4-class-view h2,#v4-papar-view h2{font-size:18px;letter-spacing:-.025em;color:#123b59;margin-bottom:9px}
+  #v4-status-note{font-size:11px;font-weight:600;margin:0 0 13px;color:#7890a0}
+  #v4-class-list,#v4-papar-list{gap:8px}
+  .v4-class-item{border:1px solid #e2eaf0;box-shadow:0 2px 12px #234c6510;border-radius:14px;min-height:68px;padding:13px 14px;transition:background .15s,border-color .15s}
+  .v4-class-item:active{background:#edf8fb;border-color:#91d4df}
+  .v4-class-name{font-size:13.5px;letter-spacing:-.01em;color:#21435e}
+  .v4-class-name small{font-size:11px;color:#90a0ae;margin-top:5px}
+  .v4-class-state{font-size:10.5px;background:#f5f7fa;border-radius:9px;padding:7px 9px;white-space:nowrap}
+  .v4-class-state.done{background:#e8f6f0;color:#187756}
+  .v4-class-state.pending{background:#fff4e5;color:#a16a24}
+  .v4-class-arrow{color:#6398ae;font-size:22px;margin-left:1px}
+  .v4-student-dialog{z-index:120}
+  .v4-dialog-head{border-bottom:1px solid #ecf0f4;padding-bottom:13px}
+  .v4-retry{display:block;width:100%;padding:14px;text-align:center;border:1px solid #b9dbe5;border-radius:12px;background:#f3fafc;color:#17627f;font-weight:800;font-size:13px}
+  .v4-student-row{min-height:55px}
+  .v4-class-item:focus-visible,.v4-retry:focus-visible{outline:3px solid #7ad1e4;outline-offset:2px}
+}

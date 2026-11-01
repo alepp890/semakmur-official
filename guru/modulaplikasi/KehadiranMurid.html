@@ -58,8 +58,8 @@
     @media(max-width:760px){.layout{grid-template-columns:1fr}.wrap{padding:15px 12px 90px}.card{padding:15px}.top{margin-bottom:12px}.stats{gap:7px}.stat strong{font-size:21px}.actions .btn{flex:1}.student{padding:10px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
   </style>
-  <link rel="stylesheet" href="kehadiran-mobile-v4.css">
-  <link rel="stylesheet" href="kehadiran-desktop-v4_2.css">
+  <link rel="stylesheet" href="kehadiran-mobile-v4.css?v=43">
+  <link rel="stylesheet" href="kehadiran-desktop-v4_2.css?v=43">
 </head>
 <body>
   <div id="v4-attendance" class="v4-attendance" hidden>
@@ -85,7 +85,7 @@
       <button id="skh-d42-back" type="button">← Laman Utama</button><span>/</span><span>HEM</span><span>/</span><strong>Smart Kehadiran</strong>
     </nav>
     <div class="skh-d42-date-row">
-      <div><h2>Smart Kehadiran Murid</h2><p>Semakan kehadiran mengikut kelas dan tarikh.</p></div>
+      <span id="skh-d42-day" class="skh-d42-day" aria-live="polite"></span>
       <label>Tarikh <input id="skh-d42-date" type="date" aria-label="Tarikh kehadiran"/></label>
     </div>
     <div id="skh-d42-note" role="status" class="skh-d42-note">Menyediakan senarai kelas…</div>
@@ -225,7 +225,7 @@ const baseLoadStudents=loadStudents;
 loadStudents=async function(k){if(state.user)SeMAKMURDataStore.put('prefs',email(),'attendance',{date:byId('tarikh').value,idKelas:k.idKelas});return baseLoadStudents(k);};
 document.addEventListener('DOMContentLoaded',boot);
   </script>
-  <script src="kehadiran-mobile-v4.js"></script>
-  <script src="kehadiran-desktop-v4_2.js"></script>
+  <script src="kehadiran-mobile-v4.js?v=43"></script>
+  <script src="kehadiran-desktop-v4_2.js?v=43"></script>
 </body>
 </html>

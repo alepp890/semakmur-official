@@ -37,3 +37,22 @@
 }
 
 @media(min-width:768px){body:has(.skh-d42:not([hidden])) .skh-d42-date-row{margin-top:5px}}
+
+/* V4.3 — penambahbaikan mengikut anotasi screenshot. */
+@media(min-width:768px){
+  .skh-d42:not([hidden]){max-width:1500px;padding:14px clamp(15px,2.35vw,31px) 50px}
+  .skh-breadcrumb{margin-bottom:15px;font-size:12px;gap:10px}
+  .skh-breadcrumb button{padding:9px 13px;box-shadow:0 2px 9px #153a5410}
+  .skh-d42-date-row{justify-content:space-between;align-items:center;margin-bottom:13px;min-height:40px}
+  .skh-d42-day{font-size:12px;color:#617f90;font-weight:700;min-width:0}
+  .skh-d42-date-row label{font-size:12px;gap:10px}
+  .skh-d42-date-row input{padding:9px 12px}
+  .skh-d42-main{grid-template-columns:minmax(270px,39%) minmax(0,1fr);gap:16px;align-items:start}
+  .skh-d42-card{padding:16px 17px;border-radius:16px}
+  .skh-d42-card-header h3{font-size:16px}
+  .skh-d42-classes{max-height:none;overflow:visible;display:grid;gap:6px;padding:2px 0}
+  .skh-d42-class{border-radius:10px;min-height:50px;padding:10px 13px}
+  .skh-d42-class-name{font-size:13px}
+  .skh-d42-student{border-radius:10px}
+  .skh-d42-note{margin-bottom:11px}
+}
