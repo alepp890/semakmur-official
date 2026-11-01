@@ -855,11 +855,95 @@
         summaryWidget('violet','Tindakan Saya','<div class="status-copy">Belum dapat disahkan.</div>','report');
     }
   }
+  // Dashboard Mobile V4.1: data harian dalam IndexedDB, satu akaun sahaja.
+  // TIDAK dipaparkan sebelum verifySession berjaya. Desktop tidak terlibat.
+  const MOBILE_DASHBOARD_KIND='dashboard';
+  const MOBILE_DASHBOARD_DAY_FORMAT=new Intl.DateTimeFormat('en-CA',{
+    timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'
+  });
+  function dashboardMalaysiaDate(){return MOBILE_DASHBOARD_DAY_FORMAT.format(new Date());}
+  function mobileDashboardMode(){return window.matchMedia('(max-width:767px)').matches;}
+  function safeDashboardSnapshot(r){
+    if(!r?.success || !r.profile?.email || !Array.isArray(r.jadual) || !Array.isArray(r.peranan))return null;
+    const str=(s,max=120)=>String(s??'').slice(0,max);
+    return {
+      success:true,
+      profile:{email:str(r.profile.email,180),namaSamaran:str(r.profile.namaSamaran,60),
+        namaPenuh:str(r.profile.namaPenuh,140),guruKelas:str(r.profile.guruKelas,90),
+        jawatan:str(r.profile.jawatan,90)},
+      jadual:r.jadual.slice(0,250).map(x=>({hari:str(x.hari,30),mula:str(x.mula,20),
+        tamat:str(x.tamat,20),kelas:str(x.kelas,80),subjek:str(x.subjek,110),pairing:!!x.pairing})),
+      jadualTersedia:r.jadualTersedia===true,
+      peranan:r.peranan.slice(0,100).map(x=>({kategori:str(x.kategori,100),
+        jawatankuasa:str(x.jawatankuasa,160),peranan:str(x.peranan,90),skop:str(x.skop,120)})),
+      tugasBertugas:{disahkan:r.tugasBertugas?.disahkan===true,
+        bertugas:r.tugasBertugas?.bertugas===true,
+        kumpulan:str(r.tugasBertugas?.kumpulan,80),catatan:str(r.tugasBertugas?.catatan,150)},
+      // Data dinamik disimpan sementara sahaja untuk fallback visual hari yang sama.
+      reliefHariIni:r.reliefHariIni?.disahkan===true ? r.reliefHariIni : {disahkan:false},
+      rphStatusHariIni:Array.isArray(r.rphStatusHariIni)?r.rphStatusHariIni.slice(0,80):[],
+      cutiHariIni:r.cutiHariIni?.disahkan===true ? r.cutiHariIni : {disahkan:false},
+      integrasi:{tindakan:false,hebahan:false,takwim:false,relief:false}
+    };
+  }
+  async function saveDashboardToday(r){
+    if(!mobileDashboardMode() || !window.SeMAKMURDataStore)return;
+    const v=safeDashboardSnapshot(r);
+    if(!v)return;
+    await SeMAKMURDataStore.put(MOBILE_DASHBOARD_KIND,
+      String(v.profile.email).trim().toLowerCase(),dashboardMalaysiaDate(),v);
+  }
+  async function readDashboardToday(email){
+    if(!mobileDashboardMode() || !window.SeMAKMURDataStore || !email)return null;
+    const item=await SeMAKMURDataStore.get(MOBILE_DASHBOARD_KIND,email,dashboardMalaysiaDate());
+    if(!item?.value || String(item.value.profile?.email||'').toLowerCase()!==email)return null;
+    const r=safeDashboardSnapshot(item.value);
+    if(!r)return null;
+    // RPH, relief dan cuti boleh berubah pada hari sama: jangan paparkan sebagai
+    // pengesahan terkini apabila lebih 10 minit tidak disemak.
+    if(Date.now()-Number(item.savedAt||0)>10*60*1000){
+      r.reliefHariIni={disahkan:false};r.rphStatusHariIni=[];r.cutiHariIni={disahkan:false};
+    }
+    return {data:r,savedAt:Number(item.savedAt||0)};
+  }
+  function savedDashboardEmail(){
+    try{
+      const raw=sessionStorage.getItem('CURRENT_USER')||localStorage.getItem('SAVED_MOE_USER');
+      const item=JSON.parse(raw||'null');
+      return String(item?.email||'').trim().toLowerCase();
+    }catch(_e){return '';}
+  }
   async function hydrateDashboard(background=false){
     if(dashboardRequestPending || document.hidden)return;
     dashboardRequestPending=true;
     if(!dashboardAuthenticated)$('header-status').textContent='Menyemak maklumat…';
     try{
+      // Buka semula pada hari yang sama: sahkan sesi dahulu (permintaan kecil),
+      // kemudian gunakan semula data setempat. Tiada bacaan jadual/murid penuh.
+      if(!dashboardAuthenticated && mobileDashboardMode()){
+        const email=savedDashboardEmail();
+        const snapshot=email?await readDashboardToday(email):null;
+        if(snapshot){
+          const check=await SeMAKMURAuth.verify();
+          const confirmed=String(check?.user?.email||'').trim().toLowerCase();
+          const role=String(check?.user?.role||'').toLowerCase();
+          if(check?.success && confirmed===email &&
+             (role==='guru'||role==='admin_choice'||role==='admin')){
+            if(finishDashboard(snapshot.data)){
+              lastSmartDay=dashboardMalaysiaDate();
+              // Baca data asas dari simpanan; sync perubahan secara ringan selepas
+              // paparan dipulihkan jika status belum disemak 5 minit atau lebih.
+              lastSmartSyncAt=snapshot.savedAt;
+              setTimeout(maybeSmartSync,900);
+              return;
+            }
+          }
+          if(['SESSION_EXPIRED','ACCESS_REVOKED','ACCESS_EXPIRED','AUTH_REQUIRED','UNAUTHORIZED'].includes(String(check?.code||''))){
+            sendToLogin();return;
+          }
+          // Jika identiti tak sepadan: cache tidak digunakan. Biarkan API rasmi semak.
+        }
+      }
       let res=null;
       if(window.SeMAKMURSmartSync){
         const raw=sessionStorage.getItem('CURRENT_USER')||localStorage.getItem('SAVED_MOE_USER');
@@ -885,7 +969,9 @@
         throw new Error('Dashboard belum dapat diselaraskan.');
       }
       if(finishDashboard(res)){
-        lastSmartSyncAt=Date.now();lastSmartDay=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+        lastSmartSyncAt=Date.now();lastSmartDay=dashboardMalaysiaDate();
+        // Tulis hanya respons server yang telah disahkan; simpan setempat untuk hari ini.
+        saveDashboardToday(res).catch(()=>{});
       }
     }catch(err){unavailableDashboard(err);}
     finally{dashboardRequestPending=false;}
