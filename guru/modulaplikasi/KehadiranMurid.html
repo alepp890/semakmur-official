@@ -59,6 +59,7 @@
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
   </style>
   <link rel="stylesheet" href="kehadiran-mobile-v4.css">
+  <link rel="stylesheet" href="kehadiran-desktop-v4_2.css">
 </head>
 <body>
   <div id="v4-attendance" class="v4-attendance" hidden>
@@ -77,6 +78,30 @@
       </div>
     </div>
   </div>
+  
+  <!-- V4.2 DESKTOP SAHAJA. Mobile V4 dikekalkan dalam #v4-attendance. -->
+  <div id="skh-desktop-v42" class="skh-d42" hidden>
+    <nav class="skh-breadcrumb" aria-label="Laluan Kehadiran">
+      <button id="skh-d42-back" type="button">← Laman Utama</button><span>/</span><span>HEM</span><span>/</span><strong>Smart Kehadiran</strong>
+    </nav>
+    <div class="skh-d42-date-row">
+      <div><h2>Smart Kehadiran Murid</h2><p>Semakan kehadiran mengikut kelas dan tarikh.</p></div>
+      <label>Tarikh <input id="skh-d42-date" type="date" aria-label="Tarikh kehadiran"/></label>
+    </div>
+    <div id="skh-d42-note" role="status" class="skh-d42-note">Menyediakan senarai kelas…</div>
+    <div class="skh-d42-main">
+      <section class="skh-d42-card" aria-label="Senarai kelas">
+        <div class="skh-d42-card-header"><h3>Senarai Kelas</h3><span id="skh-d42-total">—</span></div>
+        <div id="skh-d42-classes" class="skh-d42-classes"></div>
+      </section>
+      <section class="skh-d42-card" aria-label="Senarai tidak hadir">
+        <div class="skh-d42-card-header"><div><h3 id="skh-d42-class-name">Murid Tidak Hadir</h3><p id="skh-d42-subtitle">Pilih kelas untuk melihat rekod.</p></div><span id="skh-d42-class-stat" class="skh-d42-badge">—</span></div>
+        <div id="skh-d42-absentees" class="skh-d42-absentees"><div class="skh-d42-empty">Pilih mana-mana kelas di sebelah kiri.</div></div>
+        <p class="skh-d42-footnote" id="skh-d42-footer">Maklumat sebab hanya dipaparkan kepada guru kelas, GPK HEM atau Admin Sistem.</p>
+      </section>
+    </div>
+  </div>
+
   <div class="wrap">
     <header class="top">
       <div><div class="eyebrow">SeMAKMUR Digital · HEM</div><h1>Smart Kehadiran Murid</h1><p class="subtitle">Satu pengesahan sehari · Guru pertama atau guru berikutnya jika belum direkod</p></div>
@@ -201,5 +226,6 @@ loadStudents=async function(k){if(state.user)SeMAKMURDataStore.put('prefs',email
 document.addEventListener('DOMContentLoaded',boot);
   </script>
   <script src="kehadiran-mobile-v4.js"></script>
+  <script src="kehadiran-desktop-v4_2.js"></script>
 </body>
 </html>
