@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#171d47" />
+  <meta name="color-scheme" content="light" />
+  <title>Fi · Log Masuk | SeMAKMUR Digital</title>
+  <meta name="description" content="Log masuk ke SeMAKMUR Digital, portal pengurusan bersepadu SK Segambut Makmur." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;650;700;750;800&display=swap" rel="stylesheet" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    /* SE-MAKMUR DESIGN SYSTEM — PROFESSIONAL NAVY / SKY / WHITE */
+    :root {
+      --navy-950: #101633;
+      --navy-900: #171d47;
+      --navy-800: #222d5b;
+      --navy-700: #2b4071;
+      --blue-600: #366ed0;
+      --sky-500: #6aadd5;
+      --sky-200: #cadfef;
+      --ice-100: #eff5fb;
+      --ice-50: #f7f9fd;
+      --ink: #1b2942;
+      --muted: #718098;
+      --line: #e3eaf3;
+      --white: #fff;
+      --error: #b33f4f;
+      --error-bg: #fff4f5;
+      --success: #236d60;
+      --success-bg: #eef8f4;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; min-height: 100vh; min-height: 100dvh;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 11% 92%, #37648c 0%, transparent 43%),
+        radial-gradient(ellipse at 92% 2%, #252e61 0%, transparent 40%),
+        linear-gradient(150deg, #121836, #1a2450 72%, #193b60);
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+      overflow: hidden;
+    }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: progress; }
+    a { color: inherit; }
+    .app-frame {
+      width: min(1120px, 100%); height: min(680px, calc(100dvh - 32px));
+      display: grid; grid-template-columns: minmax(0, 1.06fr) minmax(420px, .94fr);
+      overflow: hidden; border-radius: 23px; background: var(--white);
+      border: 1px solid rgba(255,255,255,.2);
+      box-shadow: 0 32px 90px rgba(5,14,42,.32), 0 5px 20px rgba(10,20,45,.14);
+      isolation: isolate;
+    }
+    .brand-side {
+      background:
+        radial-gradient(circle at 88% 85%, rgba(114,176,212,.28), transparent 45%),
+        linear-gradient(155deg, #151b44 0%, #1b2754 52%, #315c82 100%);
+      padding: 34px 40px 28px; position: relative; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: space-between;
+      color: #fff;
+    }
+    .brand-side::before {
+      content: ''; position:absolute; width: 550px; height:550px; right:-340px; top:90px;
+      border:1px solid rgba(200,229,250,.12); border-radius:50%;
+      box-shadow: 0 0 0 70px rgba(192,223,246,.035), 0 0 0 145px rgba(192,223,246,.025);
+      pointer-events: none;
+    }
+    .brand-side::after {
+      content: ''; pointer-events: none;
+      position: absolute; inset: 0;
+      background-image: radial-gradient(rgba(255,255,255,.19) .65px, transparent .65px);
+      background-size: 19px 19px; opacity: .13;
+      mask-image: linear-gradient(110deg, transparent 0%, black 100%);
+    }
+    .brand-side > * { position: relative; z-index: 1; }
+    .brand-logo { display:flex; align-items:center; gap:12px; width: fit-content; }
+    .brand-mark {
+      display:grid; place-items:center; width:43px; height:43px;
+      border: 1px solid rgba(178,216,242,.4); border-radius: 12px;
+      background: rgba(188,218,241,.10); color:#b8ddf6;
+    }
+    .brand-word { font-size: 19px; letter-spacing:.012em; font-weight:800; line-height:1.1; }
+    .brand-word small { display:block; font-size:13px; font-weight:700; letter-spacing:.24em; color:#b7d6ed; margin-top:5px; }
+    .hero { padding-top: 34px; max-width: 460px; }
+    .eyebrow { font-size: 13px; letter-spacing:.22em; font-weight:800; color:#acd7f5; text-transform: uppercase; }
+    .hero h1 { margin: 18px 0 16px; font-size: clamp(34px, 3.4vw, 44px); line-height: 1.19; letter-spacing:-.045em; font-weight:800; }
+    .hero h1 span { color:#8fc9ed; }
+    .hero p { font-size:14px; line-height:1.95; color:#d1dfed; max-width:370px; margin: 0; }
+    .module-preview { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top: 24px; }
+    .preview-tile { min-height: 93px; padding:14px 11px 11px; border-radius: 13px;
+      background: rgba(245,251,255,.085); border:1px solid rgba(230,245,255,.13);
+      backdrop-filter: blur(12px); }
+    .preview-tile svg { color:#a9d8f2; width:20px; height:20px; }
+    .preview-tile strong { display:block; font-size:13px; line-height:1.45; letter-spacing:.01em; margin-top:11px; color:#eff8ff; }
+    .brand-foot { margin-top: 20px; display:flex; justify-content:space-between; align-items:center; color:rgba(213,231,244,.64); gap:16px; font-size:13px; letter-spacing:.04em; }
+    .brand-foot .separation { width:24px; height:1px; background:rgba(220,241,255,.4); }
+    .login-side { background:linear-gradient(165deg, #fcfdff 0%, #f1f6fb 100%); padding:34px 42px 24px;
+      display:flex; flex-direction:column; justify-content:center; position:relative; }
+    .login-side::after { content:'';position:absolute;top:0;right:0;width:150px;height:150px;background:radial-gradient(circle at 100% 0%,rgba(123,171,212,.1), transparent 70%);pointer-events:none; }
+    .top-line { display:flex; justify-content:space-between; align-items:center; margin-bottom: 28px; gap:14px; }
+    .top-line .caption { display:flex; align-items:center; gap:8px; color:#647995; text-transform:uppercase; letter-spacing:.17em; font-size:13px; font-weight:800; }
+    .online-point { display:inline-block; width:7px; height:7px; border-radius:50%; background:#74b7aa; box-shadow:0 0 0 4px rgba(116,183,170,.13); }
+    .portal-link { text-decoration:none; display:inline-flex; align-items:center; gap:6px; color:#72809a; font-size:13px; font-weight:700; white-space:nowrap; }
+    .portal-link:hover { color:var(--blue-600); }
+    .portal-link svg { width:13px; height:13px; }
+    .login-body { width:100%; max-width:380px; margin:0 auto; }
+    .login-kicker { display:inline-flex; align-items:center; gap:8px; color:#3a6f9e; font-size:13px; letter-spacing:.18em; text-transform:uppercase; font-weight:800; }
+    .login-kicker svg { height:17px; width:17px; }
+    h2 { margin:12px 0 7px; font-size:31px; line-height:1.24; letter-spacing:-.052em; font-weight:800; color:#1a284b; }
+    .login-subtitle { font-size:13px; line-height:1.75; color:#718097; margin:0 0 18px; }
+    .auth-panel { padding:18px 18px 16px; background:#fff; border:1px solid #e1e9f3; border-radius:16px; box-shadow:0 14px 40px rgba(38,69,117,.06); }
+    .field-title { font-weight:800; font-size:13px; letter-spacing:.11em; text-transform:uppercase; color:#586c88; margin:0 0 12px; text-align:center; }
+    #google-signin-button { width:100%; min-height:45px; display:flex; justify-content:center; align-items:center; }
+    #google-signin-button > div { max-width:100%; }
+    .auth-note { font-size:13px; color:#7b879c; line-height:1.65; margin:12px 0 0; text-align:center; }
+    .divider { display:flex; align-items:center; gap:13px; margin:16px 0 12px; color:#a0acbd; font-size:13px; font-weight:700; letter-spacing:.11em; }
+    .divider::before,.divider::after { content:'';flex:1;height:1px;background:#e1e8f0; }
+    .tip-box { display:flex; gap:10px; padding:12px 13px; border:1px solid #dce8f3; background:#edf5fb; border-radius:12px; }
+    .tip-box svg { width:17px; height:17px; flex:none; color:#547ea5; margin-top:1px; }
+    .tip-box strong { display:block; font-size:13px; color:#3a5275; font-weight:800; margin-bottom:4px; }
+    .tip-box p { margin:0; color:#697f98; line-height:1.8; font-size:13px; }
+    .login-bottom { text-align:center; margin-top: 16px; color:#95a2b5; font-size:13px; line-height:1.8; }
+    .status-message { display:none; gap:10px; align-items:flex-start; padding:12px 13px; border-radius:11px; margin:17px 0 0; background:var(--error-bg); color:var(--error); border:1px solid #f0d8dc; text-align:left; }
+    .status-message.visible { display:flex; }
+    .status-message.success { background:var(--success-bg); border-color:#d4e9e1; color:var(--success); }
+    .status-message.info { background:#eef5fc; border-color:#d8e7f5; color:#466d99; }
+    .status-message svg { width:17px;height:17px;flex:none;margin-top:2px; }
+    .status-message strong { font-size:13px;display:block;line-height:1.4;margin-bottom:3px; }
+    .status-message p { font-size:13px;line-height:1.65;margin:0;overflow-wrap:anywhere; }
+    .loading-row { display:none; align-items:center; justify-content:center; gap:10px; padding:13px 0 0; color:#637a98; font-size:13px;font-weight:700; }
+    .loading-row.visible { display:flex; }
+    .spinner { width:15px;height:15px;border-radius:50%;border:2px solid #d5e5f7;border-top-color:#366ed0;animation:spin .75s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .admin-area { display:none; animation: rise .24s ease-out; }
+    .admin-area.visible { display:block; }
+    .login-area.hidden { display:none; }
+    @keyframes rise { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:translateY(0)} }
+    .admin-intro { color:#73839a;font-size:13px;line-height:1.8;margin:0 0 21px; }
+    .workspace-list { display:grid;gap:11px; }
+    .workspace-card { display:flex;align-items:center;gap:13px;padding:15px 14px;text-align:left;border:1px solid #dae5f0;background:#fff;border-radius:13px;width:100%;transition:background .2s,border-color .2s,transform .2s; }
+    .workspace-card:hover { transform:translateY(-2px); background:#f5f9fe;border-color:#a9c2df; }
+    .workspace-card.primary { background:#1c2753;border-color:#1c2753;color:#fff; }
+    .workspace-card.primary:hover { background:#273a6d; }
+    .workspace-card .workspace-icon { display:grid;place-items:center;flex:none;width:39px;height:39px;border-radius:10px;background:#eaf2fb;color:#416e9c; }
+    .workspace-card.primary .workspace-icon { background:rgba(255,255,255,.12);color:#badffc; }
+    .workspace-card svg { width:19px;height:19px; }
+    .workspace-card .workspace-meta { flex:1;min-width:0; }
+    .workspace-card strong { display:block;font-size:13px;line-height:1.35;font-weight:800; }
+    .workspace-card small { display:block;margin-top:3px;font-size:13px;line-height:1.55;color:#73849b; }
+    .workspace-card.primary small { color:#c6d5ea; }
+    .workspace-card .go { width:17px;height:17px;color:#8092ac; }
+    .workspace-card.primary .go { color:#b7d8f0; }
+    .back-button { margin-top:20px;padding:8px 0;border:0;background:transparent;color:#6d819b;font-size:13px;font-weight:750; }
+    .back-button:hover { color:var(--blue-600); }
+    @media (max-width: 900px) {
+      body { padding:12px; }
+      .app-frame { grid-template-columns: minmax(0, .82fr) minmax(400px,1fr); height:min(650px, calc(100dvh - 24px)); }
+      .brand-side { padding:28px 28px 22px; }
+      .hero h1 { font-size:32px; }
+      .module-preview { grid-template-columns:1fr;gap:7px; }
+      .preview-tile { min-height:55px;display:flex;align-items:center;gap:12px; }
+      .preview-tile strong { margin-top:0; }
+      .login-side { padding:28px 26px 20px; }
+    }
+    @media (max-width: 700px) {
+      body { padding:8px;align-items:center; }
+      .app-frame { display:flex;flex-direction:column;height:calc(100dvh - 16px); border-radius:18px; }
+      .brand-side { padding:18px 22px 14px; min-height:150px; }
+      .hero { padding-top:12px; }
+      .hero h1 { font-size:22px;margin:8px 0 4px; max-width:410px; }
+      .hero p { font-size:13px;line-height:1.5; }
+      .module-preview,.brand-foot { display:none; }
+      .brand-word { font-size:16px; }
+      .brand-mark { width:35px;height:35px; }
+      .login-side { padding:18px 20px 14px;flex:1;justify-content:flex-start; }
+      .top-line { margin-bottom:16px; }
+      .login-body { max-width:410px; }
+      h2 { font-size:25px;margin:10px 0 6px; }
+      .login-subtitle { margin-bottom:14px; }
+      .auth-panel { padding:16px 14px 14px; }
+      .login-bottom { margin-top:12px; }
+    }
+    @media (max-width: 370px) {
+      body { padding:0; }
+      .app-frame { border-radius:0; min-height:100dvh; }
+      .brand-side { padding:16px 17px 12px; }
+      .login-side { padding:14px 14px 10px; }
+      .top-line .caption { letter-spacing:.1em;font-size:13px; }
+      .portal-link { font-size:13px; }
+    }
+    @media (max-height: 760px) {
+      .top-line { margin-bottom: 14px; }
+      .brand-side { padding-bottom: 18px; }
+      .hero { padding-top: 18px; }
+      .hero h1 { margin: 10px 0 8px; font-size: clamp(30px, 3vw, 38px); }
+      .module-preview { margin-top: 16px; gap: 8px; }
+      .preview-tile { min-height: 72px; padding: 11px 10px 10px; }
+      .login-subtitle { margin-bottom: 12px; }
+      .divider { margin: 12px 0 10px; }
+      .tip-box { padding: 10px 12px; }
+      .login-bottom { margin-top: 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *,*::before,*::after {animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}
+    }
+
+    /* PREMIUM DASHBOARD — theme and viewport-fit refinement.
+       No font declarations below 13px. No JS auth/routing changes. */
+    :root { --navy-950:#111832; --navy-900:#182449; --navy-800:#25375f; --sky-500:#74b8e2; --ink:#223453; }
+    html,body { width:100%; height:100%; overflow:hidden; }
+    body {
+      padding: clamp(10px,2.2vh,22px);
+      background: radial-gradient(ellipse at 10% 88%,#2b6089 0%,transparent 42%),
+                  radial-gradient(ellipse at 95% 7%,#374476 0%,transparent 44%),
+                  #141c3b;
+    }
+    .app-frame {
+      width:min(1140px,100%);
+      height:min(710px,calc(100dvh - clamp(20px,4.4vh,44px)));
+      min-height:0;
+      grid-template-columns:minmax(0,1.04fr) minmax(400px,.96fr);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:21px;
+      box-shadow:0 28px 80px rgba(2,9,35,.33);
+    }
+    .brand-side {
+      background: radial-gradient(circle at 84% 87%, rgba(121,181,221,.18), transparent 49%),
+                  linear-gradient(153deg,#162046 6%,#1b315b 54%,#2e6087 100%);
+      padding:clamp(22px,3.4vw,40px);
+    }
+    .brand-side::after {opacity:.08;}
+    .brand-mark { border-radius:11px; background:rgba(255,255,255,.055); }
+    .brand-word {font-size:20px;letter-spacing:-.02em;}
+    .brand-word small {letter-spacing:.13em;color:#bddbf1;}
+    .hero {padding-top:10px;}
+    .eyebrow {letter-spacing:.13em;font-size:13px;color:#b5d9f3;}
+    .hero h1 {font-size:clamp(32px,3.5vw,45px);line-height:1.18;letter-spacing:-.042em;margin:14px 0 16px;}
+    .hero h1 span {color:#a1d6f6;}
+    .hero p {font-size:14px;line-height:1.68;max-width:395px;color:#d4e3ee;}
+    .module-preview {margin-top:24px;gap:10px;}
+    .preview-tile {min-height:88px;padding:12px 12px 10px;background:rgba(241,250,255,.075);border-radius:11px;}
+    .preview-tile strong {font-weight:700;font-size:13px;margin-top:7px;}
+    .brand-foot {margin-top:12px;line-height:1.35;}
+    .brand-foot .separation {flex:0 0 14px;}
+    .login-side {padding:clamp(23px,3.4vw,43px);background:linear-gradient(158deg,#fdfefe,#f1f6fc);}
+    .top-line {margin-bottom:clamp(22px,4vh,45px);}
+    .top-line .caption {color:#556b88;letter-spacing:.13em;}
+    .login-body {max-width:382px;}
+    .login-kicker {letter-spacing:.13em;color:#4474a5;}
+    h2 {margin:14px 0 11px;font-size:clamp(29px,2.7vw,35px);letter-spacing:-.05em;}
+    .login-subtitle {font-size:14px;line-height:1.65;color:#687b96;margin-bottom:26px;max-width:370px;}
+    .auth-panel {padding:24px 22px 21px;border-radius:16px;border-color:#dce6f1;box-shadow:0 16px 36px rgba(34,68,113,.07);}
+    .field-title {text-align:center;margin:0 0 17px;color:#476386;letter-spacing:.11em;font-size:13px;}
+    #google-signin-button {min-height:45px;}
+    .auth-note {color:#7b8ca4;font-size:13px;line-height:1.55;margin:15px 0 0;}
+    .trust-line {display:flex;gap:9px;align-items:center;justify-content:center;text-align:center;
+      border:1px solid #e0e9f4;background:rgba(237,244,252,.8);border-radius:11px;
+      margin-top:22px;padding:12px 11px;color:#627b99;font-size:13px;line-height:1.4;}
+    .trust-line svg {width:18px;height:18px;flex:none;color:#43779f;}
+    .login-bottom {margin-top:20px;color:#8899ad;font-size:13px;line-height:1.5;}
+    .status-message {margin-top:12px;padding:9px 11px;border-radius:10px;}
+    .status-message strong, .status-message p {font-size:13px;}
+    .admin-intro {line-height:1.65;margin-bottom:16px;}
+    .workspace-list {gap:9px;}
+    .workspace-card {padding:13px 12px;}
+    .back-button {margin-top:16px;}
+    @media (max-height:770px) and (min-width:701px) {
+      .brand-side {padding:25px 30px;}
+      .hero h1 {font-size:clamp(30px,3vw,40px);margin:10px 0 10px;}
+      .hero p {line-height:1.55;}
+      .module-preview {margin-top:16px;}
+      .preview-tile {min-height:71px;padding:10px;}
+      .preview-tile strong {margin-top:5px;}
+      .login-side {padding:25px 34px;}
+      .top-line {margin-bottom:16px;}
+      .login-subtitle {margin-bottom:17px;}
+      .auth-panel {padding:18px 17px;}
+      .trust-line {margin-top:15px;padding:10px;}
+      .login-bottom {margin-top:14px;}
+    }
+    @media (max-height:600px) and (min-width:701px) {
+      .brand-side {padding:18px 23px;}
+      .hero h1 {font-size:29px;line-height:1.12;margin:8px 0;}
+      .hero p {line-height:1.45;}
+      .module-preview {margin-top:10px;}
+      .preview-tile {min-height:61px;padding:8px;}
+      .brand-foot {display:none;}
+      .login-side {padding:16px 25px;}
+      .top-line {margin-bottom:9px;}
+      h2 {font-size:27px;margin:8px 0 6px;}
+      .login-subtitle {font-size:13px;line-height:1.4;margin-bottom:12px;}
+      .auth-panel {padding:12px;}
+      .field-title {margin-bottom:8px;}
+      .auth-note {margin-top:9px;}
+      .trust-line {margin-top:10px;padding:8px;}
+      .login-bottom {margin-top:9px;}
+    }
+    @media (max-width:900px) and (min-width:701px) {
+      .app-frame {grid-template-columns:minmax(0,.9fr) minmax(370px,1.1fr);}
+      .brand-side {padding:24px;}
+      .login-side {padding:23px;}
+      .brand-foot {display:none;}
+      .module-preview {grid-template-columns:1fr;gap:7px;}
+      .preview-tile {display:flex;align-items:center;min-height:48px;padding:8px 11px;gap:12px;}
+      .preview-tile strong {margin:0;}
+    }
+    @media (max-width:700px) {
+      body {padding:9px;align-items:center;overflow:hidden;}
+      .app-frame {display:flex;flex-direction:column;width:100%;height:calc(100dvh - 18px);border-radius:16px;}
+      .brand-side {flex:0 0 auto;min-height:0;padding:19px 22px 16px;gap:12px;}
+      .brand-mark {width:35px;height:35px;}
+      .brand-word {font-size:18px;}
+      .brand-word small {font-size:13px;margin-top:3px;}
+      .hero {padding:0;}
+      .eyebrow {display:none;}
+      .hero h1 {font-size:21px;margin:0;line-height:1.27;letter-spacing:-.025em;}
+      .hero h1 br {display:none;}
+      .hero h1 span {color:#b2dcf8;}
+      .hero h1 span::after {content:' ';white-space:pre;}
+      .hero p,.module-preview,.brand-foot {display:none;}
+      .login-side {padding:19px 21px 15px;flex:1;min-height:0;justify-content:center;}
+      .top-line {margin:0 0 23px;}
+      .login-body {max-width:400px;}
+      h2 {font-size:29px;margin:11px 0 8px;}
+      .login-subtitle {font-size:14px;line-height:1.55;margin-bottom:20px;}
+      .auth-panel {padding:20px 14px 18px;}
+      .field-title {margin-bottom:13px;}
+      .auth-note {margin-top:13px;}
+      .trust-line {margin-top:18px;padding:11px 9px;}
+      .login-bottom {margin-top:18px;}
+      .workspace-card {padding:12px;}
+    }
+    @media (max-width:700px) and (max-height:740px) {
+      .brand-side {padding:13px 18px 11px;gap:8px;}
+      .brand-word {font-size:17px;}
+      .hero h1 {font-size:18px;}
+      .login-side {padding:12px 18px 12px;}
+      .top-line {margin-bottom:13px;}
+      h2 {font-size:25px;margin:8px 0 5px;}
+      .login-subtitle {font-size:13px;line-height:1.45;margin-bottom:12px;}
+      .auth-panel {padding:13px 12px;}
+      .field-title {margin-bottom:9px;}
+      .auth-note {margin-top:9px;}
+      .trust-line {margin-top:11px;padding:9px;}
+      .login-bottom {margin-top:11px;}
+      .admin-intro {margin-bottom:12px;}
+    }
+    @media (max-width:700px) and (max-height:615px) {
+      .brand-side {padding:9px 16px;}
+      .brand-word {font-size:16px;}
+      .brand-logo {gap:8px;}
+      .hero {display:none;}
+      .login-side {padding:9px 15px 8px;}
+      .top-line {margin-bottom:8px;}
+      .login-kicker {display:none;}
+      h2 {font-size:23px;margin:4px 0 5px;}
+      .login-subtitle {margin-bottom:8px;line-height:1.4;}
+      .auth-panel {padding:10px;}
+      .field-title {margin-bottom:7px;}
+      .auth-note {margin-top:7px;}
+      .trust-line {margin-top:7px;padding:7px;}
+      .login-bottom {margin-top:7px;}
+      .admin-intro {margin-bottom:8px;}
+      .workspace-list {gap:6px;}
+      .workspace-card {padding:9px;}
+    }
+    @media (max-width:370px) {
+      body {padding:4px;}
+      .app-frame {height:calc(100dvh - 8px);border-radius:12px;}
+      .brand-side {padding-left:14px;padding-right:14px;}
+      .login-side {padding-left:12px;padding-right:12px;}
+      .top-line .caption {letter-spacing:.07em;}
+    }
+    @media (max-width:700px) and (max-height:690px) {
+      .login-side:has(.status-message.visible) .trust-line {display:none;}
+      .login-side:has(.status-message.visible) .login-bottom {margin-top:6px;}
+      .status-message {margin-top:8px;padding:8px 10px;}
+    }
+    /* Accessibility: extraordinary narrow/short screens or large text zoom may need scrolling.
+       Prefer usable controls over clipping login/error messages. */
+    @media (max-width:700px) and (max-height:490px) {
+      html,body {overflow:auto;}
+      body {align-items:flex-start;height:auto;min-height:100dvh;}
+      .app-frame {height:auto;min-height:calc(100dvh - 8px);overflow:visible;}
+    }
+
+
+    /* PENAMBAHBAIKAN VISUAL MOBILE — desktop tidak disentuh. */
+    .mobile-brand-access { display:none; }
+    @media (max-width:700px) {
+      html, body { background:#121d40; }
+      body {
+        padding:0;
+        background:radial-gradient(ellipse at 90% 98%,rgba(74,143,192,.18),transparent 46%),
+                   linear-gradient(155deg,#111832 0%,#1b2b57 55%,#1f4970 100%);
+      }
+      .app-frame {
+        position:relative;
+        height:100dvh;
+        width:100%;
+        border:0;
+        border-radius:0;
+        background:radial-gradient(ellipse at 100% 90%,rgba(116,184,226,.22),transparent 53%),
+                   radial-gradient(ellipse at 8% 2%,rgba(100,132,199,.08),transparent 34%),
+                   linear-gradient(157deg,#151e43 0%,#1d335e 56%,#275c83 100%);
+        box-shadow:none;
+      }
+      .brand-side {
+        z-index:1;
+        background:transparent;
+        min-height:0;
+        padding:20px 20px 8px;
+        flex:0 0 auto;
+        overflow:visible;
+      }
+      .brand-side::before,.brand-side::after {display:none;}
+      .brand-logo {align-items:flex-start;gap:11px;}
+      .brand-mark {width:34px;height:34px;flex:none;border-radius:9px;}
+      .brand-word {font-size:17px;line-height:1.1;letter-spacing:-.025em;}
+      .brand-word small {font-size:13px;letter-spacing:.045em;margin-top:3px;white-space:nowrap;}
+      .mobile-brand-access {
+        display:block;
+        position:relative;
+        color:#add4f0;
+        font-size:13px;
+        line-height:1.25;
+        letter-spacing:.095em;
+        font-weight:700;
+        margin-top:12px;
+      }
+      .hero,.module-preview,.brand-foot {display:none;}
+      .login-side {
+        z-index:1;
+        flex:1 1 auto;
+        min-height:0;
+        padding:4px 22px 49px;
+        background:transparent;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        position:static;
+      }
+      .login-side::after {display:none;}
+      .top-line {
+        position:absolute;
+        z-index:5;
+        top:22px;
+        right:20px;
+        margin:0;
+        width:auto;
+        padding:0;
+      }
+      .top-line .caption {display:none;}
+      .portal-link {font-size:13px;color:#d9e8f6;font-weight:700;white-space:nowrap;gap:4px;}
+      .portal-link:hover {color:white;}
+      .portal-link svg {width:13px;height:13px;}
+      .login-body {width:100%;max-width:405px;margin:auto;}
+      .login-kicker {display:none;}
+      h2 {color:#ffffff;font-size:clamp(27px,7vw,32px);margin:0 0 9px;letter-spacing:-.045em;}
+      .login-subtitle {color:#c8d9eb;font-size:13px;line-height:1.65;margin:0 0 20px;max-width:355px;}
+      .auth-panel {padding:22px 17px 17px;background:#ffffff;border-radius:15px;border-color:rgba(221,234,247,.93);}
+      .field-title {font-size:13px;color:#3c567b;margin-bottom:16px;}
+      .auth-note {color:#7085a1;font-size:13px;line-height:1.5;margin-top:14px;}
+      .status-message {margin:12px 0 0;padding:10px 12px;border-radius:9px;border-left:3px solid #bf5568;}
+      .status-message strong,.status-message p {font-size:13px;}
+      .auth-panel:has(.status-message.visible) .auth-note {display:none;}
+      .loading-row {padding-top:10px;}
+      .trust-line {
+        margin-top:15px;
+        padding:9px 10px;
+        color:#cadbed;
+        border-color:rgba(203,228,249,.18);
+        background:rgba(215,233,251,.07);
+        border-radius:10px;
+        font-size:13px;
+        line-height:1.4;
+      }
+      .trust-line svg {color:#bad9f2;}
+      .login-bottom {
+        position:absolute;
+        left:12px;right:12px;
+        bottom:calc(16px + env(safe-area-inset-bottom,0px));
+        margin:0;
+        font-size:11px;
+        font-weight:500;
+        line-height:1.45;
+        color:rgba(220,235,248,.70);
+        text-align:center;
+      }
+      .admin-intro {color:#d2e1f1;font-size:13px;line-height:1.55;margin:0 0 17px;}
+      .workspace-card {padding:13px;}
+      .workspace-card:not(.primary) {border-color:#d4e4f2;}
+      .back-button {color:#c7dff1;}
+      .back-button:hover {color:white;}
+      .login-side:has(.status-message.visible) .trust-line {display:none;}
+    }
+    @media (max-width:700px) and (max-height:690px) {
+      .brand-side {padding-top:14px;padding-bottom:3px;}
+      .top-line {top:16px;}
+      .mobile-brand-access {margin-top:9px;}
+      .login-side {padding:2px 17px 40px;}
+      .login-subtitle {margin-bottom:12px;line-height:1.5;}
+      .auth-panel {padding:15px 13px 13px;}
+      .field-title {margin-bottom:10px;}
+      .auth-note {margin-top:9px;}
+      .trust-line {margin-top:10px;padding:8px;}
+      .login-bottom {bottom:calc(11px + env(safe-area-inset-bottom,0px));}
+      .admin-intro {margin-bottom:11px;}
+    }
+    @media (max-width:700px) and (max-height:610px) {
+      .brand-side {padding-top:10px;}
+      .top-line {top:12px;right:13px;}
+      .brand-word {font-size:16px;}
+      .brand-word small {font-size:13px;letter-spacing:0;}
+      .mobile-brand-access {margin-top:6px;}
+      .login-side {padding:0 13px 35px;}
+      h2 {font-size:25px;margin-bottom:5px;}
+      .login-subtitle {margin-bottom:9px;line-height:1.4;}
+      .auth-panel {padding:12px;}
+      .field-title {margin-bottom:7px;}
+      .auth-note {margin-top:7px;}
+      .trust-line {margin-top:7px;padding:7px;}
+      .login-bottom {bottom:calc(7px + env(safe-area-inset-bottom,0px));}
+      .workspace-list {gap:7px;}
+      .workspace-card {padding:9px;}
+      .back-button {margin-top:9px;}
+    }
+    @media (max-width:365px) {
+      .brand-side {padding-left:12px;padding-right:12px;}
+      .brand-logo {gap:8px;}
+      .brand-word {font-size:16px;}
+      .brand-word small {font-size:13px;letter-spacing:0;}
+      .top-line {right:12px;}
+      .portal-link {font-size:13px;}
+    }
+    /* Hanya untuk skrin luar biasa pendek / zoom tinggi: utamakan akses kepada butang dan mesej. */
+    @media (max-width:700px) and (max-height:480px) {
+      html,body {height:auto;min-height:100dvh;overflow:auto;}
+      .app-frame {height:auto;min-height:100dvh;overflow:visible;}
+      .login-side {min-height:420px;padding-bottom:70px;}
+      .login-bottom {bottom:10px;}
+    }
+
+  </style>
+</head>
+<body>
+  <main class="app-frame" aria-label="Halaman log masuk SeMAKMUR Digital">
+    <section class="brand-side" aria-label="Pengenalan SeMAKMUR Digital">
+      <div class="brand-logo">
+        <!-- Simbol geometrik sementara; BUKAN logo rasmi sekolah -->
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="27" height="27" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m16 3 11.25 6.5v13L16 29 4.75 22.5v-13L16 3Z"/><path d="m16 10 5.6 3.2v6.4L16 23l-5.6-3.4v-6.4L16 10Z"/><path d="M4.75 9.5 10.4 13m11.2 0 5.65-3.5"/></svg>
+        </span>
+        <span class="brand-word">SeMAKMUR <small>DIGITAL · SCHOOL PLATFORM</small><span class="mobile-brand-access">PORTAL AKSES</span></span>
+      </div>
+      <div class="hero">
+        <div class="eyebrow">EKOSISTEM SEKOLAH BERSEPADU</div>
+        <h1>Satu platform. <br /><span>Lebih masa</span><br />untuk mendidik.</h1>
+        <p>Menyatukan urusan pengurusan, pengajaran dan pemantauan sekolah dalam pengalaman digital yang lebih teratur.</p>
+        <div class="module-preview" aria-label="Bidang utama portal">
+          <div class="preview-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg><strong>Pengurusan<br/>Bersepadu</strong></div>
+          <div class="preview-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 12 3l9 3.5v11L12 21l-9-3.5v-11Z"/><path d="M12 3v18M3 6.5l9 3.5 9-3.5"/></svg><strong>Pengajaran &<br/>Pembelajaran</strong></div>
+          <div class="preview-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/><path d="M2 21h20"/></svg><strong>Analisis &<br/>Pemantauan</strong></div>
+        </div>
+      </div>
+      <div class="brand-foot"><span>SK SEGAMBUT MAKMUR</span><span class="separation"></span><span>MEMACU TRANSFORMASI DIGITAL</span></div>
+    </section>
+
+    <section class="login-side" aria-label="Akses pengguna">
+      <div class="top-line">
+        <span class="caption"><i class="online-point" aria-hidden="true"></i> PORTAL AKSES</span>
+        <a class="portal-link" href="index.html?mode=portal" title="Kembali ke portal awam">Portal Awam
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
+        </a>
+      </div>
+      <div class="login-body">
+        <div class="login-area" id="login-area">
+          <div class="login-kicker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            AKSES AKAUN
+          </div>
+          <h2 id="login-welcome-title">Selamat datang.</h2>
+          <p class="login-subtitle">Akses ruang kerja anda melalui akaun yang berdaftar dengan SeMAKMUR Digital.</p>
+          <div class="auth-panel">
+            <p class="field-title">TERUSKAN DENGAN GOOGLE</p>
+            <div id="google-signin-button" aria-label="Butang rasmi Google Sign-In"></div>
+            <div id="status-message" class="status-message" role="alert" aria-live="polite">
+              <svg id="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></svg>
+              <div><strong id="status-title">Maklumat login</strong><p id="status-body"></p></div>
+            </div>
+            <div id="loading-row" class="loading-row" aria-live="polite"><span class="spinner" aria-hidden="true"></span><span id="loading-text">Mengesahkan akaun…</span></div>
+            <p class="auth-note">Akses mengikut peranan anda selepas pengesahan.</p>
+          </div>
+          <div class="trust-line" aria-label="Maklumat keselamatan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5.3 3.4 9.1 8 11 4.6-1.9 8-5.7 8-11V5l-8-3Z"/><path d="m8.5 12 2.3 2.2 4.8-4.8"/></svg>
+            <span>Akses dilindungi untuk warga sekolah</span>
+          </div>
+        </div>
+
+        <div class="admin-area" id="admin-area">
+          <div class="login-kicker">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5.3 3.4 9.1 8 11 4.6-1.9 8-5.7 8-11V5l-8-3Z"/><path d="m8.5 12 2.3 2.2 4.8-4.8"/></svg>
+            IDENTITI DISAHKAN
+          </div>
+          <h2>Pilih ruang kerja.</h2>
+          <p class="admin-intro" id="admin-greeting">Akaun ini mempunyai akses pentadbir sistem. Pilih ruang kerja untuk diteruskan.</p>
+          <div class="workspace-list">
+            <button class="workspace-card primary" type="button" onclick="selectAdminDashboard('admin')">
+              <span class="workspace-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+              <span class="workspace-meta"><strong>Dashboard Pentadbir</strong><small>Konfigurasi dan pengurusan sistem</small></span>
+              <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
+            </button>
+            <button class="workspace-card" type="button" onclick="selectAdminDashboard('guru')">
+              <span class="workspace-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5 12 4l9 3.5-9 3.5L3 7.5Z"/><path d="M7 10v6c2.6 2.5 7.4 2.5 10 0v-6M21 8v7"/></svg></span>
+              <span class="workspace-meta"><strong>Dashboard Guru</strong><small>Pengajaran, tugas dan maklumat harian</small></span>
+              <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>
+            </button>
+          </div>
+          <button class="back-button" type="button" onclick="returnToLogin()">Kembali ke halaman login</button>
+        </div>
+
+        <div class="login-bottom">© <span id="copyright-year"></span> SeMAKMUR Digital · SK Segambut Makmur</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Fail config.js WAJIB berada dalam folder yang sama dengan LoginSession.html. -->
+  <!-- FI-LOGIN: Hanya untuk halaman ujian; LoginSession rasmi tidak disentuh. -->
+  <script src="firebase-pilot-config.js"></script>
+  <script>
+    window.FiLoginReady = new Promise((resolve, reject) => {
+      window.__fiLoginResolve = resolve;
+      window.__fiLoginReject = reject;
+    });
+  </script>
+  <script type="module">
+    import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
+    import {getAuth,GoogleAuthProvider,signInWithCredential,setPersistence,browserLocalPersistence,signOut} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
+    try {
+      const cfg=window.SeMAKMURFirebasePilotConfig;
+      if(!cfg?.apiKey||!cfg?.projectId) throw new Error('Konfigurasi Firebase belum tersedia.');
+      // Nama aplikasi MESTI sama dengan Fi-DashboardGuru.js untuk berkongsi sesi Firebase.
+      const app=initializeApp(cfg,'semakmur-fi-dashboard');
+      const auth=getAuth(app);
+      await setPersistence(auth,browserLocalPersistence);
+      await auth.authStateReady();
+      const norm=s=>String(s||'').trim().toLowerCase();
+      const api={
+        currentEmail:()=>norm(auth.currentUser?.email),
+        signInGoogleToken:async(idToken, expectedEmail)=>{
+          const expected=norm(expectedEmail);
+          if(!expected || !idToken)throw new Error('Akaun MOE tidak dapat disahkan untuk Fi.');
+          // Jika pengguna sama telah log masuk Firebase sebelum ini, guna sesi tersedia.
+          if(norm(auth.currentUser?.email)===expected && auth.currentUser?.providerData?.some(p=>p.providerId==='google.com'))return true;
+          const credential=GoogleAuthProvider.credential(idToken);
+          const result=await signInWithCredential(auth,credential);
+          if(norm(result.user?.email)!==expected){await signOut(auth);throw new Error('Akaun Google Firestore berbeza daripada akaun SeMAKMUR.');}
+          return true;
+        }
+      };
+      window.__fiLoginResolve?.(api);
+    }catch(err){window.__fiLoginReject?.(err);}
+  </script>
+  <script src="config.js"></script>
+  <script src="auth-client.js"></script>
+  <script>
+    'use strict';
+    let PENDING_ADMIN_USER = null;
+    let AUTH_BUSY = false;
+    let GOOGLE_INITIALIZED = false;
+
+    // Paparan pengguna tidak mendedahkan nama jadual, fail, kolum atau ralat dalaman.
+    // Maklumat teknikal masih boleh dilihat oleh pembangun melalui log pelayan.
+    function friendlyLoginError(message) {
+      const msg = String(message || '').toLowerCase();
+      if (/tidak aktif|inactive|disabled|digantung|belum aktif|disekat/.test(msg)) {
+        return 'Akses akaun ini belum aktif atau telah digantung. Sila hubungi pentadbir sekolah.';
+      }
+      if (/tidak dijumpai|tidak didaftarkan|not found|no matching|tiada rekod|not registered|tidak mempunyai akses/.test(msg)) {
+        return 'Akaun Google ini belum diberikan akses ke SeMAKMUR Digital. Sila hubungi pentadbir sekolah.';
+      }
+      if (/moe-dl\.edu\.my|domain|akaun rasmi|hosted/.test(msg)) {
+        return 'Sila pilih akaun Google yang dibenarkan oleh sekolah.';
+      }
+      if (/tamat tempoh|expired|luput/.test(msg)) {
+        return 'Pengesahan telah tamat tempoh. Sila log masuk semula.';
+      }
+      if (/pendua|duplicate|lebih daripada satu|multiple/.test(msg)) {
+        return 'Maklumat akses akaun ini perlu disemak. Sila hubungi pentadbir sekolah.';
+      }
+      if (/rangkaian|network|fetch|http|pelayan|connection|sambungan/.test(msg)) {
+        return 'Sambungan tidak berjaya. Semak internet dan cuba sekali lagi.';
+      }
+      return 'Log masuk tidak dapat diselesaikan buat masa ini. Sila cuba lagi atau hubungi pentadbir sekolah.';
+    }
+    function setStatus(type, title, message) {
+      const panel = document.getElementById('status-message');
+      panel.className = 'status-message visible' + (type === 'success' ? ' success' : type === 'info' ? ' info' : '');
+      const error = type !== 'success' && type !== 'info';
+      document.getElementById('status-title').textContent = error ? 'Akses tidak berjaya' : String(title || 'Maklumat');
+      document.getElementById('status-body').textContent = error ? friendlyLoginError(message) : String(message || '');
+    }
+    function setWelcomeTitle() {
+      const el = document.getElementById('login-welcome-title');
+      if (!el) return;
+      let pernahMasuk = false;
+      try {
+        pernahMasuk = localStorage.getItem('SEMAKMUR_PERNAH_LOGIN') === '1' || !!localStorage.getItem('SAVED_MOE_USER');
+      } catch (_ignored) {}
+      el.textContent = pernahMasuk ? 'Selamat kembali.' : 'Selamat datang.';
+    }
+    function clearStatus() {
+      const panel = document.getElementById('status-message');
+      panel.className = 'status-message';
+      document.getElementById('status-title').textContent = '';
+      document.getElementById('status-body').textContent = '';
+    }
+    function showLoader(message) {
+      AUTH_BUSY = true;
+      document.getElementById('loading-text').textContent = message || 'Menyemak akses…';
+      document.getElementById('loading-row').classList.add('visible');
+    }
+    function hideLoader() {
+      AUTH_BUSY = false;
+      document.getElementById('loading-row').classList.remove('visible');
+    }
+    // Kekal sebagai alias untuk keserasian logik lama; kini mesej inline, BUKAN popup.
+    function showPopupModal(message, title = 'Maklum balas sistem') {
+      setStatus('error', title, message);
+    }
+    function closePopupModal() { clearStatus(); }
+    function showToast(message, type = 'success') {
+      setStatus(type === 'success' ? 'success' : 'error',
+        type === 'success' ? 'Pengesahan berjaya' : 'Maklum balas sistem', message);
+    }
+
+    async function postToBackend(payload) {
+      const target = (typeof WEB_APP_URL !== 'undefined') ? String(WEB_APP_URL || '').trim() : '';
+      if (!target) throw new Error('WEB_APP_URL tidak dijumpai dalam config.js.');
+      const response = await fetch(target, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+        redirect: 'follow'
+      });
+      if (!response.ok) throw new Error('Permintaan tidak berjaya (HTTP ' + response.status + ').');
+      return await response.json();
+    }
+
+    function saveSession(user, sessionToken, refreshToken, expires) {
+      SeMAKMURAuth.storeCredentials({
+        success: true, user: user, sessionToken: sessionToken,
+        refreshToken: refreshToken, sessionExpires: expires
+      });
+    }
+    function clearOldSessions() { SeMAKMURAuth.clear(); }
+    async function semakSesiBackendV3() { return SeMAKMURAuth.verify(); }
+
+    function initGoogleIdentity() {
+      if (GOOGLE_INITIALIZED) return true;
+      const client = (typeof GOOGLE_CLIENT_ID !== 'undefined') ? String(GOOGLE_CLIENT_ID || '').trim() : '';
+      if (!client) {
+        setStatus('error', 'Konfigurasi belum lengkap', 'Fail config.js atau Google Client ID belum dapat dibaca. Pastikan fail berada dalam folder yang sama.');
+        return false;
+      }
+      if (!window.google || !google.accounts || !google.accounts.id) return false;
+      try {
+        google.accounts.id.initialize({
+          client_id: client,
+          callback: handleGoogleCredential,
+          auto_select: false,
+          cancel_on_tap_outside: true
+        });
+        const container = document.getElementById('google-signin-button');
+        const buttonWidth = Math.min(330, Math.max(220, Math.floor(container.clientWidth || 300)));
+        google.accounts.id.renderButton(container, {
+          type: 'standard', theme: 'outline', size: 'large', text: 'signin_with',
+          shape: 'rectangular', logo_alignment: 'left', width: buttonWidth
+        });
+        GOOGLE_INITIALIZED = true;
+        clearStatus();
+        return true;
+      } catch (error) {
+        console.error('Google Identity SDK:', error);
+        setStatus('error', 'Google Sign-In tidak tersedia', 'Butang Google gagal dimuatkan. Sila muat semula halaman dan cuba lagi.');
+        return false;
+      }
+    }
+
+    async function handleGoogleCredential(response) {
+      if (AUTH_BUSY) return;
+      clearStatus();
+      if (!response || !response.credential) {
+        setStatus('error', 'Pengesahan tidak lengkap', 'Google tidak memberikan maklumat pengesahan. Sila cuba lagi.');
+        return;
+      }
+      showLoader('Mengesahkan identiti akaun…');
+      try {
+        const res = await postToBackend({ action: 'googleIdentityLogin', data: { credential: response.credential } });
+        if (!res || !res.success || !res.user) {
+          const msg = (res && res.error) ? res.error : 'Akaun ini tidak dapat disahkan oleh sistem.';
+          setStatus('error', 'Log masuk tidak berjaya', msg);
+          return;
+        }
+        if (!res.sessionToken) {
+          setStatus('error', 'Sesi belum tersedia', 'Backend belum mengeluarkan token sesi. Semak versi deployment Apps Script semasa.');
+          return;
+        }
+        saveSession(res.user, res.sessionToken, res.refreshToken, res.sessionExpires);
+        // Identiti rasmi mesti disahkan Apps Script SEBELUM menggunakan token Google untuk Firebase.
+        // Token tidak disimpan dan tidak ditulis ke URL atau Firestore.
+        try {
+          showLoader('Menyambungkan Dashboard Fi…');
+          const sdk=await window.FiLoginReady;
+          await sdk.signInGoogleToken(response.credential,res.user.email);
+        } catch (fiError) {
+          console.warn('Fi Google credential:',fiError?.code||fiError?.message||fiError);
+          setStatus('info','Sesi Fi belum bersambung',
+            'Login SeMAKMUR berjaya, tetapi sesi Firebase tidak dapat disambungkan dengan akaun Google ini. ' +
+            'Semak konfigurasi Google OAuth Firebase; jangan ubah pengesahan Apps Script.');
+          return;
+        }
+        showToast('Selamat datang, ' + (res.user.name || 'pengguna') + '.', 'success');
+        setTimeout(() => { void routeUser(res.user); }, 150);
+      } catch (error) {
+        console.error('Login:', error);
+        setStatus('error', 'Tidak dapat menghubungi pelayan', 'Sambungan ke Apps Script gagal. Semak rangkaian dan cuba lagi.');
+      } finally { hideLoader(); }
+    }
+
+    async function fiSessionMatches(user) {
+      const email=String(user?.email||'').trim().toLowerCase();
+      if(!email){setStatus('info','Akaun belum dapat dipadankan','Maklumat e-mel tidak diterima. Sila log masuk semula.');return false;}
+      try {
+        const sdk=await window.FiLoginReady;
+        if(sdk.currentEmail()===email)return true;
+        setStatus('info','Sesi Fi belum tersedia','Sesi SeMAKMUR sah, tetapi Firebase memerlukan Google Sign-In untuk akaun yang sama. Sila klik butang Google sekali lagi.');
+      }catch(err){
+        console.warn('Fi login bridge:',err?.code||err?.message||err);
+        setStatus('info','Sesi Fi belum tersedia','Sambungan Firebase belum dapat disediakan. Semak konfigurasi dan sambungan internet.');
+      }
+      return false;
+    }
+    function isInstalledMobilePWA() {
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+      const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        window.matchMedia('(max-width: 820px) and (pointer: coarse)').matches;
+      return standalone && mobile;
+    }
+    async function routeUser(user) {
+      if (!user) return;
+      // Pengguna admin dalam PWA telefon: ruang kerja utama ialah Dashboard Guru.
+      // Hak sebenar admin/guru kekal disahkan pada Apps Script.
+      if ((user.is_admin || user.role === 'admin_choice') && isInstalledMobilePWA()) {
+        if(!await fiSessionMatches(user))return;
+        window.location.replace('guru/Fi-DashboardGuru.html');
+        return;
+      }
+      if (user.is_admin || user.role === 'admin_choice') {
+        PENDING_ADMIN_USER = user;
+        document.getElementById('login-area').classList.add('hidden');
+        document.getElementById('admin-area').classList.add('visible');
+        document.getElementById('admin-greeting').textContent =
+          (user.name ? ('Selamat datang, ' + user.name + '. ') : '') +
+          'Akaun anda mempunyai akses pentadbir sistem. Sila pilih ruang kerja.';
+      } else if (user.role === 'guru') {
+        if(!await fiSessionMatches(user))return;
+        window.location.href = 'guru/Fi-DashboardGuru.html';
+      } else if (user.role === 'murid' || user.role === 'student') {
+        window.location.href = 'DashboardMurid.html';
+      } else if (user.role === 'parent' || user.role === 'waris') {
+        window.location.href = 'DashboardParent.html';
+      } else if (user.role === 'admin') {
+        window.location.href = 'DashboardAdmin.html';
+      } else {
+        setStatus('error', 'Peranan tidak dikenali', 'Akaun disahkan, tetapi peranan pengguna tidak tersedia. Sila hubungi pentadbir sistem.');
+      }
+    }
+    async function selectAdminDashboard(choice) {
+      if (!PENDING_ADMIN_USER) return;
+      const user = { ...PENDING_ADMIN_USER, role: choice === 'admin' ? 'admin' : 'guru' };
+      if(choice !== 'admin' && !await fiSessionMatches(user))return;
+      // Pilihan dashboard sahaja; semua hak akses Admin tetap disemak di Apps Script.
+      localStorage.setItem('SAVED_MOE_USER', JSON.stringify(user));
+      sessionStorage.setItem('CURRENT_USER', JSON.stringify(user));
+      window.location.href = choice === 'admin' ? 'DashboardAdmin.html' : 'guru/Fi-DashboardGuru.html';
+    }
+    function returnToLogin() {
+      PENDING_ADMIN_USER = null;
+      document.getElementById('admin-area').classList.remove('visible');
+      document.getElementById('login-area').classList.remove('hidden');
+      clearStatus();
+    }
+
+    async function tryRestoreSession() {
+      // Aplikasi boleh ditutup dan dibuka: token akses lama tidak diperlukan.
+      // Refresh token persisten menghasilkan access token baharu apabila dibuka.
+      if (!localStorage.getItem('SEMAKMUR_PWA_REFRESH_TOKEN')) return;
+      showLoader('Menyambung semula sesi anda…');
+      try {
+        const result = await SeMAKMURAuth.refresh();
+        if (result && result.success && result.user) {
+          routeUser(result.user);
+        } else if (result && result.code === 'SESSION_EXPIRED') {
+          clearOldSessions();
+        }
+      } catch (error) {
+        // Rangkaian terganggu: jangan buang token yang mungkin masih sah.
+        console.warn('Tidak dapat menyambung semula sesi buat masa ini.');
+        setStatus('info', 'Sambungan terganggu',
+          'Tidak dapat menyambung sesi buat masa ini. Semak internet dan cuba lagi.');
+      } finally { hideLoader(); }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('copyright-year').textContent = new Date().getFullYear();
+      setWelcomeTitle();
+      let n = 0;
+      const timer = setInterval(() => {
+        n++;
+        if (initGoogleIdentity() || n >= 60) {
+          clearInterval(timer);
+          if (!GOOGLE_INITIALIZED && typeof GOOGLE_CLIENT_ID !== 'undefined') {
+            setStatus('error', 'Google Sign-In belum dimuatkan', 'Tidak dapat memuatkan komponen Google. Semak sambungan internet dan muat semula halaman.');
+          }
+        }
+      }, 250);
+      // Semak sesi yang masih sah dalam tab ini. Ini BUKAN sesi PWA 14 hari.
+      tryRestoreSession();
+    });
+  </script>
+</body>
+</html>
