@@ -21,10 +21,13 @@
 .search{width:100%;padding:11px;border:1px solid #cbdfe8;border-radius:10px;margin-top:11px;font-size:12px}
 .footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}.ack{display:flex;align-items:flex-start;gap:8px;font-size:11px;color:#456578;line-height:1.6}.ack input{margin-top:3px}
 @media(max-width:780px){.shell{grid-template-columns:1fr}.top{padding:14px 16px}.wrap{padding:12px 12px 80px}.panel{padding:14px}.class-list{grid-template-columns:repeat(2,minmax(0,1fr))}.class{display:flex;align-items:center}.class .pill{margin-top:0}.crumb{margin-bottom:12px}}@media(max-width:780px){.class-list{grid-template-columns:1fr}.class{min-height:57px}.class strong{font-size:13px}.pill{font-size:11px}}
+/* Dalam dashboard terbenam, header induk sudah memaparkan tajuk Kehadiran. */
+html.skh-embedded .top{display:none}
+@media(max-width:767px){html.skh-embedded .crumb{display:none}}
 </style></head>
 <body>
 <header class="top"><div><h1>Smart Kehadiran Murid</h1><small>SeMAKMUR Digital · Hal Ehwal Murid</small></div><span id="account" class="pill">Mengesahkan sesi</span></header>
-<main class="wrap"><div class="crumb"><a class="back" href="../DashboardGuru.html">← Laman Utama</a> / HEM / Smart Kehadiran</div>
+<main class="wrap"><div class="crumb"><a class="back" id="attendance-back" href="../DashboardGuru.html">← Laman Utama</a> / HEM / Smart Kehadiran</div>
 <div class="date"><label for="date">Pilih tarikh</label><input type="date" id="date"></div>
 <div id="message" class="notice" role="status">Memuatkan senarai kelas rasmi…</div>
 <div class="shell">
@@ -118,5 +121,19 @@ async function boot(){
   $('account').textContent=u.is_admin?'Admin + Guru':'Guru';
   await loadClasses();
 }
-window.addEventListener('DOMContentLoaded',()=>{boot().catch(e=>info(e.message,true))});
+// Dalam iframe, minta Dashboard induk menutup ruang kerja.
+// Jangan ikut pautan terus: ia akan membuka Dashboard di dalam iframe dan
+// menghasilkan sidebar/header berganda serta sejarah Back yang mengelirukan.
+function wireAttendanceBack(){
+  if(window.self===window.parent)return; // Akses terus: pautan biasa kekal.
+  document.documentElement.classList.add('skh-embedded');
+  $('attendance-back').addEventListener('click',event=>{
+    event.preventDefault();
+    window.parent.postMessage({type:'SEMAKMUR_ATTENDANCE_BACK'},window.location.origin);
+  });
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  wireAttendanceBack();
+  boot().catch(e=>info(e.message,true));
+});
 </script></body></html>
