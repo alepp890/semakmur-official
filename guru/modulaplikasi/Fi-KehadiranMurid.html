@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#164d73">
+  <meta name="description" content="Fi Smart Kehadiran — paparan percubaan senarai kelas dan murid SeMAKMUR Digital">
+  <title>Fi-Smart Kehadiran | SeMAKMUR Digital</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{color-scheme:light;--navy:#113f61;--blue:#236e94;--teal:#13a5a2;--ink:#213b50;--muted:#6a8195;--bg:#f1f7fc;--line:#e0eaf2;--white:#fff;--green:#137d59;--amber:#a5691a;--red:#b44b4b}
+    *{box-sizing:border-box}html{font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif}body{margin:0;background:var(--bg);color:var(--ink);min-height:100vh}button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}
+    :focus-visible{outline:3px solid #7dd3df;outline-offset:2px}[hidden]{display:none!important}
+    .topbar{position:sticky;top:0;z-index:8;min-height:72px;background:#fffefa;border-bottom:1px solid var(--line);box-shadow:0 5px 20px #18456c0c;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px clamp(15px,3vw,36px)}
+    .brand{display:flex;align-items:center;gap:11px;min-width:0}.logo{width:40px;height:40px;border-radius:13px;background:linear-gradient(145deg,#174d78,#2daaa9);color:white;display:grid;place-items:center;font-weight:800;font-size:22px;flex:none;box-shadow:0 7px 14px #26789933}.brand-name{font-weight:800;color:#164866;font-size:15px;letter-spacing:-.02em}.brand-sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .back{display:inline-flex;align-items:center;gap:7px;background:#eef6fa;border:1px solid #d4e5ee;padding:10px 14px;border-radius:12px;text-decoration:none;font-weight:800;color:#236184;font-size:13px;white-space:nowrap}
+    main{max-width:1220px;margin:0 auto;padding:28px clamp(14px,3vw,36px) 70px}
+    .hero{background:linear-gradient(112deg,#143f66 5%,#236b8b 59%,#2ba2a8 100%);border-radius:24px;color:white;padding:27px 29px;margin-bottom:21px;box-shadow:0 14px 40px #1c709922;position:relative;overflow:hidden}
+    .hero:after{content:"";position:absolute;width:270px;height:270px;border:1px solid #ffffff2b;right:-55px;top:-120px;border-radius:100%}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;color:#c0edf6}.hero h1{font-size:clamp(24px,3.5vw,33px);margin:5px 0 7px;line-height:1.25;letter-spacing:-.04em}.hero p{font-size:13px;color:#dfedf5;margin:0;line-height:1.7;max-width:740px}.hero-bottom{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:17px}.hero-chip{border:1px solid #e5f4f65e;background:#ffffff17;border-radius:999px;font-size:12px;font-weight:700;padding:8px 12px}
+    .state{border:1px solid #cde1ec;border-radius:14px;background:#e9f5fc;color:#275f7e;min-height:50px;padding:13px 16px;font-size:13px;font-weight:600;margin:0 0 19px;line-height:1.6}.state.error{background:#fff2ee;border-color:#edcecb;color:#a34b42}.state.success{background:#e9f7ef;border-color:#c9e9d5;color:#176b4a}
+    .summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-bottom:19px}.summary .card{border:1px solid #dbe8f0;border-radius:16px;background:white;padding:16px 20px;box-shadow:0 4px 15px #184a6610}.summary strong{font-size:27px;font-weight:800;color:#174f75;display:block;line-height:1.3;font-variant-numeric:tabular-nums}.summary label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-top:2px}
+    .layout{display:grid;grid-template-columns:minmax(260px,348px) minmax(0,1fr);gap:18px;align-items:start}.panel{border-radius:19px;background:#fff;border:1px solid #dce8f0;box-shadow:0 6px 20px #1c53740d;padding:19px;min-width:0}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.panel h2{font-size:16px;font-weight:800;margin:0;color:#174d6f}.panel-hint{font-size:12px;color:var(--muted);margin:0 0 14px;line-height:1.7}.pill{display:inline-block;font-size:11px;font-weight:800;border-radius:20px;padding:6px 9px;background:#edf5fa;color:#397693;white-space:nowrap}.pill.done{color:var(--green);background:#e6f7ec}.pill.pending{color:var(--amber);background:#fff4e2}
+    .search{width:100%;min-height:44px;border:1px solid #d2e1eb;border-radius:12px;background:#f7fbfe;color:#1b4a6b;font-size:13px;padding:11px 12px;margin:0 0 13px}.list-class{display:grid;gap:8px;max-height:600px;overflow-y:auto;padding:1px}.class-btn{text-align:left;display:grid;gap:5px;width:100%;border:1px solid #e2eaf0;background:#fff;border-radius:13px;padding:12px 13px;transition:background .12s,border-color .12s}.class-btn:hover{background:#f5fbff}.class-btn.active{border-color:#3ea4b3;background:#ecf9fb;box-shadow:inset 3px 0 #1d9cad}.class-title{font-weight:800;color:#1b4f72;font-size:13px}.class-bottom{display:flex;justify-content:space-between;align-items:center;gap:7px;flex-wrap:wrap;color:#7a8e9b;font-size:12px}.class-bottom .pill{font-size:10px;padding:4px 8px}
+    .roster-head{display:flex;justify-content:space-between;align-items:flex-start;gap:13px;flex-wrap:wrap;margin-bottom:14px}.roster-head h2{font-size:19px;letter-spacing:-.02em}.roster-sub{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6}.roster-stats{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 15px}.roster-stat{border-radius:11px;border:1px solid #dce9f0;background:#f4f9fc;font-size:12px;font-weight:800;color:#235b79;padding:10px 12px}.roster-stat strong{color:#19486a}.roster-stat.good{color:#1c855d;background:#e9f8ef;border-color:#ceebda}.roster-stat.warn{color:#98611a;background:#fff5e4;border-color:#f1dfb8}
+    .roster-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.pupil{display:flex;align-items:center;gap:11px;border:1px solid #e4edf3;border-radius:12px;background:#fdfefe;padding:12px;min-width:0}.pupil-no{width:29px;height:29px;display:grid;place-items:center;border-radius:9px;background:#e8f3fa;color:#34749a;font-weight:800;font-size:12px;flex:none}.pupil-name{font-size:13px;font-weight:800;line-height:1.5;color:#2b4a62;overflow-wrap:anywhere}.empty{border:1px dashed #ccdee8;border-radius:14px;background:#f9fcfe;padding:37px 22px;text-align:center;color:#6b8599;font-size:13px;line-height:1.8}
+    .info{margin-top:16px;padding:13px 15px;border-radius:13px;background:#eff7fc;border:1px solid #dbeaf2;color:#527588;font-size:12px;line-height:1.8}.foot{text-align:center;margin-top:19px;font-size:12px;color:#8497a7}
+    @media(max-width:800px){.layout{grid-template-columns:1fr}.list-class{max-height:320px}.roster-list{grid-template-columns:1fr}.hero{padding:23px 20px}.panel{padding:17px}}
+    @media(max-width:520px){.topbar{padding:11px 13px;min-height:65px}.brand-sub{font-size:10px}.back{padding:8px 10px;font-size:12px}.summary{gap:8px}.summary .card{padding:11px 12px}.summary strong{font-size:21px}.summary label{font-size:11px}.hero-chip{font-size:11px}.panel h2{font-size:15px}}
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="logo">S</div><div><div class="brand-name">SeMAKMUR <span style="font-weight:500;color:#2e9aab">Digital</span></div><div class="brand-sub">Smart Kehadiran Murid</div></div></div>
+  <a class="back" href="../Fi-DashboardGuru.html" aria-label="Kembali ke Fi-DashboardGuru">← Dashboard Guru</a>
+</header>
+<main>
+  <section class="hero">
+    <div class="eyebrow">HAL EHWAL MURID · VERSI FI</div>
+    <h1>Smart Kehadiran Murid</h1>
+    <p>Paparan kelas dan senarai murid daripada Firebase, diselaraskan secara automatik dengan Google Sheets rasmi sekolah.</p>
+    <div class="hero-bottom"><span class="hero-chip" id="day-pill">Tarikh Malaysia</span><span class="hero-chip" id="user-pill">Mengesahkan akaun…</span><span class="hero-chip" id="sync-pill">Semakan data</span></div>
+  </section>
+  <div id="status" class="state" role="status" aria-live="polite">Menghubungkan Firebase…</div>
+  <section class="summary" aria-label="Ringkasan kelas">
+    <div class="card"><strong id="total-classes">—</strong><label>Jumlah kelas</label></div>
+    <div class="card"><strong id="total-pupils">—</strong><label>Jumlah murid aktif</label></div>
+    <div class="card"><strong id="confirmed-classes">—</strong><label>Kelas sudah disahkan hari ini</label></div>
+  </section>
+  <section class="layout">
+    <aside class="panel" aria-label="Senarai kelas">
+      <div class="panel-head"><h2>Senarai Kelas</h2><span id="class-counter" class="pill">—</span></div>
+      <p class="panel-hint">Pilih kelas untuk melihat senarai murid. Data dibaca daripada Firebase.</p>
+      <input class="search" type="search" id="class-search" placeholder="Cari kelas…" autocomplete="off" aria-label="Cari nama kelas">
+      <div id="classes" class="list-class"><div class="empty">Membaca senarai kelas…</div></div>
+    </aside>
+    <section class="panel" aria-label="Senarai murid">
+      <div class="roster-head"><div><h2 id="selected-class">Senarai Murid</h2><div id="class-detail" class="roster-sub">Pilih kelas di sebelah kiri.</div></div><span id="record-pill" class="pill pending" hidden>Belum direkod</span></div>
+      <div id="roster-stats" class="roster-stats" hidden></div>
+      <input class="search" type="search" id="pupil-search" placeholder="Cari nama murid…" autocomplete="off" aria-label="Cari murid" disabled>
+      <div id="pupils" class="roster-list"><div class="empty">Pilih kelas untuk memaparkan nama murid.</div></div>
+      <div class="info"><strong>Mod percubaan — baca sahaja.</strong> Nama murid dan status ringkasan dipaparkan terus daripada Firebase. Fungsi menanda hadir/tidak hadir dan mengesahkan rekod belum diaktifkan; gunakan modul Kehadiran rasmi untuk merekod hari ini. Status kelas berubah selepas penyelarasan berkala.</div>
+    </section>
+  </section>
+  <p class="foot">SeMAKMUR Digital · SK Segambut Makmur · Data pendidikan terhad kepada pengguna yang dibenarkan</p>
+</main>
+<script src="../../firebase-pilot-config.js"></script>
+<script type="module" src="./fi-kehadiran.js"></script>
+</body>
+</html>
