@@ -288,9 +288,7 @@
   <div id="toast" class="screen-toast hidden" role="status" aria-live="polite"></div>
   <script src="../config.js"></script>
   <script src="../auth-client.js"></script>
-  <script src="dashboard-smart-sync.js"></script>
   <script defer src="dashboard-mobile-v4.js"></script>
-  <script src="semakmur-data-store.js"></script>
   <script>
   'use strict';
   const DAY_NAMES=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
@@ -344,35 +342,10 @@
   };
   let currentUser=null, dashboardData=null, activePage='laman_utama', activeDay=null, toastTimer=null;
   let dashboardAuthenticated=false, dashboardRequestPending=false;
-  let lastSmartSyncAt=0, lastSmartDay='', smartSyncTimer=null;
-  let attendancePreloadStarted=false, resumeDone=false;
+  let resumeDone=false;
   const WORKSPACE_RESUME_KEY='SEMAKMUR_LAST_WORKSPACE_V2';
   function rememberWorkspace(kind){
     try{if(!dashboardAuthenticated||!currentUser?.email)return;localStorage.setItem(WORKSPACE_RESUME_KEY,JSON.stringify({email:String(currentUser.email).toLowerCase(),kind,at:Date.now()}));}catch(_e){}
-  }
-  async function warmAttendanceStatic(){
-    if(attendancePreloadStarted||!window.SeMAKMURDataStore||!dashboardAuthenticated)return;
-    attendancePreloadStarted=true;
-    const email=String(currentUser?.email||'').trim().toLowerCase();
-    if(!email)return;
-    const yr=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuala_Lumpur',year:'numeric'}).format(new Date());
-    try{
-      const cache=await SeMAKMURDataStore.get('attendance',email,yr);
-      // Jadual/murid disimpan dan digunakan semula. Semak versi tanpa membaca Sheets setiap kali.
-      if(cache && Date.now()-Number(cache.checkedAt||0)<60*60*1000)return;
-      if(cache){
-        const version=await SeMAKMURAuth.request({action:'smartKehadiranGetVersi',data:{}});
-        if(version?.success && version.data?.revision===cache.value?.revision){
-          await SeMAKMURDataStore.markChecked('attendance',email,yr);return;
-        }
-        if(!version?.success)return; // Backend lama: jangan ulang sync berat.
-      }
-      const loaded=await SeMAKMURAuth.request({action:'smartKehadiranBootstrap',data:{}});
-      const d=loaded?.data;
-      if(loaded?.success && d?.jadual && d?.muridByKelas && d?.tahun===yr){
-        await SeMAKMURDataStore.put('attendance',email,yr,d,{version:d.revision});
-      }
-    }catch(_e){ /* Jangan ganggu paparan dashboard jika pre-sync gagal. */ }
   }
   function resumeLastWorkspace(){
     if(resumeDone||!dashboardAuthenticated)return;
@@ -384,37 +357,6 @@
       else if(saved.kind==='kehadiran')openKehadiranWorkspace();
       else if(MENUS[saved.kind]&&saved.kind!=='laman_utama')switchMainMenu(saved.kind);
     }catch(_e){}
-  }
-  const SMART_SYNC_MIN_GAP=5*60*1000; // semak semula hanya ketika aktif
-  // Jadual tersimpan hanya untuk pengguna sama dan hanya selepas sesi disahkan.
-  // Tidak menyimpan rekod murid, status e-RPH, surat, profil rasmi atau token sesi.
-  const SCHEDULE_CACHE_KEY='SEMAKMUR_GURU_JADUAL_V1';
-  const SCHEDULE_CACHE_AGE=24*60*60*1000;
-  function bacaJadualTersimpan(user){
-    try{
-      const email=String(user?.email||'').trim().toLowerCase();
-      if(!email)return null;
-      const data=JSON.parse(localStorage.getItem(SCHEDULE_CACHE_KEY)||'null');
-      if(!data||data.email!==email||!Number.isFinite(data.savedAt)||
-         Date.now()<data.savedAt||Date.now()-data.savedAt>SCHEDULE_CACHE_AGE||
-         !Array.isArray(data.jadual)||data.jadual.length>250)return null;
-      return {jadual:data.jadual,jadualTersedia:Boolean(data.jadualTersedia)};
-    }catch(_e){return null;}
-  }
-  function simpanJadualTersimpan(user,source){
-    try{
-      const email=String(user?.email||'').trim().toLowerCase();
-      if(!email)return;
-      // Jika pelayan mengesahkan jadual tidak lagi tersedia, buang cache lama.
-      if(source?.jadualTersedia===false){localStorage.removeItem(SCHEDULE_CACHE_KEY);return;}
-      if(!source?.jadualTersedia||!Array.isArray(source.jadual)||source.jadual.length>250)return;
-      // Senarai field terhad; status, RPH dan butiran peribadi tidak di-cache.
-      const jadual=source.jadual.map(x=>({
-        hari:String(x.hari||''),kelas:String(x.kelas||''),subjek:String(x.subjek||''),
-        mula:String(x.mula||''),tamat:String(x.tamat||''),pairing:String(x.pairing||'')
-      }));
-      localStorage.setItem(SCHEDULE_CACHE_KEY,JSON.stringify({email,savedAt:Date.now(),jadual,jadualTersedia:true}));
-    }catch(_e){ /* Cache pilihan; dashboard terus berfungsi walaupun quota penuh. */ }
   }
   const $=(id)=>document.getElementById(id);
   const escapeHtml=v=>String(v===null||v===undefined?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -471,12 +413,12 @@
     const pane=$('erph-workspace'), frame=$('erph-workspace-frame');
     if (!pane || !frame) return;
     // Kekalkan iframe apabila menutup ruang kerja: draf yang sedang ditaip tidak hilang.
-    if (!frame.getAttribute('src')) frame.setAttribute('src','modulaplikasi/ErphGuru.html?embed=1&v=45');
+    if (!frame.getAttribute('src')) frame.setAttribute('src','modulaplikasi/ErphGuru.html?embed=1');
     $('page-scroll').classList.add('hidden');
     pane.hidden=false;
     pane.classList.add('is-open');
     rememberWorkspace('erph');
-    if (!window.matchMedia('(max-width:767px)').matches && window.history && history.replaceState) history.replaceState(null,'',location.pathname+location.search+'#erph');
+    if (window.history && history.replaceState) history.replaceState(null,'',location.pathname+location.search+'#erph');
   }
   function closeErphWorkspace(keepHash) {
     const pane=$('erph-workspace');
@@ -486,7 +428,7 @@
     skhDesktopHeading(false);
     $('page-scroll').classList.remove('hidden');
     if (!keepHash)rememberWorkspace('laman_utama');
-    if (!window.matchMedia('(max-width:767px)').matches && !keepHash && location.hash==='#erph' && history.replaceState) history.replaceState(null,'',location.pathname+location.search);
+    if (!keepHash && location.hash==='#erph' && history.replaceState) history.replaceState(null,'',location.pathname+location.search);
   }
   // V4.2: hanya header Desktop bertukar apabila modul Kehadiran dibuka.
   let skhDesktopHeadingBefore=null;
@@ -517,13 +459,13 @@
     closeMobileMenu();
     const pane=$('kehadiran-workspace'), frame=$('kehadiran-workspace-frame');
     if (!pane || !frame) return;
-    if (!frame.getAttribute('src')) frame.setAttribute('src','modulaplikasi/KehadiranMurid.html?embed=1&v=45');
+    if (!frame.getAttribute('src')) frame.setAttribute('src','modulaplikasi/KehadiranMurid.html?embed=1&v=basik21');
     $('page-scroll').classList.add('hidden');
     pane.hidden=false;
     pane.classList.add('is-open');
     skhDesktopHeading(true);
     rememberWorkspace('kehadiran');
-    if (!window.matchMedia('(max-width:767px)').matches && window.history && history.replaceState) history.replaceState(null,'',location.pathname+location.search+'#kehadiran');
+    if (window.history && history.replaceState) history.replaceState(null,'',location.pathname+location.search+'#kehadiran');
   }
   function closeKehadiranWorkspace(keepHash) {
     const pane=$('kehadiran-workspace');
@@ -533,7 +475,7 @@
     skhDesktopHeading(false);
     $('page-scroll').classList.remove('hidden');
     if (!keepHash)rememberWorkspace('laman_utama');
-    if (!window.matchMedia('(max-width:767px)').matches && !keepHash && location.hash==='#kehadiran' && history.replaceState) history.replaceState(null,'',location.pathname+location.search);
+    if (!keepHash && location.hash==='#kehadiran' && history.replaceState) history.replaceState(null,'',location.pathname+location.search);
   }
   function openModule(id){const m=MODULES[id];if(!m)return;
     if(!dashboardAuthenticated){showInfo('Akses sedang disahkan. Sila cuba sebentar lagi.');return;}
@@ -783,7 +725,6 @@
     const rt=localStorage.getItem('SEMAKMUR_PWA_REFRESH_TOKEN');
     const at=sessionStorage.getItem('SEMAKMUR_SESSION_TOKEN');
     const url=(typeof WEB_APP_URL!=='undefined')?WEB_APP_URL:'';
-    try{localStorage.removeItem(SCHEDULE_CACHE_KEY);SeMAKMURSmartSync?.clear?.();}catch(_e){}
     SeMAKMURAuth.clear();
     if(url && (rt||at)){
       const body=JSON.stringify({action:'logoutSession',data:{refreshToken:rt,sessionToken:at}});
@@ -846,8 +787,7 @@
     try{SeMAKMURAuth?.clear?.();}catch(_e){}
     location.replace('../LoginSession.html');
   }
-  // Cache dibaca HANYA selepas server sahkan sesi melalui getGuruDashboardSync.
-  // Jika server belum dipasang, gunakan API asal secara selamat.
+  // Identiti dipadankan dengan respons backend yang telah mengesahkan sesi.
   function identityFromResponse(res){
     let saved=null;
     try{saved=JSON.parse(sessionStorage.getItem('CURRENT_USER')||localStorage.getItem('SAVED_MOE_USER')||'null');}catch(_e){}
@@ -868,7 +808,6 @@
     if(activePage!=='laman_utama')renderCategories(activePage);
     $('header-status').textContent='Data terkini';setNotice('');
     if(!resumeDone)requestAnimationFrame(resumeLastWorkspace);
-    if(!attendancePreloadStarted)setTimeout(warmAttendanceStatic,1100);
     return true;
   }
   function unavailableDashboard(err){
@@ -888,138 +827,22 @@
         summaryWidget('violet','Tindakan Saya','<div class="status-copy">Belum dapat disahkan.</div>','report');
     }
   }
-  // Dashboard Mobile V4.1: data harian dalam IndexedDB, satu akaun sahaja.
-  // TIDAK dipaparkan sebelum verifySession berjaya. Desktop tidak terlibat.
-  const MOBILE_DASHBOARD_KIND='dashboard';
-  const MOBILE_DASHBOARD_DAY_FORMAT=new Intl.DateTimeFormat('en-CA',{
-    timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'
-  });
-  function dashboardMalaysiaDate(){return MOBILE_DASHBOARD_DAY_FORMAT.format(new Date());}
-  function mobileDashboardMode(){return window.matchMedia('(max-width:767px)').matches;}
-  function safeDashboardSnapshot(r){
-    if(!r?.success || !r.profile?.email || !Array.isArray(r.jadual) || !Array.isArray(r.peranan))return null;
-    const str=(s,max=120)=>String(s??'').slice(0,max);
-    return {
-      success:true,
-      profile:{email:str(r.profile.email,180),namaSamaran:str(r.profile.namaSamaran,60),
-        namaPenuh:str(r.profile.namaPenuh,140),guruKelas:str(r.profile.guruKelas,90),
-        jawatan:str(r.profile.jawatan,90)},
-      jadual:r.jadual.slice(0,250).map(x=>({hari:str(x.hari,30),mula:str(x.mula,20),
-        tamat:str(x.tamat,20),kelas:str(x.kelas,80),subjek:str(x.subjek,110),pairing:!!x.pairing})),
-      jadualTersedia:r.jadualTersedia===true,
-      peranan:r.peranan.slice(0,100).map(x=>({kategori:str(x.kategori,100),
-        jawatankuasa:str(x.jawatankuasa,160),peranan:str(x.peranan,90),skop:str(x.skop,120)})),
-      tugasBertugas:{disahkan:r.tugasBertugas?.disahkan===true,
-        bertugas:r.tugasBertugas?.bertugas===true,
-        kumpulan:str(r.tugasBertugas?.kumpulan,80),catatan:str(r.tugasBertugas?.catatan,150)},
-      // Data dinamik disimpan sementara sahaja untuk fallback visual hari yang sama.
-      reliefHariIni:r.reliefHariIni?.disahkan===true ? r.reliefHariIni : {disahkan:false},
-      rphStatusHariIni:Array.isArray(r.rphStatusHariIni)?r.rphStatusHariIni.slice(0,80):[],
-      cutiHariIni:r.cutiHariIni?.disahkan===true ? r.cutiHariIni : {disahkan:false},
-      integrasi:{tindakan:false,hebahan:false,takwim:false,relief:false}
-    };
-  }
-  async function saveDashboardToday(r){
-    if(!mobileDashboardMode() || !window.SeMAKMURDataStore)return;
-    const v=safeDashboardSnapshot(r);
-    if(!v)return;
-    await SeMAKMURDataStore.put(MOBILE_DASHBOARD_KIND,
-      String(v.profile.email).trim().toLowerCase(),dashboardMalaysiaDate(),v);
-  }
-  async function readDashboardToday(email){
-    if(!mobileDashboardMode() || !window.SeMAKMURDataStore || !email)return null;
-    const item=await SeMAKMURDataStore.get(MOBILE_DASHBOARD_KIND,email,dashboardMalaysiaDate());
-    if(!item?.value || String(item.value.profile?.email||'').toLowerCase()!==email)return null;
-    const r=safeDashboardSnapshot(item.value);
-    if(!r)return null;
-    // RPH, relief dan cuti boleh berubah pada hari sama: jangan paparkan sebagai
-    // pengesahan terkini apabila lebih 10 minit tidak disemak.
-    if(Date.now()-Number(item.savedAt||0)>10*60*1000){
-      r.reliefHariIni={disahkan:false};r.rphStatusHariIni=[];r.cutiHariIni={disahkan:false};
-    }
-    return {data:r,savedAt:Number(item.savedAt||0)};
-  }
-  function savedDashboardEmail(){
-    try{
-      const raw=sessionStorage.getItem('CURRENT_USER')||localStorage.getItem('SAVED_MOE_USER');
-      const item=JSON.parse(raw||'null');
-      return String(item?.email||'').trim().toLowerCase();
-    }catch(_e){return '';}
-  }
-  async function hydrateDashboard(background=false){
-    if(dashboardRequestPending || document.hidden)return;
+  // Asas: dashboard sentiasa menggunakan respons server, bukan snapshot tempatan.
+  async function hydrateDashboard(){
+    if(dashboardRequestPending)return;
     dashboardRequestPending=true;
-    if(!dashboardAuthenticated)$('header-status').textContent='Menyemak maklumat…';
     try{
-      // Buka semula pada hari yang sama: sahkan sesi dahulu (permintaan kecil),
-      // kemudian gunakan semula data setempat. Tiada bacaan jadual/murid penuh.
-      if(!dashboardAuthenticated && mobileDashboardMode()){
-        const email=savedDashboardEmail();
-        const snapshot=email?await readDashboardToday(email):null;
-        if(snapshot){
-          const check=await SeMAKMURAuth.verify();
-          const confirmed=String(check?.user?.email||'').trim().toLowerCase();
-          const role=String(check?.user?.role||'').toLowerCase();
-          if(check?.success && confirmed===email &&
-             (role==='guru'||role==='admin_choice'||role==='admin')){
-            if(finishDashboard(snapshot.data)){
-              lastSmartDay=dashboardMalaysiaDate();
-              // Baca data asas dari simpanan; sync perubahan secara ringan selepas
-              // paparan dipulihkan jika status belum disemak 5 minit atau lebih.
-              lastSmartSyncAt=snapshot.savedAt;
-              setTimeout(maybeSmartSync,900);
-              return;
-            }
-          }
-          if(['SESSION_EXPIRED','ACCESS_REVOKED','ACCESS_EXPIRED','AUTH_REQUIRED','UNAUTHORIZED'].includes(String(check?.code||''))){
-            sendToLogin();return;
-          }
-          // Jika identiti tak sepadan: cache tidak digunakan. Biarkan API rasmi semak.
-        }
-      }
-      let res=null;
-      if(window.SeMAKMURSmartSync){
-        const raw=sessionStorage.getItem('CURRENT_USER')||localStorage.getItem('SAVED_MOE_USER');
-        let saved=null;try{saved=JSON.parse(raw||'null');}catch(_e){}
-        const email=String(saved?.email||'').trim().toLowerCase();
-        // JANGAN percaya cache sebagai pengganti pengesahan. Server mengesahkan setiap respons.
-        const cached=email?SeMAKMURSmartSync.read(email):null;
-        const delta=await SeMAKMURAuth.request({action:'getGuruDashboardSync',data:{have:cached?.versions||{}}});
-        if(delta?.success && delta.protocol==='GD_SYNC_V1'){
-          if(delta.profile?.email && email && String(delta.profile.email).toLowerCase()!==email){sendToLogin();return;}
-          res=SeMAKMURSmartSync.merge(email,delta,cached);
-          // Cuti & status e-RPH harian: jika belum ada sambungan semasa, jangan reka datanya.
-        }else if(['SESSION_EXPIRED','ACCESS_REVOKED','ACCESS_EXPIRED','AUTH_REQUIRED','UNAUTHORIZED'].includes(String(delta?.code||''))){
-          sendToLogin();return;
-        }else{
-          // Compatibility: backend lama belum mempunyai action penyegerakan.
-          res=await SeMAKMURAuth.request({action:'getGuruDashboardData'});
-          if(res?.success && email)SeMAKMURSmartSync.storeLegacy(email,res);
-        }
-      }else res=await SeMAKMURAuth.request({action:'getGuruDashboardData'});
+      const res=await SeMAKMURAuth.request({action:'getGuruDashboardData'});
       if(!res?.success){
         if(['SESSION_EXPIRED','ACCESS_REVOKED','ACCESS_EXPIRED','AUTH_REQUIRED','UNAUTHORIZED'].includes(String(res?.code||''))){sendToLogin();return;}
-        throw new Error('Dashboard belum dapat diselaraskan.');
+        throw new Error(res?.error||'Dashboard tidak dapat dimuatkan.');
       }
-      if(finishDashboard(res)){
-        lastSmartSyncAt=Date.now();lastSmartDay=dashboardMalaysiaDate();
-        // Tulis hanya respons server yang telah disahkan; simpan setempat untuk hari ini.
-        saveDashboardToday(res).catch(()=>{});
-      }
-    }catch(err){unavailableDashboard(err);}
-    finally{dashboardRequestPending=false;}
-  }
-  function maybeSmartSync(){
-    if(!dashboardAuthenticated || dashboardRequestPending || document.hidden || !navigator.onLine)return;
-    const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-    if(today!==lastSmartDay || Date.now()-lastSmartSyncAt>=SMART_SYNC_MIN_GAP)hydrateDashboard(true);
+      finishDashboard(res);
+    }catch(err){unavailableDashboard(err);}finally{dashboardRequestPending=false;}
   }
   function boot(){
     $('copyright-year').textContent=String(new Date().getFullYear());
     updateClock();setInterval(updateClock,30000);
-    smartSyncTimer=setInterval(maybeSmartSync,60000);
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden)maybeSmartSync();});
-    window.addEventListener('online',maybeSmartSync);
     $('greeting-text').textContent='Selamat Datang';
     document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){openModule(module.dataset.module);return;}
       const page=e.target.closest('[data-page]');if(page){closeErphWorkspace();closeKehadiranWorkspace();switchMainMenu(page.dataset.page);rememberWorkspace(page.dataset.page);return;}

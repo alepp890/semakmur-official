@@ -47,24 +47,11 @@
     el('v4-back').addEventListener('click',()=>{if(activeName())history.back();else switchMainMenu('laman_utama');});
     el('v4-profile').addEventListener('click',()=>openProfile());
     el('v4-bell').addEventListener('click',()=>showInfo('Tiada notifikasi baharu yang disahkan.'));
+    // PushState when opening new module; back should return to dashboard. 
     const openE=openErphWorkspace,openK=openKehadiranWorkspace;
-    function setModuleState(kind,replace){
-      const url=location.pathname+location.search+(kind?('#'+kind):'');
-      const state={v4:true,kind:kind||'home'};
-      if(replace)history.replaceState(state,'',url); else history.pushState(state,'',url);
-    }
-    window.openErphWorkspace=function(){
-      const prev=activeName();
-      openE();
-      if(mobile()) setModuleState('erph',!!prev);
-      header();
-    };
-    window.openKehadiranWorkspace=function(){
-      const prev=activeName();
-      openK();
-      if(mobile()) setModuleState('kehadiran',!!prev);
-      header();
-    };
+    window.openErphWorkspace=function(){const prev=activeName();openE();if(!prev && location.hash==='#erph'){history.replaceState({v4:true,kind:'home'},'',location.pathname+location.search);history.pushState({v4:true,kind:'erph'},'','#erph');}header();};
+    window.openKehadiranWorkspace=function(){const prev=activeName();openK();if(!prev && location.hash==='#kehadiran'){history.replaceState({v4:true,kind:'home'},'',location.pathname+location.search);history.pushState({v4:true,kind:'kehadiran'},'','#kehadiran');}header();};
+    // Ensure a base history entry exists before a module is pushed; replaceState in legacy open gets overwritten back.
     window.addEventListener('popstate',()=>{syncNav();});
     const origMenu=switchMainMenu;
     window.switchMainMenu=function(key){origMenu(key);header();};

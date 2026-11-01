@@ -7,7 +7,7 @@
   .v4-mobile-head strong{font-size:14px;color:#133b5b;font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .v4-back{border:0;background:#f0f5f9;color:#163f5f;font-size:21px;font-weight:700;border-radius:10px;width:36px;height:36px}
   .v4-head-actions{display:flex;align-items:center;gap:9px}
-  .v4-head-actions button{background:#f3f7fb;border:0;color:#1b5c7b;width:36px;height:36px;border-radius:50%;font-size:17px;display:grid;place-items:center;padding:0;line-height:1}
+  .v4-head-actions button{background:#f3f7fb;border:0;color:#1b5c7b;width:34px;height:34px;border-radius:50%;font-size:17px}
   #v4-profile{font-weight:800;background:#dceef7}
   #page-scroll{padding:0 0 calc(92px + env(safe-area-inset-bottom))!important;background:#f5f8fc}
   body.v4-on-home #home-quicklinks,body.v4-on-home .dashboard-section-bar,body.v4-on-home #dashboard-grid-container,body.v4-on-home .app-footer,body.v4-on-home #service-notice{display:none!important}
@@ -38,5 +38,3 @@
   .erph-workspace{padding-bottom:calc(67px + env(safe-area-inset-bottom))!important}
 }
 @media(prefers-reduced-motion:reduce){.v4-launch-track i{animation:none}}
-
-@media(max-width:767px){#v4-bell svg,#v4-profile span{display:block}}
