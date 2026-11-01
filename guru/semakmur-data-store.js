@@ -7,7 +7,7 @@
 (function(global){
   'use strict';
   const DB='SEMAKMUR_SMART_STATIC_V2', STORE='items';
-  const TTL_BY_KIND={draft:14*86400000,prefs:30*86400000}; // 'attendance' kekal hingga revisi berubah / logout / eviction
+  const TTL_BY_KIND={dashboard:24*60*60*1000,draft:14*86400000,prefs:30*86400000}; // 'attendance' kekal hingga revisi berubah / logout / eviction
   const userKey=email=>String(email||'').trim().toLowerCase();
   let conn=null;
   function db(){
