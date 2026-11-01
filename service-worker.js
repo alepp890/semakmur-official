@@ -2,14 +2,24 @@
  * HANYA aset awam GitHub Pages disimpan. Tiada respons API, data guru, rekod murid atau token.
  */
 'use strict';
-const SHELL_CACHE='semakmur-public-shell-v20261031-instant-v2';
+const SHELL_CACHE='semakmur-public-shell-v20261101-offlinefirst-v4';
 const SHELL_RESOURCES=[
   './offline.html',
   './assets/icon-192.png',
   './assets/icon-512.png',
   './app.html',
+  './auth-client.js',
+  './config.js',
   './guru/DashboardGuru.html',
-  './guru/dashboard.css'
+  './guru/dashboard.css',
+  './guru/dashboard-smart-sync.js',
+  './guru/semakmur-data-store.js',
+  './guru/modulaplikasi/KehadiranMurid.html',
+  './guru/modulaplikasi/ErphGuru.html',
+  './guru/modulaplikasi/js/app-core.js',
+  './guru/modulaplikasi/js/builder.js',
+  './guru/modulaplikasi/js/approval.js',
+  './guru/modulaplikasi/js/auth-guard.js'
 ];
 const CACHED_URLS=new Set(SHELL_RESOURCES.slice(3).map(path=>new URL(path,self.registration.scope).pathname));
 
