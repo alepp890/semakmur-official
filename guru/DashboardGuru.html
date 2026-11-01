@@ -104,6 +104,7 @@
     </style>
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="dashboard-mobile-v4.css">
+  <style>@media(min-width:768px){#kehadiran-workspace .erph-workspace-top{display:none!important}}</style>
   <style>
     /* e-RPH PWA: rangka dashboard, header dan bottom-nav kekal. */
     .erph-workspace { flex:1; min-height:0; overflow:hidden; background:#eaf5fc; flex-direction:column; }
@@ -475,10 +476,33 @@
     if (!pane || pane.hidden) return;
     pane.hidden=true;
     pane.classList.remove('is-open');
+    skhDesktopHeading(false);
     $('page-scroll').classList.remove('hidden');
     if (!keepHash)rememberWorkspace('laman_utama');
     if (!keepHash && location.hash==='#erph' && history.replaceState) history.replaceState(null,'',location.pathname+location.search);
   }
+  // V4.2: hanya header Desktop bertukar apabila modul Kehadiran dibuka.
+  let skhDesktopHeadingBefore=null;
+  function skhDesktopHeading(active){
+    if(window.matchMedia('(max-width:767px)').matches)return;
+    const a=$('greeting-text'),b=$('header-user-name');if(!a||!b)return;
+    if(active){
+      if(!skhDesktopHeadingBefore)skhDesktopHeadingBefore={greeting:a.textContent,name:b.textContent,title:b.title};
+      a.textContent='Hal Ehwal Murid';b.textContent='Smart Kehadiran Murid';b.title='Smart Kehadiran Murid';
+    } else if(skhDesktopHeadingBefore){
+      a.textContent=skhDesktopHeadingBefore.greeting;
+      b.textContent=skhDesktopHeadingBefore.name;
+      b.title=skhDesktopHeadingBefore.title;
+      skhDesktopHeadingBefore=null;
+    }
+  }
+  // Butang breadcrumb dalam iframe: buka halaman utama melalui kawalan dashboard.
+  window.addEventListener('message',function(e){
+    if(e.origin!==location.origin || e.source!==$('kehadiran-workspace-frame')?.contentWindow)return;
+    if(e.data?.type==='SEMAKMUR_ATTENDANCE_BACK'){
+      closeKehadiranWorkspace();switchMainMenu('laman_utama');
+    }
+  });
   // Submodul HEM boleh dibuka di dalam PWA tanpa tab baharu.
   function openKehadiranWorkspace() {
     if (!dashboardAuthenticated) { showInfo('Sesi pengguna belum disahkan.'); return; }
@@ -490,6 +514,7 @@
     $('page-scroll').classList.add('hidden');
     pane.hidden=false;
     pane.classList.add('is-open');
+    skhDesktopHeading(true);
     rememberWorkspace('kehadiran');
     if (window.history && history.replaceState) history.replaceState(null,'',location.pathname+location.search+'#kehadiran');
   }
@@ -498,6 +523,7 @@
     if (!pane || pane.hidden) return;
     pane.hidden=true;
     pane.classList.remove('is-open');
+    skhDesktopHeading(false);
     $('page-scroll').classList.remove('hidden');
     if (!keepHash)rememberWorkspace('laman_utama');
     if (!keepHash && location.hash==='#kehadiran' && history.replaceState) history.replaceState(null,'',location.pathname+location.search);
