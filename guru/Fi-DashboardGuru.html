@@ -739,7 +739,7 @@
       } catch(err){console.warn('Pembatalan sesi dalam talian belum disahkan.');}
     }
     window.FiDashboard?.signOutOnly?.().catch(()=>{});
-    location.replace('../LoginSession.html');
+    location.replace('../Fi-LoginSession.html');
   }
   function updateClock(){
     const d=nowMsia(),hour=d.getHours(),displayHour=hour%12||12;
