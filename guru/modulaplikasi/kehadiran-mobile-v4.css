@@ -41,3 +41,6 @@
   #v4-confirm-save:disabled{background:#a4bbc8;color:#f3f7fa}
   .v4-quiet{font-size:12px;color:#678091;line-height:1.8;margin:0 0 13px}
 }
+
+/* Guru biasa: tiada tab berulang, terus ruang pengisian. */
+@media(max-width:767px){#v4-att-top[data-access="entry"] .v4-att-tabs{display:none!important}}
