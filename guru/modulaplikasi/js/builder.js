@@ -10,7 +10,7 @@
 let currentJadualList = [];
 let currentDskpList = [];
 let selectedSlotData = null;
-let attendanceDataGlobal = { bilHadir: '0/0', total: 0, hadir: 0 };
+let attendanceDataGlobal = { bilHadir: '', total: 0, hadir: 0 };
 
 // Pembolehubah Global Poster Cuti
 let posterBase64Data = '';
@@ -683,14 +683,14 @@ function fetchKehadiranData(tarikh, kelas) {
           attendanceDataGlobal.bilHadir = res.bilHadir;
         }
       } else {
-        displayInput.value = '0 / 0 orang murid';
-        attendanceDataGlobal = { bilHadir: '0/0', total: 0, hadir: 0 };
+        displayInput.value = 'Belum disambungkan';
+        attendanceDataGlobal = { bilHadir: '', total: 0, hadir: 0 };
       }
       calculateRefleksi();
     })
     .catch(err => {
       console.error('Ralat Kehadiran:', err);
-      displayInput.value = '0 / 0 orang murid';
+      displayInput.value = 'Belum disambungkan';
       calculateRefleksi();
     });
 }
@@ -968,6 +968,18 @@ function calculateRefleksi() {
     return;
   }
 
+  // Kehadiran rasmi belum diintegrasikan. Jangan anggap murid hadir = 0.
+  // Refleksi boleh direkod berdasarkan bilangan capai yang guru sendiri isi.
+  if (!attendanceDataGlobal.bilHadir || attendanceDataGlobal.total === 0) {
+    if (txtCapai) txtCapai.textContent = capaiInput + ' / —';
+    if (txtBimbingan) txtBimbingan.textContent = '—';
+    if (txtTidakCapai) txtTidakCapai.textContent = '—';
+    document.getElementById('rphReflectCount').value = capaiInput +
+      ' orang murid mencapai objektif (kehadiran rasmi belum disambungkan).';
+    validateSubmitButtonState();
+    return;
+  }
+
   let capai = capaiInput > totalStudents ? totalStudents : capaiInput;
   let tidakCapai = totalStudents - capai;
 
@@ -1139,7 +1151,7 @@ function resetRphFormFields() {
   document.getElementById('rphThemeSelect').innerHTML = '<option value="">-- Pilih Tema / Unit --</option>';
   document.getElementById('rphTajukSelect').innerHTML = '<option value="">-- Pilih Tajuk --</option>';
   clearDskpFormFields();
-  document.getElementById('rphKehadiranDisplay').value = '0 / 0 orang murid';
+  document.getElementById('rphKehadiranDisplay').value = 'Belum disambungkan';
   document.getElementById('rphCapaiCount').value = '0';
   document.getElementById('rphReflectNote').value = '';
   
@@ -1274,7 +1286,7 @@ function editRphRecord(idRph) {
   setCheckedValuesByName('chkKbat', item.kbat);
   setCheckedValuesByName('chkPbd', item.pbd);
 
-  document.getElementById('rphKehadiranDisplay').value = item.kehadiranMurid || '0 / 0 orang murid';
+  document.getElementById('rphKehadiranDisplay').value = item.kehadiranMurid || 'Belum disambungkan';
   document.getElementById('rphCapaiCount').value = item.refleksiBilCapai || 0;
   document.getElementById('rphReflectNote').value = item.catatanRefleksi || '';
 

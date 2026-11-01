@@ -62,44 +62,9 @@ function initIdleTimeoutMonitor() {
   console.log("⏳ Pemasa Idle 5 Minit diaktifkan untuk tab e-RPH.");
 }
 
-// Data rujukan e-RPH: gunakan semula per peranti selama tujuh hari, hanya
-// selepas SEMAKMUR_ERPH_AUTH_READY mengesahkan guru. Rekod RPH, kelulusan,
-// kehadiran dan maklumat berubah setiap masa TIDAK disimpan dalam cache.
-const ERPH_STATIC_ACTIONS = new Set(['getJadualGuruByHari','getTakwimData']);
-const erphCheckingKeys = new Set();
-async function fetchBackendApi(action, payloadData = {}) {
-  const user = state.currentUser;
-  const email = String(user?.email || user?.Email_Delima || '').trim().toLowerCase();
-  const role = String(user?.role || '');
-  const cacheEnabled = ERPH_STATIC_ACTIONS.has(action) &&
-    ['guru','admin_choice'].includes(role) && email && window.SeMAKMURDataStore;
-  const key = action + ':' + JSON.stringify(payloadData || {});
-  if(cacheEnabled) {
-    try {
-      const item = await SeMAKMURDataStore.get('erph-static', email, key);
-      if(item?.value?.success) {
-        // Revisi diperiksa di belakang tabir. Tidak melambatkan dropdown e-RPH.
-        if(Date.now()-Number(item.checkedAt||0)>60*60*1000 && !erphCheckingKeys.has(key)) {
-          erphCheckingKeys.add(key);
-          SeMAKMURAuth.request({action:'smartKehadiranGetVersi',data:{}})
-            .then(async v=>{
-              if(!v?.success || !v.data?.revision) return;
-              if(item.meta?.revision && item.meta.revision!==v.data.revision){
-                await SeMAKMURDataStore.remove('erph-static',email,key);
-              }else{
-                await SeMAKMURDataStore.put('erph-static',email,key,item.value,{revision:v.data.revision});
-              }
-            }).catch(()=>{}).finally(()=>erphCheckingKeys.delete(key));
-        }
-        return item.value;
-      }
-    } catch(_e) {}
-  }
-  const res=await SeMAKMURAuth.request({ action, data: payloadData, payload: payloadData });
-  if(cacheEnabled && res?.success) {
-    try { await SeMAKMURDataStore.put('erph-static', email, key, res); } catch(_e) {}
-  }
-  return res;
+// Setiap bacaan e-RPH dibuat terus daripada backend; tiada cache IndexedDB.
+async function fetchBackendApi(action,payloadData={}) {
+  return SeMAKMURAuth.request({action,data:payloadData,payload:payloadData});
 }
 function cleanTimeFormatFrontend(str) {
   if (!str) return '';
