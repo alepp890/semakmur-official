@@ -351,6 +351,12 @@
     try{if(!dashboardAuthenticated||!currentUser?.email)return;localStorage.setItem(WORKSPACE_RESUME_KEY,JSON.stringify({email:String(currentUser.email).toLowerCase(),kind,at:Date.now()}));}catch(_e){}
   }
   function resumeLastWorkspace(){resumeDone=true;} // Fi: jangan buka modul sensitif secara automatik.
+  // Utiliti asas yang dikongsi oleh semua fungsi Dashboard Fi.
+  // Tidak tersedia dalam skop skrip HTML kerana Fi-DashboardGuru.js ialah ES module.
+  const $=id=>document.getElementById(id);
+  const escapeHtml=v=>String(v===null||v===undefined?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function nowMsia(){return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kuala_Lumpur'}));}
+  function dateText(d){return new Intl.DateTimeFormat('ms-MY',{weekday:'long',year:'numeric',month:'long',day:'numeric',timeZone:'Asia/Kuala_Lumpur'}).format(d);}
   function todayDay(){return DAY_NAMES[nowMsia().getDay()];}
   function showInfo(text){const el=$('toast');el.textContent=text;el.classList.remove('hidden');if(toastTimer) clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.add('hidden'),4800);}
   function setNotice(text){const el=$('service-notice');if(!text){el.classList.add('hidden');return;}el.textContent=text;el.classList.remove('hidden');}
