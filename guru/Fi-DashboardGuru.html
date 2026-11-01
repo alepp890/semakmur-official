@@ -319,7 +319,7 @@
     relief:{title:'e-Relief',icon:'fa-person-circle-check',tone:'green',url:null},
     epbd:{title:'e-PBD',icon:'fa-chart-column',tone:'blue',url:null},
     tmk:{title:'PdPc Modul TMK',icon:'fa-computer',tone:'purple',url:null},
-    kehadiran:{title:'Kehadiran Murid',icon:'fa-user-check',tone:'green',url:'modulaplikasi/KehadiranMurid.html'},
+    kehadiran:{title:'Kehadiran Murid',icon:'fa-user-check',tone:'green',url:'modulaplikasi/Fi-KehadiranMurid.html'},
     apdm:{title:'APDM',icon:'fa-users',tone:'blue',url:'https://apdm.moe.gov.my'},
     spbt:{title:'SPBT',icon:'fa-book',tone:'orange',url:null},
     rmt:{title:'RMT & Kesihatan',icon:'fa-heart-pulse',tone:'rose',url:null},
@@ -461,7 +461,7 @@
     closeMobileMenu();
     const pane=$('kehadiran-workspace'), frame=$('kehadiran-workspace-frame');
     if (!pane || !frame) return;
-    if (!frame.getAttribute('src')) frame.setAttribute('src','modulaplikasi/KehadiranMurid.html?embed=1&v=basik21');
+    if (!frame.getAttribute('src')) frame.setAttribute('src','modulaplikasi/Fi-KehadiranMurid.html?embed=1&v=fi-v2');
     $('page-scroll').classList.add('hidden');
     pane.hidden=false;
     pane.classList.add('is-open');
