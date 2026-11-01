@@ -58,8 +58,25 @@
     @media(max-width:760px){.layout{grid-template-columns:1fr}.wrap{padding:15px 12px 90px}.card{padding:15px}.top{margin-bottom:12px}.stats{gap:7px}.stat strong{font-size:21px}.actions .btn{flex:1}.student{padding:10px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
   </style>
+  <link rel="stylesheet" href="kehadiran-mobile-v4.css">
 </head>
 <body>
+  <div id="v4-attendance" class="v4-attendance" hidden>
+    <div class="v4-att-top"><div class="v4-att-tabs" role="tablist">
+      <button type="button" id="v4-tab-isi" class="v4-current">Isi Kehadiran</button>
+      <button type="button" id="v4-tab-papar">Papar Kehadiran</button>
+    </div><strong id="v4-att-date"></strong></div>
+    <section id="v4-class-view"><h2>Kehadiran Hari Ini</h2><p id="v4-status-note" role="status">Memuatkan senarai kelas…</p><div id="v4-class-list"></div></section>
+    <section id="v4-papar-view" hidden><h2>Papar Kehadiran</h2><p class="v4-quiet">Pilih kelas untuk melihat status rasmi. Sebab ketidakhadiran terperinci hanya dibuka kepada guru kelas atau pentadbir yang diberi kuasa.</p><div id="v4-papar-list"></div></section>
+    <div id="v4-student-dialog" class="v4-student-dialog" hidden role="dialog" aria-modal="true" aria-labelledby="v4-dialog-title">
+      <div class="v4-dialog-panel">
+        <div class="v4-dialog-head"><div><h2 id="v4-dialog-title">Kelas</h2><small id="v4-dialog-count"></small></div><button id="v4-dialog-close" type="button" aria-label="Tutup">×</button></div>
+        <div class="v4-dialog-search"><input id="v4-student-search" type="search" placeholder="Cari nama murid" aria-label="Cari nama murid"></div>
+        <div id="v4-student-list" class="v4-quick-students"></div>
+        <div class="v4-dialog-foot"><p id="v4-dialog-notice" role="status"></p><label class="v4-check"><input type="checkbox" id="v4-confirm"> Saya telah menyemak kehadiran sebenar murid.</label><button id="v4-confirm-save" type="button" disabled>Sahkan Kehadiran</button></div>
+      </div>
+    </div>
+  </div>
   <div class="wrap">
     <header class="top">
       <div><div class="eyebrow">SeMAKMUR Digital · HEM</div><h1>Smart Kehadiran Murid</h1><p class="subtitle">Satu pengesahan sehari · Guru pertama atau guru berikutnya jika belum direkod</p></div>
@@ -183,5 +200,6 @@ const baseLoadStudents=loadStudents;
 loadStudents=async function(k){if(state.user)SeMAKMURDataStore.put('prefs',email(),'attendance',{date:byId('tarikh').value,idKelas:k.idKelas});return baseLoadStudents(k);};
 document.addEventListener('DOMContentLoaded',boot);
   </script>
+  <script src="kehadiran-mobile-v4.js"></script>
 </body>
 </html>
