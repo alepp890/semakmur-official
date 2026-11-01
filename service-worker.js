@@ -2,7 +2,7 @@
  * HANYA aset awam GitHub Pages disimpan. Tiada respons API, data guru, rekod murid atau token.
  */
 'use strict';
-const SHELL_CACHE='semakmur-public-shell-v20261101-mobile-native-v1';
+const SHELL_CACHE='semakmur-public-shell-v20261101-mobile-v4daily1';
 const SHELL_RESOURCES=[
   './offline.html',
   './assets/icon-192.png',
@@ -12,9 +12,12 @@ const SHELL_RESOURCES=[
   './config.js',
   './guru/DashboardGuru.html',
   './guru/dashboard.css',
-  './guru/dashboard-mobile-native.css',
   './guru/dashboard-smart-sync.js',
   './guru/semakmur-data-store.js',
+  './guru/dashboard-mobile-v4.js',
+  './guru/dashboard-mobile-v4.css',
+  './guru/modulaplikasi/kehadiran-mobile-v4.js',
+  './guru/modulaplikasi/kehadiran-mobile-v4.css',
   './guru/modulaplikasi/KehadiranMurid.html',
   './guru/modulaplikasi/ErphGuru.html',
   './guru/modulaplikasi/js/app-core.js',
