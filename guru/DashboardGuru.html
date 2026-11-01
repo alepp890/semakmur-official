@@ -104,7 +104,14 @@
     </style>
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="dashboard-mobile-v4.css">
-  <style>@media(min-width:768px){#kehadiran-workspace .erph-workspace-top{display:none!important}}</style>
+  <style>
+    /* V4.3 Kehadiran Desktop: header tunggal pada dashboard. Breadcrumb tinggal dalam modul. */
+    @media(min-width:768px){
+      #kehadiran-workspace .erph-workspace-toolbar{display:none!important}
+      #kehadiran-workspace .erph-workspace-top{display:none!important}
+      body:has(#kehadiran-workspace.is-open) #header-user-name{font-size:21px!important;letter-spacing:-.025em}
+    }
+  </style>
   <style>
     /* e-RPH PWA: rangka dashboard, header dan bottom-nav kekal. */
     .erph-workspace { flex:1; min-height:0; overflow:hidden; background:#eaf5fc; flex-direction:column; }
@@ -510,7 +517,7 @@
     closeMobileMenu();
     const pane=$('kehadiran-workspace'), frame=$('kehadiran-workspace-frame');
     if (!pane || !frame) return;
-    if (!frame.getAttribute('src')) frame.setAttribute('src','modulaplikasi/KehadiranMurid.html?embed=1');
+    if (!frame.getAttribute('src')) frame.setAttribute('src','modulaplikasi/KehadiranMurid.html?embed=1&v=43');
     $('page-scroll').classList.add('hidden');
     pane.hidden=false;
     pane.classList.add('is-open');
