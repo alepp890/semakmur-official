@@ -11,6 +11,8 @@
   const EXP_KEY = 'SEMAKMUR_ACCESS_EXPIRES';
   let pendingRefresh = null;
   let pendingVerify = null;
+  // Memory only: trusted after an authenticated Dashboard API response. Never persisted.
+  let trustedDashboard = null;
 
   function getApiUrl() {
     const url = (typeof WEB_APP_URL !== 'undefined' ? String(WEB_APP_URL || '') : '').trim();
@@ -45,6 +47,7 @@
     return res.user;
   }
   function clear() {
+    trustedDashboard = null;
     sessionStorage.removeItem(ACCESS_KEY);
     sessionStorage.removeItem(EXP_KEY);
     sessionStorage.removeItem('CURRENT_USER');
@@ -118,14 +121,66 @@
     if (res && ['SESSION_EXPIRED','ACCESS_REVOKED'].includes(res.code)) clear();
     return res;
   }
+  /**
+   * Dashboard calls this only AFTER getGuruDashboardData succeeded with the
+   * access token. This allows its same-origin embedded modules to reuse the
+   * already-confirmed identity without a separate verifySession HTTP request.
+   * Token & role are still verified on EVERY protected backend API action.
+   */
+  function acceptDashboardSession(user, backendEmail) {
+    const verifiedEmail = String(backendEmail || '').trim().toLowerCase();
+    const claimedEmail = String(user && user.email || '').trim().toLowerCase();
+    const token = sessionStorage.getItem(ACCESS_KEY);
+    const expires = Number(sessionStorage.getItem(EXP_KEY) || 0);
+    if (!verifiedEmail || verifiedEmail !== claimedEmail || !token || expires <= Date.now() + 5000) {
+      trustedDashboard = null;
+      return false;
+    }
+    trustedDashboard = {token, expires, user: Object.freeze(Object.assign({}, user, {email: verifiedEmail}))};
+    return true;
+  }
+
+  function getDashboardTrustedUser() {
+    const context = trustedDashboard;
+    if (!context || !sessionStorage.getItem(ACCESS_KEY) ||
+        sessionStorage.getItem(ACCESS_KEY) !== context.token ||
+        Number(sessionStorage.getItem(EXP_KEY) || 0) <= Date.now() + 5000) return null;
+    return Object.assign({}, context.user);
+  }
+
+  function getEmbeddedDashboardUser() {
+    try {
+      // A standalone tab must still verify its own session on the server.
+      if (global.parent === global) return null;
+      const host = global.parent;
+      if (host.location.origin !== global.location.origin) return null;
+      // Only these two actual workspace iframes may inherit the Dashboard login.
+      const frames = ['erph-workspace-frame', 'kehadiran-workspace-frame'];
+      const isWorkspace = frames.some(id => host.document.getElementById(id)?.contentWindow === global);
+      if (!isWorkspace) return null;
+      const hostAuth = host.SeMAKMURAuth;
+      if (!hostAuth || typeof hostAuth.getDashboardTrustedUser !== 'function') return null;
+      return hostAuth.getDashboardTrustedUser();
+    } catch (_e) {
+      return null;
+    }
+  }
+
   async function requireUser(roles, loginPath) {
     const login = loginPath || '/semakmur-official/LoginSession.html';
-    const res = await verify();
+    const parentUser = getEmbeddedDashboardUser();
+    // Avoid verifySession for embedded workspaces when Dashboard is already confirmed.
+    // If the parent trust has expired/rotated, use the original server check.
+    const res = parentUser ? {success: true, user: parentUser} : await verify();
     const user = res && res.user;
     const accepted = Array.isArray(roles) ? roles : ['guru','admin_choice','murid','parent'];
     const role = user && user.role;
-    const hasRole = accepted.includes(role) || (accepted.includes('guru') && role === 'admin_choice');
+    const hasRole = accepted.includes(role) ||
+      (accepted.includes('guru') && (role === 'admin_choice' || (role === 'admin' && user?.is_admin === true))) ||
+      (accepted.includes('admin_choice') && user?.is_admin === true);
     if (!res.success || !hasRole) {
+      // A denied UI check is not an authorization grant: protected API actions
+      // independently verify the session and official permissions on server.
       global.location.replace(login);
       return null;
     }
@@ -141,6 +196,7 @@
   }
   global.SeMAKMURAuth = Object.freeze({
     rawPost, storeCredentials, clear, refresh, getAccessToken,
-    verify, request, requireUser, logout
+    verify, request, requireUser, logout,
+    acceptDashboardSession, getDashboardTrustedUser
   });
 })(window);
