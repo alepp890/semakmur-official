@@ -112,7 +112,7 @@
     .erph-workspace-toolbar button { background:#e0f2fe; border:1px solid #38bdf8; border-radius:10px; padding:7px 12px; font-size:13px; font-weight:800; color:#075985; }
     .erph-workspace-toolbar button:focus-visible { outline:3px solid #0ea5e9; outline-offset:2px; }
     .erph-workspace-subtitle { margin-left:auto; font-size:11px; font-weight:700; color:#5592b3; }
-    #erph-workspace-frame { display:block; flex:1; min-height:0; width:100%; border:0; background:#fff; }
+    #erph-workspace-frame, #kehadiran-workspace-frame { display:block; flex:1; min-height:0; width:100%; border:0; background:#fff; }
     @media(max-width:767px) { .erph-workspace { padding-bottom:calc(76px + env(safe-area-inset-bottom)); } }
     /* Instant Dashboard V2: hanya paparan sementara, tidak mengubah gaya V5. */
     .sema-loading-line {
@@ -181,6 +181,15 @@
       </div>
       <!-- src diisi selepas guru yang telah disahkan membuka modul. -->
       <iframe id="erph-workspace-frame" title="Modul e-RPH Digital" loading="eager" referrerpolicy="same-origin" allow="clipboard-write"></iframe>
+    </section>
+    <!-- Smart Kehadiran: ruang kerja berasingan, tidak mengubah iframe e-RPH. -->
+    <section id="kehadiran-workspace" class="erph-workspace" hidden aria-label="Ruang kerja Kehadiran Murid">
+      <div class="erph-workspace-toolbar">
+        <button type="button" onclick="closeKehadiranWorkspace()" aria-label="Kembali ke Dashboard Guru">← Kembali</button>
+        <strong>Smart Kehadiran Murid</strong>
+        <span class="erph-workspace-subtitle">SeMAKMUR</span>
+      </div>
+      <iframe id="kehadiran-workspace-frame" title="Modul Smart Kehadiran Murid" loading="eager" referrerpolicy="same-origin"></iframe>
     </section>
     <main id="page-scroll" class="page-main p-5 lg:p-6 flex-1 overflow-y-auto space-y-5" aria-label="Kandungan dashboard">
       <div id="service-notice" class="hidden card-coligo border-amber-200 bg-amber-50 text-amber-900 p-3 text-[13px]" role="status"></div>
@@ -277,7 +286,7 @@
     relief:{title:'e-Relief',icon:'fa-person-circle-check',tone:'green',url:null},
     epbd:{title:'e-PBD',icon:'fa-chart-column',tone:'blue',url:null},
     tmk:{title:'PdPc Modul TMK',icon:'fa-computer',tone:'purple',url:null},
-    kehadiran:{title:'Kehadiran Murid',icon:'fa-user-check',tone:'green',url:null},
+    kehadiran:{title:'Kehadiran Murid',icon:'fa-user-check',tone:'green',url:'modulaplikasi/KehadiranMurid.html'},
     apdm:{title:'APDM',icon:'fa-users',tone:'blue',url:'https://apdm.moe.gov.my'},
     spbt:{title:'SPBT',icon:'fa-book',tone:'orange',url:null},
     rmt:{title:'RMT & Kesihatan',icon:'fa-heart-pulse',tone:'rose',url:null},
@@ -385,6 +394,7 @@
   }
   function openErphWorkspace() {
     if (!dashboardAuthenticated) { showInfo('Sesi pengguna belum disahkan.'); return; }
+    closeKehadiranWorkspace(true);
     closeMobileMenu();
     const pane=$('erph-workspace'), frame=$('erph-workspace-frame');
     if (!pane || !frame) return;
@@ -403,11 +413,33 @@
     $('page-scroll').classList.remove('hidden');
     if (!keepHash && location.hash==='#erph' && history.replaceState) history.replaceState(null,'',location.pathname+location.search);
   }
+  // Submodul HEM boleh dibuka di dalam PWA tanpa tab baharu.
+  function openKehadiranWorkspace() {
+    if (!dashboardAuthenticated) { showInfo('Sesi pengguna belum disahkan.'); return; }
+    closeErphWorkspace(true);
+    closeMobileMenu();
+    const pane=$('kehadiran-workspace'), frame=$('kehadiran-workspace-frame');
+    if (!pane || !frame) return;
+    if (!frame.getAttribute('src')) frame.setAttribute('src','modulaplikasi/KehadiranMurid.html?embed=1');
+    $('page-scroll').classList.add('hidden');
+    pane.hidden=false;
+    pane.classList.add('is-open');
+    if (window.history && history.replaceState) history.replaceState(null,'',location.pathname+location.search+'#kehadiran');
+  }
+  function closeKehadiranWorkspace(keepHash) {
+    const pane=$('kehadiran-workspace');
+    if (!pane || pane.hidden) return;
+    pane.hidden=true;
+    pane.classList.remove('is-open');
+    $('page-scroll').classList.remove('hidden');
+    if (!keepHash && location.hash==='#kehadiran' && history.replaceState) history.replaceState(null,'',location.pathname+location.search);
+  }
   function openModule(id){const m=MODULES[id];if(!m)return;
     if(!dashboardAuthenticated){showInfo('Akses sedang disahkan. Sila cuba sebentar lagi.');return;}
     if(id==='jadual'&&!bolehUrusJadual()){showInfo('Akses modul ini terhad kepada pentadbir dan penyelaras jadual waktu.');return;}
     if(!m.url)return;
     if(id==='erph'){ openErphWorkspace(); return; }
+    if(id==='kehadiran'){ openKehadiranWorkspace(); return; }
     window.open(m.url,'_blank','noopener');
   }
   // SVG Lucide-style inline: crisp and also works when external icon CDN is unavailable.
@@ -801,12 +833,12 @@
     window.addEventListener('online',maybeSmartSync);
     $('greeting-text').textContent='Selamat Datang';
     document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){openModule(module.dataset.module);return;}
-      const page=e.target.closest('[data-page]');if(page){closeErphWorkspace();switchMainMenu(page.dataset.page);return;}
+      const page=e.target.closest('[data-page]');if(page){closeErphWorkspace();closeKehadiranWorkspace();switchMainMenu(page.dataset.page);return;}
       const day=e.target.closest('[data-day]');if(day){activeDay=day.dataset.day;renderTimetable();}
     });
     $('profile-form').addEventListener('submit',saveProfile);
     $('profile-modal').addEventListener('click',e=>{if(e.target===$('profile-modal'))closeProfile();});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeProfile();closeMobileMenu();}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeKehadiranWorkspace();closeProfile();closeMobileMenu();}});
     window.addEventListener('resize',()=>{fitName();if(window.innerWidth>=768){$('sidebar-container').classList.remove('-translate-x-full');$('sidebar-backdrop').classList.remove('active');}else{$('sidebar-container').classList.add('-translate-x-full');}});
     showInstantShell();
     showRememberedGreeting();
