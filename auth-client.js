@@ -51,13 +51,7 @@
     localStorage.removeItem(REFRESH_KEY);
     localStorage.removeItem('SAVED_MOE_USER');
     localStorage.removeItem('currentUser');
-    localStorage.removeItem('SEMAKMUR_GURU_JADUAL_V1');
-    localStorage.removeItem('SEMAKMUR_GURU_SMART_CACHE_V1'); // kosongkan cache dashboard selepas logout
     localStorage.removeItem('SEMAKMUR_LAST_WORKSPACE_V2');
-    try {
-      if (global.SeMAKMURDataStore?.clearAll) global.SeMAKMURDataStore.clearAll();
-      else if ('indexedDB' in global) indexedDB.deleteDatabase('SEMAKMUR_SMART_STATIC_V2');
-    } catch (_ignored) {}
   }
   function refresh() {
     if (pendingRefresh) return pendingRefresh;

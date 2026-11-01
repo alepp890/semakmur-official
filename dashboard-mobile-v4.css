@@ -1,0 +1,40 @@
+/* SeMAKMUR Mobile V4 · desktop kekal asal. */
+.v4-mobile-head,.v4-mobile-home,.v4-launch {display:none}
+@media(max-width:767px){
+  html,body {background:#f5f8fc!important}
+  .dashboard-main-header{display:none!important}
+  .v4-mobile-head{height:62px;flex:0 0 62px;display:flex;align-items:center;gap:10px;padding:0 15px;background:#fff;border-bottom:1px solid #e3eaf2;z-index:38;position:relative}
+  .v4-mobile-head strong{font-size:14px;color:#133b5b;font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .v4-back{border:0;background:#f0f5f9;color:#163f5f;font-size:21px;font-weight:700;border-radius:10px;width:36px;height:36px}
+  .v4-head-actions{display:flex;align-items:center;gap:9px}
+  .v4-head-actions button{background:#f3f7fb;border:0;color:#1b5c7b;width:34px;height:34px;border-radius:50%;font-size:17px}
+  #v4-profile{font-weight:800;background:#dceef7}
+  #page-scroll{padding:0 0 calc(92px + env(safe-area-inset-bottom))!important;background:#f5f8fc}
+  body.v4-on-home #home-quicklinks,body.v4-on-home .dashboard-section-bar,body.v4-on-home #dashboard-grid-container,body.v4-on-home .app-footer,body.v4-on-home #service-notice{display:none!important}
+  body.v4-on-home .v4-mobile-home{display:block}
+  .v4-mobile-home{padding:13px 13px 23px}
+  .v4-welcome{background:linear-gradient(125deg,#174a77,#1d6c94 70%,#2e93a4);border-radius:17px;padding:17px 18px 16px;color:#fff;display:flex;flex-direction:column;gap:4px;box-shadow:0 10px 22px #1749701b}
+  .v4-welcome span{font-size:12px;opacity:.88}.v4-welcome strong{font-size:22px;line-height:1.25;letter-spacing:-.3px}.v4-welcome time{font-size:11px;opacity:.85;margin-top:2px}
+  .v4-now-next{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-top:13px}
+  .v4-small-card{padding:13px 11px;min-height:100px;background:white;border:1px solid #e5edf2;border-radius:14px;box-shadow:0 2px 8px #122c4307}
+  .v4-small-card small{display:block;color:#698195;font-size:11px;font-weight:700;margin-bottom:9px}
+  .v4-small-card strong{font-size:14px;display:block;color:#1b5075;line-height:1.3;overflow-wrap:anywhere}
+  .v4-small-card span{display:block;font-size:11px;color:#647a8a;margin-top:4px}
+  .v4-section{margin-top:19px}.v4-section h2{font-size:16px;font-weight:800;color:#1b3c56;margin:0 0 10px}
+  .v4-panel{background:#fff;border:1px solid #e4ecf2;padding:14px 15px;border-radius:13px;color:#475d71;font-size:12px;line-height:1.7}
+  .v4-day-list{display:grid;gap:9px}.v4-day-card{background:#fff;border:1px solid #e4ecf2;border-radius:13px;padding:13px;display:flex;gap:11px;align-items:center}
+  .v4-day-time{min-width:84px;font-size:11px;font-weight:800;color:#226b92;line-height:1.7}
+  .v4-day-info{flex:1;min-width:0}.v4-day-info strong{font-size:12px;color:#203e57;display:block}.v4-day-info span{font-size:11px;color:#718396;display:block;margin-top:4px}
+  .v4-day-badge{font-size:10px;font-weight:800;padding:5px 7px;border-radius:8px;background:#e9f1f8;color:#547188;max-width:99px;text-align:center}
+  .v4-day-badge.done{background:#e6f5ee;color:#167651}.v4-day-badge.warn{background:#fff2df;color:#935b1c}
+  .v4-launch{position:fixed;z-index:100;inset:0;background:#143657;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px}
+  .v4-launch[hidden]{display:none!important}.v4-launch-logo{width:64px;height:64px;border:1px solid #ffffff36;background:#fff2;border-radius:18px;display:grid;place-items:center;font-size:38px;font-weight:800;margin-bottom:4px}
+  .v4-launch strong{font-size:24px;letter-spacing:-.4px}.v4-launch span{font-size:12px;color:#d3e6f5}.v4-launch small{font-size:12px;color:#d3e6f5;margin-top:10px}
+  .v4-launch-track{height:5px;background:#ffffff38;width:min(240px,76%);border-radius:8px;overflow:hidden;margin-top:9px}.v4-launch-track i{display:block;width:38%;height:100%;border-radius:8px;background:#71d9cc;animation:v4bar 1.5s ease-in-out infinite alternate}
+  @keyframes v4bar{to{transform:translateX(170%)}}
+  #mobile-bottom-nav{padding:6px 5px max(7px,env(safe-area-inset-bottom))!important}
+  #mobile-bottom-nav .bottom-btn{width:25%!important;min-height:51px;font-size:11px}
+  #erph-workspace .erph-workspace-toolbar,#kehadiran-workspace .erph-workspace-toolbar{display:none!important}
+  .erph-workspace{padding-bottom:calc(67px + env(safe-area-inset-bottom))!important}
+}
+@media(prefers-reduced-motion:reduce){.v4-launch-track i{animation:none}}

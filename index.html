@@ -470,7 +470,7 @@
         let DEMO_POSTS_DATA = [];
         let DEMO_BULETIN_DATA = [];
         let DEMO_GALLERY_DATA = [];
-        let SCHOOL_STATS = { totalStudents: 0, totalTeachers: 0, attendancePct: '98.5%' };
+        let SCHOOL_STATS = { totalStudents: 0, totalTeachers: 0, attendancePct: null };
 
         let MENU_STRUCTURE = {
             utama: { label: "Utama", desc: "SK Segambut Makmur", items: [] },
@@ -868,7 +868,7 @@
                                             <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-0.5">Guru & Staf</span>
                                         </div>
                                         <div class="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl text-brandDark shadow-md flex flex-col items-center justify-center text-center transition hover:scale-[1.02]">
-                                            <span class="text-2xl font-black text-brandNavy">${SCHOOL_STATS.attendancePct || '98.5%'}</span>
+                                            <span class="text-2xl font-black text-brandNavy">${SCHOOL_STATS.attendancePct || 'Belum tersedia'}</span>
                                             <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-0.5">Purata Kehadiran</span>
                                         </div>
                                         <div class="bg-white/95 backdrop-blur-md p-3.5 rounded-2xl text-brandDark shadow-md flex flex-col items-center justify-center text-center transition hover:scale-[1.02]">
