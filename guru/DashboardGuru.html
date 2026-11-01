@@ -803,6 +803,9 @@
     if(!identityFromResponse(res)){sendToLogin();return false;}
     dashboardAuthenticated=true;
     dashboardData=res;
+    // Dashboard sudah menerima respons API yang disahkan oleh backend.
+    // Modul e-RPH dan Kehadiran yang terbenam boleh menggunakan sesi sama.
+    SeMAKMURAuth.acceptDashboardSession?.(currentUser, res.profile.email);
     applyProfile();applySummary();
     $('right-my-roles').innerHTML=renderRoleList(res.peranan);
     if(activePage!=='laman_utama')renderCategories(activePage);
