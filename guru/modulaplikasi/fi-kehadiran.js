@@ -22,13 +22,14 @@ let rosterReady=false,recordReady=false,loadSeq=0,statusSeq=0,saving=false,ack=f
 const cache=new Map();
 function message(s='',error=false){const x=$('message');x.textContent=s;x.classList.toggle('error',error);x.hidden=!s;}
 function loading(on,title='Membaca Kehadiran',detail='Menyediakan maklumat kelas dan murid…'){
- const x=$('fi-load-overlay');if(!x)return;x.hidden=!on;
+ const x=$('fi-load-overlay');if(!x)return;x.hidden=!on || document.documentElement.classList.contains('fi-embedded');
  $('fi-load-title').textContent=title;$('fi-load-message').textContent=detail;
 }
 function popup(name,count,total){
  $('fi-confirm-message').textContent=`${name}: ${total-count} hadir, ${count} tidak hadir. Rekod telah disimpan dalam Firebase.`;
  $('fi-confirm-dialog').hidden=false;$('fi-confirm-close').focus();
 }
+function notifyParent(type){if(window.parent&&window.parent!==window)window.parent.postMessage({type},location.origin);}
 function closeListeners(){for(const f of [stopIndex,stopRoster,stopRecord])if(f)f();stopIndex=stopRoster=stopRecord=null;}
 function mobileStudents(on){
  document.body.classList.toggle('fi-view-students',!!on);
@@ -65,6 +66,7 @@ async function refreshClassStatuses(){
 }
 
 function loggedOut(s='Sila masuk menggunakan Fi-LoginSession.'){
+ notifyParent('semakmur-fi-attendance-error');
  loading(false);message(s,true);$('account').textContent='Belum login';
  $('classes').innerHTML='<div class="empty"><a href="../../Fi-LoginSession.html" target="_top">Buka Fi-LoginSession</a></div>';
  $('details').innerHTML='<div class="empty">Sila log masuk dahulu.</div>';
@@ -187,10 +189,10 @@ function setDate(){
 function startIndex(){
  if(stopIndex)stopIndex();loading(true,'Menyediakan Senarai Kelas','Membaca daftar kelas daripada Firebase…');
  stopIndex=onSnapshot(doc(db,'semakmur_fi_kehadiran_index','active'),s=>{
-   if(!s.exists()||s.data().active!==true){loading(false);message('Daftar kelas belum diselaraskan.',true);return;}
-   index=s.data();drawClasses();loading(false);message('');refreshClassStatuses();
+   if(!s.exists()||s.data().active!==true){loading(false);notifyParent('semakmur-fi-attendance-error');message('Daftar kelas belum diselaraskan.',true);return;}
+   index=s.data();drawClasses();loading(false);notifyParent('semakmur-fi-attendance-ready');message('');refreshClassStatuses();
    if(window.innerWidth>780&&!selected && classes().length)choose(classes()[0].docId);
- },e=>{loading(false);message('Gagal membaca senarai kelas: '+(e.code||e.message),true);});
+ },e=>{loading(false);notifyParent('semakmur-fi-attendance-error');message('Gagal membaca senarai kelas: '+(e.code||e.message),true);});
 }
 function init(){
  $('date').value=dateMY();$('date').max=dateMY();$('date').addEventListener('change',setDate);
