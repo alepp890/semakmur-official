@@ -19,6 +19,49 @@ const dateValid = s => /^\d{4}-\d{2}-\d{2}$/.test(str(s));
 let fbApp,auth,db,user=null,teacher=null,index=null,selected=null,roster=null,record=null;
 let stopIndex=null,stopRoster=null,stopRecord=null;
 let rosterReady=false,recordReady=false,loadSeq=0,statusSeq=0,saving=false,ack=false,dirty=false,absent=new Set();
+let mode='rekod',guruKelas=null,parentReport=null,stopParent=null;
+const nameKey=v=>str(v).toLocaleUpperCase('ms').replace(/\s+/g,' ');
+const humanDate=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||'');return m?`${m[3]}/${m[2]}/${m[1]}`:s;};
+function teacherClass(){
+ const roles=Array.isArray(teacher?.peranan)?teacher.peranan:[];
+ const found=roles.find(r=>nameKey(r.peranan)==='GURU KELAS' && nameKey(r.jawatankuasa).includes('PENGURUSAN KELAS') && str(r.skop));
+ return str(found?.skop || teacher?.profile?.guruKelas);
+}
+function resolveGuruClass(){const match=classes().find(c=>nameKey(c.namaKelas)===nameKey(teacherClass()));return match||null;}
+function tabSelect(next){
+ mode=next; selected=null; if(stopRoster)stopRoster();if(stopRecord)stopRecord();if(stopParent)stopParent();
+ stopRoster=stopRecord=stopParent=null; ++loadSeq;recordReady=rosterReady=false;dirty=false;ack=false;absent.clear();mobileStudents(false);
+ $('tab-rekod').classList.toggle('active',next==='rekod');$('tab-semakan').classList.toggle('active',next==='semakan');
+ $('tab-rekod').setAttribute('aria-selected',String(next==='rekod'));$('tab-semakan').setAttribute('aria-selected',String(next==='semakan'));
+ $('fi-rekod-panel').hidden=next!=='rekod';$('fi-semakan-panel').hidden=next!=='semakan';
+ $('fi-rekod-panel').style.display=next==='rekod'?'':'none';$('fi-semakan-panel').style.display=next==='semakan'?'':'none';
+ if(next==='semakan')renderParentReview(); else {drawClasses();render();}
+}
+async function renderParentReview(){
+ const el=$('fi-semakan-content'),c=resolveGuruClass();
+ if(!c){el.innerHTML='<div class="empty">Akses ini hanya untuk Guru Kelas yang dilantik dalam Manual Pengurusan. Semak pelantikan jika kelas anda belum muncul.</div>';return;}
+ const date=dateValue(),key=date+'__'+c.docId;
+ el.innerHTML=`<div class="review-heading"><strong>${esc(c.namaKelas)}</strong><span>${esc(humanDate(date))}</span></div><div class="empty">Memeriksa kehadiran dan laporan penjaga…</div>`;
+ try{
+   const [attendance,rosterDoc,parents]=await Promise.all([
+     getDoc(doc(db,'semakmur_fi_kehadiran_harian',key)),getDoc(doc(db,'semakmur_fi_kelas',c.docId)),
+     getDoc(doc(db,'semakmur_fi_semakan_penjaga',key)).catch(()=>null)]);
+   if(mode!=='semakan'||date!==dateValue())return;
+   if(!attendance.exists()) {el.innerHTML=`<div class="review-heading"><strong>${esc(c.namaKelas)}</strong><span>${esc(humanDate(date))}</span></div><div class="empty">Kehadiran kelas ini belum direkodkan pada tarikh dipilih.</div>`;return;}
+   const absentIds=attendance.data().absentIds||[], rosterKids=rosterDoc.data()?.murid||[];
+   const map=new Map(rosterKids.map(m=>[m.idMurid,m.namaMurid]));
+   const report=parents?.exists()?parents.data():null;
+   const flags=report?.sebabById||{};
+   const list=absentIds.map((id,i)=>{
+     const known=Boolean(report?.syncReady),info=flags[id];
+     const title= !known?'Status penjaga belum diselaraskan':info?.sebabDiberi?'Sebab telah dilaporkan':info?.adaLaporan?'Laporan diterima, sebab belum lengkap':'Belum ada sebab daripada penjaga';
+     const cls=!known?'pending':info?.sebabDiberi?'complete':'waiting';
+     return `<div class="review-pupil"><span class="student-number">${i+1}</span><strong>${esc(map.get(id)||id)}</strong><span class="review-status ${cls}">${esc(title)}</span></div>`;
+   }).join('');
+   el.innerHTML=`<div class="review-heading"><strong>${esc(c.namaKelas)}</strong><span>${esc(humanDate(date))}</span></div><div class="review-summary">${absentIds.length} murid tidak hadir</div>${!report?.syncReady?'<p class="review-warning">Laporan penjaga belum diselaraskan ke Firebase. Status di bawah bukan pengesahan bahawa penjaga sudah atau belum melapor.</p>':''}${list||'<div class="empty">Tiada murid tidak hadir direkodkan untuk kelas ini.</div>'}`;
+ }catch(e){el.innerHTML='<div class="empty">Tidak dapat membaca data semakan. '+esc(e.code||e.message||'')+'</div>';}
+}
+
 const cache=new Map();
 function message(s='',error=false){const x=$('message');x.textContent=s;x.classList.toggle('error',error);x.hidden=!s;}
 function loading(on,title='Membaca Kehadiran',detail='Menyediakan maklumat kelas dan murid…'){
@@ -30,7 +73,7 @@ function popup(name,count,total){
  $('fi-confirm-dialog').hidden=false;$('fi-confirm-close').focus();
 }
 function notifyParent(type){if(window.parent&&window.parent!==window)window.parent.postMessage({type},location.origin);}
-function closeListeners(){for(const f of [stopIndex,stopRoster,stopRecord])if(f)f();stopIndex=stopRoster=stopRecord=null;}
+function closeListeners(){for(const f of [stopIndex,stopRoster,stopRecord,stopParent])if(f)f();stopIndex=stopRoster=stopRecord=stopParent=null;}
 function mobileStudents(on){
  document.body.classList.toggle('fi-view-students',!!on);
  const topBack=$('fi-v6-top-back'),topTitle=$('fi-v6-attendance-header-title');
@@ -44,7 +87,7 @@ function mobileStudents(on){
 async function refreshClassStatuses(){
  if(!db||!user||!index)return;
  const seq=++statusSeq, date=dateValue(),list=classes();
- for(const c of list)cache.set('status:'+date+':'+c.docId,{state:'loading'});
+ for(const c of list)if(!cache.has('status:'+date+':'+c.docId))cache.set('status:'+date+':'+c.docId,{state:'loading'});
  drawClasses();
  let n=0;
  async function worker(){
@@ -75,12 +118,12 @@ const classes=()=>Array.isArray(index?.classes)?index.classes:[];
 function stateLabel(c){
  const x=cache.get('status:'+dateValue()+':'+c.docId);
  if(selected?.docId===c.docId && recordReady){
-   if(record)return {label:`${Number(record.present)}/${Number(record.total)}`,type:'done',detail:'Direkodkan'};
+   if(record)return {label:`${Number(record.present)}/${Number(record.total)}`,type:'done',detail:''};
    return {label:'Tiada Rekod',type:'missing',detail:''};
  }
- if(!x || x.state==='loading')return {label:'Memuat rekod…',type:'loading',detail:''};
+ if(!x || x.state==='loading')return {label:'Menyemak…',type:'loading',detail:''};
  if(x.state==='error')return {label:'Gagal semak',type:'error',detail:''};
- if(x.state==='done')return {label:`${Number(x.present)}/${Number(x.total)}`,type:'done',detail:'Direkodkan'};
+ if(x.state==='done')return {label:`${Number(x.present)}/${Number(x.total)}`,type:'done',detail:''};
  return {label:'Tiada Rekod',type:'missing',detail:''};
 }
 function dateValue(){return $('date').value;}
@@ -102,14 +145,15 @@ function render(){
  const students=Array.isArray(roster?.murid)?roster.murid:[];
  const n=students.length,k=absent.size;
  const editor=record?.updatedByEmail||'',version=record?.version||0;
- const status=record?`Rekod dikemas kini oleh ${editor}. Versi ${version}. Anda boleh membetulkan rekod ini.`:'Belum direkod. Murid dianggap hadir hanya selepas pengesahan disimpan.';
+ const editorDisplay=(str(teacher?.profile?.email).toLowerCase()===str(editor).toLowerCase() ? (teacher?.profile?.namaPenuh||teacher?.profile?.namaSamaran||'Guru').split(/\s+/)[0].toLocaleLowerCase('ms').replace(/^./,c=>c.toLocaleUpperCase('ms')) : editor.replace(/^g-[^@]+@.*/, 'guru lain')); 
+ const status=record?`Rekod dikemas kini oleh ${esc(editorDisplay)}.`:'Belum direkod. Murid dianggap hadir hanya selepas pengesahan disimpan.';
  const metrics=`<div class="metrics"><div class="metric"><strong>${n}</strong>Jumlah Murid</div><div class="metric"><strong id="metric-present">${n-k}</strong>Anggaran Hadir</div><div class="metric"><strong id="metric-absent">${k}</strong>Tidak Hadir</div></div>`;
- const list=students.map((m,i)=>`<label class="student ${absent.has(m.idMurid)?'missing':''}" data-name="${esc(str(m.namaMurid).toLocaleLowerCase('ms'))}"><input type="checkbox" data-pupil="${esc(m.idMurid)}" ${absent.has(m.idMurid)?'checked':''} ${saving?'disabled':''}><span class="student-number">${i+1}</span><div><div class="name">${esc(m.namaMurid)}</div><div class="note">${absent.has(m.idMurid)?'Tidak hadir':'Hadir (jika rekod disimpan)'}</div></div></label>`).join('');
- $('details').innerHTML=`<div class="muted">${esc(status)}</div>${metrics}<input class="search" id="pupil-search" placeholder="Cari nama murid" aria-label="Cari murid"><div class="student-list">${list}</div><div class="footer"><label class="ack"><input id="confirm" type="checkbox" ${ack?'checked':''} ${saving?'disabled':''}> Saya mengesahkan kehadiran kelas ini untuk ${esc(dateValue())}.</label><button class="btn primary" id="save" type="button" ${ack&&!saving?'':'disabled'}>${record?'Simpan Pembetulan':'Sahkan Kehadiran'}</button></div>`;
+ const list=students.map((m,i)=>`<label class="student ${absent.has(m.idMurid)?'missing':''}" data-name="${esc(str(m.namaMurid).toLocaleLowerCase('ms'))}"><input type="checkbox" data-pupil="${esc(m.idMurid)}" ${absent.has(m.idMurid)?'checked':''} ${saving?'disabled':''}><span class="student-number">${i+1}</span><div><div class="name">${esc(m.namaMurid)}</div></div></label>`).join('');
+ $('details').innerHTML=`<div class="muted">${esc(status)}</div>${metrics}<input class="search" id="pupil-search" placeholder="Cari nama murid" aria-label="Cari murid"><div class="student-list">${list}</div><div class="footer"><label class="ack"><input id="confirm" type="checkbox" ${ack?'checked':''} ${saving?'disabled':''}> Saya mengesahkan kehadiran kelas ini untuk ${esc(humanDate(dateValue()))}.</label><button class="btn primary" id="save" type="button" ${ack&&!saving?'':'disabled'}>${record?'Simpan Pembetulan':'Sahkan Kehadiran'}</button></div>`;
  $('details').querySelectorAll('[data-pupil]').forEach(i=>i.addEventListener('change',()=>{
    i.checked?absent.add(i.dataset.pupil):absent.delete(i.dataset.pupil);dirty=true;
    i.closest('.student').classList.toggle('missing',i.checked);
-   i.closest('.student').querySelector('.note').textContent=i.checked?'Tidak hadir':'Hadir (jika rekod disimpan)';
+   // Warna baris dan tanda semak sudah mencukupi; tiada label status berulang.
    $('metric-present').textContent=n-absent.size;$('metric-absent').textContent=absent.size;
  }));
  $('pupil-search').addEventListener('input',e=>{const q=str(e.target.value).toLocaleLowerCase('ms');$('details').querySelectorAll('[data-name]').forEach(el=>{el.hidden=!el.dataset.name.includes(q);});});
@@ -184,18 +228,19 @@ function setDate(){
  const d=dateValue();if(!dateValid(d)||d>dateMY()){$('date').value=dateMY();message('Pilih tarikh hari ini atau sebelumnya.',true);}
  loadSeq++;if(stopRoster)stopRoster();if(stopRecord)stopRecord();stopRoster=stopRecord=null;
  selected=null;roster=null;record=null;rosterReady=recordReady=false;dirty=false;ack=false;absent.clear();mobileStudents(false);
- drawClasses();render();
+ drawClasses();render(); if(index)refreshClassStatuses(); if(mode==='semakan')renderParentReview();
 }
 function startIndex(){
  if(stopIndex)stopIndex();loading(true,'Menyediakan Senarai Kelas','Membaca daftar kelas daripada Firebase…');
  stopIndex=onSnapshot(doc(db,'semakmur_fi_kehadiran_index','active'),s=>{
    if(!s.exists()||s.data().active!==true){loading(false);notifyParent('semakmur-fi-attendance-error');message('Daftar kelas belum diselaraskan.',true);return;}
-   index=s.data();drawClasses();loading(false);notifyParent('semakmur-fi-attendance-ready');message('');refreshClassStatuses();
+   index=s.data();guruKelas=resolveGuruClass();drawClasses();loading(false);if(mode==='semakan')renderParentReview();notifyParent('semakmur-fi-attendance-ready');message('');refreshClassStatuses();
    if(window.innerWidth>780&&!selected && classes().length)choose(classes()[0].docId);
  },e=>{loading(false);notifyParent('semakmur-fi-attendance-error');message('Gagal membaca senarai kelas: '+(e.code||e.message),true);});
 }
 function init(){
  $('date').value=dateMY();$('date').max=dateMY();$('date').addEventListener('change',setDate);
+ $('tab-rekod').addEventListener('click',()=>tabSelect('rekod'));$('tab-semakan').addEventListener('click',()=>tabSelect('semakan'));
  $('fi-mobile-back').addEventListener('click',()=>mobileStudents(false));
  $('fi-v6-top-back')?.addEventListener('click',()=>mobileStudents(false));
  window.addEventListener('message',e=>{
