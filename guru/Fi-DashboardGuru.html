@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fi-Dashboard Guru | SeMAKMUR Digital</title>
+    <title>Fi-Dashboard Guru | SeMAKMUR Digital V7</title>
     <meta name="theme-color" content="#1b587a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -104,6 +104,7 @@
     </style>
   <link rel="stylesheet" href="dashboard.css">
   <link rel="stylesheet" href="dashboard-mobile-v4.css">
+  <!-- Satu stylesheet Fi V7 menggantikan tiga stylesheet lama. -->
   <style>
     /* V4.3 Kehadiran Desktop: header tunggal pada dashboard. Breadcrumb tinggal dalam modul. */
     @media(min-width:768px){
@@ -153,11 +154,9 @@
     @keyframes sema-shimmer { 0%{background-position:100% 50%}100%{background-position:0 50%} }
     @media(prefers-reduced-motion:reduce){.sema-loading-line{animation:none}}
 </style>
-  <link rel="stylesheet" href="fi-dashboard-visual-v3.css?v=3.0">
-  <link rel="stylesheet" href="fi-dashboard-visual-v5.css?v=5.0.0">
-  <link rel="stylesheet" href="fi-dashboard-visual-v6.css?v=6.0.0">
+  <link rel="stylesheet" href="fi-dashboard-ui-v7.css?v=7.0.0">
 </head>
-<body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5 dashboard-v6">
+<body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5 dashboard-v6 dashboard-v7">
   <div id="sidebar-backdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
   <aside id="sidebar-container" class="side-bg text-white flex flex-col shrink-0 h-full z-40 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-200 shadow-lg w-64" aria-label="Menu utama">
     <div class="min-h-0 flex flex-col flex-1">
@@ -245,14 +244,6 @@
       <small id="v4-launch-message">Menyelaraskan data...</small>
     </div>
     <main id="page-scroll" class="page-main p-5 lg:p-6 flex-1 overflow-y-auto space-y-5" aria-label="Kandungan dashboard">
-      <section id="v4-mobile-home" class="v4-mobile-home" aria-label="Dashboard Guru Mobile">
-        <div class="v4-welcome"><span id="v4-greeting">Selamat Datang,</span><strong id="v4-nickname">Guru</strong><time id="v4-date"></time></div>
-        <div class="v4-now-next" id="v4-now-next"><div class="v4-small-card">Sekarang</div><div class="v4-small-card">Seterusnya</div></div>
-        <section class="v4-section"><h2>Jadual Relief</h2><div class="v4-panel" id="v4-relief">—</div></section>
-        <section class="v4-section"><h2>Minggu Bertugas</h2><div class="v4-panel" id="v4-duty">—</div></section>
-        <section class="v4-section"><h2>Jadual Hari Ini</h2><div id="v4-schedule" class="v4-day-list"></div></section>
-      </section>
-
       <!-- Fi V6: paparan PWA ikut turutan yang ditetapkan. Tidak memaparkan nombor contoh. -->
       <section id="fi-v6-mobile-home" aria-label="Laman Utama SeMAKMUR PWA">
         <div class="fi-v6-hero">
@@ -297,16 +288,7 @@
       </section>
       <div id="service-notice" class="hidden card-coligo border-amber-200 bg-amber-50 text-amber-900 p-3 text-[13px]" role="status"></div>
 
-      <!-- Fi V5: Ringkasan statistik berdasarkan data Dashboard sebenar, bukan nombor contoh. -->
-      <section id="fi-v5-statistics" class="fi-v5-statistics" aria-labelledby="fi-v5-stats-title">
-        <div class="fi-v5-section-heading"><h2 id="fi-v5-stats-title"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i> Statistik Hari Ini</h2><span class="fi-v5-live-pill"><span aria-hidden="true"></span> Berdasarkan jadual guru</span></div>
-        <div class="fi-v5-stats-grid">
-          <article class="fi-v5-stat fi-v5-stat-blue"><span class="fi-v5-stat-icon"><i class="fa-solid fa-chalkboard-user"></i></span><div class="fi-v5-stat-number" id="fi-v5-stat-classes">—</div><div class="fi-v5-stat-label">Kelas Hari Ini</div><small>Bilangan kelas berbeza</small></article>
-          <article class="fi-v5-stat fi-v5-stat-orange"><span class="fi-v5-stat-icon"><i class="fa-solid fa-calendar-days"></i></span><div class="fi-v5-stat-number" id="fi-v5-stat-slots">—</div><div class="fi-v5-stat-label">Slot Mengajar</div><small>Jadual hari semasa</small></article>
-          <article class="fi-v5-stat fi-v5-stat-green"><span class="fi-v5-stat-icon"><i class="fa-solid fa-user-check"></i></span><div class="fi-v5-stat-number" id="fi-v5-stat-roles">—</div><div class="fi-v5-stat-label">Pelantikan Saya</div><small>Peranan yang tersenarai</small></article>
-          <button class="fi-v5-stat fi-v5-stat-purple fi-v5-stat-action" type="button" onclick="openKehadiranWorkspace()" aria-label="Buka Smart Kehadiran"><span class="fi-v5-stat-icon"><i class="fa-solid fa-clipboard-check"></i></span><div class="fi-v5-stat-number fi-v5-stat-action-label">Semak <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></div><div class="fi-v5-stat-label">Kehadiran Murid</div><small>Buka modul Kehadiran</small></button>
-        </div>
-      </section>
+      <div id="fi-v7-desktop-content" aria-label="Dashboard desktop">
       <section id="home-quicklinks" class="quicklinks-shell" aria-labelledby="home-modules-title">
         <div class="quicklinks-topline"><h2 id="home-modules-title"><span class="quick-head-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.8 2 5 13h6l-.8 9L19 10h-6l.8-8Z"/></svg></span>Pautan Pantas</h2>
 
@@ -345,6 +327,7 @@
           </section>
           <section class="card-coligo right-card hidden" id="right-my-roles-panel"><div class="right-card-head"><h2>Peranan Saya</h2></div><div id="right-my-roles" class="right-card-body"></div></section>
         </aside>
+      </div>
       </div>
       <footer class="app-footer text-center pt-3 pb-2">© <span id="copyright-year"></span> SeMAKMUR Digital · SK Segambut Makmur</footer>
     </main>
@@ -534,9 +517,9 @@
   function fiKehadiranFrameReady(){
     const pane=$('kehadiran-workspace'),frame=$('kehadiran-workspace-frame');
     if(!pane||!frame||!frame.getAttribute('src'))return;
-    frame.dataset.fiReady='1';
+    frame.dataset.fiDomLoaded='1';
     frame.contentWindow?.postMessage({type:'semakmur-fi-request-screen'},location.origin);
-    if(!pane.hidden){$('fi-kehadiran-loading').hidden=true;}
+    // Parent retains the loading overlay until attendance signals it is ready.
   }
   function fiKehadiranMuatkan(serial){
     const pane=$('kehadiran-workspace'),frame=$('kehadiran-workspace-frame');
@@ -547,7 +530,7 @@
     }
     fiKehadiranStatus('Memaparkan Smart Kehadiran…','Senarai kelas akan tersedia sebaik halaman dimulakan.');
     if(!frame.getAttribute('src')){
-      frame.setAttribute('src','modulaplikasi/Fi-KehadiranMurid.html?embed=1&v=fi-v4');
+      frame.setAttribute('src','modulaplikasi/Fi-KehadiranMurid.html?embed=1&v=fi-v7');
     }
   }
   function fiKehadiranSesiLatar(){ /* Fi V4: Firebase Auth sudah menyediakan sesi; tiada Apps Script. */ }
@@ -765,18 +748,8 @@
       `<div class="fi-v6-no-data">${!DAYS.includes(day)?'Tiada jadual pada hari minggu.':'Tiada jadual waktu tersedia untuk hari ini.'}</div>`;
     if(fiV6ScheduleOpen)fiV6RenderSchedule();
   }
-  function updateFiV5Statistics(){
-    // Paparan ini hanya menggunakan jadual guru yang telah disahkan oleh Firebase.
-    const ready=dashboardData?.jadualTersedia===true;
-    const blocks=ready?blokBergabung(todayDay()):[];
-    const unique=new Set(blocks.map(x=>String(x.kelas||'').trim()).filter(Boolean));
-    const setValue=(id,val)=>{const node=document.getElementById(id);if(node)node.textContent=String(val);};
-    setValue('fi-v5-stat-classes',ready?unique.size:'—');
-    setValue('fi-v5-stat-slots',ready?blocks.length:'—');
-    setValue('fi-v5-stat-roles',Array.isArray(dashboardData?.peranan)?dashboardData.peranan.length:'—');
-  }
   function applySummary(){
-    renderShortcuts();updateFiV5Statistics();
+    renderShortcuts();
     $('home-summary').innerHTML=summaryWidget('blue','Kelas Sekarang',waktuKiniDanSeterusnya(),'calendar')+
       summaryWidget('amber','Relief Hari Ini',reliefHariIni(),'calendar')+
       summaryWidget('green','Tugasan',tugasHariIni(),'attendance')+
@@ -885,7 +858,7 @@
     renderShortcuts(key);
     $('right-my-roles-panel').classList.toggle('hidden',key==='laman_utama');
     $('page-laman_utama').classList.toggle('hidden',key!=='laman_utama');
-    $('fi-v5-statistics').classList.toggle('hidden',key!=='laman_utama');
+
     $('page-category').classList.toggle('hidden',key==='laman_utama');
     if(key!=='laman_utama')renderCategories(key);
     document.querySelectorAll('[data-page]').forEach(btn=>{btn.classList.toggle('active',btn.dataset.page===key);});
@@ -915,7 +888,7 @@
     const period=hour<12?'pagi':hour<14?'tengah hari':hour<19?'petang':'malam';
     $('header-time').textContent=displayHour+':'+String(d.getMinutes()).padStart(2,'0')+' '+period;
     if(dashboardData){
-      renderTimetable();updateFiV5Statistics();fiV6MobileRefresh();
+      renderTimetable();fiV6MobileRefresh();
       const content=$('home-summary')?.querySelector('.summary-widget.theme-blue .summary-content');
       if(content)content.innerHTML=waktuKiniDanSeterusnya(); // kalkulasi setempat ikut jam
     }
@@ -1033,7 +1006,14 @@
     $('fi-v6-day').addEventListener('change',fiV6RenderSchedule);
     window.addEventListener('message',e=>{
       if(e.origin!==location.origin||e.source!==$('kehadiran-workspace-frame').contentWindow)return;
-      if(e.data?.type==='semakmur-fi-attendance-screen'){
+      if(e.data?.type==='semakmur-fi-attendance-ready'){
+      $('kehadiran-workspace-frame').dataset.fiReady='1';
+      $('fi-kehadiran-loading').hidden=true;
+    }
+    if(e.data?.type==='semakmur-fi-attendance-error'){
+      $('fi-kehadiran-loading').hidden=true;
+    }
+    if(e.data?.type==='semakmur-fi-attendance-screen'){
         fiV6AttendanceDetail=e.data.screen==='students';
         fiV6SelectedClassName=String(e.data.className||'Kehadiran Murid').slice(0,80);
         fiV6Header();
