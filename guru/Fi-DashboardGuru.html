@@ -307,6 +307,14 @@
           <div id="page-category" class="dashboard-page hidden space-y-5">
             <div class="card-coligo p-5"><div class="section-eyebrow" id="category-label">RUANG KERJA</div><h2 class="font-extrabold text-xl text-slate-800 mt-1" id="category-title">Kurikulum</h2><p class="text-[13px] text-slate-500 mt-2 leading-relaxed" id="category-desc"></p></div>
             <div class="card-coligo p-4 md:p-5"><div class="flex justify-between gap-2 items-center"><h3 class="soft-title">Ringkasan Bidang</h3><i class="fa-solid fa-chart-simple text-[#3b8eb2]"></i></div><div id="category-overview" class="mt-3 space-y-2"></div></div>
+            <!-- Keberadaan V2: widget statistik peribadi dalam Pentadbiran sahaja (demo localStorage) -->
+            <section class="card-coligo p-4 md:p-5" id="fi-keberadaan-admin-widget" hidden aria-label="Statistik Smart Keberadaan Saya">
+              <div class="flex justify-between gap-2 items-center"><h3 class="soft-title"><i class="fa-solid fa-clipboard-user text-[#298aaf] mr-2" aria-hidden="true"></i>Statistik Keberadaan Saya</h3><span class="info-pill">Ujian V2</span></div>
+              <p class="text-[12px] text-slate-500 mt-2">Rekod simulasi peribadi sahaja · bukan baki cuti rasmi.</p>
+              <div id="fi-keberadaan-widget-metrics" class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4" aria-live="polite"></div>
+              <div id="fi-keberadaan-widget-types" class="text-[12px] text-slate-600 mt-3"></div>
+              <button type="button" data-module="keberadaan" class="mt-4 text-[12px] font-extrabold text-[#167e9e]">Buka Smart Keberadaan →</button>
+            </section>
             <div class="card-coligo p-4 md:p-5"><div class="flex justify-between gap-2 items-center"><h3 class="soft-title">Peranan & Tanggungjawab Saya</h3><span class="info-pill" id="role-count">0</span></div><div id="category-roles" class="mt-3 space-y-2"></div></div>
             <div class="card-coligo p-4 md:p-5 category-info-note"><h3 class="soft-title">Ruang Kerja Bidang</h3><p class="text-[13px] text-slate-500 mt-1">Pautan aplikasi bidang ini tersedia pada bahagian atas. Pilih aplikasi yang aktif atau teruskan semakan dalam ruang kerja ini.</p></div>
           </div>
@@ -572,7 +580,7 @@
   async function openModule(id){const m=MODULES[id];if(!m)return;
     // Kehadiran dibuka serta-merta. Jangan tunggu ensureOfficial() sebelum memaparkan ruang.
     if(id==='kehadiran'){openKehadiranWorkspace();return;}
-    // Fi Smart Keberadaan V1: pautan baharu sahaja, tidak mengubah aliran modul lain.
+    // Fi Smart Keberadaan V2: modul berasingan, tidak mengubah aliran modul lain.
     if(id==='keberadaan'){
       if(!dashboardAuthenticated || !window.FiAuthenticatedUser){showInfo('Sesi guru sedang disahkan. Sila cuba lagi.');return;}
       location.assign(m.url);return;
@@ -849,8 +857,30 @@
     return `<div class="fi-v8-hem-metrics"><div>Kehadiran Hari Ini<strong>${escapeHtml(value(s.todayRate))}</strong><small>${escapeHtml(s.recordedClasses)} kelas telah merekod</small></div><div>Kehadiran Bulanan<strong>${escapeHtml(value(s.monthlyRate))}</strong><small>Purata rekod tersedia, bukan kelas yang belum direkod</small></div><div>Kelas Kehadiran Penuh<strong>${escapeHtml(s.fullAttendanceCount ?? full.length)}</strong><small>${escapeHtml(full.slice(0,3).join(', ')||'Tiada kelas penuh')}</small></div><div>Kelas Belum Direkod<strong>${escapeHtml(s.unrecordedClasses)}</strong><small>Daripada ${escapeHtml(s.activeClasses)} kelas aktif</small></div></div>`;
   }
   window.fiApplySchoolSummary=function(data){window.FiSchoolSummary=data;if(activePage!=='laman_utama')renderCategories(activePage);};
+  // Keberadaan V2: hanya baca localStorage PENGGUNA SENDIRI untuk widget prototaip.
+  // Data sekolah dan kelulusan pentadbir TIDAK diambil daripada localStorage.
+  function renderKeberadaanWidget(){
+    const root=$('fi-keberadaan-admin-widget');if(!root||!window.FiAuthenticatedUser?.uid)return;
+    const id=window.FiAuthenticatedUser.uid, key='SEMAKMUR_FI_KEBERADAAN_DEMO_V2_'+id;
+    let all=[];try{const parsed=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(parsed))all=parsed.filter(r=>r?.ownerUid===id);}catch(_e){}
+    const now=new Date(),p=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit'}).formatToParts(now),o=Object.fromEntries(p.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
+    const year=o.year,mo=o.month,start=year+'-'+mo+'-01',end=new Date(Date.UTC(Number(year),Number(mo),0)).toISOString().slice(0,10);
+    const month=all.filter(r=>r?.startDate<=end&&r?.endDate>=start&&r.status!=='BATAL'&&r.status!=='DRAF');
+    const approved=month.filter(r=>r.category==='CUTI'&&r.status==='CUTI_DILULUSKAN');
+    const pending=month.filter(r=>['TUNGGU_GPK','TUNGGU_GB','TUNGGU_MAKLUMAT'].includes(r.status));
+    const temporary=month.filter(r=>r.reliefState==='SEMENTARA');
+    const fullDays=new Set();approved.filter(r=>r.period==='PENUH').forEach(r=>{
+      const a=r.startDate>start?r.startDate:start,b=r.endDate<end?r.endDate:end;
+      for(let d=new Date(a+'T00:00:00Z'),last=new Date(b+'T00:00:00Z');d<=last;d.setUTCDate(d.getUTCDate()+1)){if(d.getUTCDay()>0&&d.getUTCDay()<6)fullDays.add(d.toISOString().slice(0,10));}
+    });
+    const rows=[['Permohonan Bulan Ini',month.length],['Cuti Diluluskan (hari)',fullDays.size],['Menunggu',pending.length],['Relief Sementara',temporary.length]];
+    $('fi-keberadaan-widget-metrics').innerHTML=rows.map(([label,value])=>'<div class="rounded-xl border border-[#d9e9f1] bg-[#f6fbfd] p-3"><div class="text-[10px] text-[#66889b] font-bold">'+escapeHtml(label)+'</div><div class="text-[22px] font-extrabold text-[#1e607f] mt-1">'+value+'</div></div>').join('');
+    const typeCount={};approved.forEach(r=>{let name=r.leaveType==='LAIN'?(r.leaveOther||'Cuti Lain'):(r.leaveType||'Lain');typeCount[name]=(typeCount[name]||0)+1;});
+    $('fi-keberadaan-widget-types').textContent=Object.keys(typeCount).length?'Cuti diluluskan bulan ini: '+Object.entries(typeCount).map(([k,v])=>k+' ('+v+' permohonan)').join(' · '):'Tiada permohonan cuti diluluskan dalam data ujian bulan ini.';
+  }
   function renderCategories(key){
     const menu=MENUS[key];if(!menu)return;
+    const widget=$('fi-keberadaan-admin-widget');if(widget){widget.hidden=key!=='pentadbiran';if(key==='pentadbiran')renderKeberadaanWidget();}
     $('category-title').textContent=menu.title;
     $('category-desc').textContent=menu.subtitle;
     $('category-label').textContent='RUANG KERJA · '+menu.title.toUpperCase();
