@@ -33,6 +33,7 @@
 @media(max-width:600px){.metrics{gap:6px}.metric{padding:9px 10px}.metric strong{font-size:17px}}
 </style>
 <link rel="stylesheet" href="./fi-kehadiran-visual-v3.css?v=4.0">
+<link rel="stylesheet" href="./fi-kehadiran-visual-v5.css?v=5.0.0">
 </head>
 <body>
 <header class="top"><div><h1>Smart Kehadiran Murid</h1><small>SeMAKMUR Digital · Hal Ehwal Murid</small></div><span id="account" class="pill">Mengesahkan sesi</span></header>
@@ -45,6 +46,11 @@
     <div id="details" class="empty">Pilih kelas untuk memaparkan senarai murid.</div>
   </section>
 </div></main>
+<nav class="fi-v5-attendance-nav" aria-label="Navigasi mobile">
+  <a href="../Fi-DashboardGuru.html" target="_top"><span aria-hidden="true">⌂</span>Utama</a>
+  <a class="active" href="#" aria-current="page"><span aria-hidden="true">▣</span>Kehadiran</a>
+  <a href="../Fi-DashboardGuru.html#lain_lain" target="_top"><span aria-hidden="true">☷</span>Menu</a>
+</nav>
 <div id="fi-load-overlay" class="fi-load-overlay" role="status" aria-live="polite" hidden><div class="fi-load-card"><div class="fi-load-spin" aria-hidden="true"></div><strong id="fi-load-title">Menyimpan Kehadiran</strong><span id="fi-load-message">Sila tunggu sebentar…</span></div></div>
 <div id="fi-confirm-dialog" class="fi-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="fi-confirm-title" hidden><div class="fi-confirm-card"><div class="fi-confirm-badge" aria-hidden="true">✓</div><h3 id="fi-confirm-title">Kehadiran Berjaya Disimpan</h3><p id="fi-confirm-message">Maklumat kehadiran telah direkodkan.</p><button id="fi-confirm-close" type="button">Selesai</button></div></div>
 <script src="../../firebase-pilot-config.js"></script>

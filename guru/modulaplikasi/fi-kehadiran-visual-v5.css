@@ -1,0 +1,73 @@
+/* SeMAKMUR Fi V5 — elegant compact student attendance screens. Styling only. */
+:root{--fi5-blue:#096fce;--fi5-navy:#102b61;--fi5-line:#d8e8fb;--fi5-shadow:0 8px 24px #16487b12}
+html,body{background:linear-gradient(155deg,#e8f5ff,#f8fcff 54%,#eaf3ff)!important;color:#16365c!important}
+.top{color:white!important;background:radial-gradient(ellipse at 90% -10%,#21cdf459,transparent 48%),linear-gradient(112deg,#082357,#0a559f)!important;border-bottom:0!important;box-shadow:0 5px 18px #12448128!important}
+.top h1{color:white!important;font-weight:800!important}.top small{color:#bde9ff!important}.top .pill{background:#ffffff2b!important;color:#fff!important;border:1px solid #ffffff50!important}
+.wrap{max-width:1250px!important;padding-top:14px!important}
+.back{color:#1b6db4!important}
+.date{background:linear-gradient(120deg,#edf6ff,#dbeaff)!important;border:1px solid #c6defb!important;box-shadow:0 4px 13px #164e8b0d!important;border-radius:16px!important;padding:12px 15px!important}
+.date label{color:#0d3571!important;font-size:13px!important}
+.date input{color:#14528f!important;border-color:#aecfed!important;border-radius:10px!important;background:#fff!important;font-weight:700}
+.shell{grid-template-columns:minmax(260px,350px) minmax(0,1fr)!important;gap:13px!important}
+.panel{background:#fff!important;border:1px solid #d4e6fa!important;border-radius:16px!important;padding:14px!important;box-shadow:var(--fi5-shadow)!important}
+.panel-head h2{color:#112f65!important;font-size:15px!important}
+.class-list{gap:6px!important}
+.class{position:relative;gap:10px!important;min-height:56px!important;padding:9px 13px 9px 49px!important;border:1px solid #deebfa!important;background:linear-gradient(115deg,#fff,#f7fbff)!important;border-radius:12px!important;box-shadow:0 2px 7px #1546760a!important;transition:transform .16s ease,border .16s ease,background .16s ease}
+.class::before{position:absolute;left:9px;top:50%;transform:translateY(-50%);content:"♟";display:grid;place-items:center;width:31px;height:31px;font-size:16px;border-radius:11px;background:#dceeff;color:#217cd3;font-weight:800}
+.class:nth-child(4n+2)::before{background:#eee7ff;color:#845de1}.class:nth-child(4n+3)::before{background:#ddf8ee;color:#12a479}.class:nth-child(4n+4)::before{background:#fff0df;color:#ed8b21}
+.class:hover{transform:translateY(-1px);border-color:#8ac7f0!important;background:#f0f8ff!important}
+.class.selected{background:#eaf6ff!important;border:1px solid #48a7e9!important;box-shadow:inset 3px 0 #158ad8!important}
+.class strong{font-size:13px!important;color:#143568!important}.class small{font-size:11px!important;color:#7590aa!important;margin-top:2px!important}
+.pill{background:#e9f3ff!important;color:#2d6ba6!important;padding:5px 8px!important;border-radius:30px!important;font-size:10px!important}
+.pill.done{background:#dcfaeb!important;color:#07855a!important}
+.search{border:1px solid #cfe1f3!important;background:#f7fbff!important;border-radius:11px!important;font-size:13px!important;margin-top:8px!important;padding:10px 12px!important}
+.metric{background:linear-gradient(145deg,#edf6ff,#f8fcff)!important;border:1px solid #d6e8f9!important;border-radius:12px!important;padding:10px 13px!important;font-size:11px!important;min-width:105px}
+.metric:nth-child(2){background:linear-gradient(145deg,#e7fff2,#f8fffb)!important;border-color:#c8efd9!important}.metric:nth-child(2) strong{color:#0a925d!important}
+.metric:nth-child(3){background:linear-gradient(145deg,#fff0f2,#fffafb)!important;border-color:#f7d9e1!important}.metric:nth-child(3) strong{color:#db376b!important}
+.metric strong{color:#115eaa!important;font-weight:800!important;font-size:22px!important}
+.student-list{gap:4px!important;margin-top:11px!important}
+.student{border:1px solid #e0eafa!important;border-radius:10px!important;min-height:44px!important;padding:7px 10px!important;gap:9px!important;background:#fff!important;transition:background .12s ease}
+.student:nth-child(2n){background:#fafcff!important}.student:hover{background:#edf7ff!important}
+.student .student-number{width:27px!important;height:27px!important;min-width:27px!important;background:#e9f2ff!important;color:#3277bc!important;border-radius:9px!important}
+.student .name{font-weight:800!important;color:#1d3968!important;font-size:12px!important;line-height:1.35!important}
+.student .note{color:#7892a9!important;font-size:10px!important;margin-top:2px!important}
+.student input{accent-color:#e64e74!important;width:18px!important;height:18px!important}
+.student.missing{background:#fff4f5!important;border-color:#eab9cb!important}
+.footer{position:relative;border-top:1px solid #e7eef7;padding-top:12px;margin-top:15px!important}
+.btn{border-radius:11px!important}.btn.primary{color:#fff!important;background:linear-gradient(130deg,#159ce5,#0b4ab9)!important;border:0!important;padding:12px 16px!important;box-shadow:0 7px 15px #0b62b636!important}
+.fi-mobile-back{background:#e6f1ff!important;color:#175f9f!important}
+.fi-load-card,.fi-confirm-card{border-radius:22px!important;border:1px solid #dceafb!important;box-shadow:0 20px 45px #0c36644a!important}
+.fi-load-spin{border-color:#daeafe!important;border-top-color:#0c78d0!important}
+.fi-confirm-badge{background:linear-gradient(130deg,#32ce86,#069e63)!important;color:white!important;box-shadow:0 10px 24px #0a9a6033!important}
+.fi-confirm-card button{background:linear-gradient(110deg,#158fee,#0d4caf)!important;border-radius:12px!important}
+.fi-v5-attendance-nav{display:none}
+/* When embedded, only the parent Dashboard shows the 3-tab navigation. */
+.fi-embedded .top,.fi-embedded .crumb,.fi-embedded .fi-v5-attendance-nav{display:none!important}
+@media(max-width:780px){
+ .wrap,.fi-embedded .wrap{padding:10px 11px calc(88px + env(safe-area-inset-bottom))!important}
+ .date{padding:10px!important;margin-bottom:9px!important}
+ .date label{font-size:12px!important}.date input{padding:8px!important}
+ .shell{display:block!important}.panel{padding:10px!important;border-radius:14px!important}
+ .panel-head{margin-bottom:8px!important}
+ .panel-head h2{font-size:14px!important}
+ .class-list{grid-template-columns:1fr!important;gap:5px!important}
+ .class{min-height:51px!important;padding:8px 11px 8px 48px!important}
+ .class strong{font-size:12px!important}
+ .class .pill{font-size:10px!important}
+ .student-list{gap:3px!important;margin-top:8px!important}
+ .student{min-height:41px!important;padding:6px 8px!important;border-radius:9px!important}
+ .student .name{font-size:11.5px!important}.student .note{font-size:9px!important}
+ .student .student-number{width:24px!important;height:24px!important;min-width:24px!important}
+ .metrics{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px!important;margin-top:8px!important}
+ .metric{min-width:0!important;padding:8px!important;font-size:9.5px!important}.metric strong{font-size:18px!important}
+ .fi-mobile-back{margin-bottom:8px!important;padding:7px 10px!important}
+ .footer{gap:9px!important}.footer .btn.primary{width:100%;min-height:45px}
+ /* Two truly separate mobile screens; class list or students only */
+ body.fi-view-students .fi-classes-panel{display:none!important}
+ body:not(.fi-view-students) .fi-details-panel{display:none!important}
+ body.fi-view-students .fi-details-panel{display:block!important}
+ .fi-v5-attendance-nav{display:grid;grid-template-columns:repeat(3,1fr);position:fixed;inset:auto 0 0;z-index:30;gap:8px;padding:7px 8px max(7px,env(safe-area-inset-bottom));border-top:1px solid #d6e6fb;background:#fff;box-shadow:0 -4px 17px #1039791f}
+ .fi-v5-attendance-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:800;color:#4b6690;text-decoration:none;border-radius:11px;min-height:47px}
+ .fi-v5-attendance-nav a span{font-size:20px}.fi-v5-attendance-nav a.active{background:linear-gradient(140deg,#159dec,#0854bd);color:#fff}
+}
+@media(prefers-reduced-motion:reduce){.class,.student{transition:none!important}}
