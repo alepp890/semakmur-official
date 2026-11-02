@@ -2,14 +2,14 @@
   "id": "./LoginSession.html",
   "name": "SeMAKMUR Digital",
   "short_name": "SeMAKMUR",
-  "description": "Ruang digital guru, murid dan penjaga SK Segambut Makmur.",
+  "description": "Dashboard Guru dan Smart Kehadiran SeMAKMUR Digital.",
   "lang": "ms-MY",
   "dir": "ltr",
-  "start_url": "./app.html",
+  "start_url": "./Fi-LoginSession.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#F1F5F9",
-  "theme_color": "#075985",
+  "background_color": "#F0F5F9",
+  "theme_color": "#173C60",
   "icons": [
     {
       "src": "./assets/icon-192.png",
