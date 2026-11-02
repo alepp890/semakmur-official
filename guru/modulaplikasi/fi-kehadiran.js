@@ -18,7 +18,7 @@ const dateMY = () => {
 const dateValid = s => /^\d{4}-\d{2}-\d{2}$/.test(str(s));
 let fbApp,auth,db,user=null,teacher=null,index=null,selected=null,roster=null,record=null;
 let stopIndex=null,stopRoster=null,stopRecord=null;
-let rosterReady=false,recordReady=false,loadSeq=0,saving=false,ack=false,dirty=false,absent=new Set();
+let rosterReady=false,recordReady=false,loadSeq=0,statusSeq=0,saving=false,ack=false,dirty=false,absent=new Set();
 const cache=new Map();
 function message(s='',error=false){const x=$('message');x.textContent=s;x.classList.toggle('error',error);x.hidden=!s;}
 function loading(on,title='Membaca Kehadiran',detail='Menyediakan maklumat kelas dan murid…'){
@@ -30,7 +30,40 @@ function popup(name,count,total){
  $('fi-confirm-dialog').hidden=false;$('fi-confirm-close').focus();
 }
 function closeListeners(){for(const f of [stopIndex,stopRoster,stopRecord])if(f)f();stopIndex=stopRoster=stopRecord=null;}
-function mobileStudents(on){document.body.classList.toggle('fi-view-students',!!on);}
+function mobileStudents(on){
+ document.body.classList.toggle('fi-view-students',!!on);
+ const topBack=$('fi-v6-top-back'),topTitle=$('fi-v6-attendance-header-title');
+ if(topBack)topBack.hidden=!on;
+ if(topTitle)topTitle.textContent=on?(selected?.namaKelas||'Kehadiran Murid'):'Kehadiran Kelas';
+ if(window.parent && window.parent!==window){
+   window.parent.postMessage({type:'semakmur-fi-attendance-screen',screen:on?'students':'classes',className:on?(selected?.namaKelas||'Kehadiran Murid'):''},location.origin);
+ }
+}
+// Firestore Rules V4 membenarkan GET dokumen harian, bukan LIST; baca status setiap kelas terus.
+async function refreshClassStatuses(){
+ if(!db||!user||!index)return;
+ const seq=++statusSeq, date=dateValue(),list=classes();
+ for(const c of list)cache.set('status:'+date+':'+c.docId,{state:'loading'});
+ drawClasses();
+ let n=0;
+ async function worker(){
+   while(n<list.length){
+     const c=list[n++], key=date+'__'+c.docId;
+     try{
+       const snap=await getDoc(doc(db,'semakmur_fi_kehadiran_harian',key));
+       if(seq!==statusSeq||date!==dateValue())return;
+       const rec=snap.exists()?snap.data():null;
+       cache.set('status:'+date+':'+c.docId,rec?{state:'done',present:Number(rec.present),total:Number(rec.total)}:{state:'missing'});
+     }catch(e){
+       if(seq!==statusSeq)return;
+       cache.set('status:'+date+':'+c.docId,{state:'error'});
+     }
+     if(seq===statusSeq)drawClasses();
+   }
+ }
+ await Promise.all(Array.from({length:Math.min(6,list.length)},()=>worker()));
+}
+
 function loggedOut(s='Sila masuk menggunakan Fi-LoginSession.'){
  loading(false);message(s,true);$('account').textContent='Belum login';
  $('classes').innerHTML='<div class="empty"><a href="../../Fi-LoginSession.html" target="_top">Buka Fi-LoginSession</a></div>';
@@ -38,8 +71,15 @@ function loggedOut(s='Sila masuk menggunakan Fi-LoginSession.'){
 }
 const classes=()=>Array.isArray(index?.classes)?index.classes:[];
 function stateLabel(c){
- if(selected?.docId===c.docId && recordReady)return record?'Disimpan':'Belum Direkod';
- return cache.get('status:'+dateValue()+':'+c.docId) || 'Pilih kelas';
+ const x=cache.get('status:'+dateValue()+':'+c.docId);
+ if(selected?.docId===c.docId && recordReady){
+   if(record)return {label:`${Number(record.present)}/${Number(record.total)}`,type:'done',detail:'Direkodkan'};
+   return {label:'Tiada Rekod',type:'missing',detail:''};
+ }
+ if(!x || x.state==='loading')return {label:'Memuat rekod…',type:'loading',detail:''};
+ if(x.state==='error')return {label:'Gagal semak',type:'error',detail:''};
+ if(x.state==='done')return {label:`${Number(x.present)}/${Number(x.total)}`,type:'done',detail:'Direkodkan'};
+ return {label:'Tiada Rekod',type:'missing',detail:''};
 }
 function dateValue(){return $('date').value;}
 function drawClasses(){
@@ -48,7 +88,8 @@ function drawClasses(){
  const filtered=all.filter(c=>str(c.namaKelas).toLocaleLowerCase('ms').includes(term));
  $('classes').innerHTML=filtered.map(c=>{
    const isSel=selected?.docId===c.docId,status=stateLabel(c);
-   return `<button class="class${isSel?' selected':''}" type="button" data-id="${esc(c.docId)}"><div><strong>${esc(c.namaKelas)}</strong><small>${Number(c.jumlahMurid||0)} murid</small></div><span class="pill ${status==='Disimpan'?'done':''}">${esc(status)}</span></button>`;
+   const cls=status.type==='done'?'done':status.type==='missing'?'missing':status.type;
+   return `<button class="class${isSel?' selected':''}" type="button" data-id="${esc(c.docId)}"><div class="fi-v6-class-name"><strong>${esc(c.namaKelas)}</strong><small>${Number(c.jumlahMurid||0)} orang</small></div><div class="fi-v6-class-status"><span class="pill ${cls}">${esc(status.label)}</span>${status.detail?`<small>${esc(status.detail)}</small>`:''}</div><span class="fi-v6-class-arrow" aria-hidden="true">›</span></button>`;
  }).join('')||'<div class="empty">Tiada kelas sepadan.</div>';
  $('classes').querySelectorAll('[data-id]').forEach(b=>b.addEventListener('click',()=>choose(b.dataset.id)));
 }
@@ -105,7 +146,7 @@ function choose(id){
      record=incoming;absent=new Set(Array.isArray(incoming?.absentIds)?incoming.absentIds:[]);
      ack=false;
    }
-   recordReady=true;cache.set('status:'+dateValue()+':'+id,incoming?'Disimpan':'Belum Direkod');ready();
+   recordReady=true;cache.set('status:'+dateValue()+':'+id,incoming?{state:'done',present:Number(incoming.present),total:Number(incoming.total)}:{state:'missing'});ready();
  },e=>{if(seq===loadSeq){loading(false);message('Tidak dapat membaca rekod: '+(e.code||e.message),true);}});
 }
 async function save(){
@@ -128,7 +169,7 @@ async function save(){
      t.set(doc(db,'semakmur_fi_kehadiran_log',auditId),{key,date,classDocId:c.docId,version,absentIds:ids,uid:user.uid,email:user.email,updatedAt:stamp});
    });
    dirty=false;ack=false;
-   cache.set('status:'+date+':'+c.docId,'Disimpan');
+   cache.set('status:'+date+':'+c.docId,{state:'done',present:n-ids.length,total:n});drawClasses();
    message('');loading(false);popup(c.namaKelas,ids.length,n);
  }catch(e){
    loading(false);
@@ -147,13 +188,19 @@ function startIndex(){
  if(stopIndex)stopIndex();loading(true,'Menyediakan Senarai Kelas','Membaca daftar kelas daripada Firebase…');
  stopIndex=onSnapshot(doc(db,'semakmur_fi_kehadiran_index','active'),s=>{
    if(!s.exists()||s.data().active!==true){loading(false);message('Daftar kelas belum diselaraskan.',true);return;}
-   index=s.data();drawClasses();loading(false);message('');
+   index=s.data();drawClasses();loading(false);message('');refreshClassStatuses();
    if(window.innerWidth>780&&!selected && classes().length)choose(classes()[0].docId);
  },e=>{loading(false);message('Gagal membaca senarai kelas: '+(e.code||e.message),true);});
 }
 function init(){
  $('date').value=dateMY();$('date').max=dateMY();$('date').addEventListener('change',setDate);
  $('fi-mobile-back').addEventListener('click',()=>mobileStudents(false));
+ $('fi-v6-top-back')?.addEventListener('click',()=>mobileStudents(false));
+ window.addEventListener('message',e=>{
+   if(e.origin!==location.origin||e.source!==window.parent)return;
+   if(e.data?.type==='semakmur-fi-back-to-classes')mobileStudents(false);
+   if(e.data?.type==='semakmur-fi-request-screen')mobileStudents(document.body.classList.contains('fi-view-students'));
+ });
  $('fi-confirm-close').addEventListener('click',()=>{$('fi-confirm-dialog').hidden=true;});
  $('refresh').addEventListener('click',()=>{if(selected)choose(selected.docId);else startIndex();});
  $('class-search')?.addEventListener('input',drawClasses);
@@ -161,7 +208,7 @@ function init(){
  fbApp=initializeApp(window.SeMAKMURFirebasePilotConfig,'semakmur-fi-dashboard');auth=getAuth(fbApp);db=getFirestore(fbApp);
  loading(true,'Menyemak Akaun Guru','Mengesahkan akses Firebase anda…');
  onAuthStateChanged(auth,async u=>{
-   closeListeners();user=u;teacher=null;index=null;selected=null;cache.clear();
+   closeListeners();++statusSeq;user=u;teacher=null;index=null;selected=null;cache.clear();
    if(!u){loggedOut();return;}
    try{
      const r=await getDoc(doc(db,'semakmur_dashboard_fi',u.uid));
