@@ -154,6 +154,7 @@
     @media(prefers-reduced-motion:reduce){.sema-loading-line{animation:none}}
 </style>
   <link rel="stylesheet" href="fi-dashboard-visual-v3.css?v=3.0">
+  <link rel="stylesheet" href="fi-dashboard-visual-v5.css?v=5.0.0">
 </head>
 <body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5">
   <div id="sidebar-backdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
@@ -251,6 +252,17 @@
         <section class="v4-section"><h2>Jadual Hari Ini</h2><div id="v4-schedule" class="v4-day-list"></div></section>
       </section>
       <div id="service-notice" class="hidden card-coligo border-amber-200 bg-amber-50 text-amber-900 p-3 text-[13px]" role="status"></div>
+
+      <!-- Fi V5: Ringkasan statistik berdasarkan data Dashboard sebenar, bukan nombor contoh. -->
+      <section id="fi-v5-statistics" class="fi-v5-statistics" aria-labelledby="fi-v5-stats-title">
+        <div class="fi-v5-section-heading"><h2 id="fi-v5-stats-title"><i class="fa-solid fa-chart-simple" aria-hidden="true"></i> Statistik Hari Ini</h2><span class="fi-v5-live-pill"><span aria-hidden="true"></span> Berdasarkan jadual guru</span></div>
+        <div class="fi-v5-stats-grid">
+          <article class="fi-v5-stat fi-v5-stat-blue"><span class="fi-v5-stat-icon"><i class="fa-solid fa-chalkboard-user"></i></span><div class="fi-v5-stat-number" id="fi-v5-stat-classes">—</div><div class="fi-v5-stat-label">Kelas Hari Ini</div><small>Bilangan kelas berbeza</small></article>
+          <article class="fi-v5-stat fi-v5-stat-orange"><span class="fi-v5-stat-icon"><i class="fa-solid fa-calendar-days"></i></span><div class="fi-v5-stat-number" id="fi-v5-stat-slots">—</div><div class="fi-v5-stat-label">Slot Mengajar</div><small>Jadual hari semasa</small></article>
+          <article class="fi-v5-stat fi-v5-stat-green"><span class="fi-v5-stat-icon"><i class="fa-solid fa-user-check"></i></span><div class="fi-v5-stat-number" id="fi-v5-stat-roles">—</div><div class="fi-v5-stat-label">Pelantikan Saya</div><small>Peranan yang tersenarai</small></article>
+          <button class="fi-v5-stat fi-v5-stat-purple fi-v5-stat-action" type="button" onclick="openKehadiranWorkspace()" aria-label="Buka Smart Kehadiran"><span class="fi-v5-stat-icon"><i class="fa-solid fa-clipboard-check"></i></span><div class="fi-v5-stat-number fi-v5-stat-action-label">Semak <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></div><div class="fi-v5-stat-label">Kehadiran Murid</div><small>Buka modul Kehadiran</small></button>
+        </div>
+      </section>
       <section id="home-quicklinks" class="quicklinks-shell" aria-labelledby="home-modules-title">
         <div class="quicklinks-topline"><h2 id="home-modules-title"><span class="quick-head-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.8 2 5 13h6l-.8 9L19 10h-6l.8-8Z"/></svg></span>Pautan Pantas</h2>
 
@@ -293,13 +305,11 @@
       <footer class="app-footer text-center pt-3 pb-2">© <span id="copyright-year"></span> SeMAKMUR Digital · SK Segambut Makmur</footer>
     </main>
   </div>
-  <nav id="mobile-bottom-nav" aria-label="Navigasi pantas">
-    <button class="bottom-btn active" data-page="laman_utama"><svg class="nav-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z"/></svg><span>Utama</span></button>
-    <button class="bottom-btn" data-page="pentadbiran"><svg class="nav-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-5h6v5M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"/></svg><span>Tadbir</span></button>
-    <button class="bottom-btn" data-page="kurikulum"><svg class="nav-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c-3-2-6-2-9-2v14c3 0 6 0 9 2 3-2 6-2 9-2V5c-3 0-6 0-9 2Z"/><path d="M12 7v14"/></svg><span>Kurikulum</span></button>
-    <button class="bottom-btn" data-page="hem"><svg class="nav-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>HEM</span></button>
-    <button class="bottom-btn" onclick="toggleMobileMenu()"><svg class="nav-svg" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Lagi</span></button>
-  </nav>
+      <nav id="mobile-bottom-nav" aria-label="Navigasi utama mobile">
+      <button class="bottom-btn fi-v5-bottom-home active" data-page="laman_utama" type="button"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Utama</span></button>
+      <button class="bottom-btn fi-v5-bottom-attendance" onclick="openKehadiranWorkspace()" type="button"><i class="fa-solid fa-clipboard-user" aria-hidden="true"></i><span>Kehadiran</span></button>
+      <button class="bottom-btn fi-v5-bottom-menu" onclick="toggleMobileMenu()" type="button"><i class="fa-solid fa-grip" aria-hidden="true"></i><span>Menu</span></button>
+    </nav>
   <div id="profile-modal" class="fixed inset-0 z-[65] bg-[#081d36aa] p-3 md:p-6 items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="profile-title">
     <div class="profile-dialog w-full max-w-lg card-coligo shadow-2xl p-5 md:p-6"><div class="flex justify-between items-center gap-3"><div><div class="section-eyebrow">AKAUN SAYA</div><h2 id="profile-title" class="text-xl font-extrabold text-slate-800">Edit Profil</h2></div><button onclick="closeProfile()" class="w-9 h-9 rounded-lg text-slate-600 hover:bg-slate-100" aria-label="Tutup"><i class="fa-solid fa-xmark text-lg"></i></button></div>
       <p class="text-[13px] text-slate-500 mt-2 leading-relaxed">Maklumat peribadi di sini boleh dikemas kini sendiri. Jawatan rasmi dan pelantikan tugas diurus melalui pentadbiran sekolah.</p>
@@ -560,7 +570,7 @@
     return (CATEGORY_MODULES[page]||[]).filter(id=>id!=='jadual'||bolehUrusJadual()).slice(0,7);
   }
   function renderShortcuts(page=activePage){
-    const label=page==='laman_utama'?'Pautan Pantas':'Pautan Pantas · '+MENUS[page].title;
+    const label=page==='laman_utama'?'Fungsi Utama':'Pautan Pantas · '+MENUS[page].title;
     $('home-modules-title').lastChild.textContent=label;
     $('home-modules').innerHTML=quickShortcutIds(page).map((id,i)=>shortcutCard(id,i)).join('');
   }
@@ -645,8 +655,18 @@
     if(t?.disahkan===true&&Number.isFinite(t.jumlah))return `<span class="big-metric">${t.jumlah}</span><span class="status-copy">${t.jumlah?'Tindakan memerlukan perhatian':'Tiada tindakan tertunggak'}</span>`;
     return `<div class="status-copy">Maklumat tindakan hari ini belum tersedia.</div>`;}
   function summaryWidget(kind,title,content,icon){return `<article class="card-coligo summary-widget theme-${kind}"><div class="summary-head"><div class="summary-icon">${qIcon(icon)}</div><h3>${escapeHtml(title)}</h3></div><div class="summary-content">${content}</div></article>`;}
+  function updateFiV5Statistics(){
+    // Paparan ini hanya menggunakan jadual guru yang telah disahkan oleh Firebase.
+    const ready=dashboardData?.jadualTersedia===true;
+    const blocks=ready?blokBergabung(todayDay()):[];
+    const unique=new Set(blocks.map(x=>String(x.kelas||'').trim()).filter(Boolean));
+    const setValue=(id,val)=>{const node=document.getElementById(id);if(node)node.textContent=String(val);};
+    setValue('fi-v5-stat-classes',ready?unique.size:'—');
+    setValue('fi-v5-stat-slots',ready?blocks.length:'—');
+    setValue('fi-v5-stat-roles',Array.isArray(dashboardData?.peranan)?dashboardData.peranan.length:'—');
+  }
   function applySummary(){
-    renderShortcuts();
+    renderShortcuts();updateFiV5Statistics();
     $('home-summary').innerHTML=summaryWidget('blue','Kelas Sekarang',waktuKiniDanSeterusnya(),'calendar')+
       summaryWidget('green','Tugas Hari Ini',tugasHariIni(),'attendance')+
       summaryWidget('amber','Relief Hari Ini',reliefHariIni(),'calendar')+
@@ -752,6 +772,7 @@
     renderShortcuts(key);
     $('right-my-roles-panel').classList.toggle('hidden',key==='laman_utama');
     $('page-laman_utama').classList.toggle('hidden',key!=='laman_utama');
+    $('fi-v5-statistics').classList.toggle('hidden',key!=='laman_utama');
     $('page-category').classList.toggle('hidden',key==='laman_utama');
     if(key!=='laman_utama')renderCategories(key);
     document.querySelectorAll('[data-page]').forEach(btn=>{btn.classList.toggle('active',btn.dataset.page===key);});
@@ -781,7 +802,7 @@
     const period=hour<12?'pagi':hour<14?'tengah hari':hour<19?'petang':'malam';
     $('header-time').textContent=displayHour+':'+String(d.getMinutes()).padStart(2,'0')+' '+period;
     if(dashboardData){
-      renderTimetable();
+      renderTimetable();updateFiV5Statistics();
       const content=$('home-summary')?.querySelector('.summary-widget.theme-blue .summary-content');
       if(content)content.innerHTML=waktuKiniDanSeterusnya(); // kalkulasi setempat ikut jam
     }
