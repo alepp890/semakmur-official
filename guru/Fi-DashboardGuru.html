@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Guru | SeMAKMUR Digital</title>
+    <title>Fi-Dashboard Guru | SeMAKMUR Digital</title>
     <meta name="theme-color" content="#1b587a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -155,8 +155,9 @@
 </style>
   <link rel="stylesheet" href="fi-dashboard-visual-v3.css?v=3.0">
   <link rel="stylesheet" href="fi-dashboard-visual-v5.css?v=5.0.0">
+  <link rel="stylesheet" href="fi-dashboard-visual-v6.css?v=6.0.0">
 </head>
-<body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5">
+<body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5 dashboard-v6">
   <div id="sidebar-backdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
   <aside id="sidebar-container" class="side-bg text-white flex flex-col shrink-0 h-full z-40 fixed md:relative -translate-x-full md:translate-x-0 transition-transform duration-200 shadow-lg w-64" aria-label="Menu utama">
     <div class="min-h-0 flex flex-col flex-1">
@@ -201,8 +202,8 @@
     </header>
     <!-- Header bergerak: hanya dipakai pada paparan mobile. -->
     <div id="v4-mobile-head" class="v4-mobile-head" aria-label="Header aplikasi mudah alih">
-      <button id="v4-back" class="v4-back" type="button" aria-label="Kembali ke Dashboard" hidden>←</button>
-      <strong id="v4-header-title">SeMAKMUR Dashboard Guru</strong>
+      <button id="v4-back" class="v4-back" type="button" aria-label="Kembali" hidden><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
+      <strong id="v4-header-title">SeMAKMUR Digital</strong>
       <div class="v4-head-actions">
         <button id="v4-bell" type="button" aria-label="Notifikasi"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></button>
         <button id="v4-profile" type="button" aria-label="Profil guru"><span id="v4-initial">G</span></button>
@@ -251,6 +252,49 @@
         <section class="v4-section"><h2>Minggu Bertugas</h2><div class="v4-panel" id="v4-duty">—</div></section>
         <section class="v4-section"><h2>Jadual Hari Ini</h2><div id="v4-schedule" class="v4-day-list"></div></section>
       </section>
+
+      <!-- Fi V6: paparan PWA ikut turutan yang ditetapkan. Tidak memaparkan nombor contoh. -->
+      <section id="fi-v6-mobile-home" aria-label="Laman Utama SeMAKMUR PWA">
+        <div class="fi-v6-hero">
+          <div class="fi-v6-hero-top"><span class="fi-v6-school-mark"><i class="fa-solid fa-school" aria-hidden="true"></i></span><strong>SeMAKMUR <span>Digital</span></strong><span class="fi-v6-hero-date" id="fi-v6-date-short">—</span></div>
+          <button type="button" class="fi-v6-profile-card" onclick="openProfile()" aria-label="Lihat profil guru">
+            <span class="fi-v6-profile-image" aria-hidden="true"><span id="fi-v6-profile-initial">G</span><img id="fi-v6-profile-photo" alt="" hidden></span>
+            <span class="fi-v6-profile-text"><small>Selamat Datang,</small><strong id="fi-v6-profile-name">Guru SeMAKMUR</strong><em>Dashboard Guru</em></span>
+            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+          </button>
+        </div>
+        <section class="fi-v6-home-section fi-v6-now-section" aria-labelledby="fi-v6-now-title">
+          <h2 id="fi-v6-now-title"><i class="fa-solid fa-clock"></i> Kelas Sekarang & Selepas</h2>
+          <div id="fi-v6-now-pair" class="fi-v6-now-pair"><div class="fi-v6-mini-placeholder">Memuatkan jadual…</div></div>
+        </section>
+        <section class="fi-v6-home-section fi-v6-shortcuts-section" aria-labelledby="fi-v6-access-title">
+          <div class="fi-v6-section-line"><h2 id="fi-v6-access-title"><i class="fa-solid fa-bolt"></i> Pautan Pantas</h2></div>
+          <div class="fi-v6-app-grid" id="fi-v6-app-grid">
+            <button data-module="kehadiran" class="fi-v6-app-button app-green" type="button"><i class="fa-solid fa-users"></i><span>Kehadiran</span></button>
+            <button data-module="erph" class="fi-v6-app-button app-blue" type="button"><i class="fa-solid fa-book-open"></i><span>e-RPH</span></button>
+            <button class="fi-v6-app-button app-purple" type="button" onclick="fiV6OpenSchedule()"><i class="fa-solid fa-calendar-days"></i><span>Jadual</span></button>
+            <button data-module="epbd" class="fi-v6-app-button app-orange" type="button"><i class="fa-solid fa-chart-column"></i><span>PBD</span></button>
+            <button data-module="eopr" class="fi-v6-app-button app-pink" type="button"><i class="fa-solid fa-file-lines"></i><span>Laporan</span></button>
+            <button data-module="eminit" class="fi-v6-app-button app-cyan" type="button"><i class="fa-solid fa-envelope"></i><span>Surat</span></button>
+          </div>
+        </section>
+        <section class="fi-v6-home-section fi-v6-info-section" aria-labelledby="fi-v6-info-title">
+          <h2 id="fi-v6-info-title"><i class="fa-solid fa-clipboard-list"></i> Ringkasan Hari Ini</h2>
+          <div class="fi-v6-info-card"><span class="fi-v6-info-icon relief"><i class="fa-solid fa-person-chalkboard"></i></span><div><strong>Relief Hari Ini</strong><div id="fi-v6-relief-value">Menyemak maklumat…</div></div></div>
+          <div class="fi-v6-info-card"><span class="fi-v6-info-icon duty"><i class="fa-solid fa-user-group"></i></span><div><strong>Minggu Bertugas</strong><div id="fi-v6-duty-value">Menyemak maklumat…</div></div></div>
+          <div class="fi-v6-info-card"><span class="fi-v6-info-icon action"><i class="fa-solid fa-list-check"></i></span><div><strong>Tindakan</strong><div id="fi-v6-actions-value">Menyemak maklumat…</div></div></div>
+        </section>
+        <section class="fi-v6-home-section fi-v6-schedule-summary" aria-labelledby="fi-v6-schedule-title">
+          <div class="fi-v6-section-line"><h2 id="fi-v6-schedule-title"><i class="fa-solid fa-calendar-check"></i> Jadual Waktu Hari Ini</h2><button onclick="fiV6OpenSchedule()" type="button" class="fi-v6-view-link">Lihat Penuh <i class="fa-solid fa-arrow-right"></i></button></div>
+          <div id="fi-v6-home-schedule-list" class="fi-v6-schedule-cards"><div class="fi-v6-mini-placeholder">Menyediakan jadual…</div></div>
+        </section>
+      </section>
+      <!-- Jadual PWA ialah skrin tersendiri; anak panah kembali berada di header tetap. -->
+      <section id="fi-v6-schedule-screen" aria-label="Jadual Waktu Mingguan" hidden>
+        <div class="fi-v6-schedule-intro"><span class="fi-v6-date-icon"><i class="fa-solid fa-calendar-days"></i></span><div><small>Jadual Waktu Guru</small><strong id="fi-v6-schedule-date">Hari ini</strong></div></div>
+        <div class="fi-v6-day-picker"><label for="fi-v6-day">Pilih Hari</label><select id="fi-v6-day"><option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select></div>
+        <div id="fi-v6-day-schedule-list" class="fi-v6-schedule-cards"></div>
+      </section>
       <div id="service-notice" class="hidden card-coligo border-amber-200 bg-amber-50 text-amber-900 p-3 text-[13px]" role="status"></div>
 
       <!-- Fi V5: Ringkasan statistik berdasarkan data Dashboard sebenar, bukan nombor contoh. -->
@@ -274,7 +318,7 @@
         <section class="xl:col-span-8 space-y-5 min-w-0" id="main-left-column">
           <div id="page-laman_utama" class="space-y-5 dashboard-page">
             <section id="summary-section" class="card-coligo home-summary-shell" aria-labelledby="ringkasan-title">
-              <div class="right-card-head home-summary-title"><h2 id="ringkasan-title"><span class="right-head-icon blue-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 18V9m5 9V5m5 13v-7m5 7V8"/></svg></span>Ringkasan Hari Ini</h2><span class="muted-caption">Keutamaan hari ini</span></div>
+              <div class="right-card-head home-summary-title"><h2 id="ringkasan-title"><span class="right-head-icon blue-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 18V9m5 9V5m5 13v-7m5 7V8"/></svg></span>Ringkasan Harian</h2><span class="muted-caption">Kelas, relief, tugasan dan tindakan</span></div>
               <div id="home-summary" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-4 gap-3"></div>
             </section>
           </div>
@@ -286,18 +330,18 @@
           </div>
         </section>
         <aside id="right-panel" class="xl:col-span-4 right-dashboard-panels space-y-4" aria-label="Widget maklumat sampingan">
+          <section class="card-coligo right-card" id="right-announcements">
+            <div class="right-card-head"><h2><span class="right-head-icon pink-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span>Pengumuman Terkini</h2><span class="muted-caption">Makluman sekolah</span></div>
+            <div id="right-announcement-list" class="right-card-body"></div>
+          </section>
           <section class="card-coligo right-card" id="right-timetable">
             <div class="right-card-head"><h2><span class="right-head-icon blue-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18"/></svg></span>Jadual Waktu Hari Ini</h2><span id="schedule-today-label" class="schedule-day-label">Hari ini</span></div>
             <div id="schedule-context" class="schedule-context"></div>
             <div id="right-schedule-list" class="schedule-card-list"></div>
           </section>
-          <section class="card-coligo right-card" id="right-announcements">
-            <div class="right-card-head"><h2><span class="right-head-icon pink-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span>Pengumuman Terkini</h2><span class="muted-caption">Makluman sekolah</span></div>
-            <div id="right-announcement-list" class="right-card-body"></div>
-          </section>
-          <section class="card-coligo right-card" id="right-tasks">
-            <div class="right-card-head"><h2><span class="right-head-icon indigo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="m8 12 3 3 5-6"/></svg></span>Tugasan / Peringatan</h2><span class="muted-caption">Untuk anda</span></div>
-            <div id="right-action-list" class="right-card-body"></div>
+          <section class="card-coligo right-card" id="right-calendar-panel">
+            <div class="right-card-head"><h2><span class="right-head-icon indigo-icon"><i class="fa-solid fa-calendar-week" aria-hidden="true"></i></span>Takwim Terkini</h2><span class="muted-caption">Aktiviti sekolah</span></div>
+            <div id="right-calendar-list" class="right-card-body"><div class="info-placeholder">Takwim belum diselaraskan.</div></div>
           </section>
           <section class="card-coligo right-card hidden" id="right-my-roles-panel"><div class="right-card-head"><h2>Peranan Saya</h2></div><div id="right-my-roles" class="right-card-body"></div></section>
         </aside>
@@ -326,7 +370,7 @@
   <div id="toast" class="screen-toast hidden" role="status" aria-live="polite"></div>
   <script src="../config.js"></script>
   <!-- Fi V4: Dashboard/Kehadiran tidak memuat auth-client.js atau Apps Script. -->
-  <script defer src="dashboard-mobile-v4.js"></script>
+  <!-- Fi V6 mempunyai navigasi PWA tiga butang sendiri; tidak gunakan skrip mobile V4. -->
   <script src="../firebase-pilot-config.js"></script>
   <script>window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=resolve;window.fiBridgeReject=reject;});</script>
   <script type="module" src="Fi-DashboardGuru.js?v=4.0.0"></script>
@@ -491,6 +535,7 @@
     const pane=$('kehadiran-workspace'),frame=$('kehadiran-workspace-frame');
     if(!pane||!frame||!frame.getAttribute('src'))return;
     frame.dataset.fiReady='1';
+    frame.contentWindow?.postMessage({type:'semakmur-fi-request-screen'},location.origin);
     if(!pane.hidden){$('fi-kehadiran-loading').hidden=true;}
   }
   function fiKehadiranMuatkan(serial){
@@ -507,6 +552,7 @@
   }
   function fiKehadiranSesiLatar(){ /* Fi V4: Firebase Auth sudah menyediakan sesi; tiada Apps Script. */ }
   function openKehadiranWorkspace(){
+    if(fiV6ScheduleOpen)fiV6CloseSchedule();
     if(!dashboardAuthenticated || !window.FiAuthenticatedUser){
       showInfo('Akses Dashboard sedang disahkan. Sila cuba sebentar lagi.');return;
     }
@@ -524,7 +570,8 @@
     if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#kehadiran');
     fiKehadiranStatus('Membuka Smart Kehadiran…','Memaparkan kelas dan murid daripada Firebase.');
     // Fi V4: Firebase-only, mula iframe serta-merta; Firestore Rules melindungi rekod.
-    fiKehadiranMuatkan(serial);
+    fiKehadiranMuatkan(serial);fiV6AttendanceDetail=false;fiV6Header();
+    if(frame.dataset.fiReady==='1')frame.contentWindow?.postMessage({type:'semakmur-fi-request-screen'},location.origin);
   }
   function closeKehadiranWorkspace(keepHash){
     ++fiKehadiranOpenSerial; // Batalkan sambungan UI jika pengguna sudah menekan Kembali.
@@ -536,6 +583,7 @@
     $('page-scroll').classList.remove('hidden');
     if(!keepHash)rememberWorkspace('laman_utama');
     if(!keepHash && location.hash==='#kehadiran' && history.replaceState)history.replaceState(null,'',location.pathname+location.search);
+    fiV6AttendanceDetail=false;fiV6Header();
   }
   async function openModule(id){const m=MODULES[id];if(!m)return;
     // Kehadiran dibuka serta-merta. Jangan tunggu ensureOfficial() sebelum memaparkan ruang.
@@ -566,11 +614,11 @@
     return `<button class="shortcut-card shortcut-tone-${idx%7} ${m.url?'':'shortcut-inactive'}" type="button" data-module="${escapeHtml(id)}" ${m.url?'':'disabled'} title="${escapeHtml(data[0])}"><span class="shortcut-icon">${qIcon(data[2])}</span><span class="shortcut-title">${escapeHtml(data[0])}</span><span class="shortcut-description">${escapeHtml(data[1])}</span><span class="shortcut-arrow" aria-hidden="true">→</span></button>`;
   }
   function quickShortcutIds(page=activePage){
-    if(page==='laman_utama') return ['kehadiran','erph',bolehUrusJadual()?'jadual':'splkpm','epbd','eopr','eminit','manual'];
+    if(page==='laman_utama') return ['kehadiran','erph','jadual','epbd','eopr','eminit','manual'];
     return (CATEGORY_MODULES[page]||[]).filter(id=>id!=='jadual'||bolehUrusJadual()).slice(0,7);
   }
   function renderShortcuts(page=activePage){
-    const label=page==='laman_utama'?'Fungsi Utama':'Pautan Pantas · '+MENUS[page].title;
+    const label=page==='laman_utama'?'Pautan Pantas':'Pautan Pantas · '+MENUS[page].title;
     $('home-modules-title').lastChild.textContent=label;
     $('home-modules').innerHTML=quickShortcutIds(page).map((id,i)=>shortcutCard(id,i)).join('');
   }
@@ -655,6 +703,68 @@
     if(t?.disahkan===true&&Number.isFinite(t.jumlah))return `<span class="big-metric">${t.jumlah}</span><span class="status-copy">${t.jumlah?'Tindakan memerlukan perhatian':'Tiada tindakan tertunggak'}</span>`;
     return `<div class="status-copy">Maklumat tindakan hari ini belum tersedia.</div>`;}
   function summaryWidget(kind,title,content,icon){return `<article class="card-coligo summary-widget theme-${kind}"><div class="summary-head"><div class="summary-icon">${qIcon(icon)}</div><h3>${escapeHtml(title)}</h3></div><div class="summary-content">${content}</div></article>`;}
+  // Fi V6: susunan mobile milik dashboard sendiri, tanpa skrip mobile V4 yang menulis semula navigasi.
+  let fiV6ScheduleOpen=false,fiV6AttendanceDetail=false,fiV6SelectedClassName='';
+  function fiV6Mobile(){return window.matchMedia('(max-width:767px)').matches;}
+  function fiV6Header(){
+    const attendance=!$('kehadiran-workspace').hidden;
+    const back=$('v4-back');
+    if(!fiV6Mobile()){back.hidden=true;return;}
+    back.hidden=!(fiV6ScheduleOpen||attendance);
+    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':'Kehadiran Kelas'):'SeMAKMUR Digital';
+    document.body.classList.toggle('fi-v6-on-schedule',fiV6ScheduleOpen);
+    document.body.classList.toggle('fi-v6-on-attendance',attendance);
+    document.body.classList.toggle('v4-on-home',!attendance&&!fiV6ScheduleOpen);
+    document.querySelectorAll('#mobile-bottom-nav .bottom-btn').forEach(b=>b.classList.remove('active'));
+    const active=attendance?'.fi-v5-bottom-attendance':'.fi-v5-bottom-home';
+    $("mobile-bottom-nav").querySelector(active)?.classList.add('active');
+  }
+  function fiV6OpenSchedule(){
+    if(!dashboardAuthenticated){showInfo('Dashboard sedang menyediakan data.');return;}
+    fiV6ScheduleOpen=true;
+    closeKehadiranWorkspace(true);
+    $('page-scroll').classList.remove('hidden');
+    $('fi-v6-schedule-screen').hidden=false;
+    $('fi-v6-day').value=DAYS.includes(todayDay())?todayDay():'Isnin';
+    fiV6RenderSchedule(); fiV6Header();
+    $('page-scroll').scrollTo({top:0,behavior:'instant'});
+  }
+  function fiV6CloseSchedule(){fiV6ScheduleOpen=false;$('fi-v6-schedule-screen').hidden=true;fiV6Header();}
+  function fiV6Back(){
+    if(fiV6ScheduleOpen){fiV6CloseSchedule();return;}
+    if(!$('kehadiran-workspace').hidden){
+      if(fiV6AttendanceDetail){
+        $('kehadiran-workspace-frame').contentWindow?.postMessage({type:'semakmur-fi-back-to-classes'},location.origin);
+      }else closeKehadiranWorkspace();
+      return;
+    }
+    switchMainMenu('laman_utama');
+  }
+  function fiV6RenderSchedule(){
+    const day=$('fi-v6-day').value;
+    $('fi-v6-schedule-date').textContent=day;
+    $('fi-v6-day-schedule-list').innerHTML=scheduleDay(day);
+  }
+  function fiV6MobileRefresh(){
+    if(!fiV6Mobile())return;
+    const p=dashboardData?.profile||{};
+    const nick=p.namaPenuh||currentUser?.name||'Guru SeMAKMUR';
+    $('fi-v6-profile-name').textContent=nick;
+    $('fi-v6-profile-initial').textContent=initials(p.namaSamaran||nick);
+    const img=$('fi-v6-profile-photo'),raw=String(p.gambarProfil||p.fotoUrl||'').trim();
+    const url=/^https:\/\/[^\s<>"']+$/i.test(raw)?raw:'';
+    if(url){if(img.src!==url)img.src=url;img.onload=()=>{img.hidden=false;$('fi-v6-profile-initial').hidden=true;};img.onerror=()=>{img.hidden=true;$('fi-v6-profile-initial').hidden=false;};}
+    else {img.hidden=true;$('fi-v6-profile-initial').hidden=false;img.removeAttribute('src');}
+    $('fi-v6-date-short').textContent=new Intl.DateTimeFormat('ms-MY',{day:'numeric',month:'short',timeZone:'Asia/Kuala_Lumpur'}).format(new Date());
+    $('fi-v6-now-pair').innerHTML=waktuKiniDanSeterusnya();
+    $('fi-v6-relief-value').innerHTML=reliefHariIni();
+    $('fi-v6-duty-value').innerHTML=tugasHariIni();
+    $('fi-v6-actions-value').innerHTML=tindakanSaya();
+    const root=$('fi-v6-home-schedule-list'),day=todayDay(),slots=dashboardData?.jadualTersedia?blokBergabung(day):[];
+    root.innerHTML=slots.length?slots.slice(0,5).map(s=>`<div class="fi-v6-slot"><span class="fi-v6-slot-time">${escapeHtml(masaPaparan(s.mula))} – ${escapeHtml(masaPaparan(s.tamat))}</span><div><strong>${escapeHtml(s.subjek)}</strong><small>${escapeHtml(s.kelas||'')}</small></div><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></div>`).join(''):
+      `<div class="fi-v6-no-data">${!DAYS.includes(day)?'Tiada jadual pada hari minggu.':'Tiada jadual waktu tersedia untuk hari ini.'}</div>`;
+    if(fiV6ScheduleOpen)fiV6RenderSchedule();
+  }
   function updateFiV5Statistics(){
     // Paparan ini hanya menggunakan jadual guru yang telah disahkan oleh Firebase.
     const ready=dashboardData?.jadualTersedia===true;
@@ -668,10 +778,10 @@
   function applySummary(){
     renderShortcuts();updateFiV5Statistics();
     $('home-summary').innerHTML=summaryWidget('blue','Kelas Sekarang',waktuKiniDanSeterusnya(),'calendar')+
-      summaryWidget('green','Tugas Hari Ini',tugasHariIni(),'attendance')+
       summaryWidget('amber','Relief Hari Ini',reliefHariIni(),'calendar')+
+      summaryWidget('green','Tugasan',tugasHariIni(),'attendance')+
       summaryWidget('violet','Tindakan Saya',tindakanSaya(),'report');
-    renderRightSide();
+    renderRightSide();fiV6MobileRefresh();
   }
   function scheduleDay(day){
     if(!dashboardData?.jadualTersedia)return '<div class="empty-info">Jadual peribadi belum tersedia.</div>';
@@ -723,10 +833,13 @@
     const a=dashboardData?.pengumuman;
     if(a?.disahkan===true&&Array.isArray(a.senarai)&&a.senarai.length){$('right-announcement-list').innerHTML=a.senarai.slice(0,5).map(x=>`<div class="notice-item"><span class="notice-symbol">${qIcon('mail')}</span><div><strong>${escapeHtml(x.tajuk||'Makluman')}</strong><span>${escapeHtml(x.ringkasan||'')}</span></div></div>`).join('');}
     else $('right-announcement-list').innerHTML='<div class="info-placeholder">Tiada pengumuman yang telah diselaraskan untuk dipaparkan.</div>';
-    const t=dashboardData?.tindakanSaya;
-    if(t?.disahkan===true&&Array.isArray(t.senarai)&&t.senarai.length){$('right-action-list').innerHTML=t.senarai.slice(0,7).map(x=>`<div class="task-item"><span class="task-bullet"></span><span>${escapeHtml(x.tajuk||'Tindakan')}</span></div>`).join('');}
-    else if(t?.disahkan===true&&t.jumlah===0)$('right-action-list').innerHTML='<div class="info-placeholder">Tiada tugasan tertunggak pada masa ini.</div>';
-    else $('right-action-list').innerHTML='<div class="info-placeholder">Tugasan peribadi akan dipaparkan selepas modul berkaitan disambungkan.</div>';
+    const calendar=dashboardData?.takwimTerkini || dashboardData?.takwim;
+    const host=$('right-calendar-list');
+    if(host){
+      if(calendar?.disahkan===true && Array.isArray(calendar.senarai) && calendar.senarai.length){
+        host.innerHTML=calendar.senarai.slice(0,5).map(x=>`<div class="notice-item"><span class="notice-symbol">${qIcon('calendar')}</span><div><strong>${escapeHtml(x.tajuk||x.aktiviti||'Aktiviti')}</strong><span>${escapeHtml(x.tarikh||x.tarikhMula||'')}</span></div></div>`).join('');
+      }else host.innerHTML='<div class="info-placeholder">Maklumat Takwim Terkini belum diselaraskan.</div>';
+    }
     renderTimetable();
   }
   let rightPanelHidden=false;
@@ -777,7 +890,7 @@
     if(key!=='laman_utama')renderCategories(key);
     document.querySelectorAll('[data-page]').forEach(btn=>{btn.classList.toggle('active',btn.dataset.page===key);});
     $('page-scroll').scrollTo({top:0,behavior:'instant'});
-    closeMobileMenu();
+    closeMobileMenu();fiV6Header();
   }
   function toggleMobileMenu(){const side=$('sidebar-container');const open=side.classList.contains('-translate-x-full');
     side.classList.toggle('-translate-x-full',!open);$('sidebar-backdrop').classList.toggle('active',open);$('mobile-action-menu').setAttribute('aria-expanded',String(open));}
@@ -802,7 +915,7 @@
     const period=hour<12?'pagi':hour<14?'tengah hari':hour<19?'petang':'malam';
     $('header-time').textContent=displayHour+':'+String(d.getMinutes()).padStart(2,'0')+' '+period;
     if(dashboardData){
-      renderTimetable();updateFiV5Statistics();
+      renderTimetable();updateFiV5Statistics();fiV6MobileRefresh();
       const content=$('home-summary')?.querySelector('.summary-widget.theme-blue .summary-content');
       if(content)content.innerHTML=waktuKiniDanSeterusnya(); // kalkulasi setempat ikut jam
     }
@@ -816,14 +929,14 @@
       '<div class="class-mini class-mini-next"><div class="class-mini-label"><span class="class-mini-dot"></span>Selepas</div>'+loadingLines()+'</div></div>';
     $('home-summary').innerHTML=
       summaryWidget('blue','Kelas Sekarang',mini,'calendar')+
-      summaryWidget('green','Tugas Hari Ini',loadingLines(),'attendance')+
       summaryWidget('amber','Relief Hari Ini',loadingLines(),'calendar')+
+      summaryWidget('green','Tugasan',loadingLines(),'attendance')+
       summaryWidget('violet','Tindakan Saya',loadingLines(),'report');
     $('schedule-today-label').textContent=todayDay();
     $('schedule-context').textContent='';
     $('right-schedule-list').innerHTML='<div class="sema-loading-block" aria-label="Menyiapkan jadual">'+loadingLines()+'</div><div class="sema-loading-block">'+loadingLines()+'</div>';
     $('right-announcement-list').innerHTML='<div class="sema-loading-block">'+loadingLines()+'</div>';
-    $('right-action-list').innerHTML='<div class="sema-loading-block">'+loadingLines()+'</div>';
+    $('right-calendar-list').innerHTML='<div class="sema-loading-block">'+loadingLines()+'</div>';
   }
   // Fi V4: Identiti dipaparkan hanya selepas Firebase mengesahkan Firestore.
   function showRememberedGreeting(){return; /* tiada cache identiti sesi lama */
@@ -870,6 +983,7 @@
     if(activePage!=='laman_utama')renderCategories(activePage);
     $('header-status').textContent='Data terkini';setNotice('');
     if(!resumeDone)requestAnimationFrame(resumeLastWorkspace);
+    $('v4-launch').hidden=true;fiV6Header();
     fiKehadiranSesiLatar();
     return true;
   }
@@ -905,18 +1019,32 @@
   window.fiApplyDashboard = function(res){ return finishDashboard(res); };
   function boot(){
     $('copyright-year').textContent=String(new Date().getFullYear());
+    document.body.classList.add('v4-on-home');
     updateClock();setInterval(updateClock,30000);
     $('greeting-text').textContent='Selamat Datang';
-    document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){openModule(module.dataset.module);return;}
-      const page=e.target.closest('[data-page]');if(page){closeErphWorkspace();closeKehadiranWorkspace();switchMainMenu(page.dataset.page);rememberWorkspace(page.dataset.page);return;}
+    document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){if(module.dataset.module==='jadual'){if(fiV6Mobile())fiV6OpenSchedule();else switchMainMenu('kurikulum');return;}openModule(module.dataset.module);return;}
+      const page=e.target.closest('[data-page]');if(page){fiV6CloseSchedule();closeErphWorkspace();closeKehadiranWorkspace();switchMainMenu(page.dataset.page);rememberWorkspace(page.dataset.page);return;}
       const day=e.target.closest('[data-day]');if(day){activeDay=day.dataset.day;renderTimetable();}
     });
     $('kehadiran-workspace-frame').addEventListener('load',fiKehadiranFrameReady);
+    $('v4-back').addEventListener('click',fiV6Back);
+    $('v4-profile').addEventListener('click',openProfile);
+    $('v4-bell').addEventListener('click',()=>showInfo('Tiada notifikasi baharu yang disahkan.'));
+    $('fi-v6-day').addEventListener('change',fiV6RenderSchedule);
+    window.addEventListener('message',e=>{
+      if(e.origin!==location.origin||e.source!==$('kehadiran-workspace-frame').contentWindow)return;
+      if(e.data?.type==='semakmur-fi-attendance-screen'){
+        fiV6AttendanceDetail=e.data.screen==='students';
+        fiV6SelectedClassName=String(e.data.className||'Kehadiran Murid').slice(0,80);
+        fiV6Header();
+      }
+    });
     $('profile-form').addEventListener('submit',saveProfile);
     $('profile-modal').addEventListener('click',e=>{if(e.target===$('profile-modal'))closeProfile();});
     document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeKehadiranWorkspace();closeProfile();closeMobileMenu();}});
     window.addEventListener('resize',()=>{fitName();if(window.innerWidth>=768){$('sidebar-container').classList.remove('-translate-x-full');$('sidebar-backdrop').classList.remove('active');}else{$('sidebar-container').classList.add('-translate-x-full');}});
     showInstantShell();
+    fiV6Header();
     showRememberedGreeting();
     // Fi V4: Firebase Authentication digunakan secara terus.
     // Biar browser cat UI dahulu; API dan pembacaan Google Sheets dilakukan secara async.
