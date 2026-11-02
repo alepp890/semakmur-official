@@ -1,99 +1,93 @@
-/** SeMAKMUR Fi — Smart Keberadaan V1 (prototaip). Tiada penulisan Firestore dan tiada trigger relief. */
+/** SeMAKMUR Fi Smart Keberadaan V2 — PROTOTAIP SAHAJA.
+ * Data di localStorage per pengguna. Tiada writes Firestore, tiada kelulusan sebenar,
+ * tiada dokumen sulit disimpan, tiada e-Relief dijalankan.
+ * ?demo=1 membenarkan peranan simulasi secara setempat sahaja.
+ */
+'use strict';
 const $=id=>document.getElementById(id);
-const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-const text=value=>String(value??'').trim();
-const KATEGORI={CUTI:'Cuti',URUSAN_RASMI:'Urusan rasmi',KURSUS:'Kursus / Bengkel / PLC',KECEMASAN:'Urusan kecemasan',TUGAS_DALAMAN:'Tugas lain di sekolah'};
-const STATUS={DRAF:'Draf',DIHANTAR:'Dihantar (simulasi)',BATAL:'Dibatalkan'};
-const isDemo=new URLSearchParams(location.search).get('demo')==='1';
-let owner=null,records=[],editingId=null,toastTimeout=null,authStop=null;
-function dateMY(){return new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Kuala_Lumpur'}).format(new Date());}
-function readableDate(d){if(!/^\d{4}-\d{2}-\d{2}$/.test(d||''))return d||'—'; const [y,m,day]=d.split('-');return `${day}/${m}/${y}`;}
-function notify(message){const el=$('toast');el.textContent=message;el.hidden=false;clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>el.hidden=true,4200);}
-function error(message){$('form-error').textContent=message;$('form-error').hidden=false;}
-function noError(){$('form-error').hidden=true;$('form-error').textContent='';}
-function storageKey(){return `SEMAKMUR_FI_KEBERADAAN_DEMO_V1_${owner.uid}`;}
-function loadRecords(){try{const data=JSON.parse(localStorage.getItem(storageKey())||'[]');records=Array.isArray(data)?data.filter(r=>r&&r.ownerUid===owner.uid).slice(0,100):[];}catch(e){records=[];notify('Simpanan percubaan tidak dapat dibaca.');}}
-function saveRecords(){try{localStorage.setItem(storageKey(),JSON.stringify(records.slice(0,100)));return true;}catch(e){error('Pelayar tidak membenarkan simpanan setempat. Sila semak ruang simpanan / tetapan privasi.');return false;}}
-function authorized(o){owner=o;$('access-message').hidden=true;$('workspace').hidden=false;$('teacher-name').value=o.name;$('user-badge').textContent=o.name;loadRecords();draw();}
-function accessFailure(message){const el=$('access-message');el.classList.add('error');el.innerHTML='';el.append(document.createTextNode(message+' '));const link=document.createElement('a');link.href='../../Fi-LoginSession.html';link.textContent='Buka Login Fi';el.append(link);$('user-badge').textContent='Akses diperlukan';}
-async function initAuth(){
- if(isDemo){authorized({uid:'PRATONTON',email:'demo@localhost',name:'GURU CONTOH (DEMO)'});return;}
- try{
-  const appConfig=window.SeMAKMURFirebasePilotConfig;
-  if(!appConfig?.projectId)throw new Error('Konfigurasi Firebase tiada.');
-  const [appLib,authLib,storeLib]=await Promise.all([
-   import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),
-   import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),
-   import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')
-  ]);
-  const app=appLib.initializeApp(appConfig,'semakmur-fi-dashboard');
-  const auth=authLib.getAuth(app),db=storeLib.getFirestore(app);
-  authStop=authLib.onAuthStateChanged(auth,async user=>{
-   if(!user){$('workspace').hidden=true;owner=null;accessFailure('Sila log masuk melalui Portal Fi terlebih dahulu.');return;}
-   try{
-    const snap=await storeLib.getDoc(storeLib.doc(db,'semakmur_dashboard_fi',user.uid));
-    const r=snap.data();
-    if(!snap.exists()||r?.active!==true||text(r.ownerEmail).toLowerCase()!==text(user.email).toLowerCase()||text(r.profile?.email).toLowerCase()!==text(user.email).toLowerCase())throw new Error('Profil staf Fi tidak aktif atau tidak sepadan.');
-    authorized({uid:user.uid,email:user.email,name:text(r.profile?.namaPenuh)||text(user.displayName)||'Guru SeMAKMUR'});
-   }catch(e){owner=null;$('workspace').hidden=true;accessFailure('Akses tidak dapat disahkan. '+(e?.code==='permission-denied'?'Kebenaran Firestore tidak mencukupi.':text(e?.message)||'Sila cuba lagi.'));}
-  },e=>accessFailure('Semakan sesi gagal. '+text(e?.message)));
- }catch(e){accessFailure('Firebase tidak dapat dimulakan. '+text(e?.message));}
+const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const txt=v=>String(v??'').trim();
+const CATEGORY={CUTI:'Cuti',URUSAN_RASMI:'Urusan Rasmi',KURSUS:'Kursus / Bengkel / PLC',KECEMASAN:'Urusan Kecemasan',TUGAS_TIDAK_MENGAJAR:'Tugas di Sekolah — Tidak Dapat Mengajar',TUGAS_SEKAT_RELIEF:'Tugas di Sekolah — Tidak Boleh Diberi Relief'};
+const TYPES={CRK:'Cuti Rehat Khas (CRK)',CTR:'Cuti Tanpa Rekod (CTR)',CS:'Cuti Sakit',LAIN:'Cuti Lain'};
+const STATUS={DRAF:'Draf',TUNGGU_GPK:'Menunggu GPK',TUNGGU_GB:'Menunggu GB',TUNGGU_MAKLUMAT:'Perlu Maklumat Guru',DISAHKAN:'Keberadaan Disahkan',CUTI_DILULUSKAN:'Cuti Diluluskan',DITOLAK:'Tidak Diluluskan',BATAL:'Dibatalkan'};
+const PENDING=['TUNGGU_GPK','TUNGGU_GB','TUNGGU_MAKLUMAT'];
+const DEMO=new URLSearchParams(location.search).get('demo')==='1'||window.__KEBERADAAN_PREVIEW__===true;
+const STORE_PREFIX='SEMAKMUR_FI_KEBERADAAN_DEMO_V2_';
+let owner=null,records=[],editingId=null,tab='permohonan',role='GURU',pendingDecision=null,authStop=null,toastTimer=null;
+function dateMY(){const parts=new Intl.DateTimeFormat('en-GB',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Asia/Kuala_Lumpur'}).formatToParts(new Date());const x=Object.fromEntries(parts.filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));return `${x.year}-${x.month}-${x.day}`;}
+function isoValid(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(v||''))return false;let d=new Date(v+'T00:00:00Z');return !Number.isNaN(d.valueOf())&&d.toISOString().slice(0,10)===v;}
+function pretty(d){return isoValid(d)?`${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}`:d||'—';}
+function monthName(n){return new Intl.DateTimeFormat('ms-MY',{month:'long',timeZone:'UTC'}).format(new Date(Date.UTC(2026,n-1,1)));}
+function notice(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.hidden=true,3500);}
+function showError(t){$('form-error').textContent=t;$('form-error').hidden=!t;}
+function uidKey(){return STORE_PREFIX+owner.uid;}
+function readData(){try{const v=JSON.parse(localStorage.getItem(uidKey())||'[]');records=Array.isArray(v)?v.filter(r=>r?.ownerUid===owner.uid).slice(0,250):[];}catch(e){records=[];notice('Data percubaan tidak dapat dibaca.');}}
+function persist(){try{localStorage.setItem(uidKey(),JSON.stringify(records.slice(0,250)));return true;}catch(e){notice('Simpanan pelayar tidak tersedia atau penuh.');return false;}}
+function historyEvent(r,actor,action,note=''){r.history=Array.isArray(r.history)?r.history:[];r.history.push({at:new Date().toISOString(),actor,action,note});r.updatedAt=new Date().toISOString();}
+function makeId(){return crypto?.randomUUID?.()||`${Date.now()}_${Math.random().toString(36).slice(2)}`;}
+function impacts(category){return category==='TUGAS_SEKAT_RELIEF'?'SEKAT_CALON':'GANTI_KELAS';}
+function toggleFields(){const isLeave=$('category').value==='CUTI';$('leave-wrap').hidden=!isLeave;$('leave-other-wrap').hidden=!isLeave||$('leave-type').value!=='LAIN';$('time-fields').hidden=$('period').value!=='SEBAHAGIAN';const c=$('category').value;$('impact-hint').textContent=!c?'Pilih kategori untuk melihat kesan kepada PdPc dan relief.':c==='TUGAS_SEKAT_RELIEF'?'Guru terus mengajar kelas sendiri, tetapi DILARANG dipilih sebagai guru ganti dalam tempoh ini.':'Apabila ketidakupayaan mengajar disahkan, kelas yang bertindih boleh memerlukan guru relief. Permohonan belum disahkan tidak dianggap cuti diluluskan.';}
+function formData(){return {category:$('category').value,leaveType:$('category').value==='CUTI'?$('leave-type').value:'',leaveOther:txt($('leave-other').value),startDate:$('start-date').value,endDate:$('end-date').value,period:$('period').value,startTime:$('period').value==='SEBAHAGIAN'?$('start-time').value:null,endTime:$('period').value==='SEBAHAGIAN'?$('end-time').value:null,notes:txt($('notes').value)};}
+function overlap(a,b){if(a.endDate<b.startDate||b.endDate<a.startDate)return false;if(a.period==='PENUH'||b.period==='PENUH')return true;if(a.startDate!==b.startDate)return true;return a.startTime<b.endTime&&b.startTime<a.endTime;}
+function valid(d){if(!CATEGORY[d.category])return 'Sila pilih kategori.';if(d.category==='CUTI'&&!TYPES[d.leaveType])return 'Sila pilih jenis cuti.';if(d.leaveType==='LAIN'&&!d.leaveOther)return 'Nyatakan nama jenis cuti.';if(!isoValid(d.startDate)||!isoValid(d.endDate)||d.startDate>d.endDate)return 'Tarikh mula dan tamat tidak sah.';if(d.period==='SEBAHAGIAN'&&(d.startDate!==d.endDate||!/^\d{2}:\d{2}$/.test(d.startTime||'')||!/^\d{2}:\d{2}$/.test(d.endTime||'')||d.startTime>=d.endTime))return 'Untuk sebahagian hari, gunakan satu tarikh dan masa tamat yang lebih lewat.';if(!d.notes||d.notes.length>300)return 'Sila nyatakan tujuan/alasan ringkas (1–300 aksara).';if(records.some(r=>r.id!==editingId&&!['BATAL','DITOLAK'].includes(r.status)&&overlap(r,d)))return 'Wujud rekod lain bertindih pada tarikh/masa yang sama.';return ''}
+function resetForm() {editingId=null;$('keberadaan-form').reset();$('start-date').value=dateMY();$('end-date').value=dateMY();$('start-time').value='08:00';$('end-time').value='12:00';$('btn-reset').hidden=true;$('btn-submit').textContent='Hantar Permohonan';showError('');toggleFields();}
+function saveForm(status){if(!owner)return;const d=formData(),issue=valid(d);showError(issue);if(issue)return;const old=records.slice();let r=records.find(x=>x.id===editingId);if(r&&r.status!=='DRAF'){showError('Hanya draf boleh disunting. Permohonan dihantar tidak boleh diubah tanpa prosedur pindaan.');return;}
+ if(r){r={...r,...d};records=records.filter(x=>x.id!==r.id);}else{r={...d,id:makeId(),ownerUid:owner.uid,ownerEmail:owner.email,teacherName:owner.name,createdAt:new Date().toISOString(),history:[],reliefState:'TIADA'};}
+ r.status=status;historyEvent(r,'Guru',status==='DRAF'?'Draf disimpan':'Permohonan dihantar kepada GPK');records.unshift(r);if(!persist()){records=old;return;}resetForm();render();notice(status==='DRAF'?'Draf disimpan (ujian).':'Permohonan dihantar (simulasi) — menunggu GPK.');}
+function edit(id){const r=records.find(v=>v.id===id);if(!r||r.status!=='DRAF')return;editingId=id;for(const [key,field] of Object.entries({'category':'category','leaveType':'leave-type','leaveOther':'leave-other','startDate':'start-date','endDate':'end-date','period':'period','startTime':'start-time','endTime':'end-time','notes':'notes'}))$(field).value=r[key]??'';toggleFields();$('btn-reset').hidden=false;$('btn-submit').textContent='Hantar Draf';changeTab('permohonan');$('form-title').scrollIntoView({behavior:'smooth',block:'start'});}
+function cancelRequest(id){const r=records.find(x=>x.id===id);if(!r||!['DRAF','TUNGGU_GPK','TUNGGU_MAKLUMAT'].includes(r.status))return;if(!confirm('Batalkan permohonan ujian ini?'))return;const old=JSON.stringify(records);r.status='BATAL';r.reliefState='TIADA';historyEvent(r,'Guru','Permohonan dibatalkan');if(!persist()){records=JSON.parse(old);return;}resetForm();render();}
+function selectedRole(){return DEMO?role:'GURU';}
+function roleCanReview(r){return DEMO&&((role==='GPK'&&r.status==='TUNGGU_GPK')||(role==='GB'&&r.status==='TUNGGU_GB')||(role==='GPK'&&r.status==='TUNGGU_GB'&&r.reliefState!=='SEMENTARA'));}
+function actionsFor(r){if(!roleCanReview(r))return '';
+ if(role==='GPK'&&r.status==='TUNGGU_GPK')return `<button class="tiny-btn positive" data-action="support" data-id="${safe(r.id)}">${r.category==='CUTI'?'Sokong → GB':'Sahkan Keberadaan'}</button><button class="tiny-btn" data-action="request" data-id="${safe(r.id)}">Minta Penjelasan</button><button class="tiny-btn cancel" data-action="reject" data-id="${safe(r.id)}">Tidak Sokong</button>`;
+ if(role==='GPK'&&r.status==='TUNGGU_GB')return `<button class="tiny-btn positive" data-action="temporary" data-id="${safe(r.id)}">Sahkan Relief Sementara</button>`;
+ if(role==='GB'&&r.status==='TUNGGU_GB')return `<button class="tiny-btn positive" data-action="approve" data-id="${safe(r.id)}">Lulus Cuti</button><button class="tiny-btn" data-action="request" data-id="${safe(r.id)}">Minta Alasan / Dokumen</button><button class="tiny-btn cancel" data-action="reject" data-id="${safe(r.id)}">Tidak Lulus</button>`;return '';
 }
-function validDay(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return false;const d=new Date(v+'T00:00:00Z');return Number.isFinite(d.valueOf())&&d.toISOString().slice(0,10)===v;}
-function dayRange(r){return [r.startDate,r.endDate];}
-function spansOverlap(a,b){
- const [as,ae]=dayRange(a),[bs,be]=dayRange(b);
- if(as>be||bs>ae)return false;
- if(a.period==='PENUH'||b.period==='PENUH')return true;
- if(as!==bs||ae!==be)return true; // V1: sebahagian hari hanya pada tarikh yang sama.
- return a.startTime<b.endTime&&b.startTime<a.endTime;
-}
-function dataForm(){return {category:$('category').value,startDate:$('start-date').value,endDate:$('end-date').value,period:$('period').value,startTime:$('period').value==='SEBAHAGIAN'?$('start-time').value:null,endTime:$('period').value==='SEBAHAGIAN'?$('end-time').value:null,notes:text($('notes').value)};}
-function validate(d){
- if(!Object.hasOwn(KATEGORI,d.category))return 'Sila pilih kategori keberadaan.';
- if(!validDay(d.startDate)||!validDay(d.endDate))return 'Tarikh mula dan tamat perlu diisi dengan betul.';
- if(d.endDate<d.startDate)return 'Tarikh tamat tidak boleh lebih awal daripada tarikh mula.';
- if(!['PENUH','SEBAHAGIAN'].includes(d.period))return 'Sila pilih tempoh keberadaan.';
- if(d.period==='SEBAHAGIAN'){
-  if(d.startDate!==d.endDate)return 'Tempoh sebahagian hari hanya dibenarkan pada tarikh yang sama dalam V1.';
-  if(!/^\d{2}:\d{2}$/.test(d.startTime||'')||!/^\d{2}:\d{2}$/.test(d.endTime||'')||d.startTime>=d.endTime)return 'Masa tamat mesti selepas masa mula.';
+function historyHTML(r){const list=(r.history||[]).slice().reverse();return `<details class="history"><summary>Sejarah tindakan (${list.length})</summary><div class="history-list">${list.map(x=>`<div><strong>${safe(x.action)}</strong> · ${safe(x.actor)} <small>${safe(new Date(x.at).toLocaleString('ms-MY',{timeZone:'Asia/Kuala_Lumpur'}))}</small>${x.note?`<p>${safe(x.note)}</p>`:''}</div>`).join('')}</div></details>`;}
+function recordHTML(r,review=false){const dateRange=r.startDate===r.endDate?pretty(r.startDate):`${pretty(r.startDate)} – ${pretty(r.endDate)}`;const period=r.period==='PENUH'?'Sepanjang hari':`${safe(r.startTime)} – ${safe(r.endTime)}`;const extra=r.category==='CUTI'?` · ${safe(r.leaveType==='LAIN'?r.leaveOther:TYPES[r.leaveType]||'')}`:'';const badgeClass=['CUTI_DILULUSKAN','DISAHKAN'].includes(r.status)?'is-success':r.status==='DITOLAK'?'is-error':'is-pending';return `<article class="record"><div class="record-top"><div><h3>${safe(CATEGORY[r.category]||'—')}${extra}</h3><div class="record-meta">${safe(dateRange)} · ${safe(period)}</div></div><span class="status-pill ${badgeClass}">${safe(STATUS[r.status]||r.status)}</span></div><p class="record-note">${safe(r.notes)}</p><div class="record-extras"><span>Kesan: ${r.category==='TUGAS_SEKAT_RELIEF'?'Tidak layak jadi guru ganti':'Kelas sendiri mungkin perlukan relief'}</span><span>${r.reliefState==='SEMENTARA'?'Relief sementara disahkan (belum diagih)':r.reliefState==='RASMI'?'Sedia diproses e-Relief':r.reliefState==='SEKAT_RASMI'?'Disekat daripada calon relief':r.reliefState==='SEMAKAN'?'Relief perlu disemak semula':'Belum dicetuskan'}</span></div>${r.request?.kind?`<div class="request-info">Pentadbir meminta: <strong>${safe(r.request.kind==='DOKUMEN'?'Dokumen sokongan':'Penjelasan tambahan')}</strong> — ${safe(r.request.note)}</div>`:''}${historyHTML(r)}<div class="record-bottom"><small>Dikemas kini ${safe(new Date(r.updatedAt).toLocaleString('ms-MY',{timeZone:'Asia/Kuala_Lumpur'}))}</small><div class="record-actions">${review?actionsFor(r):''}${!review&&r.status==='DRAF'?`<button type="button" class="tiny-btn" data-action="edit" data-id="${safe(r.id)}">Edit</button>`:''}${!review&&r.status==='TUNGGU_MAKLUMAT'?`<button type="button" class="tiny-btn positive" data-action="reply" data-id="${safe(r.id)}">Balas Permintaan</button>`:''}${!review&&['DRAF','TUNGGU_GPK','TUNGGU_MAKLUMAT'].includes(r.status)?`<button type="button" class="tiny-btn cancel" data-action="cancel" data-id="${safe(r.id)}">Batal</button>`:''}</div></div></article>`;}
+function decision(id,action){const r=records.find(x=>x.id===id);if(!r)return;
+ if(action==='temporary'&&!roleCanReview(r))return;
+ if(action!=='reply'&&!roleCanReview(r))return;
+ pendingDecision={id,action};$('decision-error').hidden=true;$('decision-note').value='';$('decision-title').textContent=({support:'Sokongan / Pengesahan GPK',approve:'Kelulusan Guru Besar',reject:'Permohonan Tidak Disokong',request:'Permintaan Maklumat / Dokumen',temporary:'Pengesahan Relief Sementara',reply:'Maklum Balas Guru'})[action]||'Tindakan';$('decision-desc').textContent=action==='temporary'?'Hanya sahkan keperluan operasi sementara. Cuti masih menunggu kelulusan GB. Tiada agihan guru relief sebenar dibuat.':action==='request'?'Taip "DOKUMEN:" di awal catatan untuk permintaan dokumen; atau nyatakan soalan/alasan tambahan. Tiada fail sebenar dihantar dalam demo.':action==='reply'?'Berikan penjelasan ringkas atau nyatakan dokumen akan dibekalkan secara rasmi. Jangan lampirkan dokumen sulit dalam demo.':'Masukkan catatan keputusan (simulasi).';$('decision-dialog').hidden=false;$('decision-note').focus();}
+function applyDecision(){const p=pendingDecision;if(!p)return;let r=records.find(x=>x.id===p.id);if(!r)return;const note=txt($('decision-note').value);if(!note){$('decision-error').hidden=false;$('decision-error').textContent='Catatan diperlukan untuk rekod audit.';return;}const before=JSON.stringify(records);const actor=p.action==='reply'?'Guru':role==='GB'?'Guru Besar':'GPK';if(p.action!=='reply'&&!roleCanReview(r)){notice('Peranan atau status sudah berubah.');return;}if(p.action==='reply'&&r.status!=='TUNGGU_MAKLUMAT')return;
+ switch(p.action){
+ case 'support':r.status=r.category==='CUTI'?'TUNGGU_GB':'DISAHKAN';r.reliefState=r.category==='CUTI'?'TIADA':(r.category==='TUGAS_SEKAT_RELIEF'?'SEKAT_RASMI':'RASMI');r.request=null;historyEvent(r,actor,r.category==='CUTI'?'Disokong dan dihantar kepada GB':'Keberadaan disahkan',note);break;
+ case 'temporary':r.reliefState='SEMENTARA';historyEvent(r,actor,'Keperluan relief sementara disahkan',note);break;
+ case 'approve':r.status='CUTI_DILULUSKAN';r.reliefState='RASMI';r.request=null;historyEvent(r,actor,'Cuti diluluskan (simulasi)',note);break;
+ case 'reject':r.status='DITOLAK';r.reliefState=r.reliefState==='SEMENTARA'?'SEMAKAN':'TIADA';r.request=null;historyEvent(r,actor,'Permohonan tidak diluluskan / tidak disokong',note);break;
+ case 'request':r.request={kind:/^DOKUMEN\s*:/i.test(note)?'DOKUMEN':'PENJELASAN',note,by:actor,resume:r.status};r.status='TUNGGU_MAKLUMAT';historyEvent(r,actor,'Meminta maklumat tambahan',note);break;
+ case 'reply':r.status=r.request?.resume||'TUNGGU_GPK';historyEvent(r,'Guru','Penjelasan diberikan (tanpa muat naik fail)',note);r.request=null;break;
+ default:return;
  }
- if(d.notes.length>300)return 'Catatan melebihi 300 aksara.';
- if(records.some(r=>r.id!==editingId&&r.status!=='BATAL'&&spansOverlap(d,r)))return 'Sudah ada rekod ujian lain yang bertindih pada tarikh/masa ini.';
- return '';
+ if(!persist()){records=JSON.parse(before);return;}$('decision-dialog').hidden=true;pendingDecision=null;render();notice('Tindakan berjaya direkod dalam simulasi.');}
+function viewTab(next){tab=next;document.querySelectorAll('[data-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.tab===next);b.setAttribute('aria-selected',String(b.dataset.tab===next));});document.querySelectorAll('.tab-content').forEach(s=>s.hidden=s.id!=='tab-'+next);if(next==='statistik')renderStats();}
+function changeTab(next){viewTab(next);}
+function daysBetween(a,b,callback){let start=new Date(a+'T00:00:00Z'),end=new Date(b+'T00:00:00Z');for(let d=start;d<=end;d.setUTCDate(d.getUTCDate()+1)){let day=d.getUTCDay();if(day>=1&&day<=5)callback(d.toISOString().slice(0,10));}}
+function inScope(r,year,month){const a=`${year}-${String(month).padStart(2,'0')}-01`,b=new Date(Date.UTC(Number(year),Number(month),0)).toISOString().slice(0,10);return r.startDate<=b&&r.endDate>=a;}
+function calcApprovedDays(list,year,month=null){const approved=list.filter(r=>r.category==='CUTI'&&r.status==='CUTI_DILULUSKAN'&&r.period==='PENUH');const days=new Set();const start=month?`${year}-${String(month).padStart(2,'0')}-01`:`${year}-01-01`;const end=month?new Date(Date.UTC(year,month,0)).toISOString().slice(0,10):`${year}-12-31`;approved.forEach(r=>{const a=r.startDate>start?r.startDate:start,b=r.endDate<end?r.endDate:end;if(a<=b)daysBetween(a,b,v=>days.add(v));});return days.size;}
+function partialHours(list){return list.filter(r=>r.period==='SEBAHAGIAN'&&r.status==='CUTI_DILULUSKAN').reduce((a,r)=>{const [h,m]=r.startTime.split(':').map(Number),[eh,em]=r.endTime.split(':').map(Number);return a+(eh*60+em-h*60-m)/60;},0);}
+function renderStats(){if(!owner)return;const year=Number($('stats-year').value),month=Number($('stats-month').value),yearRecords=records.filter(r=>r.startDate<=`${year}-12-31`&&r.endDate>=`${year}-01-01`&&!['BATAL','DRAF'].includes(r.status)),monthRecords=yearRecords.filter(r=>inScope(r,year,month));$('month-days').textContent=calcApprovedDays(yearRecords,year,month);$('year-days').textContent=calcApprovedDays(yearRecords,year);$('month-count').textContent=monthRecords.length;$('month-wait').textContent=monthRecords.filter(r=>PENDING.includes(r.status)).length;
+ const leaves=yearRecords.filter(r=>r.category==='CUTI'&&r.status==='CUTI_DILULUSKAN');const leaveTypes=[...new Set([...Object.keys(TYPES),...leaves.map(r=>r.leaveType)])];$('type-breakdown').innerHTML=leaveTypes.map(k=>{const arr=leaves.filter(r=>r.leaveType===k);return `<div class="metric-row"><span>${safe(TYPES[k]||k)}</span><strong>${arr.length} permohonan · ${calcApprovedDays(arr,year)} hari${partialHours(arr)?` · ${partialHours(arr).toFixed(1)} jam`:''}</strong></div>`;}).join('')||'<p>Tiada rekod.</p>';
+ $('category-breakdown').innerHTML=Object.keys(CATEGORY).map(k=>`<div class="metric-row"><span>${safe(CATEGORY[k])}</span><strong>${monthRecords.filter(r=>r.category===k).length} permohonan</strong></div>`).join('');
+ $('monthly-trend').innerHTML=`<div class="trend-list">${Array.from({length:12},(_,idx)=>{const mo=idx+1,count=calcApprovedDays(yearRecords,year,mo);return `<div class="trend-row"><span>${safe(monthName(mo))}</span><div class="trend-track"><i style="width:${Math.min(100,count*8)}%"></i></div><b>${count} hari</b></div>`;}).join('')}</div>`;
+ const scope=$('stats-scope').value;const detail=(scope==='MONTH'?monthRecords:yearRecords).filter(r=>r.category==='CUTI'&&r.status==='CUTI_DILULUSKAN').sort((a,b)=>b.startDate.localeCompare(a.startDate));
+ $('approved-leave-list').innerHTML=detail.length?`<div class="leave-table"><div class="leave-head"><span>Tarikh</span><span>Jenis Cuti</span><span>Tempoh</span></div>${detail.map(r=>`<div class="leave-entry"><span>${safe(pretty(r.startDate))}${r.startDate!==r.endDate?' – '+safe(pretty(r.endDate)):''}</span><span>${safe(r.leaveType==='LAIN'?r.leaveOther:TYPES[r.leaveType]||'Cuti')}</span><span>${r.period==='PENUH'?'Sehari penuh / beberapa hari':safe(r.startTime)+' – '+safe(r.endTime)}</span></div>`).join('')}</div>`:'<p class="no-data">Tiada cuti diluluskan bagi tempoh pilihan.</p>';
 }
-function newId(){return typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():`${Date.now()}-${Math.random().toString(36).slice(2)}`;}
-function commit(status){
- if(!owner)return;
- noError();const d=dataForm(),problem=validate(d);if(problem){error(problem);return;}
- const now=new Date().toISOString(),existing=records.find(r=>r.id===editingId);
- const newRecord={...d,id:existing?.id||newId(),ownerUid:owner.uid,ownerEmail:owner.email,teacherName:owner.name,createdAt:existing?.createdAt||now,updatedAt:now,status};
- const previous=records.slice();records=records.filter(r=>r.id!==editingId);records.unshift(newRecord);
- if(!saveRecords()){records=previous;return;}
- resetForm();draw();notify(status==='DRAF'?'Draf percubaan berjaya disimpan.':'Rekod berjaya dihantar dalam simulasi. Tiada permohonan rasmi dibuat.');
-}
-function resetForm(){editingId=null;$('keberadaan-form').reset();$('start-date').value=dateMY();$('end-date').value=dateMY();$('start-time').value='08:00';$('end-time').value='12:00';$('btn-submit').textContent='Hantar (simulasi)';$('btn-reset').hidden=true;$('time-fields').hidden=true;noError();}
-function editRecord(id){const r=records.find(x=>x.id===id);if(!r||r.status==='BATAL')return;editingId=id;for(const key of ['category','startDate','endDate','period','startTime','endTime','notes']){const el=$({'startDate':'start-date','endDate':'end-date','startTime':'start-time','endTime':'end-time'}[key]||key);if(el)el.value=r[key]??'';}
- $('time-fields').hidden=r.period!=='SEBAHAGIAN';$('btn-submit').textContent='Hantar semula (simulasi)';$('btn-reset').hidden=false;noError();$('form-title').scrollIntoView({behavior:'smooth',block:'start'});notify('Mod suntingan: perubahan belum disimpan.');}
-function cancelRecord(id){const r=records.find(x=>x.id===id);if(!r||r.status==='BATAL')return;if(!confirm('Batalkan rekod ujian ini? Tindakan ini tidak melibatkan rekod rasmi sekolah.'))return;const old=r.status;r.status='BATAL';r.updatedAt=new Date().toISOString();if(!saveRecords()){r.status=old;return;}if(editingId===id)resetForm();draw();notify('Rekod ujian dibatalkan.');}
-function recordCard(r){
- const period=r.period==='PENUH'?'Sepanjang hari':`${escapeHTML(r.startTime)} – ${escapeHTML(r.endTime)}`;
- const days=r.startDate===r.endDate?readableDate(r.startDate):`${readableDate(r.startDate)} – ${readableDate(r.endDate)}`;
- return `<article class="record"><div class="record-top"><div><h3>${escapeHTML(KATEGORI[r.category]||'Kategori tidak diketahui')}</h3><div class="record-meta">📅 ${escapeHTML(days)}<br>◷ ${escapeHTML(period)}</div></div><span class="status-pill status-${escapeHTML(r.status)}">${escapeHTML(STATUS[r.status]||'—')}</span></div>${r.notes?`<div class="record-note">${escapeHTML(r.notes)}</div>`:''}<div class="record-bottom"><span>Dikemas kini ${escapeHTML(new Intl.DateTimeFormat('ms-MY',{timeZone:'Asia/Kuala_Lumpur',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(r.updatedAt)))}</span><div class="record-actions">${r.status!=='BATAL'?`<button type="button" class="tiny-btn" data-action="edit" data-id="${escapeHTML(r.id)}">Edit</button><button type="button" class="tiny-btn cancel" data-action="cancel" data-id="${escapeHTML(r.id)}">Batal</button>`:''}</div></div></article>`;
-}
-function draw(){
- $('stat-total').textContent=String(records.length);$('stat-draft').textContent=String(records.filter(r=>r.status==='DRAF').length);$('stat-submitted').textContent=String(records.filter(r=>r.status==='DIHANTAR').length);$('stat-cancelled').textContent=String(records.filter(r=>r.status==='BATAL').length);
- const filter=$('status-filter').value,items=records.filter(r=>filter==='ALL'||r.status===filter).sort((a,b)=>text(b.updatedAt).localeCompare(text(a.updatedAt)));
- $('record-list').innerHTML=items.length?items.map(recordCard).join(''):'<div class="empty"><span class="empty-icon">▤</span><strong>Belum ada rekod untuk dipaparkan</strong><p>Isi borang di sebelah untuk mencuba aliran Smart Keberadaan. Rekod tidak dihantar kepada pentadbir.</p></div>';
-}
-$('period').addEventListener('change',()=>{$('time-fields').hidden=$('period').value!=='SEBAHAGIAN';});
-$('keberadaan-form').addEventListener('submit',e=>{e.preventDefault();commit('DIHANTAR');});
-$('btn-draft').addEventListener('click',()=>commit('DRAF'));
-$('btn-reset').addEventListener('click',resetForm);
-$('status-filter').addEventListener('change',draw);
-$('record-list').addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;if(b.dataset.action==='edit')editRecord(b.dataset.id);if(b.dataset.action==='cancel')cancelRecord(b.dataset.id);});
-$('clear-demo').addEventListener('click',()=>{if(!records.length)return notify('Tiada rekod ujian untuk dipadam.');if(!confirm('Padam SEMUA rekod ujian daripada pelayar ini? Tiada data rasmi dipadam.'))return;const old=records;records=[];if(!saveRecords()){records=old;return;}resetForm();draw();notify('Semua rekod ujian telah dikosongkan.');});
-$('today-chip').textContent=new Intl.DateTimeFormat('ms-MY',{weekday:'long',day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Kuala_Lumpur'}).format(new Date());
-resetForm();initAuth();
-window.addEventListener('storage',event=>{if(owner&&event.key===storageKey()){loadRecords();draw();}});
-window.addEventListener('beforeunload',()=>{authStop?.();});
+function setupFilters(){const nowYear=Number(dateMY().slice(0,4));const yearSelect=$('stats-year');yearSelect.innerHTML='';for(let y=nowYear+1;y>=nowYear-6;y--){const o=document.createElement('option');o.value=String(y);o.textContent=String(y);yearSelect.append(o);}yearSelect.value=String(nowYear);const month=$('stats-month');month.innerHTML='';for(let i=1;i<=12;i++){const o=document.createElement('option');o.value=String(i);o.textContent=monthName(i);month.append(o);}month.value=String(Number(dateMY().slice(5,7)));}
+function render(){if(!owner)return;$('stat-total').textContent=String(records.length);$('stat-pending').textContent=String(records.filter(r=>PENDING.includes(r.status)).length);$('stat-approved').textContent=String(records.filter(r=>r.status==='CUTI_DILULUSKAN').length);$('stat-relief').textContent=String(records.filter(r=>r.reliefState==='SEMENTARA').length);const f=$('status-filter').value,filtered=records.filter(r=>f==='ALL'||r.status===f).slice().sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));$('record-list').innerHTML=filtered.length?filtered.map(x=>recordHTML(x)).join(''):'<div class="empty"><strong>Tiada permohonan</strong><p>Borang di sebelah boleh digunakan untuk mencuba aliran.</p></div>';
+ const toReview=role==='GPK'?records.filter(r=>r.status==='TUNGGU_GPK'||(r.status==='TUNGGU_GB'&&r.reliefState!=='SEMENTARA')):role==='GB'?records.filter(r=>r.status==='TUNGGU_GB'):[];
+ $('review-count').textContent=String(toReview.length);$('review-list').innerHTML=!DEMO?'<div class="empty"><strong>Simulasi semakan pentadbir belum diaktifkan di portal rasmi.</strong><p>Penguatkuasaan peranan dan kelulusan memerlukan backend serta Firestore Rules baharu.</p></div>':toReview.length?toReview.map(x=>recordHTML(x,true)).join(''):'<div class="empty"><strong>Tiada rekod untuk peranan ini.</strong><p>Pilih GPK atau GB dalam mod simulasi untuk menguji laluan kelulusan.</p></div>';
+ if(tab==='statistik')renderStats();}
+function enabledFor(o){owner=o;$('access-message').hidden=true;$('workspace').hidden=false;$('user-badge').textContent=o.name;$('teacher-name').value=o.name;$('demo-role').hidden=!DEMO;readData();render();}
+function deny(message){$('workspace').hidden=true;const el=$('access-message');el.classList.add('error');el.textContent=message+' ';const a=document.createElement('a');a.href='../../Fi-LoginSession.html';a.textContent='Login Fi';el.append(a);}
+async function initAuth(){if(DEMO){enabledFor({uid:'PRATONTON',name:'GURU CONTOH (DEMO)',email:'demo@localhost'});return;}try{const cfg=window.SeMAKMURFirebasePilotConfig;if(!cfg?.projectId)throw Error('Konfigurasi Firebase tiada.');const [{initializeApp},{getAuth,onAuthStateChanged},{getFirestore,doc,getDoc}]=await Promise.all([import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')]);const app=initializeApp(cfg,'semakmur-fi-dashboard'),auth=getAuth(app),db=getFirestore(app);authStop=onAuthStateChanged(auth,async u=>{if(!u){deny('Sila log masuk akaun Google MOE terlebih dahulu.');return;}try{const snap=await getDoc(doc(db,'semakmur_dashboard_fi',u.uid)),data=snap.data();if(!snap.exists()||data?.active!==true||txt(data.ownerEmail).toLowerCase()!==txt(u.email).toLowerCase()||txt(data.profile?.email).toLowerCase()!==txt(u.email).toLowerCase())throw Error('Rekod staf tidak sepadan atau tidak aktif.');enabledFor({uid:u.uid,email:u.email,name:txt(data.profile?.namaPenuh)||u.displayName||'Guru SeMAKMUR'});}catch(e){deny('Pengesahan staf gagal: '+txt(e.message));}});}catch(e){deny('Sambungan Firebase gagal: '+txt(e.message));}}
+$('category').addEventListener('change',toggleFields);$('leave-type').addEventListener('change',toggleFields);$('period').addEventListener('change',toggleFields);
+$('keberadaan-form').addEventListener('submit',e=>{e.preventDefault();saveForm('TUNGGU_GPK');});$('btn-draft').addEventListener('click',()=>saveForm('DRAF'));$('btn-reset').addEventListener('click',resetForm);
+$('status-filter').addEventListener('change',render);$('stats-year').addEventListener('change',renderStats);$('stats-month').addEventListener('change',renderStats);$('stats-scope').addEventListener('change',renderStats);
+$('role-view').addEventListener('change',e=>{role=e.target.value;render();notice('Mod peranan simulasi: '+role);});
+document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>viewTab(el.dataset.tab)));
+document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const a=b.dataset.action,id=b.dataset.id;if(a==='edit')edit(id);else if(a==='cancel')cancelRequest(id);else decision(id,a);});
+$('decision-confirm').addEventListener('click',applyDecision);$('decision-cancel').addEventListener('click',()=>{$('decision-dialog').hidden=true;pendingDecision=null;});
+$('clear-demo').addEventListener('click',()=>{if(!confirm('Padam semua rekod ujian untuk akaun ini pada pelayar ini?'))return;const old=records;records=[];if(!persist()){records=old;return;}render();notice('Rekod ujian dikosongkan.');});
+$('today-chip').textContent=new Intl.DateTimeFormat('ms-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Kuala_Lumpur'}).format(new Date());
+setupFilters();resetForm();initAuth();window.addEventListener('storage',e=>{if(owner&&e.key===uidKey()){readData();render();}});window.addEventListener('beforeunload',()=>authStop?.());

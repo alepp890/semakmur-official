@@ -1,86 +1,45 @@
 <!doctype html>
 <html lang="ms">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#17496a">
-  <meta name="description" content="Prototaip Smart Keberadaan Guru SeMAKMUR Fi V1. Data ujian disimpan setempat sahaja.">
-  <title>Smart Keberadaan Guru | SeMAKMUR Fi V1</title>
-  <link rel="icon" href="../../assets/favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./fi-keberadaan.css?v=1.0.0">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17496a"><title>Smart Keberadaan Guru | SeMAKMUR Fi V2</title>
+<meta name="description" content="Smart Keberadaan Fi V2: simulasi permohonan, sokongan GPK, kelulusan GB dan statistik individu.">
+<link rel="icon" href="../../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fi-keberadaan.css?v=2.0.0">
 </head>
 <body>
-  <header class="topbar">
-    <div class="top-inner">
-      <div class="brandmark" aria-hidden="true">S<span>·</span></div>
-      <div class="brandcopy"><strong>Smart Keberadaan</strong><small>SeMAKMUR Digital · Modul Guru</small></div>
-      <span class="top-spacer"></span>
-      <span class="user-badge" id="user-badge">Menyemak sesi…</span>
-      <a class="back-link" href="../Fi-DashboardGuru.html">← Dashboard</a>
-    </div>
-  </header>
-  <main class="main">
-    <nav class="breadcrumb" aria-label="Navigasi">Dashboard Guru <span>/</span> Pentadbiran <span>/</span> <strong>Smart Keberadaan</strong></nav>
-    <div class="heading-row">
-      <div>
-        <div class="eyebrow">MODUL BAHARU · V1</div>
-        <h1>Keberadaan Guru</h1>
-        <p class="subtitle">Rekod tempoh tidak dapat menjalankan PdPc. Maklumat ini akan menjadi asas pengiraan e-Relief selepas integrasi rasmi.</p>
-      </div>
-      <div class="date-chip" id="today-chip">—</div>
-    </div>
-
-    <div class="demo-banner" role="status" id="demo-banner">
-      <div class="demo-icon" aria-hidden="true">!</div>
-      <div><strong>Mod prototaip — belum menjadi rekod rasmi</strong><p>Rekod disimpan dalam pelayar ini sahaja untuk ujian. Tiada data dihantar ke Firestore / Google Sheets, tiada kelulusan sebenar dan <b>e-Relief tidak akan dicetuskan</b>. Jangan masukkan maklumat peribadi atau perubatan yang sensitif.</p></div>
-    </div>
-
-    <div class="access-message" id="access-message" role="status" aria-live="polite">Sedang mengesahkan akaun Google MOE…</div>
-    <div id="workspace" hidden>
-      <div class="stats" aria-label="Ringkasan rekod percubaan">
-        <div class="stat"><span>Jumlah rekod ujian</span><strong id="stat-total">0</strong><small>Semua status</small></div>
-        <div class="stat"><span>Draf</span><strong id="stat-draft">0</strong><small>Belum dihantar</small></div>
-        <div class="stat"><span>Dihantar (simulasi)</span><strong id="stat-submitted">0</strong><small>Menunggu semakan — demo</small></div>
-        <div class="stat"><span>Dibatalkan</span><strong id="stat-cancelled">0</strong><small>Rekod ujian sahaja</small></div>
-      </div>
-
-      <div class="content-grid">
-        <section class="panel" aria-labelledby="form-title">
-          <div class="panel-heading"><div><p class="section-kicker">01 · BORANG</p><h2 id="form-title">Lapor Keberadaan</h2></div><span class="mini-label">Guru</span></div>
-          <form id="keberadaan-form" novalidate>
-            <div class="field"><label for="teacher-name">Nama guru</label><input id="teacher-name" type="text" readonly><small>Diambil daripada sesi guru; tidak boleh diubah dalam borang.</small></div>
-            <div class="field"><label for="category">Kategori <span aria-hidden="true">*</span></label>
-              <select id="category" required><option value="">Pilih kategori</option><option value="CUTI">Cuti</option><option value="URUSAN_RASMI">Urusan rasmi</option><option value="KURSUS">Kursus / Bengkel / PLC</option><option value="KECEMASAN">Urusan kecemasan</option><option value="TUGAS_DALAMAN">Tugas lain di sekolah (tidak dapat mengajar)</option></select>
-            </div>
-            <div class="two-fields">
-              <div class="field"><label for="start-date">Tarikh mula <span aria-hidden="true">*</span></label><input id="start-date" type="date" required></div>
-              <div class="field"><label for="end-date">Tarikh tamat <span aria-hidden="true">*</span></label><input id="end-date" type="date" required></div>
-            </div>
-            <div class="field"><label for="period">Tempoh <span aria-hidden="true">*</span></label><select id="period"><option value="PENUH">Sehari penuh / sepanjang tarikh dipilih</option><option value="SEBAHAGIAN">Sebahagian hari (ikut masa)</option></select></div>
-            <div class="two-fields" id="time-fields" hidden>
-              <div class="field"><label for="start-time">Masa mula</label><input type="time" id="start-time" value="08:00" step="300"></div>
-              <div class="field"><label for="end-time">Masa tamat</label><input type="time" id="end-time" value="12:00" step="300"></div>
-            </div>
-            <div class="field"><label for="notes">Catatan ringkas <span class="optional">(pilihan)</span></label><textarea id="notes" maxlength="300" rows="3" placeholder="Contoh: Menghadiri mesyuarat rasmi di PPD. Elakkan butiran sensitif."></textarea><small>Maksimum 300 aksara. Jangan isi maklumat perubatan atau peribadi yang sulit.</small></div>
-            <div class="form-error" id="form-error" role="alert" hidden></div>
-            <div class="form-actions"><button type="button" class="btn btn-secondary" id="btn-draft">Simpan draf</button><button type="submit" class="btn btn-primary" id="btn-submit">Hantar (simulasi)</button></div>
-            <button type="button" id="btn-reset" class="btn btn-link" hidden>Batalkan suntingan</button>
-          </form>
-        </section>
-        <section class="panel list-panel" aria-labelledby="list-title">
-          <div class="panel-heading"><div><p class="section-kicker">02 · SEMAKAN</p><h2 id="list-title">Rekod Saya</h2></div><select id="status-filter" aria-label="Tapis rekod"><option value="ALL">Semua status</option><option value="DRAF">Draf</option><option value="DIHANTAR">Dihantar (demo)</option><option value="BATAL">Dibatalkan</option></select></div>
-          <div id="record-list" class="record-list" aria-live="polite"></div>
-          <div class="list-footer"><span>Rekod ini hanya terdapat pada pelayar yang digunakan.</span><button class="danger-link" type="button" id="clear-demo">Kosongkan rekod ujian</button></div>
-        </section>
-      </div>
-      <div class="next-stage"><span class="next-stage-icon" aria-hidden="true">↗</span><div><strong>Fasa seterusnya: pengesahan & e-Relief</strong><p>Selepas borang dan aliran disahkan, kita akan sambung Firestore, pengesahan pentadbir, log audit dan pencetus e-Relief melalui backend. Belum diaktifkan dalam V1 ini.</p></div></div>
-    </div>
-  </main>
-  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-  <script src="../../firebase-pilot-config.js"></script>
-  <script type="module" src="./fi-keberadaan.js?v=1.0.0"></script>
-</body>
-</html>
+<header class="topbar"><div class="top-inner"><div class="brandmark" aria-hidden="true">S<span>·</span></div><div class="brandcopy"><strong>Smart Keberadaan</strong><small>SeMAKMUR Digital · Modul Guru</small></div><span class="top-spacer"></span><span class="user-badge" id="user-badge">Menyemak sesi…</span><a class="back-link" href="../Fi-DashboardGuru.html">← Dashboard</a></div></header>
+<main class="main">
+<nav class="breadcrumb">Dashboard Guru <span>/</span> Pentadbiran <span>/</span> <strong>Smart Keberadaan</strong></nav>
+<div class="heading-row"><div><div class="eyebrow">SMART KEBERADAAN · V2</div><h1>Keberadaan Guru</h1><p class="subtitle">Permohonan, pengesahan pentadbir dan statistik — asas pengurusan e-Relief sekolah.</p></div><div class="date-chip" id="today-chip">—</div></div>
+<div class="demo-banner" role="status"><div class="demo-icon">!</div><div><strong>Mod ujian V2 — tiada kelulusan rasmi</strong><p>Aliran GPK, Guru Besar, relief sementara dan statistik ialah <b>simulasi dalam pelayar ini sahaja</b>. Tiada rekod dihantar ke Firebase/Sheets, tiada fail dimuat naik dan tiada relief sebenar dijana. Jangan masukkan data kesihatan atau dokumen sulit.</p></div></div>
+<div class="access-message" id="access-message" role="status" aria-live="polite">Sedang mengesahkan sesi guru…</div>
+<div id="workspace" hidden>
+  <div class="demo-role" id="demo-role" hidden><label for="role-view">Uji sebagai</label><select id="role-view"><option value="GURU">Guru</option><option value="GPK">GPK (simulasi)</option><option value="GB">Guru Besar (simulasi)</option></select><small>Pertukaran peranan hanya tersedia pada pratonton demo; bukan kebenaran sebenar.</small></div>
+  <div class="tabs" role="tablist" aria-label="Bahagian Smart Keberadaan"><button type="button" role="tab" aria-selected="true" class="tab active" data-tab="permohonan">Permohonan Saya</button><button type="button" role="tab" aria-selected="false" class="tab" data-tab="semakan">Semakan Pentadbir <span id="review-count" class="small-counter">0</span></button><button type="button" role="tab" aria-selected="false" class="tab" data-tab="statistik">Statistik</button></div>
+  <section id="tab-permohonan" class="tab-content">
+    <div class="stats stats-v2"><div class="stat"><span>Permohonan saya</span><strong id="stat-total">0</strong><small>Semua status</small></div><div class="stat"><span>Menunggu tindakan</span><strong id="stat-pending">0</strong><small>GPK / GB / Penjelasan</small></div><div class="stat"><span>Cuti diluluskan</span><strong id="stat-approved">0</strong><small>Bilangan permohonan cuti</small></div><div class="stat"><span>Relief sementara</span><strong id="stat-relief">0</strong><small>Rekod ditanda sahaja</small></div></div>
+    <div class="content-grid"><section class="panel" aria-labelledby="form-title"><div class="panel-heading"><div><p class="section-kicker">01 · PERMOHONAN</p><h2 id="form-title">Lapor Keberadaan</h2></div><span class="mini-label">Guru</span></div>
+      <form id="keberadaan-form" novalidate>
+        <div class="field"><label for="teacher-name">Nama guru</label><input id="teacher-name" type="text" readonly><small>Diambil daripada sesi akaun Fi.</small></div>
+        <div class="field"><label for="category">Kategori <span>*</span></label><select id="category" required><option value="">Pilih kategori</option><option value="CUTI">Cuti</option><option value="URUSAN_RASMI">Urusan Rasmi</option><option value="KURSUS">Kursus / Bengkel / PLC</option><option value="KECEMASAN">Urusan Kecemasan</option><option value="TUGAS_TIDAK_MENGAJAR">Tugas Lain di Sekolah — Tidak Dapat Mengajar</option><option value="TUGAS_SEKAT_RELIEF">Tugas Lain di Sekolah — Tidak Boleh Diberi Relief</option></select></div>
+        <div class="field" id="leave-wrap" hidden><label for="leave-type">Jenis cuti <span>*</span></label><select id="leave-type"><option value="">Pilih jenis cuti</option><option value="CRK">CRK — Cuti Rehat Khas</option><option value="CTR">CTR — Cuti Tanpa Rekod</option><option value="CS">Cuti Sakit</option><option value="LAIN">Cuti Lain (nyatakan)</option></select></div>
+        <div class="field" id="leave-other-wrap" hidden><label for="leave-other">Nama jenis cuti <span>*</span></label><input id="leave-other" maxlength="70" placeholder="Nyatakan jenis cuti"></div>
+        <div class="two-fields"><div class="field"><label for="start-date">Tarikh mula <span>*</span></label><input type="date" id="start-date" required></div><div class="field"><label for="end-date">Tarikh tamat <span>*</span></label><input type="date" id="end-date" required></div></div>
+        <div class="field"><label for="period">Tempoh</label><select id="period"><option value="PENUH">Sepanjang hari / tarikh dipilih</option><option value="SEBAHAGIAN">Sebahagian hari (satu tarikh)</option></select></div>
+        <div class="two-fields" id="time-fields" hidden><div class="field"><label for="start-time">Mula</label><input type="time" id="start-time" value="08:00"></div><div class="field"><label for="end-time">Tamat</label><input type="time" id="end-time" value="12:00"></div></div>
+        <div class="hint-box" id="impact-hint">Pilih kategori untuk melihat kesan kepada PdPc dan pemilihan guru relief.</div>
+        <div class="field"><label for="notes">Tujuan / alasan ringkas <span>*</span></label><textarea id="notes" rows="3" maxlength="300" placeholder="Tujuan keberadaan tanpa maklumat sensitif."></textarea><small>Dokumen sokongan sebenar hanya akan diaktifkan selepas penyimpanan selamat disediakan.</small></div>
+        <div class="form-error" id="form-error" role="alert" hidden></div><div class="form-actions"><button type="button" class="btn btn-secondary" id="btn-draft">Simpan Draf</button><button type="submit" class="btn btn-primary" id="btn-submit">Hantar Permohonan</button></div><button type="button" class="btn btn-link" id="btn-reset" hidden>Batalkan suntingan</button>
+      </form></section>
+      <section class="panel list-panel"><div class="panel-heading"><div><p class="section-kicker">02 · REKOD</p><h2>Permohonan Saya</h2></div><select id="status-filter" aria-label="Tapis status"><option value="ALL">Semua status</option><option value="DRAF">Draf</option><option value="TUNGGU_GPK">Menunggu GPK</option><option value="TUNGGU_GB">Menunggu GB</option><option value="TUNGGU_MAKLUMAT">Perlu penjelasan</option><option value="DISAHKAN">Disahkan</option><option value="CUTI_DILULUSKAN">Cuti diluluskan</option><option value="DITOLAK">Tidak diluluskan</option><option value="BATAL">Batal</option></select></div><div id="record-list" class="record-list" aria-live="polite"></div><div class="list-footer"><span>Rekod simulasi disimpan pada peranti ini sahaja.</span><button type="button" class="danger-link" id="clear-demo">Kosongkan data ujian</button></div></section></div>
+  </section>
+  <section id="tab-semakan" class="tab-content" hidden><div class="panel"><div class="panel-heading"><div><p class="section-kicker">ALIRAN PENTADBIR</p><h2>Semakan & Kelulusan</h2></div><span class="mini-label">Simulasi</span></div><div id="review-info" class="hint-box">Dalam sistem rasmi, hanya pentadbir yang diberi kuasa boleh menyemak dan membuat keputusan. Peranan di bawah hanya diuji dalam mod demo.</div><div id="review-list" class="record-list"></div></div></section>
+  <section id="tab-statistik" class="tab-content" hidden><div class="panel"><div class="panel-heading"><div><p class="section-kicker">STATISTIK PERIBADI</p><h2>Rekod Bulanan & Tahunan</h2></div><span class="mini-label">Data ujian</span></div><div class="filter-bar"><div class="field"><label for="stats-year">Tahun</label><select id="stats-year"></select></div><div class="field"><label for="stats-month">Bulan</label><select id="stats-month"></select></div></div><div class="stats stats-v2"><div class="stat"><span>Cuti diluluskan (bulan)</span><strong id="month-days">0</strong><small>Hari bekerja anggaran</small></div><div class="stat"><span>Cuti diluluskan (tahun)</span><strong id="year-days">0</strong><small>Hari bekerja anggaran</small></div><div class="stat"><span>Permohonan (bulan)</span><strong id="month-count">0</strong><small>Semua kategori kecuali draf/batal</small></div><div class="stat"><span>Menunggu keputusan</span><strong id="month-wait">0</strong><small>Belum boleh dikira cuti</small></div></div><div class="report-grid"><div class="report-card"><h3>Jenis Cuti Diluluskan (Tahun)</h3><div id="type-breakdown"></div></div><div class="report-card"><h3>Keberadaan Mengikut Kategori (Bulan)</h3><div id="category-breakdown"></div></div></div><div class="report-card"><h3>Jumlah Hari Cuti Diluluskan Setiap Bulan</h3><div id="monthly-trend"></div></div><div class="report-card"><div class="report-heading"><h3>Senarai Cuti Diluluskan</h3><select id="stats-scope" aria-label="Tempoh senarai cuti"><option value="MONTH">Bulan dipilih</option><option value="YEAR">Sepanjang tahun</option></select></div><div id="approved-leave-list"></div></div><p class="stats-note">Pengiraan hari menggunakan Isnin–Jumaat sebagai anggaran. Cuti umum, cuti sekolah, minggu bekerja sebenar, baki CRK dan peraturan kelayakan belum disambung; ini <strong>bukan penyata cuti rasmi</strong>. Tempoh sebahagian hari dipaparkan sebagai jam berasingan, tidak ditukar menjadi cuti sehari.</p></div></section>
+</div></main>
+<div id="decision-dialog" class="modal-shade" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="decision-title"><h2 id="decision-title">Tindakan Semakan</h2><p id="decision-desc"></p><label for="decision-note">Catatan / arahan <span id="required-note-mark">*</span></label><textarea id="decision-note" maxlength="300" rows="4" placeholder="Nyatakan alasan atau arahan dengan jelas."></textarea><div class="form-error" id="decision-error" hidden></div><div class="dialog-actions"><button type="button" class="btn btn-secondary" id="decision-cancel">Kembali</button><button type="button" class="btn btn-primary" id="decision-confirm">Sahkan simulasi</button></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<script src="../../firebase-pilot-config.js"></script><script type="module" src="fi-keberadaan.js?v=2.0.0"></script>
+</body></html>
