@@ -46,7 +46,7 @@
      return standalone&&mobile;
    };
    // Tiada lagi routing ke LoginSession/DashboardGuru rasmi daripada ikon PWA.
-   // Fi-LoginSession mengurus pemulihan sesi dan pengesahan kedua-dua pihak.
+   // Fi-LoginSession mengurus sesi Firebase Authentication sahaja.
    try { go('Fi-LoginSession.html'); }
    catch (e) {
      document.getElementById('status').textContent='Buka Fi-LoginSession untuk meneruskan.';
