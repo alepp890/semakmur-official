@@ -3,7 +3,7 @@ import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-
 import {getAuth,onAuthStateChanged,signOut} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 import {getFirestore,doc,onSnapshot} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
 const $=id=>document.getElementById(id),norm=s=>String(s||'').trim().toLowerCase();
-let auth=null,db=null,user=null,stop=null,loaded=false,initial=false;
+let auth=null,db=null,user=null,stop=null,schoolStop=null,schoolDate=null,loaded=false,initial=false;
 function note(t,m){
  $('fi-panel').hidden=false;$('fi-panel-title').textContent=t;$('fi-panel-message').textContent=m;
  $('fi-login-button').hidden=false;$('fi-refresh-button').hidden=true;$('fi-read-button').hidden=true;
@@ -20,7 +20,7 @@ function apply(raw){
  const data={success:true,profile:raw.profile||{},jadual:Array.isArray(raw.jadual)?raw.jadual:[],peranan:Array.isArray(raw.peranan)?raw.peranan:[],
  jadualTersedia:raw.jadualTersedia===true,rphStatusHariIni:today?(raw.rphStatusHariIni||[]):[],cutiHariIni:today?raw.cutiHariIni:{disahkan:false,cuti:false},integrasi:raw.integrasi||{}};
  if(!window.fiApplyDashboard?.(data))throw new Error('Paparan Dashboard belum berjaya disahkan.');
- loaded=true;$('fi-panel').hidden=true;
+ loaded=true;watchSchool();$('fi-panel').hidden=true;
  $('header-status').textContent='Data terselaras';
  $('v4-launch').hidden=true;
 }
@@ -34,7 +34,16 @@ function watch(){
    try{apply(snap.data());}catch(e){fail(e);}
  },fail);
 }
-async function logout(){if(stop)stop();stop=null;if(auth)await signOut(auth);user=null;window.FiAuthenticatedUser=null;location.replace('../Fi-LoginSession.html');}
+function watchSchool(){
+ if(!user||!db)return;
+ const date=dateMY();if(schoolStop&&schoolDate===date)return;
+ if(schoolStop)schoolStop();schoolDate=date;
+ schoolStop=onSnapshot(doc(db,'semakmur_fi_ringkasan_sekolah',date),snap=>{
+   window.fiApplySchoolSummary?.(snap.exists()?snap.data():null);
+ },error=>{console.warn('Ringkasan Kehadiran belum tersedia:',error.code||error.message);window.fiApplySchoolSummary?.(null);});
+}
+setInterval(()=>{if(user&&schoolDate!==dateMY())watchSchool();},60000);
+async function logout(){if(stop)stop();if(schoolStop)schoolStop();stop=schoolStop=null;if(auth)await signOut(auth);user=null;window.FiAuthenticatedUser=null;location.replace('../Fi-LoginSession.html');}
 function login(){location.replace('../Fi-LoginSession.html');}
 window.FiDashboard={
  load:async()=>{if(!auth)throw new Error('Firebase belum dimulakan.');await auth.authStateReady();if(!auth.currentUser){login();return;}user=auth.currentUser;window.FiAuthenticatedUser={uid:user.uid,email:user.email};if(!stop)watch();},

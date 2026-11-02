@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fi-Dashboard Guru | SeMAKMUR Digital V7</title>
+    <title>Fi-Dashboard Guru | SeMAKMUR Digital V8</title>
     <meta name="theme-color" content="#1b587a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -154,7 +154,7 @@
     @keyframes sema-shimmer { 0%{background-position:100% 50%}100%{background-position:0 50%} }
     @media(prefers-reduced-motion:reduce){.sema-loading-line{animation:none}}
 </style>
-  <link rel="stylesheet" href="fi-dashboard-ui-v7.css?v=7.0.0">
+  <link rel="stylesheet" href="fi-dashboard-ui.css?v=8.0.0">
 </head>
 <body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5 dashboard-v6 dashboard-v7">
   <div id="sidebar-backdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
@@ -202,7 +202,7 @@
     <!-- Header bergerak: hanya dipakai pada paparan mobile. -->
     <div id="v4-mobile-head" class="v4-mobile-head" aria-label="Header aplikasi mudah alih">
       <button id="v4-back" class="v4-back" type="button" aria-label="Kembali" hidden><i class="fa-solid fa-arrow-left" aria-hidden="true"></i></button>
-      <strong id="v4-header-title">SeMAKMUR Digital</strong>
+      <strong id="v4-header-title">SeMAKMUR Smart System</strong>
       <div class="v4-head-actions">
         <button id="v4-bell" type="button" aria-label="Notifikasi"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></button>
         <button id="v4-profile" type="button" aria-label="Profil guru"><span id="v4-initial">G</span></button>
@@ -247,10 +247,10 @@
       <!-- Fi V6: paparan PWA ikut turutan yang ditetapkan. Tidak memaparkan nombor contoh. -->
       <section id="fi-v6-mobile-home" aria-label="Laman Utama SeMAKMUR PWA">
         <div class="fi-v6-hero">
-          <div class="fi-v6-hero-top"><span class="fi-v6-school-mark"><i class="fa-solid fa-school" aria-hidden="true"></i></span><strong>SeMAKMUR <span>Digital</span></strong><span class="fi-v6-hero-date" id="fi-v6-date-short">—</span></div>
+          <div class="fi-v6-hero-top"><span class="fi-v6-school-mark"><i class="fa-solid fa-school" aria-hidden="true"></i></span><strong>SeMAKMUR <span>Dashboard</span></strong><span class="fi-v6-hero-date" id="fi-v6-date-short">—</span></div>
           <button type="button" class="fi-v6-profile-card" onclick="openProfile()" aria-label="Lihat profil guru">
             <span class="fi-v6-profile-image" aria-hidden="true"><span id="fi-v6-profile-initial">G</span><img id="fi-v6-profile-photo" alt="" hidden></span>
-            <span class="fi-v6-profile-text"><small>Selamat Datang,</small><strong id="fi-v6-profile-name">Guru SeMAKMUR</strong><em>Dashboard Guru</em></span>
+            <span class="fi-v6-profile-text"><small>Selamat Datang,</small><strong id="fi-v6-profile-name">Guru SeMAKMUR</strong><em id="fi-v8-profile-email">Akaun Guru</em></span>
             <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
           </button>
         </div>
@@ -694,7 +694,7 @@
     const back=$('v4-back');
     if(!fiV6Mobile()){back.hidden=true;return;}
     back.hidden=!(fiV6ScheduleOpen||attendance);
-    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':'Kehadiran Kelas'):'SeMAKMUR Digital';
+    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':'Kehadiran Kelas'):'SeMAKMUR Smart System';
     document.body.classList.toggle('fi-v6-on-schedule',fiV6ScheduleOpen);
     document.body.classList.toggle('fi-v6-on-attendance',attendance);
     document.body.classList.toggle('v4-on-home',!attendance&&!fiV6ScheduleOpen);
@@ -733,6 +733,7 @@
     const p=dashboardData?.profile||{};
     const nick=p.namaPenuh||currentUser?.name||'Guru SeMAKMUR';
     $('fi-v6-profile-name').textContent=nick;
+    $('fi-v8-profile-email').textContent=p.email||currentUser?.email||'Akaun MOE';
     $('fi-v6-profile-initial').textContent=initials(p.namaSamaran||nick);
     const img=$('fi-v6-profile-photo'),raw=String(p.gambarProfil||p.fotoUrl||'').trim();
     const url=/^https:\/\/[^\s<>"']+$/i.test(raw)?raw:'';
@@ -834,6 +835,14 @@
     const matches={pentadbiran:/pentadbiran|pengurusan|tugas|bertugas/i,kurikulum:/kurikulum|akademik|panitia/i,hem:/hem|hal ehwal murid|kebajikan|disiplin/i,kokurikulum:/kokurikulum|ko kurikulum|sukan|kelab/i,lain_lain:/lain/i}[key];
     return key==='lain_lain'?[]:roles.filter(r=>matches.test(r.kategori||''));
   }
+  function fiV8SchoolSummaryHTML(){
+    const s=window.FiSchoolSummary, n=v=>Number.isFinite(Number(v))?Number(v):null;
+    const value=v=>n(v)===null?'—':`${v}%`;
+    if(!s)return `<div class="fi-v8-hem-metrics"><div>Kehadiran Hari Ini<strong>—</strong><small>Ringkasan belum diselaraskan</small></div><div>Kehadiran Bulanan<strong>—</strong><small>Menunggu proses Auto Sync</small></div><div>Kelas Kehadiran Penuh<strong>—</strong><small>Menunggu data rasmi</small></div><div>Kelas Belum Direkod<strong>—</strong><small>Menunggu data rasmi</small></div></div>`;
+    const full=Array.isArray(s.fullAttendanceClasses)?s.fullAttendanceClasses:[];
+    return `<div class="fi-v8-hem-metrics"><div>Kehadiran Hari Ini<strong>${escapeHtml(value(s.todayRate))}</strong><small>${escapeHtml(s.recordedClasses)} kelas telah merekod</small></div><div>Kehadiran Bulanan<strong>${escapeHtml(value(s.monthlyRate))}</strong><small>Purata rekod tersedia, bukan kelas yang belum direkod</small></div><div>Kelas Kehadiran Penuh<strong>${escapeHtml(s.fullAttendanceCount ?? full.length)}</strong><small>${escapeHtml(full.slice(0,3).join(', ')||'Tiada kelas penuh')}</small></div><div>Kelas Belum Direkod<strong>${escapeHtml(s.unrecordedClasses)}</strong><small>Daripada ${escapeHtml(s.activeClasses)} kelas aktif</small></div></div>`;
+  }
+  window.fiApplySchoolSummary=function(data){window.FiSchoolSummary=data;if(activePage!=='laman_utama')renderCategories(activePage);};
   function renderCategories(key){
     const menu=MENUS[key];if(!menu)return;
     $('category-title').textContent=menu.title;
@@ -846,11 +855,17 @@
       const all=dashboardData?.jadual||[];
       const count=all.length;
       $('category-overview').innerHTML=`<p class="text-[13px] text-slate-600">${dashboardData?.jadualTersedia?count+' waktu mingguan direkodkan dalam jadual peribadi anda.':'Jadual peribadi belum tersedia.'}</p><div id="weekly-timetable" class="mt-3 space-y-3">${DAYS.map(day=>`<div><div class="font-extrabold text-[13px] text-[#24789e] py-2">${day}</div><div class="space-y-2">${scheduleDay(day,'category')}</div></div>`).join('')}</div></div>`;
-    } else if(key==='hem'&&dashboardData?.profile?.guruKelas){
+    } else if(key==='hem'){
+      const guru=dashboardData?.profile?.guruKelas;
+      $('category-overview').innerHTML=`<div class="fi-v8-hem-header">${guru?'Guru Kelas: '+escapeHtml(guru):'Ringkasan Kehadiran Sekolah'}</div>`+fiV8SchoolSummaryHTML();
+      // Statistik HEM akan menggunakan dokumen ringkasan Firestore rasmi, bukan angka contoh.
+      return;
+    } else if(false&&key==='hem'&&dashboardData?.profile?.guruKelas){
       $('category-overview').innerHTML=`<div class="info-pill inline-block">Guru Kelas: ${escapeHtml(dashboardData.profile.guruKelas)}</div><p class="text-[13px] text-slate-500 mt-2">Rekod kehadiran dan tindakan kelas akan dipaparkan selepas modul HEM disambungkan.</p>`;
     } else {
       $('category-overview').innerHTML=`<div class="empty-info">${escapeHtml(CATEGORY_BLURB[key])}</div>`;
     }
+    if(key!=='hem')$('category-overview').insertAdjacentHTML('beforeend','<div class="fi-v8-hem-header" style="margin-top:16px">Statistik Kehadiran Sekolah</div>'+fiV8SchoolSummaryHTML());
     // Pautan modul bidang telah dipindahkan ke bahagian atas, tanpa pendua di bawah.
   }
   function switchMainMenu(key){if(!MENUS[key])return;activePage=key;
