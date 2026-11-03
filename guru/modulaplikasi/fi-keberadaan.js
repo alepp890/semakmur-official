@@ -1,4 +1,4 @@
-/* SeMAKMUR Fi e-Keberadaan V6.3-SPARK: compact UI and atomic audit. Firebase Storage is DISABLED (Spark plan).
+/* SeMAKMUR Fi e-Keberadaan V6.3.2-SPARK: compact UI and atomic audit. Firebase Storage is DISABLED (Spark plan).
    Demo switching exists ONLY in standalone preview (window.KB_DEMO); never on production page. */
 const DEMO=window.KB_DEMO===true, $=id=>document.getElementById(id);
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -118,10 +118,14 @@ async function submit(ev){ev.preventDefault();if(busy)return;let d;try{d=payload
  $('apply-form').reset();$('start').value=localDay();$('end').value=localDay();syncForm();tab='status';draw();toast('Rekod keberadaan dihantar.');
  }catch(e){$('form-status').textContent='Gagal menyimpan: '+(e.code||e.message||e);}finally{busy=false;$('submit').disabled=false;if($('form-status').textContent==='Menyimpan…')$('form-status').textContent='';}}
 async function showDocument(){toast('Pembukaan dokumen belum tersedia pada pelan Spark.');}
+function handlers(){document.addEventListener('click',ev=>{const tabBtn=ev.target.closest('#tabs [data-tab]');if(tabBtn){tab=tabBtn.dataset.tab;draw();return;}const x=ev.target.closest('[data-do]');if(x){const r=records.find(r=>r.id===x.dataset.id);if(r)confirmAction(r,x.dataset.do);return;}const o=ev.target.closest('[data-open-doc]');if(o){showDocument(o.dataset.openDoc);return;}if(ev.target.id==='dialog-close'||ev.target.id==='cancel-action'){closeDialog();return;}const c=ev.target.closest('#confirm-action');if(c){applyAction(c.dataset.id,c.dataset.action).catch(e=>toast(e.message||String(e)));return;}});
+ $('apply-form').addEventListener('submit',submit);['type','scope','period','start'].forEach(id=>$(id).addEventListener('change',syncForm));$('status-filter').addEventListener('change',renderMine);$('action-filter').addEventListener('change',renderActions);$('search').addEventListener('input',renderActions);$('dialog').addEventListener('click',e=>{if(e.target===$('dialog'))closeDialog()});
+ $('demo-role').addEventListener('change',e=>{demoRole=e.target.value;tab='borang';draw();});$('demo-reset').addEventListener('click',resetDemo);
+}
 async function init(){handlers();$('start').min=localDay();$('end').min=localDay();$('start').value=localDay();$('end').value=localDay();syncForm();if(DEMO){$('mode-label').textContent='PRATONTON';$('user-label').textContent='AKAUN UJIAN';$('demo-role-wrap').hidden=false;user={uid:'demo-uid',email:'contoh@sekolah.edu',name:'ALIFF'};try{records=JSON.parse(localStorage.getItem('semakmur_keberadaan_v6_demo')||'null')||demoSeed();}catch{records=demoSeed();}myRecords=records.filter(r=>r.ownerUid===user.uid);draw();return;}
  try{const cfg=window.SeMAKMURFirebasePilotConfig;if(!cfg?.projectId)throw Error('Konfigurasi Firebase tidak tersedia.');const [app,authlib,dbLib]=await Promise.all([import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')]);
  const fb=app.getApps().find(a=>a.name==='semakmur-fi-dashboard')||app.initializeApp(cfg,'semakmur-fi-dashboard');const auth=authlib.getAuth(fb);db=dbLib.getFirestore(fb);fns={...dbLib};
- authlib.onAuthStateChanged(auth,async u=>{unsubs.forEach(fn=>fn());unsubs=[];user=null;records=[];myRecords=[];if(!u){showMessage('Sila log masuk melalui Fi-LoginSession.html.','error');return;}try{const staff=await dbLib.getDoc(dbLib.doc(db,'semakmur_dashboard_fi',u.uid));const raw=staff.data();if(!staff.exists()||raw?.active!==true||str(raw.ownerEmail).toLowerCase()!==str(u.email).toLowerCase()||raw.profile?.email?.toLowerCase()!==u.email.toLowerCase())throw Error('Akaun guru tidak sah atau belum aktif.');user={uid:u.uid,email:u.email,name:str(raw.profile?.namaPenuh)||u.displayName||'Guru'};profile=raw;$('user-label').textContent=user.name;
+ authlib.onAuthStateChanged(auth,async u=>{unsubs.forEach(fn=>fn());unsubs=[];user=null;records=[];myRecords=[];if(!u){$('user-label').textContent='Belum log masuk';showMessage('Sila log masuk melalui Fi-LoginSession.html.','error');return;}try{const staff=await dbLib.getDoc(dbLib.doc(db,'semakmur_dashboard_fi',u.uid));const raw=staff.data();if(!staff.exists()||raw?.active!==true||str(raw.ownerEmail).toLowerCase()!==str(u.email).toLowerCase()||raw.profile?.email?.toLowerCase()!==u.email.toLowerCase())throw Error('Akaun guru tidak sah atau belum aktif.');user={uid:u.uid,email:u.email,name:str(raw.profile?.namaPenuh)||u.displayName||'Guru'};profile=raw;$('user-label').textContent=user.name;
  try{const roleSnap=await dbLib.getDoc(dbLib.doc(db,'semakmur_fi_keberadaan_roles',u.uid));const roleData=roleSnap.data();realRoles=roleSnap.exists()&&roleData.active===true&&roleData.ownerEmail===u.email?(roleData.roles||[]):[];}catch{realRoles=[];}
  testAccess=realRoles.includes('ADMIN_UJIAN');roles=testAccess?[]:realRoles;
  if(testAccess){$('demo-role-wrap').hidden=false;$('demo-reset').hidden=true;$('mode-label').textContent='UJIAN · DATA SEBENAR';$('role-label').textContent='Admin Sistem';}
@@ -143,8 +147,9 @@ async function init(){handlers();$('start').min=localDay();$('end').min=localDay
    },e=>showMessage('Bacaan pentadbir ditolak. Semak Rules V6.3 dan pelantikan.','error')));
    unsubs.push(dbLib.onSnapshot(dbLib.query(dbLib.collection(db,'semakmur_fi_relief_harian'),dbLib.orderBy('date','desc'),dbLib.limit(100)),s=>{reliefQueue=s.docs.map(x=>x.data());renderReliefQueue();},e=>console.warn('Senarai relief belum tersedia:',e.code||e.message)));
  }
- showMessage('');draw();}catch(e){showMessage(e.message,'error');}}
+ showMessage('');draw();}catch(e){$('user-label').textContent='Semakan akaun gagal';showMessage('Semakan akaun gagal: '+(e.code||e.message||e),'error');}}
+ ,e=>{$('user-label').textContent='Pengesahan gagal';showMessage('Pengesahan Firebase gagal: '+(e.code||e.message||e),'error');}
  );
- }catch(e){showMessage('Modul belum dapat disambungkan: '+(e.message||e),'error');}
+ }catch(e){$('user-label').textContent='Sambungan gagal';showMessage('Modul belum dapat disambungkan: '+(e.code||e.message||e),'error');}
 }
 init();
