@@ -123,10 +123,16 @@
     .erph-workspace-toolbar button { background:#e0f2fe; border:1px solid #38bdf8; border-radius:10px; padding:7px 12px; font-size:13px; font-weight:800; color:#075985; }
     .erph-workspace-toolbar button:focus-visible { outline:3px solid #0ea5e9; outline-offset:2px; }
     .erph-workspace-subtitle { margin-left:auto; font-size:11px; font-weight:700; color:#5592b3; }
-    #erph-workspace-frame, #kehadiran-workspace-frame { display:block; flex:1; min-height:0; width:100%; border:0; background:#fff; }
+    #erph-workspace-frame, #kehadiran-workspace-frame, #keberadaan-workspace-frame { display:block; flex:1; min-height:0; width:100%; border:0; background:#fff; }
     /* Fi V2.1: ruang Kehadiran terus kelihatan ketika semakan sesi dan iframe dimulakan. */
     .fi-kehadiran-frame-wrap { flex:1; min-height:0; display:flex; position:relative; overflow:hidden; background:#fff; }
     .fi-kehadiran-frame-wrap #kehadiran-workspace-frame { width:100%; height:100%; }
+    .fi-keberadaan-frame-wrap{flex:1;min-height:0;display:flex;position:relative;overflow:hidden;background:#eff5f8}
+    .fi-keberadaan-frame-wrap #keberadaan-workspace-frame{width:100%;height:100%;flex:1;min-height:0;border:0;display:block}
+    #fi-keberadaan-retry[hidden]{display:none!important}
+    @media(min-width:768px){#keberadaan-workspace .erph-workspace-toolbar{display:none!important}}
+    @media(max-width:767px){body.fi-v6-on-keberadaan #keberadaan-workspace{padding-bottom:0!important}}
+
     .fi-kehadiran-loading[hidden] { display:none!important; }
     .fi-kehadiran-loading { position:absolute; inset:0; z-index:3; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:13px; padding:24px; text-align:center; background:#f3f9fd; color:#245575; }
     .fi-kehadiran-loading strong { font-size:17px; font-weight:800; }
@@ -239,6 +245,26 @@
         </div>
       </div>
     </section>
+    <!-- V6.5: e-Keberadaan dalam ruang Dashboard Fi, tanpa halaman baharu. -->
+    <section id="keberadaan-workspace" class="erph-workspace" hidden aria-label="Ruang kerja e-Keberadaan">
+      <div class="erph-workspace-toolbar">
+        <button type="button" onclick="closeKeberadaanWorkspace()" aria-label="Kembali ke Dashboard Guru">← Kembali</button>
+        <strong>Smart Keberadaan</strong>
+        <span class="erph-workspace-subtitle">SeMAKMUR</span>
+      </div>
+      <div class="fi-keberadaan-frame-wrap">
+        <iframe id="keberadaan-workspace-frame" title="Modul e-Keberadaan" loading="eager" referrerpolicy="same-origin"></iframe>
+        <div id="fi-keberadaan-loading" class="fi-kehadiran-loading" role="status" aria-live="polite" hidden>
+          <div class="fi-kehadiran-spinner" aria-hidden="true"></div>
+          <strong id="fi-keberadaan-loading-title">Membuka e-Keberadaan…</strong>
+          <p id="fi-keberadaan-loading-message">Menyediakan borang dan menyemak sesi guru.</p>
+          <div class="fi-kehadiran-controls">
+            <button type="button" id="fi-keberadaan-retry" onclick="retryKeberadaanWorkspace()" hidden>Cuba Lagi</button>
+            <button type="button" onclick="closeKeberadaanWorkspace()">Kembali ke Dashboard</button>
+          </div>
+        </div>
+      </div>
+    </section>
     <div id="v4-launch" class="v4-launch" role="status" aria-live="polite">
       <div class="v4-launch-logo">S</div><strong>SeMAKMUR</strong>
       <span>Digital Dashboard</span><div class="v4-launch-track"><i></i></div>
@@ -346,7 +372,7 @@
   </div>
       <nav id="mobile-bottom-nav" aria-label="Navigasi utama mobile">
       <button class="bottom-btn fi-v5-bottom-home active" data-page="laman_utama" type="button"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Utama</span></button>
-      <button class="bottom-btn fi-v5-bottom-attendance" onclick="openKehadiranWorkspace()" type="button"><i class="fa-solid fa-clipboard-user" aria-hidden="true"></i><span>Kehadiran</span></button>
+      <button class="bottom-btn fi-v5-bottom-attendance" id="fi-bottom-current-module" onclick="openCurrentMobileModule()" type="button"><i class="fa-solid fa-clipboard-user" aria-hidden="true"></i><span>Kehadiran</span></button>
       <button class="bottom-btn fi-v5-bottom-menu" onclick="toggleMobileMenu()" type="button"><i class="fa-solid fa-grip" aria-hidden="true"></i><span>Menu</span></button>
     </nav>
   <div id="profile-modal" class="fixed inset-0 z-[65] bg-[#081d36aa] p-3 md:p-6 items-center justify-center hidden" role="dialog" aria-modal="true" aria-labelledby="profile-title">
@@ -553,6 +579,7 @@
       showInfo('Akses Dashboard sedang disahkan. Sila cuba sebentar lagi.');return;
     }
     closeErphWorkspace(true);
+    closeKeberadaanWorkspace(true);
     closeMobileMenu();
     const pane=$('kehadiran-workspace'),frame=$('kehadiran-workspace-frame');
     if(!pane||!frame)return;
@@ -581,10 +608,66 @@
     if(!keepHash && location.hash==='#kehadiran' && history.replaceState)history.replaceState(null,'',location.pathname+location.search);
     fiV6AttendanceDetail=false;fiV6Header();
   }
+  // V6.5 e-Keberadaan: dashboard owns navigation, app iframe owns Firestore logic.
+  let kbDesktopHeadingBefore=null;
+  function kbDesktopHeading(active){
+    if(window.matchMedia('(max-width:767px)').matches)return;
+    const a=$('greeting-text'),b=$('header-user-name');if(!a||!b)return;
+    if(active){
+      if(!kbDesktopHeadingBefore)kbDesktopHeadingBefore={greeting:a.textContent,name:b.textContent,title:b.title};
+      a.textContent='Pentadbiran';b.textContent='Smart Keberadaan';b.title='Smart Keberadaan';
+    }else if(kbDesktopHeadingBefore){
+      a.textContent=kbDesktopHeadingBefore.greeting;b.textContent=kbDesktopHeadingBefore.name;
+      b.title=kbDesktopHeadingBefore.title;kbDesktopHeadingBefore=null;
+    }
+  }
+  function kbWorkspaceStatus(title,message,isError=false){
+    const overlay=$('fi-keberadaan-loading');if(!overlay)return;
+    overlay.hidden=false;overlay.classList.toggle('is-error',isError);
+    $('fi-keberadaan-loading-title').textContent=title;
+    $('fi-keberadaan-loading-message').textContent=message;
+    $('fi-keberadaan-retry').hidden=!isError;
+  }
+  function openCurrentMobileModule(){
+    if(!$('keberadaan-workspace').hidden)openKeberadaanWorkspace();
+    else openKehadiranWorkspace();
+  }
+  function openKeberadaanWorkspace(){
+    if(!dashboardAuthenticated||!window.FiAuthenticatedUser){
+      showInfo('Akses Dashboard sedang disahkan. Sila cuba sebentar lagi.');return;
+    }
+    if(fiV6ScheduleOpen)fiV6CloseSchedule();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeMobileMenu();
+    const pane=$('keberadaan-workspace'),frame=$('keberadaan-workspace-frame');
+    if(!pane||!frame)return;
+    $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
+    kbDesktopHeading(true);rememberWorkspace('keberadaan');
+    if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#keberadaan');
+    if(frame.dataset.fiReady==='1'){
+      $('fi-keberadaan-loading').hidden=true;
+    }else{
+      kbWorkspaceStatus('Membuka e-Keberadaan…','Menyediakan borang dan status akaun MOE.');
+      if(!frame.getAttribute('src'))frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=6.5.0');
+    }
+    fiV6Header();
+  }
+  function retryKeberadaanWorkspace(){
+    const frame=$('keberadaan-workspace-frame');if(!frame)return;
+    frame.dataset.fiReady='0';kbWorkspaceStatus('Memuat semula e-Keberadaan…','Menjalankan semula semakan Firebase.');
+    frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=6.5.0&retry='+Date.now());
+  }
+  function closeKeberadaanWorkspace(keepHash){
+    const pane=$('keberadaan-workspace');if(!pane||pane.hidden)return;
+    pane.hidden=true;pane.classList.remove('is-open');kbDesktopHeading(false);
+    $('page-scroll').classList.remove('hidden');
+    if(!keepHash){rememberWorkspace('laman_utama');
+      if(location.hash==='#keberadaan'&&history.replaceState)history.replaceState(null,'',location.pathname+location.search);}
+    fiV6Header();
+  }
   async function openModule(id){const m=MODULES[id];if(!m)return;
     // Kehadiran dibuka serta-merta. Jangan tunggu ensureOfficial() sebelum memaparkan ruang.
     if(id==='kehadiran'){openKehadiranWorkspace();return;}
-    if(id==='keberadaan'){if(!dashboardAuthenticated){showInfo('Sila tunggu sesi guru disahkan.');return;}location.href=m.url;return;}
+    if(id==='keberadaan'){openKeberadaanWorkspace();return;}
     if(!await window.FiDashboard?.ensureOfficial()){showInfo('Modul ini masih menggunakan sistem lama dan belum dipindahkan ke Fi.');return;}
     if(!dashboardAuthenticated){showInfo('Akses sedang disahkan. Sila cuba sebentar lagi.');return;}
     if(id==='jadual'&&!bolehUrusJadual()){showInfo('Akses modul ini terhad kepada pentadbir dan penyelaras jadual waktu.');return;}
@@ -705,21 +788,30 @@
   function fiV6Mobile(){return window.matchMedia('(max-width:767px)').matches;}
   function fiV6Header(){
     const attendance=!$('kehadiran-workspace').hidden;
+    const keberadaan=!$('keberadaan-workspace').hidden;
     const back=$('v4-back');
     if(!fiV6Mobile()){back.hidden=true;return;}
-    back.hidden=!(fiV6ScheduleOpen||attendance);
-    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':'Kehadiran Kelas'):'SeMAKMUR Smart System';
+    back.hidden=!(fiV6ScheduleOpen||attendance||keberadaan);
+    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':'Kehadiran Kelas'):keberadaan?'e-Keberadaan':'SeMAKMUR Smart System';
     document.body.classList.toggle('fi-v6-on-schedule',fiV6ScheduleOpen);
     document.body.classList.toggle('fi-v6-on-attendance',attendance);
-    document.body.classList.toggle('v4-on-home',!attendance&&!fiV6ScheduleOpen);
+    document.body.classList.toggle('fi-v6-on-keberadaan',keberadaan);
+    document.body.classList.toggle('v4-on-home',!attendance&&!keberadaan&&!fiV6ScheduleOpen);
     document.querySelectorAll('#mobile-bottom-nav .bottom-btn').forEach(b=>b.classList.remove('active'));
-    const active=attendance?'.fi-v5-bottom-attendance':'.fi-v5-bottom-home';
+    const current=$('fi-bottom-current-module');
+    if(current){
+      current.querySelector('span').textContent=keberadaan?'Keberadaan':'Kehadiran';
+      current.querySelector('i').className=keberadaan?'fa-solid fa-clipboard-check':'fa-solid fa-clipboard-user';
+      current.setAttribute('aria-label',keberadaan?'Modul e-Keberadaan':'Modul Kehadiran');
+    }
+    const active=attendance||keberadaan?'.fi-v5-bottom-attendance':'.fi-v5-bottom-home';
     $("mobile-bottom-nav").querySelector(active)?.classList.add('active');
   }
   function fiV6OpenSchedule(){
     if(!dashboardAuthenticated){showInfo('Dashboard sedang menyediakan data.');return;}
     fiV6ScheduleOpen=true;
     closeKehadiranWorkspace(true);
+    closeKeberadaanWorkspace(true);
     $('page-scroll').classList.remove('hidden');
     $('fi-v6-schedule-screen').hidden=false;
     $('fi-v6-day').value=DAYS.includes(todayDay())?todayDay():'Isnin';
@@ -735,6 +827,7 @@
       }else closeKehadiranWorkspace();
       return;
     }
+    if(!$('keberadaan-workspace').hidden){closeKeberadaanWorkspace();return;}
     switchMainMenu('laman_utama');
   }
   function fiV6RenderSchedule(){
@@ -1025,10 +1118,25 @@
     updateClock();setInterval(updateClock,30000);
     $('greeting-text').textContent='Selamat Datang';
     document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){if(module.dataset.module==='jadual'){if(fiV6Mobile())fiV6OpenSchedule();else switchMainMenu('kurikulum');return;}openModule(module.dataset.module);return;}
-      const page=e.target.closest('[data-page]');if(page){fiV6CloseSchedule();closeErphWorkspace();closeKehadiranWorkspace();switchMainMenu(page.dataset.page);rememberWorkspace(page.dataset.page);return;}
+      const page=e.target.closest('[data-page]');if(page){fiV6CloseSchedule();closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();switchMainMenu(page.dataset.page);rememberWorkspace(page.dataset.page);return;}
       const day=e.target.closest('[data-day]');if(day){activeDay=day.dataset.day;renderTimetable();}
     });
     $('kehadiran-workspace-frame').addEventListener('load',fiKehadiranFrameReady);
+    $('keberadaan-workspace-frame').addEventListener('load',()=>{
+      // DOM loaded does not equal auth/data ready; child sends verified module state.
+      $('keberadaan-workspace-frame').contentWindow?.postMessage({type:'semakmur-fi-kb-request-state'},location.origin);
+    });
+    window.addEventListener('message',e=>{
+      if(e.origin!==location.origin||e.source!==$('keberadaan-workspace-frame')?.contentWindow)return;
+      if(e.data?.type==='semakmur-fi-kb-ready'){
+        $('keberadaan-workspace-frame').dataset.fiReady='1';
+        $('fi-keberadaan-loading').hidden=true;
+      }else if(e.data?.type==='semakmur-fi-kb-error'){
+        kbWorkspaceStatus('Tidak dapat membuka e-Keberadaan',String(e.data.message||'Sila semak sambungan Firebase.'),true);
+      }else if(e.data?.type==='semakmur-fi-kb-back'){
+        closeKeberadaanWorkspace();switchMainMenu('laman_utama');
+      }
+    });
     $('v4-back').addEventListener('click',fiV6Back);
     $('v4-profile').addEventListener('click',openProfile);
     $('v4-bell').addEventListener('click',()=>showInfo('Tiada notifikasi baharu yang disahkan.'));
@@ -1050,7 +1158,7 @@
     });
     $('profile-form').addEventListener('submit',saveProfile);
     $('profile-modal').addEventListener('click',e=>{if(e.target===$('profile-modal'))closeProfile();});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeKehadiranWorkspace();closeProfile();closeMobileMenu();}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeProfile();closeMobileMenu();}});
     window.addEventListener('resize',()=>{fitName();if(window.innerWidth>=768){$('sidebar-container').classList.remove('-translate-x-full');$('sidebar-backdrop').classList.remove('active');}else{$('sidebar-container').classList.add('-translate-x-full');}});
     showInstantShell();
     fiV6Header();
