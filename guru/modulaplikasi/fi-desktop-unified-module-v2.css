@@ -1,0 +1,84 @@
+/* Shared desktop design language for Fi Attendance and Fi Keberadaan.
+   Loaded after each module's own CSS. Desktop only: iframe viewport >= 768px.
+   Does not touch JS, Firebase writes, audit, roles or PWA styling.
+*/
+@media (min-width:768px){
+  :root{--smk-marine:#0b1329;--smk-navy:#142247;--smk-ink:#1c2b43;--smk-muted:#53647c;--smk-amber:#d97706;--smk-border:#dce4ef;--smk-page:#f7f9fd;--smk-shadow:0 4px 15px rgba(11,19,41,.055)}
+  html,body{font-family:'Plus Jakarta Sans',system-ui,sans-serif!important;background:#f7f9fd!important;color:#1c2b43!important;font-size:13px!important;letter-spacing:normal}
+  :is(button,input,select,textarea){font-family:'Plus Jakarta Sans',system-ui,sans-serif!important}
+  :is(button,input,select,textarea):focus-visible{outline:2px solid #d99727!important;outline-offset:2px!important}
+  /* Consistent content width, card and control sizes */
+  .wrap,.fi-embedded .wrap{max-width:1250px!important;padding:14px 16px 44px!important;margin:0 auto!important}
+  .panel,.fi-embedded .panel{background:#fff!important;border:1px solid #dce4ef!important;border-radius:14px!important;box-shadow:0 4px 16px rgba(11,19,41,.05)!important;padding:15px!important;color:#1c2b43!important}
+  .panel-head,.panelhead{min-height:27px!important;gap:10px!important}
+  .panel h2,.panel-head h2,.panelhead h2,.fi-embedded .panelhead h2{font-size:15px!important;font-weight:800!important;color:#0b1329!important;letter-spacing:-.025em!important;line-height:1.35!important}
+  .muted,.panelhead>span,.kb-stats-scope,.kb-stats-footnote{color:#54657c!important;font-size:12px!important;line-height:1.55!important}
+  /* Separate status pills from normal text using semantic colors */
+  .pill,.fi-tag{font-size:11px!important;font-weight:800!important;line-height:1.3!important;border-radius:9px!important;padding:5px 8px!important;white-space:normal!important}
+  .pill:not(.done):not(.success):not(.warning):not(.danger):not(.error){color:#364f76!important;background:#edf3fa!important}
+  .pill.done,.pill.success{background:#e8f6ee!important;color:#176746!important}
+  .pill.warning,.pill.missing{background:#fff3df!important;color:#8d5810!important}
+  .pill.danger,.pill.error{background:#ffeaec!important;color:#9e3448!important}
+  /* Attendance: official class names & pupil names */
+  .date{background:linear-gradient(115deg,#f2f6fc,#eaf1fc)!important;border:1px solid #d6e1f2!important;border-radius:13px!important;padding:10px 14px!important;box-shadow:none!important}
+  .date label{font-size:12.5px!important;color:#2c3e59!important;font-weight:800!important}
+  .date input{min-height:38px!important;font-size:13px!important;font-weight:700!important;color:#142247!important;padding:8px 12px!important;border:1px solid #c5d5e8!important;border-radius:9px!important;background:#fff!important}
+  .class-list{gap:7px!important}
+  .class{min-height:63px!important;background:#fff!important;border:1px solid #e0e8f2!important;border-radius:11px!important;padding:10px 12px!important;box-shadow:0 2px 7px rgba(11,19,41,.025)!important}
+  .class.selected{background:#f1f6fe!important;border-color:#719bd5!important;box-shadow:inset 3px 0 #2b4480!important}
+  .class strong,.class .fi-v6-class-name strong{font-size:13.5px!important;line-height:1.35!important;font-weight:800!important;color:#142247!important;letter-spacing:-.02em!important}
+  .class small,.class .fi-v6-class-name small{font-size:11.5px!important;color:#62728a!important}
+  .student-list{gap:6px!important}
+  .student{min-height:47px!important;padding:8px 11px!important;border:1px solid #dfe7f1!important;border-radius:10px!important;background:#fff!important}
+  .student:nth-child(2n){background:#fbfcff!important}
+  .student:hover{background:#f2f6fc!important}
+  .student .name{font-size:13px!important;font-weight:800!important;color:#172a4b!important;line-height:1.45!important;letter-spacing:-.01em!important}
+  .student .note{font-size:11px!important;color:#5c6c81!important}
+  .student .student-number{color:#1d4d8d!important;background:#eaf1fb!important;font-size:11px!important;font-weight:800!important}
+  .search{min-height:38px!important;background:#fbfcfe!important;border:1px solid #d4deec!important;border-radius:9px!important;font-size:13px!important;padding:8px 11px!important;color:#1c2b43!important}
+  .btn,.btn.primary{min-height:37px!important;border-radius:9px!important;padding:8px 13px!important;font-size:12px!important;font-weight:800!important}
+  .btn{background:#fff!important;border:1px solid #b9cbe2!important;color:#24436c!important}
+  .btn.primary{color:#fff!important;background:#142247!important;border-color:#142247!important}
+  .student input[type=checkbox]{accent-color:#24467f!important}
+  .metric{background:#f4f7fc!important;border:1px solid #dce6f1!important;border-radius:10px!important;padding:10px 14px!important;color:#42536b!important}
+  .metric strong{font-size:20px!important;color:#18315a!important}
+  .ack{font-size:12px!important;color:#42536b!important}
+  .fi-attendance-tabs{background:#eaf1fb!important;border-color:#d8e5f5!important;border-radius:12px!important}
+  .fi-attendance-tabs button{font-size:12.5px!important;font-weight:800!important;color:#2b4772!important}
+  .fi-attendance-tabs button.active{background:linear-gradient(120deg,#1e305e,#263f7d)!important;color:#fff!important}
+  /* e-Keberadaan-specific title, filter, tab and data cards */
+  .kb-titlebar h1,.fi-embedded .kb-titlebar h1{font-size:19px!important;color:#0b1329!important;font-weight:800!important;letter-spacing:-.035em!important}
+  .kb-titlebar p{font-size:12px!important;color:#53647c!important}
+  .kb-content-shell,.fi-embedded .kb-content-shell{gap:14px!important}
+  .kb-filter-top{background:linear-gradient(115deg,#f2f6fc,#eaf1fc)!important;border:1px solid #d6e1f2!important;box-shadow:none!important;border-radius:13px!important;padding:10px 14px!important;max-width:410px!important}
+  .kb-filter-top label{font-size:12.5px!important;color:#2c3e59!important;font-weight:800!important}
+  .kb-filter-top select{height:38px!important;min-height:38px!important;max-width:200px!important;font-size:13px!important;font-weight:700!important;color:#142247!important;border:1px solid #c5d5e8!important;border-radius:9px!important;padding:8px 11px!important;background:#fff!important}
+  .tabs,.fi-embedded .tabs{background:#edf2fa!important;border:1px solid #dce5f1!important;border-radius:12px!important;padding:5px!important;gap:5px!important;margin-bottom:12px!important}
+  .tabs button,.fi-embedded .tabs button{min-height:40px!important;padding:9px 12px!important;border:0!important;border-radius:9px!important;background:transparent!important;color:#344d72!important;font-size:12px!important;font-weight:750!important;line-height:1.3!important}
+  .tabs button.active,.fi-embedded .tabs button.active{background:linear-gradient(120deg,#1e305e,#2b4480)!important;color:#fff!important;box-shadow:0 3px 10px rgba(30,48,94,.16)!important}
+  .kb-unread{font-size:10px!important;color:#fff!important}
+  .fieldrow{gap:6px!important;margin-bottom:12px!important}
+  .fieldrow label{font-size:12px!important;font-weight:800!important;color:#2b3b54!important}
+  .fieldrow :is(input,select,textarea),.toolbar :is(input,select),.dialog :is(input,select,textarea){min-height:39px!important;font-size:13px!important;color:#1e2e47!important;border:1px solid #cedbec!important;border-radius:9px!important;background:#fff!important;padding:9px 11px!important}
+  .fieldrow textarea,.dialog textarea{min-height:75px!important}
+  .primary,.secondary,.success,.warn,.danger{min-height:37px!important;padding:8px 13px!important;font-size:12px!important;line-height:1.4!important;border-radius:9px!important;font-weight:800!important}
+  .primary{color:#fff!important;background:#1e305e!important;border:1px solid #1e305e!important}
+  .secondary{color:#274569!important;background:#f5f8fc!important;border:1px solid #cbd9e8!important}
+  .success{color:#166b4f!important;background:#e6f6ef!important}
+  .warn{color:#875510!important;background:#fff3e0!important}
+  .danger{color:#a03444!important;background:#ffedf0!important}
+  .item{border:1px solid #dfe7f1!important;border-radius:11px!important;background:#fff!important;box-shadow:0 1px 4px rgba(11,19,41,.025)!important}
+  .record-card{min-height:73px!important;padding:12px 13px!important}
+  .record-card:hover{background:#f8faff!important}
+  .item-heading .item-title,.item-title{font-size:13.5px!important;font-weight:800!important;color:#182d4d!important;line-height:1.45!important}
+  .item-date-new,.item-owner,.item-sub{font-size:12px!important;color:#556a86!important;line-height:1.5!important}
+  .item-heading .pill{font-size:10.5px!important}
+  .kb-stats-card .kb-stat{min-height:82px!important;border-radius:10px!important;padding:10px!important}
+  .kb-stat span{font-size:11px!important;font-weight:750!important;color:#566983!important;line-height:1.4!important}
+  .kb-stat strong{font-size:23px!important;font-weight:800!important;color:#172d4c!important}
+  .kb-info-card p{font-size:12px!important;line-height:1.6!important;color:#53647c!important}
+  .dialog{border:1px solid #dce4ef!important;box-shadow:0 20px 60px rgba(8,19,42,.23)!important;border-radius:16px!important;padding:18px!important}
+  .popup-field>span{font-size:12px!important;color:#607187!important}
+  .popup-field>strong{font-size:13px!important;color:#1d304d!important;font-weight:700!important}
+  .alert,.notice{font-size:12px!important;border-radius:10px!important;line-height:1.6!important}
+}
