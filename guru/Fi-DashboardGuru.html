@@ -131,7 +131,7 @@
     .fi-keberadaan-frame-wrap #keberadaan-workspace-frame{width:100%;height:100%;flex:1;min-height:0;border:0;display:block}
     #fi-keberadaan-retry[hidden]{display:none!important}
     @media(min-width:768px){#keberadaan-workspace .erph-workspace-toolbar{display:none!important}}
-    @media(max-width:767px){body.fi-v6-on-keberadaan #keberadaan-workspace{padding-bottom:0!important}}
+    @media(max-width:767px){body.fi-v6-on-keberadaan #keberadaan-workspace{padding-bottom:calc(76px + env(safe-area-inset-bottom))!important}}
 
     .fi-kehadiran-loading[hidden] { display:none!important; }
     .fi-kehadiran-loading { position:absolute; inset:0; z-index:3; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:13px; padding:24px; text-align:center; background:#f3f9fd; color:#245575; }
@@ -526,7 +526,7 @@
     const a=$('greeting-text'),b=$('header-user-name');if(!a||!b)return;
     if(active){
       if(!skhDesktopHeadingBefore)skhDesktopHeadingBefore={greeting:a.textContent,name:b.textContent,title:b.title};
-      a.textContent='Hal Ehwal Murid';b.textContent='Smart Kehadiran Murid';b.title='Smart Kehadiran Murid';
+      a.textContent='Hal Ehwal Murid';b.textContent=fiV8AttendanceSection==='semakan'?'Semakan Kehadiran':'Smart Kehadiran Murid';b.title=b.textContent;
     } else if(skhDesktopHeadingBefore){
       a.textContent=skhDesktopHeadingBefore.greeting;
       b.textContent=skhDesktopHeadingBefore.name;
@@ -569,7 +569,7 @@
     }
     fiKehadiranStatus('Memaparkan Smart Kehadiran…','Senarai kelas akan tersedia sebaik halaman dimulakan.');
     if(!frame.getAttribute('src')){
-      frame.setAttribute('src','modulaplikasi/Fi-KehadiranMurid.html?embed=1&v=fi-v7');
+      frame.setAttribute('src','modulaplikasi/Fi-KehadiranMurid.html?embed=1&v=fi-v8_1');
     }
   }
   function fiKehadiranSesiLatar(){ /* Fi V4: Firebase Auth sudah menyediakan sesi; tiada Apps Script. */ }
@@ -593,7 +593,7 @@
     if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#kehadiran');
     fiKehadiranStatus('Membuka Smart Kehadiran…','Memaparkan kelas dan murid daripada Firebase.');
     // Fi V4: Firebase-only, mula iframe serta-merta; Firestore Rules melindungi rekod.
-    fiKehadiranMuatkan(serial);fiV6AttendanceDetail=false;fiV6Header();
+    fiKehadiranMuatkan(serial);fiV6AttendanceDetail=false;fiV8AttendanceSection='rekod';fiV6Header();
     if(frame.dataset.fiReady==='1')frame.contentWindow?.postMessage({type:'semakmur-fi-request-screen'},location.origin);
   }
   function closeKehadiranWorkspace(keepHash){
@@ -606,7 +606,7 @@
     $('page-scroll').classList.remove('hidden');
     if(!keepHash)rememberWorkspace('laman_utama');
     if(!keepHash && location.hash==='#kehadiran' && history.replaceState)history.replaceState(null,'',location.pathname+location.search);
-    fiV6AttendanceDetail=false;fiV6Header();
+    fiV6AttendanceDetail=false;fiV8AttendanceSection='rekod';fiV6Header();
   }
   // V6.5 e-Keberadaan: dashboard owns navigation, app iframe owns Firestore logic.
   let kbDesktopHeadingBefore=null;
@@ -647,14 +647,14 @@
       $('fi-keberadaan-loading').hidden=true;
     }else{
       kbWorkspaceStatus('Membuka e-Keberadaan…','Menyediakan borang dan status akaun MOE.');
-      if(!frame.getAttribute('src'))frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=6.5.0');
+      if(!frame.getAttribute('src'))frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=6.7.0');
     }
     fiV6Header();
   }
   function retryKeberadaanWorkspace(){
     const frame=$('keberadaan-workspace-frame');if(!frame)return;
     frame.dataset.fiReady='0';kbWorkspaceStatus('Memuat semula e-Keberadaan…','Menjalankan semula semakan Firebase.');
-    frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=6.5.0&retry='+Date.now());
+    frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=6.7.0&retry='+Date.now());
   }
   function closeKeberadaanWorkspace(keepHash){
     const pane=$('keberadaan-workspace');if(!pane||pane.hidden)return;
@@ -784,7 +784,7 @@
     return `<div class="status-copy">Maklumat tindakan hari ini belum tersedia.</div>`;}
   function summaryWidget(kind,title,content,icon){return `<article class="card-coligo summary-widget theme-${kind}"><div class="summary-head"><div class="summary-icon">${qIcon(icon)}</div><h3>${escapeHtml(title)}</h3></div><div class="summary-content">${content}</div></article>`;}
   // Fi V6: susunan mobile milik dashboard sendiri, tanpa skrip mobile V4 yang menulis semula navigasi.
-  let fiV6ScheduleOpen=false,fiV6AttendanceDetail=false,fiV6SelectedClassName='';
+  let fiV6ScheduleOpen=false,fiV6AttendanceDetail=false,fiV6SelectedClassName='',fiV8AttendanceSection='rekod';
   function fiV6Mobile(){return window.matchMedia('(max-width:767px)').matches;}
   function fiV6Header(){
     const attendance=!$('kehadiran-workspace').hidden;
@@ -792,7 +792,7 @@
     const back=$('v4-back');
     if(!fiV6Mobile()){back.hidden=true;return;}
     back.hidden=!(fiV6ScheduleOpen||attendance||keberadaan);
-    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':'Kehadiran Kelas'):keberadaan?'e-Keberadaan':'SeMAKMUR Smart System';
+    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':fiV8AttendanceSection==='semakan'?'Semakan Kehadiran':'Kehadiran Kelas'):keberadaan?'e-Keberadaan':'SeMAKMUR Smart System';
     document.body.classList.toggle('fi-v6-on-schedule',fiV6ScheduleOpen);
     document.body.classList.toggle('fi-v6-on-attendance',attendance);
     document.body.classList.toggle('fi-v6-on-keberadaan',keberadaan);
@@ -824,6 +824,8 @@
     if(!$('kehadiran-workspace').hidden){
       if(fiV6AttendanceDetail){
         $('kehadiran-workspace-frame').contentWindow?.postMessage({type:'semakmur-fi-back-to-classes'},location.origin);
+      }else if(fiV8AttendanceSection==='semakan') {
+        $('kehadiran-workspace-frame').contentWindow?.postMessage({type:'semakmur-fi-back-to-record'},location.origin);
       }else closeKehadiranWorkspace();
       return;
     }
@@ -1150,7 +1152,12 @@
     if(e.data?.type==='semakmur-fi-attendance-error'){
       $('fi-kehadiran-loading').hidden=true;
     }
-    if(e.data?.type==='semakmur-fi-attendance-screen'){
+    if(e.data?.type==='semakmur-fi-attendance-section'){
+        fiV8AttendanceSection=e.data.section==='semakan'?'semakan':'rekod';
+        fiV6AttendanceDetail=false;fiV6Header();
+        if(!fiV6Mobile())skhDesktopHeading(true);
+      }
+      if(e.data?.type==='semakmur-fi-attendance-screen'){
         fiV6AttendanceDetail=e.data.screen==='students';
         fiV6SelectedClassName=String(e.data.className||'Kehadiran Murid').slice(0,80);
         fiV6Header();
