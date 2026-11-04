@@ -1,0 +1,449 @@
+/* =====================================================================
+   SeMAKMUR DIGITAL · EXECUTIVE PREMIUM DESKTOP DESIGN SYSTEM
+   V1 — 4 Nov 2026 · Gaya diinspirasi oleh contoh design.txt
+
+   Import warna: navy 950 #070c1a, navy 900 #0b1329, navy 800 #142247,
+   gold 500 #f59e0b, gold 600 #d97706, background #f8fafc.
+
+   PENTING: Tema ini mengubah CSS desktop sahaja (>=768px).
+   Tidak mengubah struktur DOM, pengesahan Firebase, iframe, backend,
+   enam pautan PWA, fungsi butang, data pengguna atau navigasi.
+   ===================================================================== */
+
+@media (min-width: 768px) {
+  body.dashboard-v7 {
+    --premium-navy-950:#070c1a;
+    --premium-navy-900:#0b1329;
+    --premium-navy-800:#142247;
+    --premium-navy-700:#1e305e;
+    --premium-navy-600:#2b4480;
+    --premium-gold-300:#fde047;
+    --premium-gold-400:#fbbf24;
+    --premium-gold-500:#f59e0b;
+    --premium-gold-600:#d97706;
+    --premium-ink:#16243d;
+    --premium-muted:#526278;
+    --premium-surface:#fff;
+    --premium-page:#f8fafc;
+    --premium-line:#e1e7ef;
+    --premium-radius:14px;
+    --premium-shadow:0 5px 24px rgba(11,19,41,.075);
+    background:var(--premium-page)!important;
+    color:var(--premium-ink)!important;
+    font-family:'Plus Jakarta Sans',system-ui,sans-serif!important;
+    -webkit-font-smoothing:antialiased;
+  }
+  body.dashboard-v7 :is(button,input,select,textarea) {font-family:'Plus Jakarta Sans',system-ui,sans-serif}
+  body.dashboard-v7 :is(button,a,[tabindex]):focus-visible {
+    outline:3px solid #e3a51b!important;
+    outline-offset:3px!important;
+  }
+  /* NAVIGASI: navy gelap, aksen emas digunakan pada kawalan aktif */
+  body.dashboard-v7 #sidebar-container.side-bg {
+    background:
+       radial-gradient(ellipse at -25% 92%,rgba(245,158,11,.18),transparent 47%),
+       radial-gradient(ellipse at 115% 12%,rgba(67,98,162,.24),transparent 39%),
+       linear-gradient(170deg,#0b1329 0%,#142247 56%,#101d3c 100%)!important;
+    border-right:1px solid #29395d!important;
+    box-shadow:5px 0 20px rgba(6,14,35,.08)!important;
+    color:#fff!important;
+  }
+  body.dashboard-v7 #sidebar-container > div:first-child > div:first-child {
+    border-color:rgba(251,191,36,.19)!important;
+  }
+  body.dashboard-v7 .brand-identity-symbol {
+    color:#fbbf24!important;
+    background:rgba(251,191,36,.09)!important;
+    border-color:rgba(251,191,36,.5)!important;
+    border-radius:12px!important;
+  }
+  body.dashboard-v7 #sidebar-container h1 {color:#fff!important;letter-spacing:-.035em!important}
+  body.dashboard-v7 #sidebar-container .text-teal-100 {color:#e7eaf1!important}
+  body.dashboard-v7 #sidebar-container .side-profile {
+    background:rgba(255,255,255,.065)!important;
+    border:1px solid rgba(251,191,36,.19)!important;
+    border-radius:16px!important;
+    backdrop-filter:blur(12px);
+    box-shadow:inset 0 1px rgba(255,255,255,.07)!important;
+  }
+  body.dashboard-v7 #sidebar-container .profile-avatar {
+    border:3px solid #f8c65e!important;
+    background:linear-gradient(150deg,#ecf2fa,#b3cee8)!important;
+    color:#18305a!important;
+  }
+  body.dashboard-v7 #sidebar-container .profile-caption h2 {font-size:15px!important;color:#fff!important;letter-spacing:.005em}
+  body.dashboard-v7 #sidebar-container .profile-caption p {font-size:12px!important;color:#dce5f3!important}
+  body.dashboard-v7 #desktop-nav .nav-link {
+    padding:12px 14px!important;
+    min-height:43px;
+    border:1px solid transparent!important;
+    border-radius:10px!important;
+    font-size:13px!important;
+    font-weight:650!important;
+    color:#e7ecf9!important;
+    line-height:1.35;
+    transition:background .18s ease,color .18s ease,transform .18s ease!important;
+  }
+  body.dashboard-v7 #desktop-nav .nav-link .nav-svg {
+    width:18px!important;height:18px!important;stroke-width:1.9!important;
+  }
+  body.dashboard-v7 #desktop-nav .nav-link:not(.active):hover {
+    background:rgba(251,191,36,.10)!important;
+    border-color:rgba(251,191,36,.22)!important;
+    color:#fff!important;
+    transform:translateX(2px);
+  }
+  body.dashboard-v7 #desktop-nav .nav-link.active {
+    background:linear-gradient(115deg,#ffe2a0 0%,#fbbf24 85%)!important;
+    color:#0b1329!important;
+    border-color:#ffd778!important;
+    font-weight:800!important;
+    box-shadow:0 5px 15px rgba(0,0,0,.14)!important;
+  }
+  body.dashboard-v7 #desktop-nav .nav-link.active svg {color:#0b1329!important}
+  body.dashboard-v7 #sidebar-container button:hover {text-decoration:none}
+
+  /* HEADER: kaca putih, tekstur premium tanpa kehilangan kontras */
+  body.dashboard-v7 .dashboard-main-header {
+    background:linear-gradient(110deg,rgba(255,255,255,.98),rgba(241,246,254,.96))!important;
+    border-bottom:1px solid #dfe6f2!important;
+    box-shadow:0 3px 14px rgba(13,26,56,.055)!important;
+    backdrop-filter:blur(12px);
+  }
+  body.dashboard-v7 .dashboard-main-header:before {
+    border-color:rgba(245,158,11,.27)!important;
+    opacity:.7!important;
+  }
+  body.dashboard-v7 .dashboard-name {
+    color:#0b1329!important;
+    font-size:23px!important;
+    line-height:1.23!important;
+    letter-spacing:-.045em!important;
+    font-weight:800!important;
+  }
+  body.dashboard-v7 .header-caption {
+    font-size:12.5px!important;
+    font-weight:700!important;
+    color:#405d85!important;
+  }
+  body.dashboard-v7 .header-clock {color:#102449!important}
+  body.dashboard-v7 .header-clock strong {font-weight:800!important;color:#0b1329!important}
+  body.dashboard-v7 .header-clock svg,
+  body.dashboard-v7 .header-icon-button svg {color:#2b4480!important;stroke:#2b4480!important}
+  body.dashboard-v7 .header-icon-button {
+    border-radius:10px!important;
+  }
+  body.dashboard-v7 .header-icon-button:hover {
+    background:#fff6e8!important;
+    color:#92400e!important;
+  }
+  body.dashboard-v7 .header-icon-button:hover svg {stroke:#a4550b!important}
+
+  /* KAWASAN UTAMA: flat ice white, kad putih, border slate lembut */
+  body.dashboard-v7 #page-scroll {
+    background:linear-gradient(180deg,#f8fafc 0%,#f3f6fb 100%)!important;
+    color:#182c4a!important;
+  }
+  body.dashboard-v7 #page-scroll .card-coligo,
+  body.dashboard-v7 #page-scroll .quicklinks-shell,
+  body.dashboard-v7 #page-scroll .right-card,
+  body.dashboard-v7 #page-scroll .home-summary-shell {
+    background:rgba(255,255,255,.96)!important;
+    border:1px solid #dce5f0!important;
+    border-radius:16px!important;
+    box-shadow:var(--premium-shadow)!important;
+  }
+  body.dashboard-v7 #page-scroll :is(h2,h3,.soft-title) {letter-spacing:-.025em}
+  body.dashboard-v7 #page-scroll :is(.soft-title,.quicklinks-topline h2,.right-card-head h2,.home-summary-title h2) {
+    color:#0b1329!important;
+    font-size:15px!important;
+    line-height:1.35!important;
+    font-weight:800!important;
+  }
+  body.dashboard-v7 #page-scroll :is(.muted-caption,.text-quiet,.status-copy) {
+    color:#526278!important;
+    font-size:12px!important;
+    line-height:1.6;
+  }
+  body.dashboard-v7 .quick-head-icon,
+  body.dashboard-v7 .right-head-icon {
+    display:inline-grid!important;place-items:center;
+    background:#fff5df!important;
+    border:1px solid #f4dba7!important;
+    color:#975206!important;
+    border-radius:10px!important;
+    width:30px!important;height:30px!important;
+    box-shadow:none!important;
+  }
+  body.dashboard-v7 .quick-head-icon svg,
+  body.dashboard-v7 .right-head-icon svg,
+  body.dashboard-v7 .right-head-icon i {color:#975206!important;stroke:#975206!important}
+
+  /* PAUTAN PANTAS: premium navy dengan aksen emas; kekal 7 kad desktop */
+  body.dashboard-v7 #home-quicklinks.quicklinks-shell {
+    background:rgba(255,255,255,.95)!important;
+    border:1px solid #dce5f0!important;
+    padding:13px 15px 15px!important;
+  }
+  body.dashboard-v7 #home-modules {gap:10px!important}
+  body.dashboard-v7 #home-modules .shortcut-card {
+    position:relative!important;
+    min-height:117px!important;
+    max-height:none!important;
+    border-radius:13px!important;
+    border:1px solid rgba(255,255,255,.12)!important;
+    background:linear-gradient(155deg,#1e305e 0%,#0b1329 100%)!important;
+    color:#fff!important;
+    padding:12px 11px!important;
+    overflow:hidden!important;
+    box-shadow:0 6px 15px rgba(11,19,41,.12)!important;
+    isolation:isolate;
+  }
+  body.dashboard-v7 #home-modules .shortcut-card:after {
+    border-color:rgba(251,191,36,.18)!important;
+    box-shadow:0 0 0 18px rgba(251,191,36,.05),0 0 0 36px rgba(251,191,36,.02)!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-card:before {
+    content:"";position:absolute;left:0;top:0;right:0;height:3px;
+    background:#e9bd65!important;
+    opacity:.9;z-index:1;
+  }
+  body.dashboard-v7 #home-modules .shortcut-tone-0:before {background:#60d5c4!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-1:before {background:#65b6ff!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-2:before {background:#c29af5!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-3:before {background:#fbbf24!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-4:before {background:#f4a2b7!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-5:before {background:#8ce0ac!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-6:before {background:#94aef8!important}
+  body.dashboard-v7 #home-modules .shortcut-icon {
+    width:41px!important;height:41px!important;
+    background:rgba(255,255,255,.12)!important;
+    border:1px solid rgba(255,255,255,.22)!important;
+    color:#fff!important;
+    border-radius:11px!important;
+    margin-bottom:auto!important;
+    box-shadow:none!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-tone-3 .shortcut-icon {background:rgba(251,191,36,.21)!important;color:#ffe2a2!important}
+  /* Aksen ikon mengikut kategori; kontras kekal tinggi di atas navy. */
+  body.dashboard-v7 #home-modules .shortcut-tone-0 .shortcut-icon {color:#adfae9!important;background:rgba(15,182,147,.14)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-1 .shortcut-icon {color:#b9dbff!important;background:rgba(55,148,239,.15)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-2 .shortcut-icon {color:#e3c8ff!important;background:rgba(167,113,224,.16)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-3 .shortcut-icon {color:#ffe2a2!important;background:rgba(251,191,36,.19)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-4 .shortcut-icon {color:#ffd0de!important;background:rgba(232,111,149,.16)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-5 .shortcut-icon {color:#c0f5d3!important;background:rgba(62,187,129,.15)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-6 .shortcut-icon {color:#d5e0ff!important;background:rgba(126,146,224,.16)!important}
+
+  body.dashboard-v7 #home-modules .shortcut-icon svg {width:23px!important;height:23px!important;stroke-width:1.85!important}
+  body.dashboard-v7 #home-modules .shortcut-title {
+    color:#fff!important;
+    font-size:13px!important;
+    line-height:1.26!important;
+    font-weight:750!important;
+    text-shadow:none!important;
+    letter-spacing:-.02em;
+  }
+  body.dashboard-v7 #home-modules .shortcut-arrow {
+    background:#fbbf24!important;
+    border:0!important;
+    color:#0b1329!important;
+    font-size:13px!important;
+    font-weight:800!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-card:not(:disabled):hover {
+    transform:translateY(-3px)!important;
+    background:linear-gradient(145deg,#2b4480,#0b1329)!important;
+    box-shadow:0 12px 25px rgba(11,19,41,.19)!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-card:disabled {
+    opacity:.56!important;
+    cursor:not-allowed!important;
+  }
+
+  /* PANEL RINGKASAN: kad pastel sangat lembut, warna hanya sebagai semantik */
+  body.dashboard-v7 #dashboard-grid-container {gap:14px!important}
+  body.dashboard-v7 #summary-section .right-card-head,
+  body.dashboard-v7 #right-panel .right-card-head {
+    min-height:47px!important;
+    padding:11px 14px!important;
+    border-bottom:1px solid #e5eaf2!important;
+    background:linear-gradient(100deg,#fff 0%,#fbfcff 100%)!important;
+  }
+  body.dashboard-v7 #home-summary {gap:10px!important;padding:12px!important}
+  body.dashboard-v7 #home-summary .summary-widget {
+    min-width:0!important;
+    min-height:151px!important;
+    border-radius:13px!important;
+    border:1px solid #e1e7f1!important;
+    background:linear-gradient(150deg,#f8fbff,#f0f5fc)!important;
+    padding:13px!important;
+    box-shadow:none!important;
+  }
+  body.dashboard-v7 #home-summary .summary-widget.theme-amber {
+    background:linear-gradient(145deg,#fffcf5,#fff4e1)!important;
+    border-color:#f3e4c8!important;
+  }
+  body.dashboard-v7 #home-summary .summary-widget.theme-green {
+    background:linear-gradient(145deg,#f9fdfc,#edf8f4)!important;
+    border-color:#d8ebe4!important;
+  }
+  body.dashboard-v7 #home-summary .summary-widget.theme-violet {
+    background:linear-gradient(145deg,#fcfbff,#f3f0ff)!important;
+    border-color:#e9e1fc!important;
+  }
+  body.dashboard-v7 #home-summary .summary-head {gap:9px!important;margin-bottom:7px!important}
+  body.dashboard-v7 #home-summary .summary-head h3 {
+    font-size:13px!important;
+    font-weight:800!important;
+    line-height:1.4!important;
+    color:#16243d!important;
+  }
+  body.dashboard-v7 #home-summary .summary-icon {
+    width:37px!important;height:37px!important;
+    background:linear-gradient(145deg,#263d75,#111e41)!important;
+    color:#fff!important;
+    border:1px solid #31497b!important;
+    border-radius:11px!important;
+    box-shadow:none!important;
+  }
+  body.dashboard-v7 #home-summary .summary-widget.theme-amber .summary-icon {background:linear-gradient(145deg,#fbbf24,#d97706)!important;border-color:#efad37!important;color:#0b1329!important}
+  body.dashboard-v7 #home-summary .summary-widget.theme-green .summary-icon {background:linear-gradient(145deg,#16876d,#126952)!important;border-color:#2b9a80!important}
+  body.dashboard-v7 #home-summary .summary-widget.theme-violet .summary-icon {background:linear-gradient(145deg,#6857b6,#463485)!important;border-color:#7563c5!important}
+  body.dashboard-v7 #home-summary .summary-content {font-size:12.5px!important;color:#33435e!important;line-height:1.6!important}
+  body.dashboard-v7 #home-summary .summary-content .big-metric {color:#0b1329!important;font-weight:800!important}
+  body.dashboard-v7 #home-summary .slot-item {
+    background:rgba(255,255,255,.76)!important;
+    border:1px solid #dae3f0!important;
+    border-radius:10px!important;
+    padding:9px 11px!important;
+  }
+  body.dashboard-v7 #home-summary .slot-item .time {color:#1e305e!important;font-weight:750!important}
+
+  /* WIDGET KANAN: tipografi dan jarak seimbang seperti kad utama */
+  body.dashboard-v7 #right-panel .right-card {
+    border-radius:16px!important;
+    border-color:#dce5f0!important;
+    box-shadow:var(--premium-shadow)!important;
+    overflow:hidden!important;
+  }
+  body.dashboard-v7 #right-panel .right-card-body,
+  body.dashboard-v7 #right-panel .schedule-card-list {
+    padding:11px 13px!important;
+    color:#33435e!important;
+    font-size:12.5px!important;
+  }
+  body.dashboard-v7 #right-panel .schedule-day-label,
+  body.dashboard-v7 #right-panel .schedule-time {
+    color:#92400e!important;
+    background:#fff5df!important;
+    border:1px solid #f4e3bf!important;
+    font-size:11.5px!important;
+    font-weight:750!important;
+  }
+  body.dashboard-v7 #right-panel .daily-schedule-card {
+    background:#f8fafc!important;
+    border-color:#e4eaf2!important;
+  }
+  body.dashboard-v7 #right-panel .daily-schedule-card:hover {border-color:#efc36f!important}
+  body.dashboard-v7 #right-panel :is(.info-placeholder,.empty-info) {
+    background:#f9fbfe!important;
+    border-color:#e2e8f0!important;
+    color:#526278!important;
+    font-size:12.5px!important;
+  }
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid > div {
+    background:#f8fafc!important;
+    border:1px solid #dfe6ef!important;
+    border-radius:11px!important;
+  }
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid > div:nth-child(2){background:#fffbf1!important;border-color:#f0dfbc!important}
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid > div:nth-child(3){background:#fff8f7!important;border-color:#f0dedb!important}
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid > div:nth-child(4){background:#f4fbf8!important;border-color:#d5ebe0!important}
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid span {color:#55647a!important;font-size:11.5px!important;line-height:1.4!important}
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid strong {color:#0b1329!important;font-weight:800!important}
+  body.dashboard-v7 #right-panel .kb-dash-open {
+    background:linear-gradient(120deg,#142247,#263e73)!important;
+    color:#fff!important;
+    border:1px solid #2b4480!important;
+    font-weight:750!important;
+    border-radius:10px!important;
+  }
+  body.dashboard-v7 #right-panel .kb-dash-open:hover {background:linear-gradient(120deg,#1e305e,#334d84)!important}
+  body.dashboard-v7 #right-panel .kb-dash-caption {color:#66758a!important;font-size:11px!important}
+
+  /* KATEGORI, BUTANG, DROPDOWN, INPUT DAN DIALOG */
+  body.dashboard-v7 #page-category .card-coligo,
+  body.dashboard-v7 .dashboard-page .card-coligo {color:#1e2c43!important}
+  body.dashboard-v7 .section-eyebrow {color:#a05b0b!important;font-size:11.5px!important;letter-spacing:.08em!important}
+  body.dashboard-v7 .soft-title {color:#0b1329!important;font-size:15px!important}
+  body.dashboard-v7 .info-pill {background:#fff4dc!important;color:#8a4b00!important;border:1px solid #f4dfb5!important}
+  body.dashboard-v7 .module-card {
+    border-color:#e0e7ef!important;
+    background:#fbfcfe!important;
+    color:#172940!important;
+    box-shadow:0 2px 8px rgba(11,19,41,.035)!important;
+    border-radius:13px!important;
+    font-size:12.5px!important;
+    font-weight:700!important;
+  }
+  body.dashboard-v7 .module-card:not(:disabled):hover {background:#fff8e9!important;border-color:#f0ca8f!important;box-shadow:0 6px 15px rgba(11,19,41,.08)!important}
+  body.dashboard-v7 .module-icon {background:linear-gradient(145deg,#243c72,#0b1329)!important;color:#fff!important;border-radius:12px!important}
+  body.dashboard-v7 .module-icon.orange {background:linear-gradient(145deg,#f8c45b,#da8b0d)!important;color:#10213d!important}
+  body.dashboard-v7 .module-icon.green {background:linear-gradient(145deg,#18846b,#10614e)!important}
+  body.dashboard-v7 .module-icon.purple {background:linear-gradient(145deg,#7862b7,#50428d)!important}
+  body.dashboard-v7 .module-icon.rose {background:linear-gradient(145deg,#c35d78,#943f5d)!important}
+  body.dashboard-v7 .field-label {font-size:12.5px!important;color:#253b59!important;font-weight:750!important}
+  body.dashboard-v7 .field-input {
+    min-height:39px!important;
+    border:1px solid #d7e0ec!important;
+    border-radius:9px!important;
+    background:#fff!important;
+    color:#12233e!important;
+    font-size:13px!important;
+    padding:9px 12px!important;
+  }
+  body.dashboard-v7 .field-input:focus {border-color:#d99b27!important;box-shadow:0 0 0 3px rgba(251,191,36,.19)!important}
+  body.dashboard-v7 .day-btn {min-height:34px;background:#fff!important;color:#33435e!important;border-color:#dfe6ef!important;font-size:12px!important;border-radius:8px!important}
+  body.dashboard-v7 .day-btn.active {background:#142247!important;border-color:#142247!important;color:#fff!important}
+  body.dashboard-v7 .right-toggle-btn {
+    background:#fff!important;
+    border:1px solid #dce3ef!important;
+    color:#253b68!important;
+    border-radius:9px!important;
+    padding:8px 11px!important;
+    font-size:12px!important;
+    font-weight:750!important;
+    box-shadow:0 2px 7px rgba(7,12,26,.045)!important;
+  }
+  body.dashboard-v7 .right-toggle-btn:hover {background:#fff7e9!important;border-color:#f1cd8c!important;color:#7d4605!important}
+  body.dashboard-v7 .dashboard-section-bar {color:#607189!important;font-size:11.5px!important}
+  body.dashboard-v7 #profile-modal .profile-dialog {border-radius:17px!important;background:#fff!important;border-color:#d8e0eb!important}
+  body.dashboard-v7 #profile-modal #profile-title {color:#0b1329!important}
+  body.dashboard-v7 #profile-modal #profile-save {
+    background:linear-gradient(120deg,#142247,#283e72)!important;
+    color:#fff!important;
+    border:1px solid #384e7c!important;
+  }
+  body.dashboard-v7 .screen-toast {
+    background:#fff!important;
+    border:1px solid #e5d0a1!important;
+    color:#182a44!important;
+    box-shadow:0 12px 35px rgba(7,12,26,.13)!important;
+  }
+  body.dashboard-v7 .app-footer {color:#697891!important;font-size:11px!important}
+  /* Iframe workspace ialah ruang sedia ada; tema tidak menyentuh isi iframe. */
+  body.dashboard-v7 .fi-kehadiran-frame-wrap,
+  body.dashboard-v7 .fi-keberadaan-frame-wrap,
+  body.dashboard-v7 .erph-workspace {
+    background:#f8fafc!important;
+  }
+  /* Breakpoint desktop kecil — mengelak teks pintas bertindih. */
+  @media (max-width: 1100px) {
+    body.dashboard-v7 #home-modules .shortcut-title {font-size:12px!important}
+    body.dashboard-v7 #home-modules .shortcut-card {min-height:112px!important}
+  }
+}
+@media (min-width:768px) and (prefers-reduced-motion: reduce) {
+    body.dashboard-v7 #home-modules .shortcut-card,
+    body.dashboard-v7 #desktop-nav .nav-link {transition:none!important;transform:none!important}
+}
