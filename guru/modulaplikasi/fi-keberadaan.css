@@ -171,3 +171,68 @@ html.fi-embedded body{height:100%;min-height:0;overflow-y:auto;overflow-x:hidden
  .tabs button,.fi-embedded .tabs button{min-width:0!important;max-width:none!important;min-height:53px!important;padding:10px 13px!important;font-size:12px!important}
  .fi-embedded .formbar{padding-bottom:4px!important}
 }
+
+
+/* SeMAKMUR Fi V6.7.1 — Penyamaan panel penapis status dengan pemilih
+   tarikh Kehadiran V8.1. HANYA gaya .kb-filter-top; tiada fungsi diubah.
+   Diambil daripada .date, .date label dan .date input pada fi-kehadiran-ui.css. */
+.kb-filter-top {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  max-width:390px;
+  margin:0 auto 13px;
+  padding:12px 15px;
+  border:1px solid #ccdcfb;
+  border-radius:14px;
+  background:linear-gradient(105deg,#e4f2ff,#dbe9ff);
+  box-shadow:0 4px 13px #164e8b0d;
+}
+.kb-filter-top label {
+  color:#123e7d;
+  font-family:'Plus Jakarta Sans',system-ui,Arial,sans-serif;
+  font-size:13px;
+  font-weight:800;
+  line-height:1.5;
+}
+.kb-filter-top select {
+  display:block;
+  width:180px;
+  max-width:68%;
+  min-height:35.33px;
+  height:35.33px;
+  margin-left:auto;
+  padding:8px 31px 8px 9px;
+  border:1px solid #b6d4f2;
+  border-radius:10px;
+  background-color:#fff;
+  background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%20fill%3D%22none%22%20stroke%3D%22%23145da5%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E");
+  background-position:right 9px center;
+  background-repeat:no-repeat;
+  background-size:15px 15px;
+  color:#145da5;
+  font-family:'Plus Jakarta Sans',system-ui,Arial,sans-serif;
+  font-size:13.3333px;
+  font-weight:700;
+  line-height:1.4;
+  -webkit-appearance:none;
+  appearance:none;
+  cursor:pointer;
+}
+.kb-filter-top select:focus-visible {
+  outline:2px solid #188cdf;
+  outline-offset:2px;
+}
+@media(max-width:780px){
+  .kb-filter-top{max-width:none;padding:8px 10px;margin-bottom:10px;}
+  .kb-filter-top label{font-size:12px;}
+  .kb-filter-top select{
+    width:144px;
+    max-width:144px;
+    min-height:32px;
+    height:32px;
+    padding:7px 31px 7px 9px;
+    font-size:12px;
+  }
+}
