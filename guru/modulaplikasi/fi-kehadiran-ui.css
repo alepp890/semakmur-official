@@ -273,3 +273,16 @@ html,body{color:#112d60!important;background:linear-gradient(140deg,#edf7ff,#f9f
  .review-pupil strong{font-size:12px;}
  .review-status{margin-left:34px;}
 }
+
+/* Fi V8.1 - tab hanya bagi Guru Kelas; semakan skrin berasingan dan ruang selamat PWA. */
+.fi-attendance-tabs[hidden],.fi-attendance-tabs button[hidden]{display:none!important}
+.fi-semakan-panel{margin:0 auto!important;max-width:920px!important}
+.fi-semakan-panel .panel-head{justify-content:center}
+.fi-mobile-back{display:none!important}
+@media(max-width:780px){
+  html.fi-embedded{height:100%;overflow:hidden}
+  html.fi-embedded body{height:100%;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain}
+  html.fi-embedded .wrap{padding-bottom:calc(60px + env(safe-area-inset-bottom))!important}
+  html.fi-embedded .footer{padding-bottom:0!important;margin-bottom:5px!important}
+  html.fi-embedded #details{overflow:visible!important}
+}

@@ -19,27 +19,45 @@ const dateValid = s => /^\d{4}-\d{2}-\d{2}$/.test(str(s));
 let fbApp,auth,db,user=null,teacher=null,index=null,selected=null,roster=null,record=null;
 let stopIndex=null,stopRoster=null,stopRecord=null;
 let rosterReady=false,recordReady=false,loadSeq=0,statusSeq=0,saving=false,ack=false,dirty=false,absent=new Set();
-let mode='rekod',guruKelas=null,parentReport=null,stopParent=null;
+let mode='rekod',guruKelas=null,parentReport=null,stopParent=null,canReview=false;
 const nameKey=v=>str(v).toLocaleUpperCase('ms').replace(/\s+/g,' ');
 const humanDate=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s||'');return m?`${m[3]}/${m[2]}/${m[1]}`:s;};
 function teacherClass(){
  const roles=Array.isArray(teacher?.peranan)?teacher.peranan:[];
  const found=roles.find(r=>nameKey(r.peranan)==='GURU KELAS' && nameKey(r.jawatankuasa).includes('PENGURUSAN KELAS') && str(r.skop));
- return str(found?.skop || teacher?.profile?.guruKelas);
+ // Tiada fallback guruKelas lama: pelantikan rasmi aktif daripada Fi-Sync diperlukan.
+ return str(found?.skop);
 }
 function resolveGuruClass(){const match=classes().find(c=>nameKey(c.namaKelas)===nameKey(teacherClass()));return match||null;}
+function reportAttendanceSection(){
+ const title=mode==='semakan'?'Semakan Kehadiran':(selected?.namaKelas||'Kehadiran Kelas');
+ const ownHeader=$('fi-v6-attendance-header-title');if(ownHeader)ownHeader.textContent=title;
+ if(window.parent!==window)window.parent.postMessage({type:'semakmur-fi-attendance-section',section:mode,title},location.origin);
+}
+function updateReviewAccess(){
+ const c=resolveGuruClass();
+ // Kelayakan ikut Peranan_Staf *dan* guruKelas terselaras yang dibaca Firestore Rules V8.
+ canReview=!!(c && nameKey(teacher?.profile?.guruKelas)===nameKey(c.namaKelas));
+ $('fi-attendance-tabs').hidden=!canReview;
+ $('tab-semakan').hidden=!canReview;
+ if(!canReview&&mode==='semakan')tabSelect('rekod');
+}
 function tabSelect(next){
+ if(next==='semakan'&&!canReview)return;
  mode=next; selected=null; if(stopRoster)stopRoster();if(stopRecord)stopRecord();if(stopParent)stopParent();
  stopRoster=stopRecord=stopParent=null; ++loadSeq;recordReady=rosterReady=false;dirty=false;ack=false;absent.clear();mobileStudents(false);
  $('tab-rekod').classList.toggle('active',next==='rekod');$('tab-semakan').classList.toggle('active',next==='semakan');
  $('tab-rekod').setAttribute('aria-selected',String(next==='rekod'));$('tab-semakan').setAttribute('aria-selected',String(next==='semakan'));
  $('fi-rekod-panel').hidden=next!=='rekod';$('fi-semakan-panel').hidden=next!=='semakan';
  $('fi-rekod-panel').style.display=next==='rekod'?'':'none';$('fi-semakan-panel').style.display=next==='semakan'?'':'none';
+ reportAttendanceSection();
+ // Pindah terus ke bahagian atas, bukan scroll ke seksyen semakan di bawah.
+ const root=document.scrollingElement||document.documentElement;root.scrollTop=0;
  if(next==='semakan')renderParentReview(); else {drawClasses();render();}
 }
 async function renderParentReview(){
  const el=$('fi-semakan-content'),c=resolveGuruClass();
- if(!c){el.innerHTML='<div class="empty">Akses ini hanya untuk Guru Kelas yang dilantik dalam Manual Pengurusan. Semak pelantikan jika kelas anda belum muncul.</div>';return;}
+ if(!canReview||!c){el.innerHTML='<div class="empty">Tiada kelas untuk disemak.</div>';return;}
  const date=dateValue(),key=date+'__'+c.docId;
  el.innerHTML=`<div class="review-heading"><strong>${esc(c.namaKelas)}</strong><span>${esc(humanDate(date))}</span></div><div class="empty">Memeriksa kehadiran dan laporan penjaga…</div>`;
  try{
@@ -78,7 +96,7 @@ function mobileStudents(on){
  document.body.classList.toggle('fi-view-students',!!on);
  const topBack=$('fi-v6-top-back'),topTitle=$('fi-v6-attendance-header-title');
  if(topBack)topBack.hidden=!on;
- if(topTitle)topTitle.textContent=on?(selected?.namaKelas||'Kehadiran Murid'):'Kehadiran Kelas';
+ if(topTitle)topTitle.textContent=on?(selected?.namaKelas||'Kehadiran Murid'):(mode==='semakan'?'Semakan Kehadiran':'Kehadiran Kelas');
  if(window.parent && window.parent!==window){
    window.parent.postMessage({type:'semakmur-fi-attendance-screen',screen:on?'students':'classes',className:on?(selected?.namaKelas||'Kehadiran Murid'):''},location.origin);
  }
@@ -234,18 +252,18 @@ function startIndex(){
  if(stopIndex)stopIndex();loading(true,'Menyediakan Senarai Kelas','Membaca daftar kelas daripada Firebase…');
  stopIndex=onSnapshot(doc(db,'semakmur_fi_kehadiran_index','active'),s=>{
    if(!s.exists()||s.data().active!==true){loading(false);notifyParent('semakmur-fi-attendance-error');message('Daftar kelas belum diselaraskan.',true);return;}
-   index=s.data();guruKelas=resolveGuruClass();drawClasses();loading(false);if(mode==='semakan')renderParentReview();notifyParent('semakmur-fi-attendance-ready');message('');refreshClassStatuses();
-   if(window.innerWidth>780&&!selected && classes().length)choose(classes()[0].docId);
+   index=s.data();guruKelas=resolveGuruClass();updateReviewAccess();drawClasses();loading(false);if(mode==='semakan')renderParentReview();notifyParent('semakmur-fi-attendance-ready');message('');refreshClassStatuses();
+   if(mode==='rekod'&&window.innerWidth>780&&!selected && classes().length)choose(classes()[0].docId);
  },e=>{loading(false);notifyParent('semakmur-fi-attendance-error');message('Gagal membaca senarai kelas: '+(e.code||e.message),true);});
 }
 function init(){
  $('date').value=dateMY();$('date').max=dateMY();$('date').addEventListener('change',setDate);
  $('tab-rekod').addEventListener('click',()=>tabSelect('rekod'));$('tab-semakan').addEventListener('click',()=>tabSelect('semakan'));
- $('fi-mobile-back').addEventListener('click',()=>mobileStudents(false));
  $('fi-v6-top-back')?.addEventListener('click',()=>mobileStudents(false));
  window.addEventListener('message',e=>{
    if(e.origin!==location.origin||e.source!==window.parent)return;
    if(e.data?.type==='semakmur-fi-back-to-classes')mobileStudents(false);
+   if(e.data?.type==='semakmur-fi-back-to-record'&&mode==='semakan')tabSelect('rekod');
    if(e.data?.type==='semakmur-fi-request-screen')mobileStudents(document.body.classList.contains('fi-view-students'));
  });
  $('fi-confirm-close').addEventListener('click',()=>{$('fi-confirm-dialog').hidden=true;});
@@ -255,14 +273,15 @@ function init(){
  fbApp=initializeApp(window.SeMAKMURFirebasePilotConfig,'semakmur-fi-dashboard');auth=getAuth(fbApp);db=getFirestore(fbApp);
  loading(true,'Menyemak Akaun Guru','Mengesahkan akses Firebase anda…');
  onAuthStateChanged(auth,async u=>{
-   closeListeners();++statusSeq;user=u;teacher=null;index=null;selected=null;cache.clear();
+   closeListeners();++statusSeq;user=u;teacher=null;index=null;selected=null;canReview=false;cache.clear();$('fi-attendance-tabs').hidden=true;
+   mode='rekod';$('fi-rekod-panel').hidden=false;$('fi-rekod-panel').style.display='';$('fi-semakan-panel').hidden=true;$('fi-semakan-panel').style.display='none';$('fi-semakan-content').textContent='';
    if(!u){loggedOut();return;}
    try{
      const r=await getDoc(doc(db,'semakmur_dashboard_fi',u.uid));
      if(!r.exists()||r.data().active!==true||str(r.data().ownerEmail).toLowerCase()!==str(u.email).toLowerCase()){
        loggedOut('Akaun ini belum diberikan akses staf aktif.');return;
      }
-     teacher=r.data();$('account').textContent=teacher.profile?.namaSamaran||u.email||'Guru';startIndex();
+     teacher=r.data();$('account').textContent=teacher.profile?.namaSamaran||u.email||'Guru';$('fi-attendance-tabs').hidden=true;canReview=false;startIndex();
    }catch(e){loading(false);message('Tidak dapat mengesahkan staf: '+(e.code||e.message),true);}
  },e=>loggedOut('Firebase Auth gagal: '+e.message));
  let today=dateMY();setInterval(()=>{const next=dateMY();if(next!==today){today=next;$('date').max=next;if($('date').value!==next){$('date').value=next;setDate();}}},30000);
