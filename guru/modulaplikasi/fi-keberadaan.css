@@ -7,3 +7,58 @@
 .relief-box>summary{font-weight:800;cursor:pointer;color:#233f58;font-size:13px}
 .relief-caption{font-size:12px;color:#64748b;margin:9px 0 0}
 .relief-box .item{margin-top:6px}
+
+/* SeMAKMUR Fi V6.4 — visual system aligned to Kehadiran V8. This file owns only Keberadaan. */
+:root{--navy:#173c60;--navy2:#246f94;--teal:#2e9997;--page:#eff5f8;--ink:#244158;--soft:#607b8d;--line:#dce8ed}
+html,body{background:#eff5f8!important;color:#244158!important}
+.top{position:relative;z-index:4;background:#fff!important;color:#244158;border-bottom:1px solid #dce8ed;box-shadow:none}
+.topinner{max-width:1210px;min-height:69px;padding:13px 18px}
+.topbrand strong{color:#193e5d;font-size:19px;font-weight:800}
+.topbrand small{color:#607b8d;font-size:11px}
+.back{display:inline-flex;align-items:center;justify-content:center;color:#174967!important;background:#f1f7fb;border:1px solid #d8e7ee;border-radius:10px;min-width:36px;height:35px;text-decoration:none;font-size:20px;padding:4px}
+.user{max-width:240px;color:#37617c;background:#ebf2f6;padding:7px 11px;border-radius:99px;font-weight:800;font-size:11px}
+.wrap{max-width:1210px;padding:13px 18px 95px}
+.crumb{font-size:12px;color:#627e8c;margin:4px 0 13px}
+.crumb a{color:#23607e;text-decoration:none;font-weight:800}
+.kb-titlebar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px}
+.kb-titlebar h1{color:#193e5d;font-size:20px;font-weight:800;letter-spacing:-.025em;margin:0}
+.kb-titlebar p{font-size:12px;color:#607b8d;margin:5px 0 0;line-height:1.55}
+.kb-content-shell{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:14px;align-items:start}
+.kb-main-column,.kb-stats-panel{min-width:0}
+.kb-stats-panel{position:sticky;top:12px;display:grid;gap:12px}
+.panel{background:#fff;border:1px solid #dce8ed;border-radius:15px;padding:15px;box-shadow:0 5px 21px #163b5410}
+.panelhead h2{color:#1c4b68;font-size:15px}
+.tabs{border-bottom-color:#dce8ed;margin-bottom:12px;gap:4px}
+.tabs button.active{color:#155a7c;border-bottom-color:#2e9997}
+.mode-label{background:#e9f6fb;color:#215c76}.role-label{color:#245575}
+.primary{background:#176f8c;color:#fff}.secondary{color:#23607e;background:#f1f7fb;border-color:#cbdfe8}
+.item{border-color:#e0eaf0}.item:has(details[open]){border-color:#2e9997}.pill{background:#ebf2f6}
+.kb-stats-card{padding:15px}.kb-stats-card .panelhead{margin-bottom:4px}
+.kb-stat-mark{width:29px;height:29px;display:grid;place-items:center;border:1px solid #c9e6ee;border-radius:9px;color:#19768e;background:#ecf8fa;font-size:16px}
+.kb-stats-scope{margin:0 0 12px;color:#6a8394;font-size:11px}
+.kb-stats-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.kb-stat{padding:12px 11px;border:1px solid #e0ecf1;border-radius:11px;background:#f6fafc;min-height:84px}
+.kb-stat span{display:block;color:#5f7688;font-size:10px;line-height:1.4;font-weight:750}
+.kb-stat strong{display:block;margin-top:6px;color:#185673;font-size:23px;font-weight:800;line-height:1.05}
+.kb-stat:nth-child(2){background:#fffaf0;border-color:#f3e7d1}.kb-stat:nth-child(2) strong{color:#8b632c}
+.kb-stat:nth-child(3){background:#fff8f6;border-color:#f4e4df}.kb-stat:nth-child(3) strong{color:#a35c43}
+.kb-stat:nth-child(4){background:#eef8f4;border-color:#d7ece4}.kb-stat:nth-child(4) strong{color:#227458}
+.kb-stats-footnote{font-size:10px;line-height:1.5;color:#718b9a;margin:12px 0 0}
+.kb-info-card h2{color:#1c4b68;font-size:13px;margin:0 0 7px}.kb-info-card p{font-size:11px;line-height:1.65;color:#607b8d;margin:0}
+.kb-bottom-nav{display:none}
+@media(max-width:900px){.kb-content-shell{grid-template-columns:1fr}.kb-stats-panel{position:static;display:grid;grid-template-columns:1fr 1fr;align-items:start}.kb-info-card{min-height:100%}}
+@media(max-width:680px){
+  .topinner{padding:11px 13px;min-height:61px}.topbrand strong{font-size:17px}.user{max-width:123px;padding:6px 9px;font-size:10px}
+  .wrap{padding:12px 12px 94px}.crumb{font-size:11px}.kb-titlebar{align-items:flex-start;margin-bottom:12px}.kb-titlebar h1{font-size:18px}.kb-titlebar p{font-size:11px}
+  .headright{gap:4px;flex-wrap:wrap;justify-content:flex-end;max-width:45%}.mode-label,.role-label{padding:5px 7px;font-size:9px}
+  .kb-content-shell{grid-template-columns:1fr;gap:11px}.kb-stats-panel{grid-template-columns:1fr;gap:8px}
+  .kb-stats-card{padding:12px}.kb-stats-card .panelhead{margin-bottom:3px}.kb-stats-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .kb-stat{min-height:75px;padding:9px 6px;text-align:center;border-radius:9px}.kb-stat span{font-size:9px;line-height:1.3;min-height:23px}.kb-stat strong{font-size:20px;margin-top:5px}
+  .kb-stats-footnote{margin:7px 0 0;font-size:9px}.kb-info-card{display:none}
+  .panel{padding:12px}.tabs button{font-size:11px}
+  .kb-bottom-nav{position:fixed;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:space-around;border-top:1px solid #dce8ed;background:#fff;box-shadow:0 -4px 16px #193b5418;padding:7px 8px max(7px,env(safe-area-inset-bottom));z-index:12}
+  .kb-bottom-nav a{min-width:75px;display:flex;flex-direction:column;align-items:center;gap:3px;color:#607b8d;text-decoration:none;font-size:10px;font-weight:800;padding:5px 9px;border-radius:10px}
+  .kb-bottom-nav a span{font-size:19px;line-height:1.05}.kb-bottom-nav a.active{color:#166a82;background:#eaf6f8}
+}
+@media(max-width:375px){.kb-titlebar p{display:none}.kb-stat span{font-size:8px}.kb-stat strong{font-size:19px}}
+@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}

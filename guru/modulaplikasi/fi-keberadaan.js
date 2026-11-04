@@ -1,11 +1,11 @@
-/* SeMAKMUR Fi e-Keberadaan V6.3.2-SPARK: compact UI and atomic audit. Firebase Storage is DISABLED (Spark plan).
+/* SeMAKMUR Fi e-Keberadaan V6.4-SPARK: compact UI and atomic audit. Firebase Storage is DISABLED (Spark plan).
    Demo switching exists ONLY in standalone preview (window.KB_DEMO); never on production page. */
 const DEMO=window.KB_DEMO===true, $=id=>document.getElementById(id);
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const str=x=>String(x??'').trim(), localDay=()=>{const x=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',day:'2-digit',month:'2-digit',year:'numeric'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));return `${x.year}-${x.month}-${x.day}`};
 const niceDay=x=>/^\d{4}-\d{2}-\d{2}$/.test(x)?x.split('-').reverse().join('/'):str(x);
 const TYPE={CRK:'CRK',CTR:'CTR',MC:'Cuti Sakit (MC)',RASMI:'Urusan Rasmi / Bengkel / LDP / PLC',KECEMASAN:'Kecemasan'};
-let user=null,roles=[],realRoles=[],testAccess=false,profile=null,records=[],myRecords=[],reliefQueue=[],tab='borang',busy=false,db=null,fns=null,unsubs=[],demoRole='GURU';
+let statsLoaded=false,user=null,roles=[],realRoles=[],testAccess=false,profile=null,records=[],myRecords=[],reliefQueue=[],tab='borang',busy=false,db=null,fns=null,unsubs=[],demoRole='GURU';
 const isAdmin=()=>roles.some(r=>['GPK','GB','PENYELARAS'].includes(r)),has=r=>roles.includes(r);
 const docRequired=r=>['CRK','CTR'].includes(r.finalType||r.type)||(r.type==='RASMI'&&r.scope==='LUAR');
 const reliefLabel=r=>(r.type==='RASMI'&&r.scope==='LUAR'&&r.docPath&&r.relief==='belum'?'Menunggu Semakan Surat':r.type==='RASMI'&&r.scope==='DALAM'&&r.task==='SEKAT_CALON'&&r.gpkStatus!=='disahkan'?'Layak Jadi Relief':({belum:'Belum Relief',sah:'Relief Dengan Pengesahan',tanpa:'Relief Tanpa Sokongan',sementara:'Relief Sementara',tiada:'Tiada Relief',dikecualikan:'Tidak Boleh Diberi Relief'}[r.relief]||'Belum Relief'));
@@ -21,9 +21,21 @@ function showMessage(msg='',kind='info'){const a=$('alert');a.hidden=!msg;a.text
 function toast(msg){$('toast').textContent=msg;$('toast').hidden=false;setTimeout(()=>{$('toast').hidden=true},3600)}
 function setRoleUI(){if(DEMO||testAccess)roles=demoRole==='GURU'?[]:[demoRole];$('role-label').textContent=roles.length?roles.map(r=>r==='PENYELARAS'?'Penyelaras Relief':r).join(' / '):'Guru';$('tabs').querySelector('[data-tab=tindakan]').hidden=!isAdmin();$('relief-box').hidden=!isAdmin();$('tabs').querySelector('[data-tab=peringatan]').hidden=!(has('GPK')||has('GB'));
  if((tab==='tindakan'&&!isAdmin())||(tab==='peringatan'&&!(has('GPK')||has('GB'))))tab='borang';}
+function renderStats(){
+  const source=testAccess?(isAdmin()?records:myRecords):(isAdmin()?records:myRecords);
+  const value=(id,n)=>{const el=$(id);if(el)el.textContent=statsLoaded?String(n):'—';};
+  value('kb-stat-total',source.length);
+  value('kb-stat-pending',source.filter(needAttention).length);
+  value('kb-stat-docs',source.filter(r=>docRequired(r)&&!r.docPath&&!r.docName).length);
+  value('kb-stat-relief',source.filter(r=>['sah','tanpa','sementara'].includes(r.relief)).length);
+  const desc=$('kb-stat-scope');
+  if(desc)desc.textContent=testAccess?'Rekod UJIAN sebenar di Firestore':isAdmin()?'Rekod dibenarkan mengikut peranan':'Permohonan saya';
+  const note=$('kb-stat-updated');
+  if(note)note.textContent=statsLoaded?'Berdasarkan rekod yang berjaya dibaca · maks. 100 rekod':'Menunggu pengesahan data Firestore';
+}
 function draw(){setRoleUI();document.querySelectorAll('#tabs [data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));['borang','status','tindakan','peringatan'].forEach(k=>$('panel-'+k).hidden=k!==tab);
  $('my-count').textContent=myRecords.length;$('work-count').textContent=records.filter(needActionForRole).length;$('remind-count').textContent=records.filter(needAttention).length;
- if(tab==='status')renderMine();if(tab==='tindakan')renderActions();if(tab==='peringatan')renderReminders();if(tab==='tindakan')renderReliefQueue();}
+ if(tab==='status')renderMine();if(tab==='tindakan')renderActions();if(tab==='peringatan')renderReminders();if(tab==='tindakan')renderReliefQueue();renderStats();}
 function compact(r,context){const [state,tone]=status(r);const name=context==='mine'?TYPE[r.finalType||r.type]||r.type:r.ownerName||'Guru';const sub=context==='mine'?'#'+String(r.id).slice(-7):TYPE[r.finalType||r.type]||r.type;
  const date=niceDay(r.start)+(r.end!==r.start?' – '+niceDay(r.end):'');const rt=reliefTone(r);const detail=`<div class="detail-line"><strong>${esc(TYPE[r.type]||r.type)}</strong> · ${esc(date)}${r.period==='SEPARUH'?` · ${esc(r.from)}–${esc(r.to)}`:''}</div><div class="detail-line">${esc(r.note||'')} ${r.scope?' · '+esc(r.scope):''}</div>${r.docName?`<div class="detail-line">Dokumen: <button class="doclink" data-open-doc="${esc(r.id)}" type="button">${esc(r.docName)}</button></div>`:''}${actionButtons(r,context)}`;
  return `<div class="item"><details><summary><div><div class="item-title">${esc(name)}</div><div class="item-sub">${esc(sub)}</div></div><div class="item-date">${esc(date)}</div><div class="statusline"><span class="pill ${tone}">${esc(state)}</span><span class="pill ${rt}">${esc(reliefLabel(r))}</span></div><span class="chevron">›</span></summary><div class="details">${detail}</div></details></div>`;}
@@ -122,28 +134,28 @@ function handlers(){document.addEventListener('click',ev=>{const tabBtn=ev.targe
  $('apply-form').addEventListener('submit',submit);['type','scope','period','start'].forEach(id=>$(id).addEventListener('change',syncForm));$('status-filter').addEventListener('change',renderMine);$('action-filter').addEventListener('change',renderActions);$('search').addEventListener('input',renderActions);$('dialog').addEventListener('click',e=>{if(e.target===$('dialog'))closeDialog()});
  $('demo-role').addEventListener('change',e=>{demoRole=e.target.value;tab='borang';draw();});$('demo-reset').addEventListener('click',resetDemo);
 }
-async function init(){handlers();$('start').min=localDay();$('end').min=localDay();$('start').value=localDay();$('end').value=localDay();syncForm();if(DEMO){$('mode-label').textContent='PRATONTON';$('user-label').textContent='AKAUN UJIAN';$('demo-role-wrap').hidden=false;user={uid:'demo-uid',email:'contoh@sekolah.edu',name:'ALIFF'};try{records=JSON.parse(localStorage.getItem('semakmur_keberadaan_v6_demo')||'null')||demoSeed();}catch{records=demoSeed();}myRecords=records.filter(r=>r.ownerUid===user.uid);draw();return;}
+async function init(){handlers();$('start').min=localDay();$('end').min=localDay();$('start').value=localDay();$('end').value=localDay();syncForm();if(DEMO){$('mode-label').textContent='PRATONTON';$('user-label').textContent='AKAUN UJIAN';$('demo-role-wrap').hidden=false;user={uid:'demo-uid',email:'contoh@sekolah.edu',name:'ALIFF'};try{records=JSON.parse(localStorage.getItem('semakmur_keberadaan_v6_demo')||'null')||demoSeed();}catch{records=demoSeed();}myRecords=records.filter(r=>r.ownerUid===user.uid);statsLoaded=true;draw();return;}
  try{const cfg=window.SeMAKMURFirebasePilotConfig;if(!cfg?.projectId)throw Error('Konfigurasi Firebase tidak tersedia.');const [app,authlib,dbLib]=await Promise.all([import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')]);
  const fb=app.getApps().find(a=>a.name==='semakmur-fi-dashboard')||app.initializeApp(cfg,'semakmur-fi-dashboard');const auth=authlib.getAuth(fb);db=dbLib.getFirestore(fb);fns={...dbLib};
- authlib.onAuthStateChanged(auth,async u=>{unsubs.forEach(fn=>fn());unsubs=[];user=null;records=[];myRecords=[];if(!u){$('user-label').textContent='Belum log masuk';showMessage('Sila log masuk melalui Fi-LoginSession.html.','error');return;}try{const staff=await dbLib.getDoc(dbLib.doc(db,'semakmur_dashboard_fi',u.uid));const raw=staff.data();if(!staff.exists()||raw?.active!==true||str(raw.ownerEmail).toLowerCase()!==str(u.email).toLowerCase()||raw.profile?.email?.toLowerCase()!==u.email.toLowerCase())throw Error('Akaun guru tidak sah atau belum aktif.');user={uid:u.uid,email:u.email,name:str(raw.profile?.namaPenuh)||u.displayName||'Guru'};profile=raw;$('user-label').textContent=user.name;
+ authlib.onAuthStateChanged(auth,async u=>{unsubs.forEach(fn=>fn());unsubs=[];user=null;records=[];myRecords=[];statsLoaded=false;renderStats();if(!u){$('user-label').textContent='Belum log masuk';showMessage('Sila log masuk melalui Fi-LoginSession.html.','error');return;}try{const staff=await dbLib.getDoc(dbLib.doc(db,'semakmur_dashboard_fi',u.uid));const raw=staff.data();if(!staff.exists()||raw?.active!==true||str(raw.ownerEmail).toLowerCase()!==str(u.email).toLowerCase()||raw.profile?.email?.toLowerCase()!==u.email.toLowerCase())throw Error('Akaun guru tidak sah atau belum aktif.');user={uid:u.uid,email:u.email,name:str(raw.profile?.namaPenuh)||u.displayName||'Guru'};profile=raw;$('user-label').textContent=user.name;
  try{const roleSnap=await dbLib.getDoc(dbLib.doc(db,'semakmur_fi_keberadaan_roles',u.uid));const roleData=roleSnap.data();realRoles=roleSnap.exists()&&roleData.active===true&&roleData.ownerEmail===u.email?(roleData.roles||[]):[];}catch{realRoles=[];}
  testAccess=realRoles.includes('ADMIN_UJIAN');roles=testAccess?[]:realRoles;
  if(testAccess){$('demo-role-wrap').hidden=false;$('demo-reset').hidden=true;$('mode-label').textContent='UJIAN · DATA SEBENAR';$('role-label').textContent='Admin Sistem';}
  else {$('mode-label').textContent='Fi · RASMI';}
  setRoleUI();const coll=dbLib.collection(db,'semakmur_fi_keberadaan');
  unsubs.push(dbLib.onSnapshot(dbLib.query(coll,dbLib.where('ownerUid','==',u.uid),dbLib.limit(100)),s=>{
-   myRecords=s.docs.map(x=>x.data()).filter(x=>x.testMode===testAccess);
+   myRecords=s.docs.map(x=>x.data()).filter(x=>x.testMode===testAccess);statsLoaded=true;
    if(!testAccess&&!isAdmin())records=[...myRecords];
    draw();
  },e=>showMessage('Gagal membaca rekod sendiri: '+(e.code||e.message),'error')));
  if(testAccess){
    // Filter sama dengan Firestore Rules: Admin Sistem melihat rekod UJIAN sahaja.
    unsubs.push(dbLib.onSnapshot(dbLib.query(coll,dbLib.where('testMode','==',true),dbLib.limit(100)),s=>{
-     records=s.docs.map(x=>x.data());draw();
+     records=s.docs.map(x=>x.data());statsLoaded=true;draw();
    },e=>showMessage('Bacaan UJIAN ditolak. Pastikan peranan ADMIN_UJIAN dan Rules V6.3 dipasang.','error')));
  }else if(isAdmin()){
    unsubs.push(dbLib.onSnapshot(dbLib.query(coll,dbLib.where('testMode','==',false),dbLib.limit(100)),s=>{
-     records=s.docs.map(x=>x.data());draw();
+     records=s.docs.map(x=>x.data());statsLoaded=true;draw();
    },e=>showMessage('Bacaan pentadbir ditolak. Semak Rules V6.3 dan pelantikan.','error')));
    unsubs.push(dbLib.onSnapshot(dbLib.query(dbLib.collection(db,'semakmur_fi_relief_harian'),dbLib.orderBy('date','desc'),dbLib.limit(100)),s=>{reliefQueue=s.docs.map(x=>x.data());renderReliefQueue();},e=>console.warn('Senarai relief belum tersedia:',e.code||e.message)));
  }

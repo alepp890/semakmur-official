@@ -1,33 +1,60 @@
 <!doctype html>
-<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#174665"><title>e-Keberadaan | SeMAKMUR Fi</title>
-<link rel="icon" href="../../assets/favicon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="fi-keberadaan.css?v=6.3.1-spark"></head>
+<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#17496a"><title>e-Keberadaan | SeMAKMUR Fi V6.4</title>
+<link rel="icon" href="../../assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fi-keberadaan.css?v=6.4.0"></head>
 <body>
-<header class="top"><div class="topinner"><a class="back" href="../Fi-DashboardGuru.html" aria-label="Kembali ke Dashboard Guru">←</a><div class="topbrand"><strong>e-Keberadaan</strong><small>SeMAKMUR Digital · Pentadbiran</small></div><div class="grow"></div><div id="user-label" class="user">Menyemak akaun…</div></div></header>
+<header class="top"><div class="topinner">
+  <a class="back" href="../Fi-DashboardGuru.html" aria-label="Kembali ke Dashboard Guru">←</a>
+  <div class="topbrand"><strong>e-Keberadaan</strong><small>SeMAKMUR Digital · Pentadbiran</small></div>
+  <div class="grow"></div><span id="user-label" class="user" aria-live="polite">Menyemak akaun…</span>
+</div></header>
 <main class="wrap">
-<div class="headerline"><div><div class="crumb">Dashboard Guru / Pentadbiran</div><h1>Smart Keberadaan</h1></div><div class="headright"><span id="mode-label" class="mode-label">Fi</span><span id="role-label" class="role-label">Guru</span></div></div>
-<div id="demo-role-wrap" class="demoroles" hidden><label for="demo-role">Uji paparan (data disimpan sebagai UJIAN):</label><select id="demo-role"><option value="GURU">Guru</option><option value="GPK">GPK</option><option value="GB">Guru Besar</option><option value="PENYELARAS">Penyelaras Relief</option></select><button class="mini secondary" id="demo-reset" type="button">Set semula contoh</button></div>
-<div id="alert" class="alert" role="status" aria-live="polite" hidden></div>
-<nav id="tabs" class="tabs" aria-label="Bahagian e-Keberadaan"><button data-tab="borang" class="active" type="button">Borang Keberadaan</button><button data-tab="status" type="button">Status Permohonan <b id="my-count" class="counter">0</b></button><button data-tab="tindakan" type="button" hidden>Tindakan / Makluman <b id="work-count" class="counter">0</b></button><button data-tab="peringatan" type="button" hidden>Peringatan <b id="remind-count" class="counter">0</b></button></nav>
-<section id="panel-borang" class="panel" aria-label="Borang Keberadaan"><div class="panelhead"><h2>Borang Keberadaan</h2><span>Maklumat bertanda * wajib</span></div><form id="apply-form">
-<div class="fieldrow"><label for="type">Kategori *</label><select id="type" required><option value="">Pilih kategori</option><option value="CRK">CRK</option><option value="CTR">CTR</option><option value="MC">MC</option><option value="RASMI">Urusan Rasmi / Bengkel / LDP / PLC / Tugas Khas</option><option value="KECEMASAN">Kecemasan / Kebenaran Keluar</option></select></div>
-<div id="scope-row" class="fieldrow" hidden><label for="scope">Lokasi urusan *</label><select id="scope"><option value="">Pilih lokasi</option><option value="LUAR">Luar sekolah</option><option value="DALAM">Dalam sekolah</option></select></div>
-<div id="task-row" class="fieldrow" hidden><label for="task">Tujuan tugas *</label><select id="task"><option value="">Pilih tujuan</option><option value="PERLU_RELIEF">Tidak dapat mengajar (perlu relief)</option><option value="SEKAT_CALON">Tidak boleh diberi relief (tetap mengajar)</option></select></div>
-<div id="emergency-row" class="fieldrow" hidden><label for="emergency">Jenis kecemasan *</label><select id="emergency"><option value="">Pilih jenis</option><option value="UMUM">Kecemasan / belum pasti jenis cuti</option><option value="KELUAR">Keluar semasa waktu bekerja</option></select></div>
-<div class="two"><div class="fieldrow"><label for="start">Tarikh mula *</label><input id="start" type="date" required></div><div class="fieldrow"><label for="end">Tarikh tamat *</label><input id="end" type="date" required></div></div>
-<div id="period-row" class="fieldrow" hidden><label for="period">Tempoh *</label><select id="period"><option value="PENUH">Sepanjang hari</option><option value="SEPARUH">Separuh hari / masa tertentu</option></select></div>
-<div id="time-row" class="two" hidden><div class="fieldrow"><label for="from">Masa mula *</label><input id="from" type="time"></div><div class="fieldrow"><label for="to">Masa tamat *</label><input id="to" type="time"></div></div>
-<div id="file-row" class="fieldrow" hidden><label for="document">Dokumen kelulusan / surat diminitkan</label><small>Pelan Firebase Spark: muat naik dokumen belum diaktifkan. Hantar rekod dahulu tanpa lampiran; status akan kekal <strong>Perlu Dokumen</strong> sehingga saluran dokumen rasmi disediakan.</small></div>
-<div class="fieldrow"><label for="note">Tujuan ringkas *</label><textarea id="note" rows="2" maxlength="240" required placeholder="Contoh: Kursus PBD / Urusan keluarga"></textarea></div>
+  <div class="crumb"><a href="../Fi-DashboardGuru.html">Laman Utama</a> / Pentadbiran / e-Keberadaan</div>
+  <div class="kb-titlebar"><div><h1>Smart Keberadaan</h1><p>Urus keberadaan, semak status dan tindakan mengikut peranan.</p></div><div class="headright"><span id="mode-label" class="mode-label">Fi</span><span id="role-label" class="role-label">Guru</span></div></div>
+  <div class="kb-content-shell">
+    <div class="kb-main-column">
+      <div class="demoroles" hidden="" id="demo-role-wrap"><label for="demo-role">Uji paparan (data disimpan sebagai UJIAN):</label><select id="demo-role"><option value="GURU">Guru</option><option value="GPK">GPK</option><option value="GB">Guru Besar</option><option value="PENYELARAS">Penyelaras Relief</option></select><button class="mini secondary" id="demo-reset" type="button">Set semula contoh</button></div>
+      <div aria-live="polite" class="alert" hidden="" id="alert" role="status"></div>
+      <nav aria-label="Bahagian e-Keberadaan" class="tabs" id="tabs"><button class="active" data-tab="borang" type="button">Borang Keberadaan</button><button data-tab="status" type="button">Status Permohonan <b class="counter" id="my-count">0</b></button><button data-tab="tindakan" hidden="" type="button">Tindakan / Makluman <b class="counter" id="work-count">0</b></button><button data-tab="peringatan" hidden="" type="button">Peringatan <b class="counter" id="remind-count">0</b></button></nav>
+      <section aria-label="Borang Keberadaan" class="panel" id="panel-borang"><div class="panelhead"><h2>Borang Keberadaan</h2><span>Maklumat bertanda * wajib</span></div><form id="apply-form">
+<div class="fieldrow"><label for="type">Kategori *</label><select id="type" required=""><option value="">Pilih kategori</option><option value="CRK">CRK</option><option value="CTR">CTR</option><option value="MC">MC</option><option value="RASMI">Urusan Rasmi / Bengkel / LDP / PLC / Tugas Khas</option><option value="KECEMASAN">Kecemasan / Kebenaran Keluar</option></select></div>
+<div class="fieldrow" hidden="" id="scope-row"><label for="scope">Lokasi urusan *</label><select id="scope"><option value="">Pilih lokasi</option><option value="LUAR">Luar sekolah</option><option value="DALAM">Dalam sekolah</option></select></div>
+<div class="fieldrow" hidden="" id="task-row"><label for="task">Tujuan tugas *</label><select id="task"><option value="">Pilih tujuan</option><option value="PERLU_RELIEF">Tidak dapat mengajar (perlu relief)</option><option value="SEKAT_CALON">Tidak boleh diberi relief (tetap mengajar)</option></select></div>
+<div class="fieldrow" hidden="" id="emergency-row"><label for="emergency">Jenis kecemasan *</label><select id="emergency"><option value="">Pilih jenis</option><option value="UMUM">Kecemasan / belum pasti jenis cuti</option><option value="KELUAR">Keluar semasa waktu bekerja</option></select></div>
+<div class="two"><div class="fieldrow"><label for="start">Tarikh mula *</label><input id="start" required="" type="date"/></div><div class="fieldrow"><label for="end">Tarikh tamat *</label><input id="end" required="" type="date"/></div></div>
+<div class="fieldrow" hidden="" id="period-row"><label for="period">Tempoh *</label><select id="period"><option value="PENUH">Sepanjang hari</option><option value="SEPARUH">Separuh hari / masa tertentu</option></select></div>
+<div class="two" hidden="" id="time-row"><div class="fieldrow"><label for="from">Masa mula *</label><input id="from" type="time"/></div><div class="fieldrow"><label for="to">Masa tamat *</label><input id="to" type="time"/></div></div>
+<div class="fieldrow" hidden="" id="file-row"><label for="document">Dokumen kelulusan / surat diminitkan</label><small>Pelan Firebase Spark: muat naik dokumen belum diaktifkan. Hantar rekod dahulu tanpa lampiran; status akan kekal <strong>Perlu Dokumen</strong> sehingga saluran dokumen rasmi disediakan.</small></div>
+<div class="fieldrow"><label for="note">Tujuan ringkas *</label><textarea id="note" maxlength="240" placeholder="Contoh: Kursus PBD / Urusan keluarga" required="" rows="2"></textarea></div>
 <div class="formbar"><span id="form-status" role="status"></span><button class="primary" id="submit" type="submit">Hantar Keberadaan</button></div>
 </form></section>
-<section id="panel-status" class="panel" hidden><div class="panelhead"><h2>Status Permohonan</h2><span id="status-total">0 rekod</span></div><div class="toolbar"><select id="status-filter" aria-label="Tapis status"><option value="SEMUA">Semua status</option><option value="AKTIF">Perlu tindakan</option><option value="SELESAI">Selesai</option></select></div><div id="my-list" class="compact-list"></div></section>
-<section id="panel-tindakan" class="panel" hidden><div class="panelhead"><h2 id="action-title">Tindakan / Makluman</h2><span id="action-total">0 rekod</span></div><div class="toolbar"><input type="search" id="search" placeholder="Cari nama guru / kategori" aria-label="Cari rekod"><select id="action-filter" aria-label="Tapis tindakan"><option value="AKTIF">Perlu tindakan</option><option value="SEMUA">Semua rekod</option><option value="SELESAI">Selesai</option></select></div><div id="action-list" class="compact-list"></div>
-<details id="relief-box" class="relief-box" hidden><summary>Keperluan e-Relief <span id="relief-total">0</span></summary>
-<div id="relief-queue" class="compact-list"></div>
+<section class="panel" hidden="" id="panel-status"><div class="panelhead"><h2>Status Permohonan</h2><span id="status-total">0 rekod</span></div><div class="toolbar"><select aria-label="Tapis status" id="status-filter"><option value="SEMUA">Semua status</option><option value="AKTIF">Perlu tindakan</option><option value="SELESAI">Selesai</option></select></div><div class="compact-list" id="my-list"></div></section>
+<section class="panel" hidden="" id="panel-tindakan"><div class="panelhead"><h2 id="action-title">Tindakan / Makluman</h2><span id="action-total">0 rekod</span></div><div class="toolbar"><input aria-label="Cari rekod" id="search" placeholder="Cari nama guru / kategori" type="search"/><select aria-label="Tapis tindakan" id="action-filter"><option value="AKTIF">Perlu tindakan</option><option value="SEMUA">Semua rekod</option><option value="SELESAI">Selesai</option></select></div><div class="compact-list" id="action-list"></div>
+<details class="relief-box" hidden="" id="relief-box"><summary>Keperluan e-Relief <span id="relief-total">0</span></summary>
+<div class="compact-list" id="relief-queue"></div>
 <p class="relief-caption">Senarai waktu memerlukan pengganti; pengagihan guru sebenar belum diaktifkan.</p></details></section>
-<section id="panel-peringatan" class="panel" hidden><div class="panelhead"><h2>Peringatan</h2><span id="reminders-total">0 rekod belum lengkap</span></div><div id="reminder-list" class="compact-list"></div></section>
-<div id="dialog" class="overlay" hidden><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="panelhead"><h2 id="dialog-title">Tindakan</h2><button id="dialog-close" class="mini secondary" type="button">Tutup</button></div><div id="dialog-content"></div></div></div>
-<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+<section class="panel" hidden="" id="panel-peringatan"><div class="panelhead"><h2>Peringatan</h2><span id="reminders-total">0 rekod belum lengkap</span></div><div class="compact-list" id="reminder-list"></div></section>
+    </div>
+    <aside class="kb-stats-panel" aria-label="Widget statistik e-Keberadaan">
+      <section class="panel kb-stats-card">
+        <div class="panelhead"><h2>Statistik Keberadaan</h2><span class="kb-stat-mark" aria-hidden="true">▤</span></div>
+        <p id="kb-stat-scope" class="kb-stats-scope">Permohonan saya</p>
+        <div class="kb-stats-grid">
+          <div class="kb-stat"><span>Jumlah Rekod</span><strong id="kb-stat-total">—</strong></div>
+          <div class="kb-stat"><span>Perlu Tindakan</span><strong id="kb-stat-pending">—</strong></div>
+          <div class="kb-stat"><span>Belum Ada Dokumen</span><strong id="kb-stat-docs">—</strong></div>
+          <div class="kb-stat"><span>Relief Direkod</span><strong id="kb-stat-relief">—</strong></div>
+        </div>
+        <p id="kb-stat-updated" class="kb-stats-footnote">Menunggu pengesahan data Firestore</p>
+      </section>
+      <section class="panel kb-info-card"><h2>Makluman</h2><p>Rekod e-Keberadaan dibaca daripada Firestore. Dokumen sokongan belum boleh dimuat naik dalam pelan Spark.</p></section>
+    </aside>
+  </div>
+  <div class="overlay" hidden="" id="dialog"><div aria-labelledby="dialog-title" aria-modal="true" class="dialog" role="dialog"><div class="panelhead"><h2 id="dialog-title">Tindakan</h2><button class="mini secondary" id="dialog-close" type="button">Tutup</button></div><div id="dialog-content"></div></div></div>
+  <div aria-live="polite" class="toast" hidden="" id="toast" role="status"></div>
 </main>
-<script src="../../firebase-pilot-config.js"></script><script type="module" src="fi-keberadaan.js?v=6.3.2-spark-fix"></script>
+<nav class="kb-bottom-nav" aria-label="Navigasi mudah alih"><a href="../Fi-DashboardGuru.html"><span aria-hidden="true">⌂</span>Utama</a><a class="active" href="#tabs" aria-current="page"><span aria-hidden="true">▤</span>Keberadaan</a><a href="../Fi-DashboardGuru.html#pentadbiran"><span aria-hidden="true">☷</span>Menu</a></nav>
+<script src="../../firebase-pilot-config.js"></script><script type="module" src="fi-keberadaan.js?v=6.4.0"></script>
 </body></html>
