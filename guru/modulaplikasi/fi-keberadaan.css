@@ -62,3 +62,49 @@ html,body{background:#eff5f8!important;color:#244158!important}
 }
 @media(max-width:375px){.kb-titlebar p{display:none}.kb-stat span{font-size:8px}.kb-stat strong{font-size:19px}}
 @media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+
+/* V6.5 — same visual tokens and tabs as Kehadiran V8; dashboard owns header/navigation. */
+.fi-embedded .top,.fi-embedded .crumb,.fi-embedded .kb-bottom-nav{display:none!important}
+.fi-embedded html,.fi-embedded body{background:#eff5f8!important}
+.fi-embedded .wrap{max-width:1210px;margin:0 auto;padding:12px 14px 42px!important}
+.fi-embedded .kb-titlebar{margin:0 0 10px;align-items:center}
+.fi-embedded .kb-titlebar h1{font-size:17px;font-weight:800;color:#173c60}
+.fi-embedded .kb-titlebar p{display:none}
+.fi-embedded .panel{border:1px solid #dce8ed;border-radius:15px;box-shadow:0 5px 21px #163b5410}
+.fi-embedded .tabs{display:flex;gap:5px;margin:0 0 13px;padding:5px;background:#e4f0fc;border:1px solid #cfe1f5;border-radius:13px;overflow-x:auto;scrollbar-width:thin}
+.fi-embedded .tabs button{display:flex;align-items:center;justify-content:center;flex:1 0 auto;white-space:nowrap;border:0!important;border-radius:10px!important;padding:11px 13px;color:#174b77!important;background:transparent!important;font-weight:800;font-size:12px;line-height:1.2;min-height:42px}
+.fi-embedded .tabs button.active{background:linear-gradient(110deg,#1e9ced,#0956b8)!important;color:white!important;box-shadow:0 4px 11px #0c61b730}
+.fi-embedded .tabs button:focus-visible{outline:3px solid #79b8f2;outline-offset:2px}
+.fi-embedded .counter{background:#ffffff2c;border-radius:30px;padding:2px 6px;margin-left:5px}
+.fi-embedded .kb-main-column{min-width:0}
+.fi-embedded .panelhead h2{font-weight:800}
+.fi-embedded .demoroles{background:#eaf5fd;border-color:#cadeed;border-radius:12px;padding:8px 11px;margin-bottom:10px;gap:8px}
+.fi-embedded .demoroles label{font-size:11px;color:#245c81}
+.fi-embedded .demoroles select{border-radius:9px;min-width:90px;max-width:160px;padding:8px 10px;background:#fff}
+.fi-embedded .kb-stats-panel{position:sticky}
+@media(max-width:767px){
+ .fi-embedded .wrap{padding:11px 11px 18px!important}
+ .fi-embedded .kb-titlebar{display:none!important} /* parent PWA header already shows e-Keberadaan */
+ .fi-embedded .kb-content-shell{display:block}
+ .fi-embedded .kb-stats-panel{display:none!important} /* desktop widget; mobile starts with tabs/form */
+ .fi-embedded .demoroles{padding:7px 9px;gap:7px;min-height:44px}
+ .fi-embedded .demoroles label{flex:1 1 auto;font-size:10px;white-space:normal}
+ .fi-embedded .demoroles select{max-width:135px;min-width:85px;font-size:12px}
+ .fi-embedded .tabs{gap:3px;padding:5px;margin-bottom:11px;border-radius:14px}
+ .fi-embedded .tabs button{font-size:12px;min-height:43px;padding:9px 12px;min-width:44%;}
+ .fi-embedded .tabs button[hidden]{display:none!important}
+ .fi-embedded .tabs button:not([hidden]):nth-last-child(-n+2){min-width:unset}
+ .fi-embedded .tabs:has(button:not([hidden]):nth-child(3)) button{min-width:145px;flex:1 0 auto}
+ .fi-embedded .panel{padding:13px 12px;border-radius:17px}
+ .fi-embedded .panelhead{align-items:center;margin:0 0 12px}
+ .fi-embedded .panelhead h2{font-size:15px}
+ .fi-embedded .panelhead span{font-size:10px;text-align:right}
+ .fi-embedded .fieldrow{margin-bottom:12px}
+ .fi-embedded .fieldrow label{font-size:12px}
+ .fi-embedded input,.fi-embedded select,.fi-embedded textarea{font-size:13px;min-height:44px}
+ .fi-embedded summary{min-height:64px}
+}
+@media(min-width:768px){
+ .fi-embedded .kb-content-shell{grid-template-columns:minmax(0,1fr) 270px}
+}
