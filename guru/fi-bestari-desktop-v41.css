@@ -1,0 +1,68 @@
+/* SeMAKMUR Bestari V4.1 — visual-only desktop adjustments.
+   Keeps established Dashboard/PWA structure and all IDs. */
+@media (min-width:768px) {
+  /* Header: no duplicated avatar next to the time; calendar becomes a real action. */
+  body.dashboard-v7 #mobile-header-avatar { display:none!important; }
+  body.dashboard-v7 .bestari-calendar-trigger {
+    display:inline-grid!important;place-items:center!important;
+    width:36px!important;height:36px!important;min-width:36px!important;
+    border:1px solid #d3ddf4!important;border-radius:10px!important;
+    background:#eef2fd!important;color:#303e87!important;padding:7px!important;
+    cursor:pointer!important;transition:background .16s,border-color .16s!important;
+  }
+  body.dashboard-v7 .bestari-calendar-trigger:hover{background:#e0e8ff!important;border-color:#93a4df!important}
+  body.dashboard-v7 .bestari-calendar-trigger svg{width:20px!important;height:20px!important}
+  body.dashboard-v7 .bestari-calendar-trigger:focus-visible{outline:3px solid #a7b8f5!important;outline-offset:2px!important}
+  body.dashboard-v7 .header-clock {gap:8px!important;}
+  body.dashboard-v7 .header-clock > div {text-align:left!important;}
+  /* Only shortcuts on category pages. Dashboard data and IDs still exist for Fi logic. */
+  body.dashboard-v7 #fi-v7-desktop-content:has(#page-category:not(.hidden)) #dashboard-grid-container {display:none!important}
+  body.dashboard-v7 #fi-v7-desktop-content:has(#page-category:not(.hidden)) #btn-toggle-right {display:none!important}
+  body.dashboard-v7 #fi-v7-desktop-content:has(#page-category:not(.hidden)) #home-quicklinks{margin-bottom:10px!important}
+  /* Daily overview: stronger soft-color surfaces without overwhelming the page. */
+  body.dashboard-v7 #home-summary .summary-widget{border-radius:13px!important;box-shadow:0 3px 9px rgba(36,49,101,.09)!important}
+  body.dashboard-v7 #home-summary .summary-widget:nth-child(4n+1){background:linear-gradient(125deg,#e7f1ff,#f8fbff)!important;border-color:#c7defc!important}
+  body.dashboard-v7 #home-summary .summary-widget:nth-child(4n+2){background:linear-gradient(125deg,#e4f9f1,#f7fefa)!important;border-color:#c1e9d7!important}
+  body.dashboard-v7 #home-summary .summary-widget:nth-child(4n+3){background:linear-gradient(125deg,#fff0df,#fffaf4)!important;border-color:#f5d6b4!important}
+  body.dashboard-v7 #home-summary .summary-widget:nth-child(4n+4){background:linear-gradient(125deg,#f0eaff,#fcfaff)!important;border-color:#dad0f8!important}
+  body.dashboard-v7 #home-summary .summary-content,body.dashboard-v7 #home-summary .status-copy{color:#354064!important}
+  body.dashboard-v7 #home-summary .big-metric{color:#182650!important}
+  /* Give the full-width presence widget an intentional, centered presentation. */
+  body.dashboard-v7 #right-keberadaan-stats{background:linear-gradient(130deg,#fff,#f9faff)!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid{gap:12px!important;padding:3px 14px 10px!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div{
+    display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;
+    min-height:108px!important;padding:14px 9px!important;border-radius:14px!important;
+  }
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(1){background:#eaf2ff!important;border-color:#cadbf9!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(2){background:#fff2df!important;border-color:#f4d9b2!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(3){background:#fff0f2!important;border-color:#f3d7dc!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(4){background:#e7f7ee!important;border-color:#c7e8d6!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid span{font-size:12px!important;color:#303d65!important;text-align:center!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid strong{font-size:28px!important;text-align:center!important;line-height:1.2!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(2) strong{color:#9c5e0e!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(3) strong{color:#b83f57!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(4) strong{color:#177455!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dash-caption{text-align:center!important;padding:4px 12px!important;color:#526181!important}
+  /* Larger calendar modal — based on confirmed synced Takwim only. */
+  .bestari-calendar-overlay:not([hidden]){display:flex!important;position:fixed!important;inset:0!important;z-index:9998!important;background:rgba(17,25,58,.65)!important;align-items:center!important;justify-content:center!important;padding:24px!important}
+  .bestari-calendar-window{width:min(730px,calc(100vw - 48px))!important;max-height:calc(100dvh - 48px)!important;overflow:auto!important;background:white!important;border:1px solid #dce4f4!important;border-radius:18px!important;box-shadow:0 24px 76px #101a4699!important;padding:23px!important;color:#1c2751!important}
+  .bestari-calendar-top{display:flex!important;align-items:start!important;justify-content:space-between!important;gap:15px!important}
+  .bestari-cal-eyebrow{font-size:10px!important;letter-spacing:.12em!important;color:#6677a6!important;font-weight:800!important}
+  .bestari-calendar-top h2{font-size:22px!important;font-weight:800!important;color:#202a58!important;margin:2px 0 14px!important}
+  .bestari-calendar-top button{border:1px solid #d6dded!important;border-radius:10px!important;width:36px!important;height:36px!important;font-size:18px!important;background:#f2f5fd!important;color:#263d76!important;cursor:pointer!important}
+  .bestari-calendar-controls{display:flex!important;align-items:center!important;justify-content:center!important;gap:28px!important;margin:5px 0 15px!important}
+  .bestari-calendar-controls strong{font-size:17px!important;min-width:195px!important;text-align:center!important}
+  .bestari-calendar-controls button{width:37px!important;height:37px!important;border:1px solid #d9e1f0!important;background:#eff3fd!important;color:#304891!important;border-radius:9px!important;font-size:25px!important;cursor:pointer!important}
+  .bestari-calendar-weekdays,.bestari-calendar-days{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:6px!important}
+  .bestari-calendar-weekdays span{text-align:center!important;font-size:11px!important;font-weight:800!important;color:#5b678c!important;padding:7px 0!important}
+  .bestari-calendar-days .cal-day,.bestari-calendar-days .blank{display:grid!important;place-items:center!important;min-height:50px!important;position:relative!important;font-size:13px!important;border-radius:9px!important;color:#243358!important;background:#f7f9fe!important;border:1px solid #edf1fa!important}
+  .bestari-calendar-days .cal-day.today{border-color:#8597dc!important;color:#223c89!important;background:#e6edff!important;font-weight:800!important}
+  .bestari-calendar-days .cal-day i{position:absolute!important;bottom:5px!important;width:5px!important;height:5px!important;border-radius:50%!important;background:#a279e1!important}
+  .bestari-calendar-subtitle{margin:19px 0 9px!important;font-size:14px!important;font-weight:800!important}
+  .bestari-calendar-events{display:grid!important;gap:7px!important}
+  .bestari-calendar-events .cal-event{display:flex!important;justify-content:space-between!important;gap:12px!important;background:#f2f5fb!important;padding:10px 13px!important;border-radius:9px!important;font-size:12px!important}
+  .bestari-calendar-events .cal-event span{color:#647393!important}
+  .bestari-calendar-events .cal-empty{color:#647393!important;font-size:12px!important;margin:5px 0 0!important}
+}
+@media(max-width:767px){.bestari-calendar-overlay{display:none!important}}

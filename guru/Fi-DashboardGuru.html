@@ -164,6 +164,7 @@
   <link rel="stylesheet" href="fi-dashboard-ui.css?v=8.0.0">
   <!-- Tema SeMAKMUR Clean Teal V3 — Desktop sahaja; semua fungsi Fi kekal. -->
   <link rel="stylesheet" href="fi-bestari-desktop-v4.css?v=4.0.0">
+  <link rel="stylesheet" href="fi-bestari-desktop-v41.css?v=4.1.0">
 </head>
 <body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5 dashboard-v6 dashboard-v7">
   <div id="sidebar-backdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
@@ -208,7 +209,7 @@
       <div class="header-tools">
         <button id="top-notifications" onclick="showInfo('Notifikasi peribadi akan dipaparkan apabila modul berkaitan disambungkan.')" class="header-icon-button" aria-label="Notifikasi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></button>
         <div class="header-divider"></div>
-        <div class="header-clock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><div><span id="header-date">Tarikh hari ini</span><strong id="header-time">—</strong></div></div>
+        <div class="header-clock"><button type="button" id="bestari-calendar-trigger" class="bestari-calendar-trigger" aria-label="Buka Takwim Sekolah" title="Buka Takwim Sekolah"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg></button><div><span id="header-date">Tarikh hari ini</span><strong id="header-time">—</strong></div></div>
         <button onclick="openProfile()" id="mobile-header-avatar" class="mobile-mini-avatar profile-avatar" aria-label="Edit profil guru"><span id="mobile-avatar-initial">G</span><img id="mobile-avatar-photo" alt="" decoding="async" referrerpolicy="no-referrer" hidden></button>
         <button id="mobile-action-menu" onclick="toggleMobileMenu()" class="header-icon-button mobile-menu-button" aria-label="Buka menu navigasi" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       </div>
@@ -388,6 +389,17 @@
       </div>
       <footer class="app-footer text-center pt-3 pb-2">© <span id="copyright-year"></span> SeMAKMUR Digital · SK Segambut Makmur</footer>
     </main>
+  </div>
+
+  <!-- Bestari V4.1: takwim besar di Desktop, hanya membaca data yang sudah diselaraskan. -->
+  <div id="bestari-calendar-dialog" class="bestari-calendar-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="bestari-calendar-title">
+    <section class="bestari-calendar-window" tabindex="-1">
+      <header class="bestari-calendar-top"><div><span class="bestari-cal-eyebrow">SEMAKMUR DIGITAL</span><h2 id="bestari-calendar-title">Takwim Sekolah</h2></div><button id="bestari-calendar-close" type="button" aria-label="Tutup Takwim">✕</button></header>
+      <div class="bestari-calendar-controls"><button id="bestari-calendar-prev" type="button" aria-label="Bulan sebelumnya">‹</button><strong id="bestari-calendar-month">Bulan ini</strong><button id="bestari-calendar-next" type="button" aria-label="Bulan seterusnya">›</button></div>
+      <div class="bestari-calendar-weekdays" aria-hidden="true"><span>Isn</span><span>Sel</span><span>Rab</span><span>Kha</span><span>Jum</span><span>Sab</span><span>Aha</span></div>
+      <div id="bestari-calendar-days" class="bestari-calendar-days" aria-label="Kalendar bulanan"></div>
+      <h3 class="bestari-calendar-subtitle">Aktiviti bulan ini</h3><div id="bestari-calendar-events" class="bestari-calendar-events">Takwim belum diselaraskan.</div>
+    </section>
   </div>
       <nav id="mobile-bottom-nav" aria-label="Navigasi utama mobile">
       <button class="bottom-btn fi-v5-bottom-home active" data-page="laman_utama" type="button"><i class="fa-solid fa-house" aria-hidden="true"></i><span>Utama</span></button>
@@ -1197,6 +1209,53 @@
     }
   }
   window.addEventListener('DOMContentLoaded',boot);
+
+  // Bestari V4.1: calendar modal, no new backend reads or writes.
+  (function installBestariCalendar(){
+    const modal=document.getElementById('bestari-calendar-dialog');
+    const trigger=document.getElementById('bestari-calendar-trigger');
+    if(!modal||!trigger)return;
+    let visibleMonth=new Date();visibleMonth.setDate(1);
+    let lastFocus=null;
+    const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    function eventDate(value){
+      const raw=String(value||'').trim();
+      let m=/^(\d{4})-(\d{2})-(\d{2})/.exec(raw);
+      if(m)return `${m[1]}-${m[2]}-${m[3]}`;
+      m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(raw);
+      return m?`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`:'';
+    }
+    function officialEvents(){
+      const raw=dashboardData?.takwimTerkini||dashboardData?.takwim;
+      return raw?.disahkan===true&&Array.isArray(raw?.senarai)?raw.senarai:[];
+    }
+    function renderCalendar(){
+      const y=visibleMonth.getFullYear(),mo=visibleMonth.getMonth(), today=iso(new Date());
+      document.getElementById('bestari-calendar-month').textContent=visibleMonth.toLocaleDateString('ms-MY',{month:'long',year:'numeric'});
+      const grid=document.getElementById('bestari-calendar-days');
+      const events=officialEvents(),keys=new Set(events.map(x=>eventDate(x.tarikh||x.tarikhMula)).filter(Boolean));
+      const cells=[],pad=(new Date(y,mo,1).getDay()+6)%7,count=new Date(y,mo+1,0).getDate();
+      for(let i=0;i<pad;i++)cells.push('<span class="blank" aria-hidden="true"></span>');
+      for(let day=1;day<=count;day++){
+        const d=iso(new Date(y,mo,day));
+        const cls=[d===today?'today':'',keys.has(d)?'has-event':''].filter(Boolean).join(' ');
+        cells.push(`<span class="cal-day ${cls}" aria-label="${day} ${visibleMonth.toLocaleDateString('ms-MY',{month:'long'})} ${y}">${day}${keys.has(d)?'<i aria-hidden="true"></i>':''}</span>`);
+      }
+      grid.innerHTML=cells.join('');
+      const monthPrefix=`${y}-${String(mo+1).padStart(2,'0')}-`;
+      const monthEvents=events.filter(x=>eventDate(x.tarikh||x.tarikhMula).startsWith(monthPrefix));
+      document.getElementById('bestari-calendar-events').innerHTML=monthEvents.length
+       ?monthEvents.map(x=>`<div class="cal-event"><strong>${escapeHtml(x.tajuk||x.aktiviti||'Aktiviti sekolah')}</strong><span>${escapeHtml(String(x.tarikh||x.tarikhMula||''))}</span></div>`).join('')
+       :'<p class="cal-empty">Tiada aktiviti diselaraskan untuk bulan ini. Semak Takwim Rasmi apabila tersedia.</p>';
+    }
+    function close(){modal.hidden=true;document.body.classList.remove('bestari-calendar-open');lastFocus?.focus?.();}
+    trigger.addEventListener('click',()=>{lastFocus=document.activeElement;renderCalendar();modal.hidden=false;document.body.classList.add('bestari-calendar-open');document.getElementById('bestari-calendar-close').focus();});
+    document.getElementById('bestari-calendar-close').addEventListener('click',close);
+    document.getElementById('bestari-calendar-prev').addEventListener('click',()=>{visibleMonth.setMonth(visibleMonth.getMonth()-1);renderCalendar();});
+    document.getElementById('bestari-calendar-next').addEventListener('click',()=>{visibleMonth.setMonth(visibleMonth.getMonth()+1);renderCalendar();});
+    modal.addEventListener('click',e=>{if(e.target===modal)close();});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)close();});
+  })();
   </script>
 
   <!-- Panel penyelarasan untuk versi Fi; dashboard rasmi tidak terjejas. -->
