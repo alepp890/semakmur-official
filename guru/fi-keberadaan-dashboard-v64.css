@@ -1,0 +1,18 @@
+/* SeMAKMUR Fi V6.4.1 — retain original V8 PWA six-link grid (3 x 2).
+   Dashboard widget styling from V6.4 is otherwise unchanged.
+   The original V8 fi-dashboard-ui.css defines the three-column PWA grid. */
+@media (max-width:767px) {
+ .dashboard-v6 #fi-v6-app-grid { grid-template-columns:repeat(3,minmax(0,1fr))!important; gap:9px!important; }
+ .dashboard-v6 #fi-v6-app-grid .fi-v6-app-button { height:81px!important; min-width:0; align-items:flex-start!important; text-align:left!important; padding:10px!important; justify-content:space-between!important; }
+ .dashboard-v6 #fi-v6-app-grid .fi-v6-app-button>span { font-size:11px!important; line-height:1.25!important; overflow-wrap:break-word; min-width:0; }
+ .dashboard-v6 #fi-v6-app-grid .fi-v6-app-button>i { font-size:20px!important; padding:7px!important; }
+}
+@media(max-width:365px){.dashboard-v6 #fi-v6-app-grid .fi-v6-app-button { height:74px!important; }}
+#right-keberadaan-stats .right-card-head{margin-bottom:11px}
+.kb-dashboard-widget-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 14px 10px}
+.kb-dashboard-widget-grid>div{border:1px solid #dce8ed;background:#f5fafc;border-radius:11px;padding:11px;min-height:77px}
+.kb-dashboard-widget-grid span{display:block;font-size:10px;color:#5e7687;font-weight:800;line-height:1.35}
+.kb-dashboard-widget-grid strong{display:block;font-size:23px;color:#1b587a;font-weight:800;margin-top:5px}
+#right-keberadaan-stats .kb-dash-caption{font-size:10px;line-height:1.5;color:#6c8495;padding:0 14px 10px}
+#right-keberadaan-stats .kb-dash-open{display:flex;align-items:center;justify-content:space-between;width:calc(100% - 28px);margin:0 14px 13px;padding:10px 12px;background:#e9f6fa;border:1px solid #d4e9ee;border-radius:9px;font-size:11px;color:#1a647d;font-weight:800;text-align:left}
+#right-keberadaan-stats .kb-dash-open:hover{background:#dff1f5}
