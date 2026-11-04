@@ -163,7 +163,7 @@
 </style>
   <link rel="stylesheet" href="fi-dashboard-ui.css?v=8.0.0">
   <!-- Tema SeMAKMUR Clean Teal V3 — Desktop sahaja; semua fungsi Fi kekal. -->
-  <link rel="stylesheet" href="fi-desktop-clean-v3.css?v=3.0.0">
+  <link rel="stylesheet" href="fi-bestari-desktop-v4.css?v=4.0.0">
 </head>
 <body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5 dashboard-v6 dashboard-v7">
   <div id="sidebar-backdrop" onclick="closeMobileMenu()" aria-hidden="true"></div>
@@ -199,6 +199,11 @@
         <div id="greeting-text" class="header-caption">Selamat Datang,</div>
         <h1 id="header-user-name" class="dashboard-name" title="Dashboard Guru">Dashboard Guru</h1>
         <p class="header-mobile-subtitle">Dashboard Guru · SK Segambut Makmur</p>
+      </div>
+      <div class="bestari-header-search" role="search" aria-label="Cari pautan modul">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg>
+        <input id="bestari-search" type="search" autocomplete="off" placeholder="Cari modul pada halaman ini" aria-label="Cari modul pada halaman ini">
+        <kbd>Ctrl K</kbd>
       </div>
       <div class="header-tools">
         <button id="top-notifications" onclick="showInfo('Notifikasi peribadi akan dipaparkan apabila modul berkaitan disambungkan.')" class="header-icon-button" aria-label="Notifikasi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></button>
@@ -318,6 +323,18 @@
       <div id="service-notice" class="hidden card-coligo border-amber-200 bg-amber-50 text-amber-900 p-3 text-[13px]" role="status"></div>
 
       <div id="fi-v7-desktop-content" aria-label="Dashboard desktop">
+      <!-- Reka bentuk visual desktop SeMAKMUR; tersembunyi di PWA. -->
+      <section id="bestari-hero" class="bestari-hero" aria-label="Sambutan Dashboard Guru">
+        <div>
+          <span class="bestari-overline">Portal Guru · SK Segambut Makmur</span>
+          <h2>Selamat Datang, <span id="bestari-hero-name">Guru SeMAKMUR</span></h2>
+          <p>Urus PdPc, murid, jadual waktu dan tugasan sekolah melalui satu ruang digital.</p>
+        </div>
+        <div class="bestari-motif" aria-hidden="true">
+          <svg viewBox="0 0 100 100" fill="none"><path d="M13 33 50 17l37 16v44L50 94 13 77V33Z" stroke="currentColor" stroke-width="3"/><path d="M50 40c-13-9-23-6-29-3v28c10-2 20-2 29 5 9-7 19-7 29-5V37c-6-3-16-6-29 3Z" stroke="currentColor" stroke-width="3"/><path d="M50 40v30" stroke="currentColor" stroke-width="3"/></svg>
+          <div><strong>SeMAKMUR Digital</strong><span>Sistem Pengurusan Sekolah</span></div>
+        </div>
+      </section>
       <section id="home-quicklinks" class="quicklinks-shell" aria-labelledby="home-modules-title">
         <div class="quicklinks-topline"><h2 id="home-modules-title"><span class="quick-head-icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.8 2 5 13h6l-.8 9L19 10h-6l.8-8Z"/></svg></span>Pautan Pantas</h2>
 
@@ -1201,5 +1218,66 @@
     @media(max-width:767px){.fi-panel{bottom:82px;max-height:34dvh;overflow:auto}}
   </style>
   <script type="module" src="fi-keberadaan-widget-v64.js?v=6.4.0"></script>
+  <script>
+  /* Tema desktop V4: nama sambutan daripada label pengguna Fi yang telah disahkan.
+     Iframe same-origin menerima CSS desktop; iframe Apps Script cross-origin tidak disentuh. */
+  (function(){
+    const marker = document.getElementById('header-user-name');
+    const display = document.getElementById('bestari-hero-name');
+    if(marker && display){
+      const update = () => {
+        const n = (marker.textContent || '').trim();
+        if(n && !/^(dashboard guru|menyemak|selamat datang)/i.test(n)) display.textContent = n;
+      };
+      new MutationObserver(update).observe(marker,{childList:true,characterData:true,subtree:true});
+      update();
+    }
+    /* Carian sebenar, khusus kad pautan yang sedang dipaparkan; tidak menyentuh data Fi. */
+    const search = document.getElementById('bestari-search');
+    const moduleGrid = document.getElementById('home-modules');
+    if(search && moduleGrid){
+      const filter = () => {
+        const q = search.value.trim().toLocaleLowerCase('ms');
+        moduleGrid.querySelectorAll('.shortcut-card').forEach(card => {
+          const match = !q || (card.textContent || '').toLocaleLowerCase('ms').includes(q);
+          if(match) card.style.removeProperty('display');
+          else card.style.setProperty('display','none','important');
+        });
+      };
+      search.addEventListener('input',filter);
+      new MutationObserver(filter).observe(moduleGrid,{childList:true});
+      document.addEventListener('keydown',e=>{
+        if(!window.matchMedia('(min-width:768px)').matches) return;
+        if((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='k'){
+          e.preventDefault();search.focus();search.select();
+        }
+      });
+    }
+    const desktop = window.matchMedia('(min-width: 768px)');
+    const cssUrl = new URL('modulaplikasi/fi-bestari-modules-v4.css?v=4.0.0',document.baseURI).href;
+    const wired = new WeakSet();
+    function themeFrame(f){
+      if(!desktop.matches) return;
+      try{
+        const d = f.contentDocument;
+        if(!d || !d.head || d.location.origin !== location.origin) return;
+        if([...d.querySelectorAll('link[rel="stylesheet"]')].some(l => l.href.includes('fi-bestari-modules-v4.css'))) return;
+        const link = d.createElement('link');
+        link.rel = 'stylesheet'; link.href = cssUrl; link.dataset.semakmurDesktopTheme = 'bestari-v4';
+        d.head.appendChild(link);
+      }catch(_e){/* Cross-origin iframe, leave original module intact. */}
+    }
+    function attach(f){
+      if(wired.has(f)) return;
+      wired.add(f);
+      f.addEventListener('load',()=>themeFrame(f));
+      if(f.contentDocument && f.contentDocument.readyState === 'complete') themeFrame(f);
+    }
+    function scan(){document.querySelectorAll('iframe').forEach(attach);}
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan, {once:true});
+    else scan();
+    new MutationObserver(scan).observe(document.documentElement,{subtree:true,childList:true});
+  })();
+  </script>
 </body>
 </html>
