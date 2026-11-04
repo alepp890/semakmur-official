@@ -5,7 +5,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="fi-keberadaan.css?v=6.7.1">
 <link rel="stylesheet" href="fi-bestari-modules-v4.css?v=4.0.0">
-<link rel="stylesheet" href="fi-bestari-modules-v41.css?v=4.1.0"></head>
+<link rel="stylesheet" href="fi-bestari-modules-v41.css?v=4.1.0">
+<link rel="stylesheet" href="fi-bestari-modules-v42.css?v=4.2.0"></head>
 <body>
 <header class="top"><div class="topinner">
   
@@ -15,9 +16,10 @@
 <main class="wrap">
   <div class="kb-titlebar"><div><h1>Smart Keberadaan</h1><p>Rekod permohonan dan semak status.</p></div><div class="headright"><span id="mode-label" class="mode-label">Fi</span><span id="role-label" class="role-label">Guru</span></div></div>
   <div class="kb-content-shell">
+      <div class="kb-filter-top" id="kb-filter-top" hidden><label for="list-status-filter">Status</label><select id="list-status-filter" aria-label="Tapis status" disabled><option value="SEMUA">Semua status</option><option value="AKTIF">Perlu tindakan</option><option value="SELESAI">Selesai</option></select></div>
     <div class="kb-main-column">
       <div aria-live="polite" class="alert" hidden="" id="alert" role="status"></div>
-      <div class="kb-filter-top" id="kb-filter-top" hidden><label for="list-status-filter">Status</label><select id="list-status-filter" aria-label="Tapis status"><option value="SEMUA">Semua status</option><option value="AKTIF">Perlu tindakan</option><option value="SELESAI">Selesai</option></select></div>
+
       <nav aria-label="Bahagian e-Keberadaan" class="tabs" id="tabs"><button class="active" data-tab="borang" type="button">Borang Keberadaan</button><button data-tab="status" type="button">Status Permohonan <b class="kb-unread" id="my-count" hidden aria-label="Notifikasi baharu"></b></button><button data-tab="tindakan" hidden="" type="button">Tindakan / Makluman <b class="kb-unread" id="work-count" hidden aria-label="Notifikasi baharu"></b></button><button data-tab="peringatan" hidden="" type="button">Peringatan <b class="kb-unread" id="remind-count" hidden aria-label="Notifikasi baharu"></b></button></nav>
       <section aria-label="Borang Keberadaan" class="panel" id="panel-borang"><div class="panelhead"><h2>Borang Keberadaan</h2></div><form id="apply-form">
 <div class="fieldrow"><label for="type">Kategori *</label><select id="type" required=""><option value="">Pilih kategori</option><option value="CRK">CRK</option><option value="CTR">CTR</option><option value="MC">MC</option><option value="RASMI">Urusan Rasmi / Bengkel / LDP / PLC / Tugas Khas</option><option value="KECEMASAN">Kecemasan / Kebenaran Keluar</option></select></div>
@@ -43,10 +45,10 @@
         <div class="panelhead"><h2>Statistik Keberadaan</h2><span class="kb-stat-mark" aria-hidden="true">▤</span></div>
         <p id="kb-stat-scope" class="kb-stats-scope">Permohonan saya</p>
         <div class="kb-stats-grid">
-          <div class="kb-stat"><span>Jumlah Rekod</span><strong id="kb-stat-total">—</strong></div>
-          <div class="kb-stat"><span>Perlu Tindakan</span><strong id="kb-stat-pending">—</strong></div>
-          <div class="kb-stat"><span>Belum Ada Dokumen</span><strong id="kb-stat-docs">—</strong></div>
-          <div class="kb-stat"><span>Relief Direkod</span><strong id="kb-stat-relief">—</strong></div>
+          <div class="kb-stat"><span class="kb-v42-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h7l4 4v14H5V3h3z"/><path d="M14 3v5h5M8 12h8M8 16h8"/></svg></span><span>Jumlah Rekod</span><strong id="kb-stat-total">—</strong></div>
+          <div class="kb-stat"><span class="kb-v42-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span><span>Perlu Tindakan</span><strong id="kb-stat-pending">—</strong></div>
+          <div class="kb-stat"><span class="kb-v42-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h10l4 4v14H5V3Z M14 3v5h5 M9 12h6 M9 16h3"/><path d="M16 16l3 3m0-3-3 3"/></svg></span><span>Belum Ada Dokumen</span><strong id="kb-stat-docs">—</strong></div>
+          <div class="kb-stat"><span class="kb-v42-stat-icon"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M8 3v3M16 3v3M4 9h16m-12 6 3 3 5-5"/></svg></span><span>Relief Direkod</span><strong id="kb-stat-relief">—</strong></div>
         </div>
         <p id="kb-stat-updated" class="kb-stats-footnote">Menunggu pengesahan data Firestore</p>
       </section>
@@ -57,5 +59,12 @@
   <div aria-live="polite" class="toast" hidden="" id="toast" role="status"></div>
 </main>
 <nav class="kb-bottom-nav" aria-label="Navigasi mudah alih"><a href="../Fi-DashboardGuru.html"><span aria-hidden="true">⌂</span>Utama</a><a class="active" href="#tabs" aria-current="page"><span aria-hidden="true">▤</span>Keberadaan</a><a href="../Fi-DashboardGuru.html#pentadbiran"><span aria-hidden="true">☷</span>Menu</a></nav>
-<script src="../../firebase-pilot-config.js"></script><script type="module" src="fi-keberadaan.js?v=6.7.0"></script>
+<script>
+  // Desktop only: the Status toolbar remains visible on Borang, with its select disabled.
+  // PWA retains the original hidden-until-status-tab presentation.
+  if (window.matchMedia('(min-width:781px)').matches) {
+    document.getElementById('kb-filter-top').hidden = false;
+  }
+</script>
+<script src="../../firebase-pilot-config.js"></script><script type="module" src="fi-keberadaan.js?v=6.7.0.42"></script>
 </body></html>

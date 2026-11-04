@@ -73,8 +73,12 @@ function draw(){
  setRoleUI();
  document.querySelectorAll('#tabs [data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
  ['borang','status','tindakan','peringatan'].forEach(k=>$('panel-'+k).hidden=k!==tab);
- $('kb-filter-top').hidden=tab==='borang';
- if(tab!=='borang')$('list-status-filter').value=listFilterValue[tab]||'SEMUA';
+ // V4.2: On desktop the full-width Status bar stays visible on every tab.
+ // On Borang the filter is frozen (disabled); mobile behavior remains as before.
+ const kbDesktopFilter = window.matchMedia('(min-width:781px)').matches;
+ $('kb-filter-top').hidden=tab==='borang' && !kbDesktopFilter;
+ $('list-status-filter').disabled=tab==='borang';
+ $('list-status-filter').value=tab==='borang'?'SEMUA':(listFilterValue[tab]||'SEMUA');
  // Maintain previous counters in DOM for compatibility; no redesign of notifications in this release.
  $('my-count').textContent=myRecords.length;
  $('work-count').textContent=records.filter(needActionForRole).length;
@@ -238,7 +242,7 @@ function tellDashboard(type,message=''){
 }
 function handlers(){document.addEventListener('click',ev=>{const tabBtn=ev.target.closest('#tabs [data-tab]');if(tabBtn){tab=tabBtn.dataset.tab;draw();markTabSeen(tab);return;}const card=ev.target.closest('[data-card-id]');if(card){const rec=records.find(r=>r.id===card.dataset.cardId)||myRecords.find(r=>r.id===card.dataset.cardId);if(rec)openRecord(rec,card.dataset.context||'mine');return;}const x=ev.target.closest('[data-do]');if(x){const r=records.find(r=>r.id===x.dataset.id);if(r)confirmAction(r,x.dataset.do);return;}const o=ev.target.closest('[data-open-doc]');if(o){showDocument(o.dataset.openDoc);return;}if(ev.target.id==='dialog-close'||ev.target.id==='cancel-action'){closeDialog();return;}const c=ev.target.closest('#confirm-action');if(c){applyAction(c.dataset.id,c.dataset.action).catch(e=>toast(e.message||String(e)));return;}});
  $('document').addEventListener('change',()=>{const file=$('document').files[0];try{if(file)validateFile(file);$('document-status').textContent=file?('Dipilih: '+file.name+' · Belum dimuat naik. Rekod boleh dihantar tanpa lampiran sahaja.'):'Tiada dokumen dipilih. Sambungan muat naik belum tersedia.';}catch(e){$('document').value='';$('document-status').textContent=e.message;}});
- $('apply-form').addEventListener('submit',submit);['type','scope','period','start'].forEach(id=>$(id).addEventListener('change',syncForm));$('list-status-filter').addEventListener('change',e=>{if(tab!=='borang'){listFilterValue[tab]=e.target.value;draw();}});$('dialog').addEventListener('click',e=>{if(e.target===$('dialog'))closeDialog()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('dialog').hidden)closeDialog();});
+ $('apply-form').addEventListener('submit',submit);['type','scope','period','start'].forEach(id=>$(id).addEventListener('change',syncForm));$('list-status-filter').addEventListener('change',e=>{if(tab!=='borang'){listFilterValue[tab]=e.target.value;draw();}});$('dialog').addEventListener('click',e=>{if(e.target===$('dialog'))closeDialog()});window.addEventListener('resize',()=>{$('kb-filter-top').hidden=tab==='borang'&&!window.matchMedia('(min-width:781px)').matches;});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('dialog').hidden)closeDialog();});
 
 }
 async function init(){handlers();$('start').min=localDay();$('end').min=localDay();$('start').value=localDay();$('end').value=localDay();syncForm();

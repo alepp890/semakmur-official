@@ -1,0 +1,80 @@
+/* SeMAKMUR Bestari V4.2 — e-Keberadaan desktop only.
+   Full-width always-visible status toolbar and more expressive metric tiles. */
+@media(min-width:781px){
+  .fi-embedded .wrap{max-width:none!important;width:100%!important;padding:12px 15px 40px!important}
+  .fi-embedded .kb-content-shell{
+    display:grid!important;grid-template-columns:minmax(0,1fr) minmax(240px,275px)!important;
+    gap:13px!important;align-items:start!important;
+  }
+  .fi-embedded .kb-filter-top{
+    grid-column:1/-1!important;grid-row:1!important;position:sticky!important;top:0!important;z-index:15!important;
+    display:flex!important;width:100%!important;min-height:64px!important;margin:0!important;
+    padding:11px 16px!important;justify-content:space-between!important;align-items:center!important;
+    border:1px solid #cfdaf4!important;border-radius:13px!important;
+    background:linear-gradient(105deg,#e4ebff 0%,#eef3ff 55%,#dce9ff 100%)!important;
+    box-shadow:0 3px 10px rgba(45,68,141,.06)!important;
+  }
+  html.fi-embedded .kb-filter-top[hidden]{display:none!important}
+  .fi-embedded .kb-filter-top label{font-size:13px!important;color:#263b7e!important;font-weight:800!important}
+  .fi-embedded .kb-filter-top select{
+    flex:0 0 auto!important;width:190px!important;max-width:42%!important;height:38px!important;min-height:38px!important;
+    margin:0 0 0 auto!important;padding:7px 10px!important;font:750 12.5px/1.3 'Plus Jakarta Sans',sans-serif!important;
+    color:#243e8a!important;border:1px solid #b5c6ee!important;border-radius:9px!important;background-color:#fff!important;
+  }
+  .fi-embedded .kb-filter-top select:disabled{
+    opacity:.62!important;background-color:#f0f3fc!important;color:#596683!important;cursor:not-allowed!important;
+  }
+  /* Override V4.1 tab-specific offset; align top of stats with main record panel. */
+  html.fi-embedded .kb-content-shell:has(#panel-borang:not([hidden])) > .kb-stats-panel,
+  html.fi-embedded .kb-content-shell:has(#panel-status:not([hidden])) > .kb-stats-panel,
+  html.fi-embedded .kb-content-shell:has(#panel-tindakan:not([hidden])) > .kb-stats-panel,
+  html.fi-embedded .kb-content-shell:has(#panel-peringatan:not([hidden])) > .kb-stats-panel{margin-top:63px!important}
+  .fi-embedded .kb-main-column{grid-column:1!important;grid-row:2!important;min-width:0!important}
+  .fi-embedded .kb-stats-panel{
+    grid-column:2!important;grid-row:2!important;min-width:0!important;
+    margin-top:63px!important;position:sticky!important;top:77px!important;
+  }
+  .fi-embedded .kb-stats-card{
+    padding:15px!important;border-radius:15px!important;
+    background:linear-gradient(150deg,#fff 0%,#f7f9ff 100%)!important;
+    border:1px solid #dbe3f5!important;box-shadow:0 6px 20px rgba(39,55,121,.08)!important;
+  }
+  .fi-embedded .kb-stats-card .panelhead h2{color:#26365d!important;font-size:14px!important;font-weight:800!important}
+  .fi-embedded .kb-stats-scope{font-size:10.5px!important;color:#526288!important}
+  .fi-embedded .kb-stats-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+  .fi-embedded .kb-stats-card .kb-stat{
+    display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+    gap:5px!important;min-height:130px!important;padding:12px 7px!important;
+    text-align:center!important;border-radius:13px!important;
+    box-shadow:inset 0 1px rgba(255,255,255,.86),0 3px 10px rgba(44,59,115,.06)!important;
+  }
+  .fi-embedded .kb-stats-card .kb-stat:nth-child(1){background:linear-gradient(145deg,#d9e7ff,#f2f7ff)!important;border-color:#b9cdf9!important}
+  .fi-embedded .kb-stats-card .kb-stat:nth-child(2){background:linear-gradient(145deg,#ffe3bc,#fff5e8)!important;border-color:#f3d4a7!important}
+  .fi-embedded .kb-stats-card .kb-stat:nth-child(3){background:linear-gradient(145deg,#ffdbe7,#fff2f5)!important;border-color:#f1c5d3!important}
+  .fi-embedded .kb-stats-card .kb-stat:nth-child(4){background:linear-gradient(145deg,#c9f1e1,#f0fdf6)!important;border-color:#b5e4d0!important}
+  .fi-embedded .kb-v42-stat-icon{
+    display:grid!important;place-items:center!important;width:29px!important;height:29px!important;
+    color:#3d5aab!important;
+  }
+  .fi-embedded .kb-v42-stat-icon svg{width:24px!important;height:24px!important;display:block!important}
+  .fi-embedded .kb-stat:nth-child(2) .kb-v42-stat-icon{color:#b36e16!important}
+  .fi-embedded .kb-stat:nth-child(3) .kb-v42-stat-icon{color:#bc4b6b!important}
+  .fi-embedded .kb-stat:nth-child(4) .kb-v42-stat-icon{color:#18815e!important}
+  .fi-embedded .kb-stats-card .kb-stat span:not(.kb-v42-stat-icon){font:750 10.5px/1.4 'Plus Jakarta Sans',sans-serif!important;color:#283858!important}
+  .fi-embedded .kb-stats-card .kb-stat strong{font:800 28px/1.12 'Plus Jakarta Sans',sans-serif!important;margin:0!important;color:#233c86!important}
+  .fi-embedded .kb-stats-card .kb-stat:nth-child(2) strong{color:#a46413!important}
+  .fi-embedded .kb-stats-card .kb-stat:nth-child(3) strong{color:#b63b60!important}
+  .fi-embedded .kb-stats-card .kb-stat:nth-child(4) strong{color:#167454!important}
+  .fi-embedded .kb-stats-footnote{text-align:center!important;color:#5d6f93!important;font-size:10px!important}
+}
+@media(min-width:781px) and (max-width:1049px){
+  .fi-embedded .kb-content-shell{grid-template-columns:minmax(0,1fr)!important}
+  .fi-embedded .kb-main-column{grid-column:1!important;grid-row:2!important}
+  html.fi-embedded .kb-content-shell:has(#panel-borang:not([hidden])) > .kb-stats-panel,
+  html.fi-embedded .kb-content-shell:has(#panel-status:not([hidden])) > .kb-stats-panel,
+  html.fi-embedded .kb-content-shell:has(#panel-tindakan:not([hidden])) > .kb-stats-panel,
+  html.fi-embedded .kb-content-shell:has(#panel-peringatan:not([hidden])) > .kb-stats-panel{margin-top:0!important}
+  .fi-embedded .kb-stats-panel{grid-column:1!important;grid-row:3!important;position:static!important}
+  .fi-embedded .kb-stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+@media(max-width:780px){.kb-v42-stat-icon{display:none!important}}
