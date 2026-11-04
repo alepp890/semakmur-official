@@ -99,11 +99,24 @@ function compact(r,context){
  const subtitle=context==='mine'?'':`<div class="item-owner">${esc(r.ownerName||'Guru')}</div>`;
  return `<div class="item"><button class="record-card" data-card-id="${esc(r.id)}" data-context="${esc(context)}" type="button" aria-label="Lihat butiran ${esc(category)}"><span class="item-main"><span class="item-heading"><strong class="item-title">${esc(category)}</strong><span class="pill ${tone}">${esc(label)}</span></span><span class="item-date-new">${esc(recordDateText(r))}</span>${subtitle}</span><span class="chevron" aria-hidden="true">›</span></button></div>`;
 }
+function requestExplanation(r){
+ const label=cardStatus(r)[0];
+ if(r.gpkStatus==='ditolak')return ['Permohonan tidak disokong','Permohonan ini tidak disokong oleh GPK. Sila rujuk catatan pentadbir dan hubungi pihak sekolah untuk tindakan susulan.'];
+ if(docRequired(r)&&!r.docPath&&!r.docName)return ['Dokumen sokongan diperlukan','Permohonan ini belum mempunyai dokumen kelulusan atau surat sokongan yang direkodkan. Sila kemukakan dokumen melalui saluran rasmi sekolah. Muat naik terus dalam modul ini belum tersedia pada pelan Firebase Spark.'];
+ if(requireGpk(r)&&r.gpkStatus==='menunggu')return ['Menunggu tindakan GPK','Permohonan ini sedang menunggu semakan atau sokongan Guru Penolong Kanan. Status belum bermaksud kelulusan cuti rasmi.'];
+ if(r.relief==='sementara')return ['Relief sementara direkodkan','Perlindungan kelas sementara telah direkodkan untuk operasi sekolah. Ia bukan bukti kelulusan cuti rasmi; dokumen dan keputusan akhir masih perlu disemak.'];
+ if(r.relief==='tanpa')return ['Relief tanpa sokongan lengkap','Kelas boleh dilindungi sementara, tetapi dokumen atau pengesahan masih belum lengkap. Permohonan perlu tindakan susulan mengikut prosedur sekolah.'];
+ if(r.gpkStatus==='disahkan')return ['Pengesahan direkodkan','Sokongan GPK telah direkodkan. Semak kategori permohonan dan dokumen bagi memastikan semua syarat dipenuhi sebelum rekod dianggap selesai.'];
+ if(r.docReviewed===true)return ['Dokumen telah disemak','Dokumen sokongan telah ditandakan sebagai disemak. Semak status tindakan dan rekod rasmi sebelum menganggap urusan selesai.'];
+ return ['Status permohonan: '+label,'Permohonan telah direkodkan dan sedang melalui proses semakan. Sila lihat sejarah tindakan serta peringatan yang berkaitan.'];
+}
 function openRecord(r,context){
  const [label,tone]=cardStatus(r);
  const category=TYPE[r.finalType||r.type]||r.type;
+ const [summaryTitle,summaryText]=requestExplanation(r);
  const bits=[
    `<div class="record-summary"><span class="pill ${tone}">${esc(label)}</span>${r.testMode===true?'<span class="pill warning">UJIAN</span>':''}</div>`,
+   `<section class="kb-popup-status-explanation" role="status"><strong>${esc(summaryTitle)}</strong><p>${esc(summaryText)}</p></section>`,
    `<div class="popup-field"><span>Nama Guru</span><strong>${esc(r.ownerName||user?.name||'Guru')}</strong></div>`,
    `<div class="popup-field"><span>Kategori</span><strong>${esc(category)}</strong></div>`,
    `<div class="popup-field"><span>Tarikh / Masa</span><strong>${esc(recordDateText(r))}</strong></div>`,
