@@ -1,0 +1,109 @@
+/* SeMAKMUR Bestari Desktop V4.3 — Dua pindaan desktop sahaja.
+   1. Pautan Pantas dipaparkan sebagai kad terapung individu, tanpa panel induk.
+   2. Ikon kalendar di header sama ringkas seperti loceng, tanpa latar/border.
+   CSS ini sengaja TERHAD kepada desktop. PWA & logik fungsi tidak diubah. */
+@media (min-width: 768px) {
+  /* Pautan Pantas — buang bingkai/permukaan panel induk pada SEMUA menu.
+     Grid #home-modules kekal: 7 lajur apabila ruang mencukupi,
+     bilangan/urutan pautan mengikut renderShortcuts() asal. */
+  body.dashboard-v7 #page-scroll #home-quicklinks.quicklinks-shell {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 15px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    overflow: visible !important;
+  }
+  body.dashboard-v7 #page-scroll #home-quicklinks::before,
+  body.dashboard-v7 #page-scroll #home-quicklinks::after {
+    content: none !important;
+    display: none !important;
+  }
+  body.dashboard-v7 #page-scroll #home-quicklinks .quicklinks-topline {
+    display: flex !important;
+    align-items: center !important;
+    background: transparent !important;
+    background-image: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 1px 10px !important;
+    margin: 0 !important;
+    min-height: 34px !important;
+  }
+  body.dashboard-v7 #page-scroll #home-quicklinks #home-modules {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 3px 2px 12px !important; /* ruang untuk bayang kad */
+    overflow: visible !important;
+    gap: 11px !important;
+    align-items: stretch !important;
+  }
+  body.dashboard-v7 #page-scroll #home-quicklinks #home-modules .shortcut-card {
+    /* Warna gradient tiga tona V4.2 dan grid ikon/teks/anak panah dikekalkan. */
+    box-shadow: 0 9px 18px rgba(27,39,97,.24),
+                0 2px 5px rgba(20,29,80,.13) !important;
+    border: 1px solid rgba(255,255,255,.38) !important;
+    border-radius: 14px !important;
+    will-change: auto !important;
+  }
+  body.dashboard-v7 #page-scroll #home-quicklinks #home-modules .shortcut-card:hover:not(:disabled) {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 15px 26px rgba(27,39,97,.27),
+                0 3px 8px rgba(20,29,80,.15) !important;
+  }
+  /* Header calendar — rupa sekeluarga dengan butang loceng. */
+  body.dashboard-v7 .dashboard-main-header #bestari-calendar-trigger.bestari-calendar-trigger {
+    display: inline-grid !important;
+    place-items: center !important;
+    flex: 0 0 38px !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    margin: 0 !important;
+    padding: 7px !important;
+    border: none !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: #fff !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+    transition: color .16s ease, opacity .16s ease !important;
+  }
+  body.dashboard-v7 .dashboard-main-header #bestari-calendar-trigger.bestari-calendar-trigger:hover {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #f0f4ff !important;
+    opacity: .84 !important;
+  }
+  body.dashboard-v7 .dashboard-main-header #bestari-calendar-trigger.bestari-calendar-trigger svg {
+    display:block !important;
+    width: 23px !important;
+    height: 23px !important;
+    color: currentColor !important;
+    stroke: currentColor !important;
+  }
+  body.dashboard-v7 .dashboard-main-header #bestari-calendar-trigger:focus-visible {
+    outline: 2px solid #e8ecff !important;
+    outline-offset: 2px !important;
+  }
+}
+@media (min-width: 768px) and (prefers-reduced-motion: reduce) {
+  body.dashboard-v7 #page-scroll #home-quicklinks #home-modules .shortcut-card,
+  body.dashboard-v7 .dashboard-main-header #bestari-calendar-trigger {
+    transition: none !important;
+  }
+}
