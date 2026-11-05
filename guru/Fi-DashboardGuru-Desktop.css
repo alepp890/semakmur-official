@@ -1,0 +1,591 @@
+/* SeMAKMUR Fi Bestari V4.4.0 | desktop overrides V4 → V4.3 | CSS disatukan. Jangan tampal versi lama semula. */
+
+
+/* ======= SUMBER ASAL: fi-bestari-desktop-v4.css (urutan cascade dikekalkan) ======= */
+/* Hero is disabled at mobile widths and enabled only via desktop rules. */
+.bestari-hero{display:none;}
+/* ============================================================
+   SeMAKMUR Fi — BESTARI REFERENCE DESKTOP V4
+   Adaptation of the user-supplied indigo/slate dashboard screenshot.
+   VISUAL ONLY, desktop >=768px; PWA untouched.
+   Source contracts: Fi Dashboard V8 / Kehadiran V8.1 / Keberadaan V6.7.
+   ============================================================ */
+@media (min-width:768px) {
+  body.dashboard-v7 {
+    --best-950:#171f40; --best-900:#20294f; --best-800:#29356b;
+    --best-700:#3a478c; --best-600:#5265b4; --best-500:#617cc8;
+    --best-ink:#171f3f; --best-muted:#53617e; --best-line:#dce3f1;
+    --best-bg:#eef3fc; --best-surface:#fff; --best-soft:#f5f7fd;
+    --best-shadow:0 4px 13px rgba(32,46,100,.075);
+    background:var(--best-bg)!important; color:var(--best-ink)!important;
+    font:500 13px/1.5 'Plus Jakarta Sans',system-ui,sans-serif!important;
+  }
+  body.dashboard-v7 :is(button,input,select,textarea){font-family:'Plus Jakarta Sans',system-ui,sans-serif!important;letter-spacing:normal}
+  body.dashboard-v7 :is(button,a,input,select,textarea):focus-visible{outline:3px solid #7894e6!important;outline-offset:2px!important}
+  /* Sidebar: reference's deep indigo and restrained active state. */
+  body.dashboard-v7 #sidebar-container.side-bg{
+    width:244px!important;min-width:244px!important;
+    background:linear-gradient(164deg,#242b55 0%,#20284d 56%,#3a518c 100%)!important;
+    border-right:1px solid #3e4b7a!important;box-shadow:2px 0 14px rgba(21,29,70,.11)!important;
+  }
+  body.dashboard-v7 #sidebar-container>.min-h-0>.h-20{
+    height:77px!important;min-height:77px!important;padding-inline:18px!important;border-bottom:1px solid #ffffff21!important;
+  }
+  body.dashboard-v7 #sidebar-container h1{font:800 20px/1.1 'Plus Jakarta Sans',sans-serif!important;color:#fff!important;letter-spacing:-.045em!important}
+  body.dashboard-v7 #sidebar-container .brand-identity-symbol{color:#f3f4ff!important}
+  body.dashboard-v7 #sidebar-container p{color:#e2e8ff!important}
+  body.dashboard-v7 #sidebar-container .side-profile{
+    background:rgba(255,255,255,.045)!important;border:1px solid rgba(228,232,255,.17)!important;
+    border-radius:12px!important;margin:12px 11px 13px!important;padding:12px 8px!important;box-shadow:none!important;
+  }
+  body.dashboard-v7 #sidebar-container .profile-avatar{border:3px solid #c4d0f5!important;box-shadow:0 2px 9px #111b3760!important}
+  body.dashboard-v7 #sidebar-container .profile-caption h2{color:#fff!important;font-size:13.5px!important;font-weight:800!important}
+  body.dashboard-v7 #sidebar-container .profile-caption p{color:#d5dff8!important;font-size:10.5px!important;overflow-wrap:anywhere!important}
+  body.dashboard-v7 #desktop-nav{padding-inline:9px!important;display:grid!important;gap:4px!important;align-content:start!important}
+  body.dashboard-v7 #desktop-nav .nav-link{
+    width:100%!important;min-height:46px!important;display:flex!important;align-items:center!important;
+    padding:11px 14px!important;gap:12px!important;color:#f3f4ff!important;
+    background:transparent!important;border:1px solid transparent!important;border-radius:9px!important;
+    font:650 13px/1.35 'Plus Jakarta Sans',sans-serif!important;text-shadow:none!important;transform:none!important;box-shadow:none!important;
+  }
+  body.dashboard-v7 #desktop-nav .nav-link .nav-svg{flex:0 0 19px!important;width:19px!important;height:19px!important;color:currentColor!important}
+  body.dashboard-v7 #desktop-nav .nav-link span{min-width:0!important;flex:1!important}
+  body.dashboard-v7 #desktop-nav .nav-link:hover:not(.active){background:#fff1!important;color:#fff!important}
+  body.dashboard-v7 #desktop-nav .nav-link.active{
+    background:#6278c5!important;border-color:#8397de!important;color:#fff!important;
+    font-weight:800!important;box-shadow:0 3px 10px #101b4670!important;
+  }
+  body.dashboard-v7 #sidebar-container>div:last-child{border-color:#ffffff31!important}
+  body.dashboard-v7 #sidebar-container>div:last-child span{color:#e7eaff!important}
+  /* Header: indigo top utility bar rather than floating gradients. */
+  body.dashboard-v7 .dashboard-main-header{
+    background:linear-gradient(98deg,#303b78,#34427d 75%,#293367)!important;
+    height:76px!important;min-height:76px!important;flex:0 0 76px!important;
+    border-bottom:1px solid #42518f!important;box-shadow:0 3px 12px rgba(33,43,91,.12)!important;
+    padding:0 22px!important;
+  }
+  body.dashboard-v7 .dashboard-main-header :is(.dashboard-name,.header-caption,.header-clock,.header-clock strong,.header-clock span){color:#fff!important}
+  body.dashboard-v7 .dashboard-name{font:800 19px/1.25 'Plus Jakarta Sans',sans-serif!important;max-width:100%!important;letter-spacing:-.035em!important}
+  body.dashboard-v7 .header-caption{font-size:11.5px!important;font-weight:650!important;color:#dae4ff!important}
+  body.dashboard-v7 .bestari-header-search{
+    display:flex!important;align-items:center!important;gap:10px!important;
+    background:#f9faff!important;border:1px solid #dfe5f5!important;
+    border-radius:999px!important;max-width:350px!important;flex:0 1 350px!important;
+    padding:0 12px!important;height:38px!important;min-width:165px!important;
+    box-shadow:0 2px 8px #131e4812!important;
+  }
+  body.dashboard-v7 .bestari-header-search svg{height:18px!important;width:18px!important;flex:none!important;color:#586eae!important}
+  body.dashboard-v7 .bestari-header-search input{
+    display:block!important;flex:1!important;min-width:0!important;width:auto!important;
+    height:34px!important;min-height:34px!important;background:transparent!important;
+    padding:0!important;border:0!important;border-radius:0!important;
+    box-shadow:none!important;outline:none!important;font-size:11.5px!important;color:#25325e!important;
+  }
+  body.dashboard-v7 .bestari-header-search input::placeholder{color:#667391!important;opacity:1!important}
+  body.dashboard-v7 .bestari-header-search kbd{white-space:nowrap!important;border:1px solid #d9e0ef!important;background:#edf1f9!important;border-radius:6px!important;padding:2px 5px!important;color:#596783!important;font-size:10px!important}
+  body.dashboard-v7 #mobile-header-avatar{display:grid!important;place-items:center!important;flex:none!important;width:37px!important;height:37px!important;border:2px solid #dfe6ff!important;box-shadow:none!important}
+  body.dashboard-v7 #mobile-header-avatar img{border-radius:50%!important}
+  body.dashboard-v7 .header-tools{gap:14px!important}
+  body.dashboard-v7 .header-icon-button{color:#fff!important;border:1px solid transparent!important;border-radius:10px!important}
+  body.dashboard-v7 .header-icon-button:hover{background:#ffffff1c!important}
+  body.dashboard-v7 .header-clock{font-size:11px!important}
+  body.dashboard-v7 .header-clock strong{font-size:16px!important;font-weight:800!important}
+  body.dashboard-v7 .header-clock svg{color:#fff!important}
+  body.dashboard-v7 .header-divider{background:#ffffff4a!important}
+  /* Canvas / grid */
+  body.dashboard-v7 #page-scroll{
+    padding:17px 18px 38px!important;gap:14px!important;
+    background:linear-gradient(180deg,#eff3fc 0%,#f6f8fd 100%)!important;
+    color:var(--best-ink)!important;
+  }
+  body.dashboard-v7 #fi-v7-desktop-content{display:block!important;min-width:0!important}
+  body.dashboard-v7 #page-scroll :is(.card-coligo,.quicklinks-shell,.right-card){
+    border:1px solid var(--best-line)!important;border-radius:14px!important;
+    background:var(--best-surface)!important;box-shadow:var(--best-shadow)!important;
+  }
+  body.dashboard-v7 #page-scroll :is(.quicklinks-topline h2,.home-summary-title h2,.right-card-head h2,.soft-title){
+    font:800 15px/1.35 'Plus Jakarta Sans',sans-serif!important;letter-spacing:-.025em!important;color:var(--best-ink)!important;
+  }
+  body.dashboard-v7 #page-scroll :is(.muted-caption,.section-subtitle,.status-copy,.info-placeholder){
+    color:var(--best-muted)!important;font-size:11.5px!important;line-height:1.5!important;
+  }
+  body.dashboard-v7 #page-scroll :is(.quicklinks-topline,.right-card-head,.home-summary-title){
+    padding:11px 15px!important;min-height:46px!important;border-bottom:1px solid #e5e9f3!important;
+    display:flex!important;align-items:center!important;gap:9px!important;
+  }
+  body.dashboard-v7 #page-scroll :is(.right-head-icon,.quick-head-icon){
+    display:inline-grid!important;place-items:center!important;flex:0 0 29px!important;
+    width:29px!important;height:29px!important;border-radius:9px!important;
+    color:#4259a8!important;background:#eef0ff!important;border:0!important;box-shadow:none!important;
+  }
+  body.dashboard-v7 #page-scroll :is(.right-head-icon,.quick-head-icon) :is(svg,i){color:#3f55a6!important;stroke:#3f55a6!important;max-width:18px!important;max-height:18px!important}
+  /* Welcome banner—only home; user name bound to existing authenticated header DOM. */
+  body.dashboard-v7 .bestari-hero{
+    display:grid!important;grid-template-columns:minmax(0,1fr) minmax(220px,.65fr)!important;
+    align-items:center!important;min-height:145px!important;overflow:hidden!important;
+    padding:20px 26px!important;margin:0 0 14px!important;
+    border-radius:15px!important;border:1px solid #d7e0f2!important;
+    background:linear-gradient(112deg,#f6f8fe 0%,#e6edfc 62%,#a4baf0 100%)!important;
+    position:relative!important;box-shadow:var(--best-shadow)!important;
+  }
+  body.dashboard-v7 .bestari-hero:after{
+    content:''!important;position:absolute!important;right:-55px!important;bottom:-170px!important;
+    width:380px!important;height:330px!important;border-radius:50%!important;
+    background:radial-gradient(circle at 40% 40%,#dceaff 0%,#a0b3ea 44%,#586eb7 100%)!important;
+    opacity:.5!important;pointer-events:none!important;
+  }
+  body.dashboard-v7 .bestari-hero .bestari-overline{display:block!important;color:#485b9a!important;font-size:10.5px!important;font-weight:800!important;letter-spacing:.09em!important;text-transform:uppercase!important}
+  body.dashboard-v7 .bestari-hero h2{color:#202957!important;font:800 clamp(19px,2.25vw,27px)/1.25 'Plus Jakarta Sans',sans-serif!important;letter-spacing:-.045em!important;margin:6px 0!important}
+  body.dashboard-v7 .bestari-hero p{color:#46557b!important;font-size:12px!important;line-height:1.7!important;margin:0!important;max-width:520px!important}
+  body.dashboard-v7 .bestari-hero .bestari-motif{position:relative!important;z-index:1!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:15px!important;color:#304682!important}
+  body.dashboard-v7 .bestari-hero .bestari-motif svg{width:74px!important;height:74px!important;opacity:.75!important;flex:none!important}
+  body.dashboard-v7 .bestari-hero .bestari-motif strong{display:block!important;font-size:17px!important;line-height:1.35!important;letter-spacing:-.045em!important}
+  body.dashboard-v7 .bestari-hero .bestari-motif span{font-size:11px!important}
+  body.dashboard-v7 #fi-v7-desktop-content:has(#page-category:not(.hidden)) .bestari-hero{display:none!important}
+  /* Rich but restrained access cards; labels + arrows never overlap. */
+  body.dashboard-v7 #home-quicklinks{
+    background:transparent!important;box-shadow:none!important;border:0!important;padding:0!important;margin:0 0 13px!important;
+  }
+  body.dashboard-v7 #home-quicklinks .quicklinks-topline{border:0!important;padding:0 0 9px!important;min-height:35px!important}
+  body.dashboard-v7 #home-modules{
+    display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    gap:9px!important;padding:0!important;align-items:stretch!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-card{
+    display:grid!important;grid-template-columns:minmax(0,1fr) 26px!important;
+    grid-template-rows:34px auto minmax(26px,1fr)!important;
+    column-gap:3px!important;row-gap:3px!important;position:relative!important;
+    align-items:start!important;justify-items:start!important;
+    height:auto!important;min-height:134px!important;min-width:0!important;
+    padding:13px 12px 11px!important;border:1px solid #ffffff3d!important;border-radius:13px!important;
+    box-shadow:0 3px 9px #25397924!important;overflow:hidden!important;
+    transform:none!important;transition:transform .16s ease,box-shadow .16s ease!important;
+    color:#fff!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-card:hover:not(:disabled){transform:translateY(-2px)!important;box-shadow:0 9px 19px #24397640!important}
+  body.dashboard-v7 #home-modules .shortcut-icon{
+    position:static!important;inset:auto!important;transform:none!important;
+    grid-column:1/-1!important;grid-row:1!important;
+    display:grid!important;place-items:center!important;justify-self:start!important;
+    width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;
+    border:1px solid #ffffff57!important;border-radius:9px!important;background:#ffffff26!important;color:#fff!important;box-shadow:none!important;margin:0!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-icon svg{width:22px!important;height:22px!important;max-width:22px!important;max-height:22px!important;stroke:currentColor!important}
+  body.dashboard-v7 #home-modules .shortcut-title{
+    position:static!important;inset:auto!important;grid-column:1/-1!important;grid-row:2!important;
+    width:100%!important;min-width:0!important;margin:0!important;padding:2px 0 0!important;
+    color:#fff!important;text-align:left!important;text-shadow:none!important;
+    font:800 13px/1.25 'Plus Jakarta Sans',sans-serif!important;letter-spacing:-.025em!important;
+    white-space:normal!important;overflow-wrap:break-word!important;overflow:visible!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-description{
+    display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
+    grid-column:1!important;grid-row:3!important;
+    margin:0!important;padding:3px 0 0!important;width:100%!important;min-width:0!important;
+    overflow:hidden!important;color:#f5f6ff!important;font:500 10px/1.4 'Plus Jakarta Sans',sans-serif!important;
+    text-align:left!important;word-break:normal!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-arrow{
+    position:static!important;inset:auto!important;grid-column:2!important;grid-row:3!important;
+    display:grid!important;place-items:center!important;align-self:end!important;justify-self:end!important;
+    width:25px!important;height:25px!important;min-width:25px!important;min-height:25px!important;
+    border-radius:50%!important;background:#edf2ff!important;color:#2b3b78!important;
+    font-size:14px!important;font-weight:800!important;border:0!important;box-shadow:none!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-tone-0{background:linear-gradient(145deg,#3b4f9c,#283573)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-1{background:linear-gradient(145deg,#508fbf,#386da0)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-2{background:linear-gradient(145deg,#597bce,#3258aa)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-3{background:linear-gradient(145deg,#796cc6,#4c4f9c)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-4{background:linear-gradient(145deg,#408aa4,#28748d)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-5{background:linear-gradient(145deg,#687cc6,#455ba0)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-6{background:linear-gradient(145deg,#3f96aa,#27748d)!important}
+  body.dashboard-v7 #home-modules .shortcut-inactive{opacity:.65!important;cursor:not-allowed!important}
+  /* Reference's four balanced metrics. Existing Fi values are preserved. */
+  body.dashboard-v7 #dashboard-grid-container{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+    gap:12px!important;align-items:start!important;margin-top:8px!important;
+  }
+  body.dashboard-v7 #main-left-column{display:contents!important}
+  body.dashboard-v7 :is(#page-laman_utama,#page-category){min-width:0!important;grid-column:1!important}
+  body.dashboard-v7 #summary-section{padding:0 0 13px!important}
+  body.dashboard-v7 #home-summary{
+    display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:11px!important;padding:12px 13px 0!important;
+  }
+  body.dashboard-v7 #home-summary .summary-widget{
+    min-width:0!important;min-height:108px!important;padding:12px!important;
+    background:#fff!important;border:1px solid #e1e6f2!important;border-radius:12px!important;
+    box-shadow:0 2px 7px #26366a09!important;color:var(--best-ink)!important;
+  }
+  body.dashboard-v7 #home-summary .summary-head{gap:9px!important;align-items:center!important;min-width:0!important}
+  body.dashboard-v7 #home-summary .summary-icon{width:39px!important;height:39px!important;min-width:39px!important;border-radius:12px!important}
+  body.dashboard-v7 #home-summary .summary-head h3{font-size:12px!important;font-weight:800!important;color:#202950!important;line-height:1.35!important}
+  body.dashboard-v7 #home-summary .summary-content{font-size:12px!important;line-height:1.5!important;color:#465473!important}
+  body.dashboard-v7 #home-summary .big-metric{font-size:24px!important;font-weight:800!important;color:#181f43!important;line-height:1.3!important}
+  body.dashboard-v7 #home-summary .status-copy{font-size:11px!important;color:#5b6780!important}
+  body.dashboard-v7 #home-summary .summary-widget .mini-pill{font-size:10.5px!important}
+  /* Three-column information grid and extra Fi statistics underneath. */
+  body.dashboard-v7 #right-panel{
+    grid-column:1!important;display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:12px!important;align-items:start!important;min-width:0!important;margin:0!important;
+  }
+  body.dashboard-v7 #right-panel>section{margin:0!important;min-width:0!important}
+  body.dashboard-v7 #right-announcements{grid-column:1!important;grid-row:1!important}
+  body.dashboard-v7 #right-timetable{grid-column:2!important;grid-row:1!important}
+  body.dashboard-v7 #right-calendar-panel{grid-column:3!important;grid-row:1!important}
+  body.dashboard-v7 #right-keberadaan-stats{grid-column:1 / -1!important;grid-row:2!important}
+  body.dashboard-v7 #right-my-roles-panel:not(.hidden){grid-column:1 / -1!important}
+  body.dashboard-v7 .right-card{overflow:hidden!important}
+  body.dashboard-v7 :is(.right-card-body,.schedule-card-list){padding:11px 13px!important;font-size:12px!important;color:var(--best-ink)!important}
+  body.dashboard-v7 .right-card-body :is(strong,b),body.dashboard-v7 .schedule-card-list :is(strong,b){font-weight:750!important;color:#1d2950!important}
+  body.dashboard-v7 :is(.schedule-day-label,.info-pill){color:#465ba1!important;background:#eff1fc!important;border:1px solid #d7def4!important;border-radius:8px!important;font-size:11px!important}
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:9px!important}
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid>div{
+    background:#f8f9fe!important;padding:13px!important;min-height:85px!important;
+    border:1px solid #e1e6f2!important;border-radius:11px!important;
+  }
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid>div{display:flex!important;flex-direction:column!important;gap:6px!important;}
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid span{font-size:11px!important;font-weight:700!important;color:#586585!important}
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid strong{font-size:24px!important;font-weight:800!important;color:#1d2852!important}
+  body.dashboard-v7 #right-panel .kb-dash-open{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;padding:9px 14px!important;margin:10px 12px!important;min-height:37px!important;background:#435aa6!important;color:#fff!important;border:0!important;border-radius:9px!important;font-size:12px!important;font-weight:800!important}
+  /* Category menu pages reuse reference's white surfaces. */
+  body.dashboard-v7 #page-category>.card-coligo{padding:17px 19px!important}
+  body.dashboard-v7 #category-title{font:800 21px/1.3 'Plus Jakarta Sans',sans-serif!important;color:var(--best-ink)!important;letter-spacing:-.035em!important}
+  body.dashboard-v7 #category-desc{font-size:12.5px!important;color:var(--best-muted)!important;line-height:1.7!important}
+  body.dashboard-v7 .section-eyebrow{color:#505da1!important;font-size:10.5px!important;font-weight:800!important}
+  body.dashboard-v7 #page-category .module-card{
+    min-height:110px!important;max-width:100%!important;border:1px solid #dfe5f2!important;
+    border-radius:12px!important;background:#f8f9fe!important;color:#20294f!important;
+    font-size:12px!important;line-height:1.45!important;font-weight:750!important;
+  }
+  body.dashboard-v7 #page-category .module-card:hover:not(:disabled){background:#eef1ff!important;border-color:#acbbed!important}
+  body.dashboard-v7 #page-category .module-icon{background:linear-gradient(135deg,#4559a1,#7385cf)!important}
+  /* Controls and widgets: compact, accessible, high-contrast. */
+  body.dashboard-v7 :is(.field-input,select:not([multiple]),input[type='date'],input[type='search']){
+    min-height:38px!important;border:1px solid #cfd8eb!important;border-radius:9px!important;
+    background:#fff!important;color:#1c2952!important;font-size:12.5px!important;
+  }
+  body.dashboard-v7 :is(.field-label,#profile-modal label){color:#33436b!important;font-size:12px!important;font-weight:700!important}
+  body.dashboard-v7 :is(.right-toggle-btn,.day-btn){
+    min-height:36px!important;border:1px solid #d7def0!important;border-radius:9px!important;
+    background:#fff!important;color:#3a5094!important;font-size:12px!important;font-weight:750!important;
+  }
+  body.dashboard-v7 .day-btn.active{background:#435da6!important;color:#fff!important;border-color:#435da6!important}
+  body.dashboard-v7 :is(.pill,.status-tag){font-size:10.5px!important;font-weight:750!important;border-radius:7px!important}
+  body.dashboard-v7 #profile-save{background:#445ca9!important;color:#fff!important;border:0!important}
+  body.dashboard-v7 #profile-modal .profile-dialog{border-radius:15px!important;max-height:calc(100dvh - 40px);overflow:auto}
+  body.dashboard-v7 #page-scroll .bread-label{color:#6a7490!important;font-size:10.5px!important}
+  body.dashboard-v7 #page-scroll .app-footer{color:#7a869e!important;font-size:10.5px!important}
+  body.dashboard-v7 :is(#kehadiran-workspace,#keberadaan-workspace,#erph-workspace){background:var(--best-bg)!important}
+  body.dashboard-v7 :is(#kehadiran-workspace-frame,#keberadaan-workspace-frame,#erph-workspace-frame){background:var(--best-bg)!important}
+  body.dashboard-v7 :is(#kehadiran-workspace .erph-workspace-toolbar,#keberadaan-workspace .erph-workspace-toolbar){display:none!important}
+  body.dashboard-v7 #erph-workspace .erph-workspace-toolbar{background:#f1f3fd!important;color:#313e81!important;border-bottom-color:#d4dcef!important}
+  body.dashboard-v7 #erph-workspace .erph-workspace-toolbar button{background:#fff!important;color:#354c95!important;border-color:#ccd6ec!important}
+}
+@media (min-width:768px) and (max-width:1230px){
+  body.dashboard-v7 #home-modules{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  body.dashboard-v7 #right-panel{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.dashboard-v7 #right-announcements{grid-column:1!important;grid-row:1!important}
+  body.dashboard-v7 #right-timetable{grid-column:2!important;grid-row:1!important}
+  body.dashboard-v7 #right-calendar-panel{grid-column:1!important;grid-row:2!important}
+  body.dashboard-v7 #right-keberadaan-stats{grid-column:2!important;grid-row:2!important}
+  body.dashboard-v7 #right-panel .kb-dashboard-widget-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media (min-width:768px) and (max-width:980px){
+  body.dashboard-v7 #sidebar-container{width:218px!important;min-width:218px!important}
+  body.dashboard-v7 .bestari-hero{grid-template-columns:minmax(0,1fr)!important}
+  body.dashboard-v7 .bestari-hero .bestari-motif{display:none!important}
+  body.dashboard-v7 #home-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.dashboard-v7 #right-panel{grid-template-columns:minmax(0,1fr)!important}
+  body.dashboard-v7 #right-panel>section{grid-column:1!important;grid-row:auto!important}
+  body.dashboard-v7 #home-modules{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+@media (min-width:768px) and (prefers-reduced-motion:reduce){
+  body.dashboard-v7 .shortcut-card{transition:none!important;transform:none!important}
+}
+
+@media (min-width:768px) and (max-width:1130px){
+  body.dashboard-v7 .bestari-header-search{display:none!important}
+}
+@media (max-width:767px){
+  .bestari-header-search{display:none!important}
+}
+/* Stronger specificity than dashboard's generic input[type=search] style. */
+@media (min-width:768px){
+  body.dashboard-v7 .dashboard-main-header .bestari-header-search input[type="search"]{
+    height:34px!important;min-height:34px!important;padding:0!important;border:0!important;
+    border-radius:0!important;background:transparent!important;box-shadow:none!important;
+    outline:none!important;min-width:0!important;font-size:11.5px!important;color:#25325e!important;
+  }
+}
+
+
+/* ======= SUMBER ASAL: fi-bestari-desktop-v41.css (urutan cascade dikekalkan) ======= */
+/* SeMAKMUR Bestari V4.1 — visual-only desktop adjustments.
+   Keeps established Dashboard/PWA structure and all IDs. */
+@media (min-width:768px) {
+  /* Header: no duplicated avatar next to the time; calendar becomes a real action. */
+  body.dashboard-v7 #mobile-header-avatar { display:none!important; }
+  body.dashboard-v7 .bestari-calendar-trigger {
+    display:inline-grid!important;place-items:center!important;
+    width:36px!important;height:36px!important;min-width:36px!important;
+    border:1px solid #d3ddf4!important;border-radius:10px!important;
+    background:#eef2fd!important;color:#303e87!important;padding:7px!important;
+    cursor:pointer!important;transition:background .16s,border-color .16s!important;
+  }
+  body.dashboard-v7 .bestari-calendar-trigger:hover{background:#e0e8ff!important;border-color:#93a4df!important}
+  body.dashboard-v7 .bestari-calendar-trigger svg{width:20px!important;height:20px!important}
+  body.dashboard-v7 .bestari-calendar-trigger:focus-visible{outline:3px solid #a7b8f5!important;outline-offset:2px!important}
+  body.dashboard-v7 .header-clock {gap:8px!important;}
+  body.dashboard-v7 .header-clock > div {text-align:left!important;}
+  /* Only shortcuts on category pages. Dashboard data and IDs still exist for Fi logic. */
+  body.dashboard-v7 #fi-v7-desktop-content:has(#page-category:not(.hidden)) #dashboard-grid-container {display:none!important}
+  body.dashboard-v7 #fi-v7-desktop-content:has(#page-category:not(.hidden)) #btn-toggle-right {display:none!important}
+  body.dashboard-v7 #fi-v7-desktop-content:has(#page-category:not(.hidden)) #home-quicklinks{margin-bottom:10px!important}
+  /* Daily overview: stronger soft-color surfaces without overwhelming the page. */
+  body.dashboard-v7 #home-summary .summary-widget{border-radius:13px!important;box-shadow:0 3px 9px rgba(36,49,101,.09)!important}
+  body.dashboard-v7 #home-summary .summary-widget:nth-child(4n+1){background:linear-gradient(125deg,#e7f1ff,#f8fbff)!important;border-color:#c7defc!important}
+  body.dashboard-v7 #home-summary .summary-widget:nth-child(4n+2){background:linear-gradient(125deg,#e4f9f1,#f7fefa)!important;border-color:#c1e9d7!important}
+  body.dashboard-v7 #home-summary .summary-widget:nth-child(4n+3){background:linear-gradient(125deg,#fff0df,#fffaf4)!important;border-color:#f5d6b4!important}
+  body.dashboard-v7 #home-summary .summary-widget:nth-child(4n+4){background:linear-gradient(125deg,#f0eaff,#fcfaff)!important;border-color:#dad0f8!important}
+  body.dashboard-v7 #home-summary .summary-content,body.dashboard-v7 #home-summary .status-copy{color:#354064!important}
+  body.dashboard-v7 #home-summary .big-metric{color:#182650!important}
+  /* Give the full-width presence widget an intentional, centered presentation. */
+  body.dashboard-v7 #right-keberadaan-stats{background:linear-gradient(130deg,#fff,#f9faff)!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid{gap:12px!important;padding:3px 14px 10px!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div{
+    display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;
+    min-height:108px!important;padding:14px 9px!important;border-radius:14px!important;
+  }
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(1){background:#eaf2ff!important;border-color:#cadbf9!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(2){background:#fff2df!important;border-color:#f4d9b2!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(3){background:#fff0f2!important;border-color:#f3d7dc!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(4){background:#e7f7ee!important;border-color:#c7e8d6!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid span{font-size:12px!important;color:#303d65!important;text-align:center!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid strong{font-size:28px!important;text-align:center!important;line-height:1.2!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(2) strong{color:#9c5e0e!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(3) strong{color:#b83f57!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(4) strong{color:#177455!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dash-caption{text-align:center!important;padding:4px 12px!important;color:#526181!important}
+  /* Larger calendar modal — based on confirmed synced Takwim only. */
+  .bestari-calendar-overlay:not([hidden]){display:flex!important;position:fixed!important;inset:0!important;z-index:9998!important;background:rgba(17,25,58,.65)!important;align-items:center!important;justify-content:center!important;padding:24px!important}
+  .bestari-calendar-window{width:min(730px,calc(100vw - 48px))!important;max-height:calc(100dvh - 48px)!important;overflow:auto!important;background:white!important;border:1px solid #dce4f4!important;border-radius:18px!important;box-shadow:0 24px 76px #101a4699!important;padding:23px!important;color:#1c2751!important}
+  .bestari-calendar-top{display:flex!important;align-items:start!important;justify-content:space-between!important;gap:15px!important}
+  .bestari-cal-eyebrow{font-size:10px!important;letter-spacing:.12em!important;color:#6677a6!important;font-weight:800!important}
+  .bestari-calendar-top h2{font-size:22px!important;font-weight:800!important;color:#202a58!important;margin:2px 0 14px!important}
+  .bestari-calendar-top button{border:1px solid #d6dded!important;border-radius:10px!important;width:36px!important;height:36px!important;font-size:18px!important;background:#f2f5fd!important;color:#263d76!important;cursor:pointer!important}
+  .bestari-calendar-controls{display:flex!important;align-items:center!important;justify-content:center!important;gap:28px!important;margin:5px 0 15px!important}
+  .bestari-calendar-controls strong{font-size:17px!important;min-width:195px!important;text-align:center!important}
+  .bestari-calendar-controls button{width:37px!important;height:37px!important;border:1px solid #d9e1f0!important;background:#eff3fd!important;color:#304891!important;border-radius:9px!important;font-size:25px!important;cursor:pointer!important}
+  .bestari-calendar-weekdays,.bestari-calendar-days{display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;gap:6px!important}
+  .bestari-calendar-weekdays span{text-align:center!important;font-size:11px!important;font-weight:800!important;color:#5b678c!important;padding:7px 0!important}
+  .bestari-calendar-days .cal-day,.bestari-calendar-days .blank{display:grid!important;place-items:center!important;min-height:50px!important;position:relative!important;font-size:13px!important;border-radius:9px!important;color:#243358!important;background:#f7f9fe!important;border:1px solid #edf1fa!important}
+  .bestari-calendar-days .cal-day.today{border-color:#8597dc!important;color:#223c89!important;background:#e6edff!important;font-weight:800!important}
+  .bestari-calendar-days .cal-day i{position:absolute!important;bottom:5px!important;width:5px!important;height:5px!important;border-radius:50%!important;background:#a279e1!important}
+  .bestari-calendar-subtitle{margin:19px 0 9px!important;font-size:14px!important;font-weight:800!important}
+  .bestari-calendar-events{display:grid!important;gap:7px!important}
+  .bestari-calendar-events .cal-event{display:flex!important;justify-content:space-between!important;gap:12px!important;background:#f2f5fb!important;padding:10px 13px!important;border-radius:9px!important;font-size:12px!important}
+  .bestari-calendar-events .cal-event span{color:#647393!important}
+  .bestari-calendar-events .cal-empty{color:#647393!important;font-size:12px!important;margin:5px 0 0!important}
+}
+@media(max-width:767px){.bestari-calendar-overlay{display:none!important}}
+
+
+/* ======= SUMBER ASAL: fi-bestari-desktop-v42.css (urutan cascade dikekalkan) ======= */
+/* SeMAKMUR Bestari V4.2 — Dashboard desktop visual refinements.
+   Source: V4.1. Desktop only. IDs and Firebase logic retained. */
+@media(min-width:768px){
+  body.dashboard-v7 #bestari-hero{display:none!important;}
+  body.dashboard-v7 .dashboard-section-bar{
+    display:flex!important;align-items:center!important;justify-content:flex-start!important;
+    min-height:23px!important;margin:0 0 10px!important;padding:0 2px!important;
+    border:0!important;background:transparent!important;box-shadow:none!important;
+  }
+  body.dashboard-v7 .dashboard-section-bar .bread-label{
+    display:flex!important;align-items:center!important;gap:8px!important;
+    color:#69779b!important;font:700 11.5px/1.4 'Plus Jakarta Sans',sans-serif!important;
+  }
+  body.dashboard-v7 .dashboard-section-bar #header-status{color:#3b619c!important}
+  body.dashboard-v7 #btn-toggle-right{display:none!important}
+  body.dashboard-v7 #home-quicklinks{margin:0 0 15px!important}
+  body.dashboard-v7 #home-quicklinks .quicklinks-topline{padding-bottom:10px!important}
+  /* Three-stop vivid gradients, distinct silhouettes, subtle lifted appearance. */
+  body.dashboard-v7 #home-modules .shortcut-card{
+    min-height:139px!important;border:1px solid rgba(255,255,255,.34)!important;
+    border-radius:15px!important;overflow:hidden!important;isolation:isolate!important;
+    box-shadow:0 7px 0 -3px rgba(22,35,91,.23),0 9px 18px rgba(36,48,118,.23)!important;
+    transition:transform .18s ease,box-shadow .18s ease!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-card::before{
+    content:""!important;position:absolute!important;pointer-events:none!important;
+    width:110px!important;height:110px!important;border-radius:50%!important;
+    top:-54px!important;right:-40px!important;
+    background:rgba(255,255,255,.11)!important;box-shadow:0 0 0 27px rgba(255,255,255,.055)!important;
+    z-index:0!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-card>*{position:relative!important;z-index:1!important}
+  body.dashboard-v7 #home-modules .shortcut-card:hover:not(:disabled){
+    transform:translateY(-4px)!important;
+    box-shadow:0 7px 0 -3px rgba(22,35,91,.20),0 16px 25px rgba(36,48,118,.27)!important;
+  }
+  body.dashboard-v7 #home-modules .shortcut-tone-0{background:linear-gradient(132deg,#536bcc 0%,#384aa0 53%,#273973 100%)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-1{background:linear-gradient(132deg,#55b6e4 0%,#338ec3 54%,#24689d 100%)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-2{background:linear-gradient(132deg,#7899f5 0%,#4f72d3 52%,#374fa5 100%)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-3{background:linear-gradient(132deg,#a18af1 0%,#7568c9 52%,#51499e 100%)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-4{background:linear-gradient(132deg,#65c8d8 0%,#3e9fb3 53%,#2a768b 100%)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-5{background:linear-gradient(132deg,#a9bcf8 0%,#8399dc 52%,#566db6 100%)!important}
+  body.dashboard-v7 #home-modules .shortcut-tone-6{background:linear-gradient(132deg,#77d1dc 0%,#3fa7bf 52%,#277c9f 100%)!important}
+  body.dashboard-v7 #home-modules .shortcut-title{text-shadow:0 1px 2px rgba(10,19,57,.18)!important}
+  body.dashboard-v7 #home-modules .shortcut-description{color:#fff!important;font-weight:600!important}
+  body.dashboard-v7 #home-modules .shortcut-icon{background:rgba(255,255,255,.19)!important;border-color:rgba(255,255,255,.50)!important}
+  body.dashboard-v7 #home-modules .shortcut-arrow{background:#f6f8ff!important;color:#263b8a!important}
+  body.dashboard-v7 #right-keberadaan-stats{background:linear-gradient(145deg,#fff 0%,#f5f8ff 100%)!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid{gap:13px!important;padding:10px 15px 13px!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div{
+    min-height:135px!important;display:flex!important;flex-direction:column!important;
+    align-items:center!important;justify-content:center!important;gap:5px!important;
+    border-radius:14px!important;border:1px solid rgba(135,157,202,.35)!important;
+    box-shadow:inset 0 1px rgba(255,255,255,.9),0 5px 11px rgba(45,55,109,.07)!important;
+    text-align:center!important;padding:14px 8px!important;
+  }
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(1){background:linear-gradient(145deg,#d4e3ff,#f0f6ff)!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(2){background:linear-gradient(145deg,#ffe1b2,#fff5e2)!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(3){background:linear-gradient(145deg,#ffd9e4,#fff1f5)!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(4){background:linear-gradient(145deg,#c9f1e0,#edfdf5)!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-stat-widget-icon{font-size:21px!important;line-height:1!important;margin-bottom:3px!important;color:#344f9b!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(2) .kb-stat-widget-icon{color:#b06a15!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(3) .kb-stat-widget-icon{color:#c54d72!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div:nth-child(4) .kb-stat-widget-icon{color:#168262!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid span{font-size:11.5px!important;color:#28395b!important;font-weight:750!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid strong{font-size:29px!important;line-height:1.1!important;font-weight:800!important;margin-top:2px!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dash-caption{font-size:11px!important;line-height:1.5!important}
+  body.dashboard-v7 #right-keberadaan-stats .kb-dash-open{margin-top:0!important}
+}
+@media(min-width:768px) and (max-width:1240px){
+ body.dashboard-v7 #home-modules .shortcut-card{min-height:135px!important}
+ body.dashboard-v7 #right-keberadaan-stats .kb-dashboard-widget-grid>div{min-height:113px!important}
+}
+@media(min-width:768px) and (prefers-reduced-motion:reduce){
+ body.dashboard-v7 #home-modules .shortcut-card{transition:none!important}
+}
+
+
+/* ======= SUMBER ASAL: fi-bestari-desktop-v43.css (urutan cascade dikekalkan) ======= */
+/* SeMAKMUR Bestari Desktop V4.3 — Dua pindaan desktop sahaja.
+   1. Pautan Pantas dipaparkan sebagai kad terapung individu, tanpa panel induk.
+   2. Ikon kalendar di header sama ringkas seperti loceng, tanpa latar/border.
+   CSS ini sengaja TERHAD kepada desktop. PWA & logik fungsi tidak diubah. */
+@media (min-width: 768px) {
+  /* Pautan Pantas — buang bingkai/permukaan panel induk pada SEMUA menu.
+     Grid #home-modules kekal: 7 lajur apabila ruang mencukupi,
+     bilangan/urutan pautan mengikut renderShortcuts() asal. */
+  body.dashboard-v7 #page-scroll #home-quicklinks.quicklinks-shell {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 15px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    background-image: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    overflow: visible !important;
+  }
+  body.dashboard-v7 #page-scroll #home-quicklinks::before,
+  body.dashboard-v7 #page-scroll #home-quicklinks::after {
+    content: none !important;
+    display: none !important;
+  }
+  body.dashboard-v7 #page-scroll #home-quicklinks .quicklinks-topline {
+    display: flex !important;
+    align-items: center !important;
+    background: transparent !important;
+    background-image: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 1px 10px !important;
+    margin: 0 !important;
+    min-height: 34px !important;
+  }
+  body.dashboard-v7 #page-scroll #home-quicklinks #home-modules {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 3px 2px 12px !important; /* ruang untuk bayang kad */
+    overflow: visible !important;
+    gap: 11px !important;
+    align-items: stretch !important;
+  }
+  body.dashboard-v7 #page-scroll #home-quicklinks #home-modules .shortcut-card {
+    /* Warna gradient tiga tona V4.2 dan grid ikon/teks/anak panah dikekalkan. */
+    box-shadow: 0 9px 18px rgba(27,39,97,.24),
+                0 2px 5px rgba(20,29,80,.13) !important;
+    border: 1px solid rgba(255,255,255,.38) !important;
+    border-radius: 14px !important;
+    will-change: auto !important;
+  }
+  body.dashboard-v7 #page-scroll #home-quicklinks #home-modules .shortcut-card:hover:not(:disabled) {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 15px 26px rgba(27,39,97,.27),
+                0 3px 8px rgba(20,29,80,.15) !important;
+  }
+  /* Header calendar — rupa sekeluarga dengan butang loceng. */
+  body.dashboard-v7 .dashboard-main-header #bestari-calendar-trigger.bestari-calendar-trigger {
+    display: inline-grid !important;
+    place-items: center !important;
+    flex: 0 0 38px !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    margin: 0 !important;
+    padding: 7px !important;
+    border: none !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    color: #fff !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+    transition: color .16s ease, opacity .16s ease !important;
+  }
+  body.dashboard-v7 .dashboard-main-header #bestari-calendar-trigger.bestari-calendar-trigger:hover {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #f0f4ff !important;
+    opacity: .84 !important;
+  }
+  body.dashboard-v7 .dashboard-main-header #bestari-calendar-trigger.bestari-calendar-trigger svg {
+    display:block !important;
+    width: 23px !important;
+    height: 23px !important;
+    color: currentColor !important;
+    stroke: currentColor !important;
+  }
+  body.dashboard-v7 .dashboard-main-header #bestari-calendar-trigger:focus-visible {
+    outline: 2px solid #e8ecff !important;
+    outline-offset: 2px !important;
+  }
+}
+@media (min-width: 768px) and (prefers-reduced-motion: reduce) {
+  body.dashboard-v7 #page-scroll #home-quicklinks #home-modules .shortcut-card,
+  body.dashboard-v7 .dashboard-main-header #bestari-calendar-trigger {
+    transition: none !important;
+  }
+}
+
+
+/* ======= SUMBER ASAL: Fi-DashboardGuru.html (fi-panel style akhir) (urutan cascade dikekalkan) ======= */
+.fi-panel{position:fixed;right:14px;bottom:16px;width:min(410px,calc(100vw - 28px));background:#fff;border:1px solid #d5e6f0;border-radius:15px;box-shadow:0 10px 40px #1739503b;z-index:105;padding:13px;font-family:'Plus Jakarta Sans',sans-serif}
+    .fi-panel[hidden]{display:none!important}.fi-panel-inner{display:grid;gap:10px}.fi-panel-text{display:grid;gap:4px}.fi-panel-text strong{font-size:13px;color:#143e60}.fi-panel-text span{font-size:11px;color:#587a90;line-height:1.6}
+    .fi-panel-actions{display:flex;gap:7px;flex-wrap:wrap}.fi-panel-actions button{border-radius:9px;padding:9px 11px;background:#eaf4fa;border:1px solid #bfdfec;font-size:11px;color:#18587d;font-weight:800}.fi-panel-actions button:first-child{background:#196b8e;color:#fff}
+    .fi-panel-actions button:disabled{opacity:.6;cursor:wait}
+    @media(max-width:767px){.fi-panel{bottom:82px;max-height:34dvh;overflow:auto}}
