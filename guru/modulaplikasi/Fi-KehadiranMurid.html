@@ -1,63 +1,31 @@
-<!doctype html>
-<html lang="ms"><head><script>if(new URLSearchParams(location.search).get("embed")==="1")document.documentElement.classList.add("fi-embedded");</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#17496a"><title>Fi-Smart Kehadiran Murid | SeMAKMUR Fi V8.1</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#244155;background:#f1f6fa;--navy:#174967;--line:#d8e6ed;--muted:#5f7688;--teal:#087c92}
-*{box-sizing:border-box}body{margin:0}button,input{font:inherit}button{cursor:pointer}button:disabled{cursor:not-allowed;opacity:.45}
-.top{background:#fff;border-bottom:1px solid var(--line);padding:17px max(18px,calc((100vw - 1210px)/2));display:flex;align-items:center;justify-content:space-between;gap:10px}
-.top h1{font-size:clamp(17px,2vw,21px);color:var(--navy);margin:0;font-weight:800}.top small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
-.back{color:var(--navy);text-decoration:none;font-weight:700;font-size:12px;padding:8px 0;display:inline-block}
-.wrap{max-width:1210px;margin:auto;padding:12px 18px 95px}.crumb{font-size:12px;color:#627e8c;margin:5px 0 16px}
-.shell{display:grid;grid-template-columns:330px minmax(0,1fr);gap:16px}.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 2px 12px #173e5410;min-width:0}
-.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}.panel h2{font-size:15px;color:var(--navy);margin:0;font-weight:800}.muted{color:var(--muted);font-size:12px;line-height:1.65}
-.date{display:flex;align-items:center;gap:10px;margin:0 0 14px}.date label{font-weight:800;color:#426174;font-size:12px}.date input{margin-left:auto;width:min(205px,68%);border:1px solid var(--line);border-radius:10px;padding:11px;color:#1c4d69;background:#fff}
-.btn{background:#fff;color:#23607e;border:1px solid #bcd4e1;border-radius:10px;padding:9px 13px;font-weight:800;font-size:12px}.btn.primary{color:#fff;background:#176f8c;border-color:#176f8c}
-.notice{padding:11px 12px;background:#e9f6fb;border:1px solid #c8e5ef;border-radius:12px;font-size:12px;color:#215c76;margin:0 0 13px;line-height:1.6}.notice.error{background:#fff0ed;color:#923f39;border-color:#efd2cb}
-.class-list{display:grid;gap:7px}.class{width:100%;display:flex;text-align:left;align-items:center;gap:12px;justify-content:space-between;background:#fff;border:1px solid #e0eaf0;border-radius:11px;padding:12px}.class.selected{border-color:#1f98a4;background:#ebf9fb}.class strong{font-size:12px;color:#24465d}.class small{display:block;color:#718a98;font-size:10px;margin-top:4px}
-.pill{display:inline-block;text-align:right;color:#37617c;background:#ebf2f6;border-radius:50px;padding:6px 9px;font-size:10px;font-weight:800;white-space:nowrap}.pill.done{background:#dcf5e8;color:#13694c}.pill.no-school{background:#f2f3f6;color:#6a7581}
-.empty{padding:27px 14px;border:1px dashed #c9dce7;border-radius:12px;text-align:center;color:#627988;font-size:12px;line-height:1.7}
-.student-list{display:grid;gap:8px;margin-top:12px}.student{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #deeaef;border-radius:11px;font-size:12px}.student input{width:19px;height:19px;accent-color:#bb5045}.student .name{font-weight:800}.student .note{font-size:10px;color:#697f8e;margin-top:3px}.student.missing{border-color:#eeb8b1;background:#fff6f4}
-.metrics{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.metric{background:#f3f8fb;border-radius:10px;padding:10px 15px;color:#385c70;font-size:11px}.metric strong{display:block;color:#1d5979;font-size:20px}
-.search{width:100%;padding:11px;border:1px solid #cbdfe8;border-radius:10px;margin-top:11px;font-size:12px}
-.footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px}.ack{display:flex;align-items:flex-start;gap:8px;font-size:11px;color:#456578;line-height:1.6}.ack input{margin-top:3px}
-@media(max-width:780px){.shell{grid-template-columns:1fr}.top{padding:14px 16px}.wrap{padding:12px 12px 80px}.panel{padding:14px}.class-list{grid-template-columns:repeat(2,minmax(0,1fr))}.class{display:flex;align-items:center}.class .pill{margin-top:0}.crumb{margin-bottom:12px}}@media(max-width:780px){.class-list{grid-template-columns:1fr}.class{min-height:57px}.class strong{font-size:13px}.pill{font-size:11px}}
+<!DOCTYPE html>
 
-/* Fi V2: penambahan minimum; bentuk dan warna asal dikekalkan. */
-.notice[hidden]{display:none}.student[hidden]{display:none}.student input:disabled{opacity:.55}
-.fi-tag{font-size:10px;color:#087c92;border:1px solid #bcdfe7;background:#e9f6fb;border-radius:50px;padding:5px 9px;font-weight:800;white-space:nowrap}
-.fi-status{font-size:11px;color:#5f7688;line-height:1.6;margin:0 0 10px}
-.fi-status.error{color:#923f39}
-.student .student-number{display:inline-grid;place-items:center;background:#edf6fa;color:#3f6c84;min-width:26px;height:26px;border-radius:8px;font-weight:800;font-size:10px}
-.student .name{min-width:0;word-break:break-word}
-.student[hidden]{display:none!important}
-@media(max-width:600px){.metrics{gap:6px}.metric{padding:9px 10px}.metric strong{font-size:17px}}
-</style>
+<html lang="ms"><head><script>if(new URLSearchParams(location.search).get("embed")==="1")document.documentElement.classList.add("fi-embedded");</script><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#17496a" name="theme-color"/><title>Fi-Smart Kehadiran Murid | SeMAKMUR Fi V8.1</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+
+<link href="Fi-KehadiranMurid-Mobile.css?v=4.4.0" rel="stylesheet"/><link href="Fi-KehadiranMurid-Desktop.css?v=4.4.0" rel="stylesheet"/>
 
 
-
-<link rel="stylesheet" href="./fi-kehadiran-ui.css?v=8.1.0">
-<link rel="stylesheet" href="fi-bestari-modules-v4.css?v=4.0.0">
-<link rel="stylesheet" href="fi-bestari-modules-v41.css?v=4.1.0">
 </head>
 <body>
-<header class="top"><button class="fi-v6-top-back" id="fi-v6-top-back" type="button" aria-label="Kembali ke senarai kelas" hidden><span aria-hidden="true">←</span></button><div><h1 id="fi-v6-attendance-header-title">Kehadiran Kelas</h1><small>SeMAKMUR Digital · Hal Ehwal Murid</small></div><span id="account" class="pill">Mengesahkan sesi</span></header>
+<header class="top"><button aria-label="Kembali ke senarai kelas" class="fi-v6-top-back" hidden="" id="fi-v6-top-back" type="button"><span aria-hidden="true">←</span></button><div><h1 id="fi-v6-attendance-header-title">Kehadiran Kelas</h1><small>SeMAKMUR Digital · Hal Ehwal Murid</small></div><span class="pill" id="account">Mengesahkan sesi</span></header>
 <main class="wrap"><div class="crumb"><a class="back" href="../Fi-DashboardGuru.html" target="_top">← Laman Utama</a> / HEM / Smart Kehadiran</div>
-<div class="date"><label for="date">Pilih tarikh</label><input type="date" id="date"></div>
-<div class="fi-attendance-tabs" id="fi-attendance-tabs" hidden role="tablist" aria-label="Bahagian Kehadiran"><button type="button" id="tab-rekod" class="active" role="tab" aria-selected="true">Isi Kehadiran</button><button type="button" id="tab-semakan" role="tab" aria-selected="false">Semakan Kehadiran</button></div>
-<div id="message" class="notice" role="status">Menyambung ke Firebase…</div>
+<div class="date"><label for="date">Pilih tarikh</label><input id="date" type="date"/></div>
+<div aria-label="Bahagian Kehadiran" class="fi-attendance-tabs" hidden="" id="fi-attendance-tabs" role="tablist"><button aria-selected="true" class="active" id="tab-rekod" role="tab" type="button">Isi Kehadiran</button><button aria-selected="false" id="tab-semakan" role="tab" type="button">Semakan Kehadiran</button></div>
+<div class="notice" id="message" role="status">Menyambung ke Firebase…</div>
 <div class="shell" id="fi-rekod-panel">
-  <section class="panel fi-classes-panel"><div class="panel-head"><h2>Rekod Kehadiran Kelas</h2><span id="total" class="pill">—</span></div><input id="class-search" class="search" type="search" placeholder="Cari kelas" aria-label="Cari kelas"><div id="classes" class="class-list"></div></section>
-  <section class="panel fi-details-panel"><div class="panel-head"><h2 id="student-title">Kehadiran Kelas</h2><button id="refresh" class="btn" type="button">Muat Semula</button></div>
-    <div id="details" class="empty">Pilih kelas untuk memaparkan senarai murid.</div>
-  </section>
-</div><section id="fi-semakan-panel" class="panel fi-semakan-panel" hidden style="display:none"><div class="panel-head"><h2>Semakan Kehadiran</h2></div><div id="fi-semakan-content" aria-live="polite" class="empty">Sila log masuk untuk melihat semakan kelas anda.</div></section></main>
-<nav class="fi-v5-attendance-nav" aria-label="Navigasi mobile">
-  <a href="../Fi-DashboardGuru.html" target="_top"><span aria-hidden="true">⌂</span>Utama</a>
-  <a class="active" href="#" aria-current="page"><span aria-hidden="true">▣</span>Kehadiran</a>
-  <a href="../Fi-DashboardGuru.html#lain_lain" target="_top"><span aria-hidden="true">☷</span>Menu</a>
+<section class="panel fi-classes-panel"><div class="panel-head"><h2>Rekod Kehadiran Kelas</h2><span class="pill" id="total">—</span></div><input aria-label="Cari kelas" class="search" id="class-search" placeholder="Cari kelas" type="search"/><div class="class-list" id="classes"></div></section>
+<section class="panel fi-details-panel"><div class="panel-head"><h2 id="student-title">Kehadiran Kelas</h2><button class="btn" id="refresh" type="button">Muat Semula</button></div>
+<div class="empty" id="details">Pilih kelas untuk memaparkan senarai murid.</div>
+</section>
+</div><section class="panel fi-semakan-panel" hidden="" id="fi-semakan-panel" style="display:none"><div class="panel-head"><h2>Semakan Kehadiran</h2></div><div aria-live="polite" class="empty" id="fi-semakan-content">Sila log masuk untuk melihat semakan kelas anda.</div></section></main>
+<nav aria-label="Navigasi mobile" class="fi-v5-attendance-nav">
+<a href="../Fi-DashboardGuru.html" target="_top"><span aria-hidden="true">⌂</span>Utama</a>
+<a aria-current="page" class="active" href="#"><span aria-hidden="true">▣</span>Kehadiran</a>
+<a href="../Fi-DashboardGuru.html#lain_lain" target="_top"><span aria-hidden="true">☷</span>Menu</a>
 </nav>
-<div id="fi-load-overlay" class="fi-load-overlay" role="status" aria-live="polite" hidden><div class="fi-load-card"><div class="fi-load-spin" aria-hidden="true"></div><strong id="fi-load-title">Menyimpan Kehadiran</strong><span id="fi-load-message">Sila tunggu sebentar…</span></div></div>
-<div id="fi-confirm-dialog" class="fi-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="fi-confirm-title" hidden><div class="fi-confirm-card"><div class="fi-confirm-badge" aria-hidden="true">✓</div><h3 id="fi-confirm-title">Kehadiran Berjaya Disimpan</h3><p id="fi-confirm-message">Maklumat kehadiran telah direkodkan.</p><button id="fi-confirm-close" type="button">Selesai</button></div></div>
+<div aria-live="polite" class="fi-load-overlay" hidden="" id="fi-load-overlay" role="status"><div class="fi-load-card"><div aria-hidden="true" class="fi-load-spin"></div><strong id="fi-load-title">Menyimpan Kehadiran</strong><span id="fi-load-message">Sila tunggu sebentar…</span></div></div>
+<div aria-labelledby="fi-confirm-title" aria-modal="true" class="fi-confirm-dialog" hidden="" id="fi-confirm-dialog" role="dialog"><div class="fi-confirm-card"><div aria-hidden="true" class="fi-confirm-badge">✓</div><h3 id="fi-confirm-title">Kehadiran Berjaya Disimpan</h3><p id="fi-confirm-message">Maklumat kehadiran telah direkodkan.</p><button id="fi-confirm-close" type="button">Selesai</button></div></div>
 <script src="../../firebase-pilot-config.js"></script>
-<script type="module" src="./fi-kehadiran.js?v=8.1.0"></script>
+<script src="Fi-KehadiranMurid.js?v=4.4.0" type="module"></script>
 </body></html>
