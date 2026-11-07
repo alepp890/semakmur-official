@@ -29,7 +29,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     eprogram:{title:'e-Program',icon:'fa-calendar-check',tone:'green',url:null},
     eopr:{title:'e-OPR',icon:'fa-file-lines',tone:'purple',url:null},
     bertugas:{title:'Laporan Guru Bertugas',icon:'fa-clipboard-check',tone:'orange',url:null},
-    relief:{title:'e-Relief',icon:'fa-person-circle-check',tone:'green',url:null},
+    relief:{title:'e-Relief',icon:'fa-person-circle-check',tone:'green',url:'modulaplikasi/Fi-KeberadaanGuru.html?tab=relief'},
     epbd:{title:'e-PBD',icon:'fa-chart-column',tone:'blue',url:null},
     tmk:{title:'PdPc Modul TMK',icon:'fa-computer',tone:'purple',url:null},
     kehadiran:{title:'Kehadiran Murid',icon:'fa-user-check',tone:'green',url:'modulaplikasi/Fi-KehadiranMurid.html'},
@@ -257,14 +257,14 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       $('fi-keberadaan-loading').hidden=true;
     }else{
       kbWorkspaceStatus('Membuka e-Keberadaan…','Menyediakan borang dan status akaun MOE.');
-      if(!frame.getAttribute('src'))frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=4.5.0');
+      if(!frame.getAttribute('src'))frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=5.0.0');
     }
     fiV6Header();
   }
   function retryKeberadaanWorkspace(){
     const frame=$('keberadaan-workspace-frame');if(!frame)return;
     frame.dataset.fiReady='0';kbWorkspaceStatus('Memuat semula e-Keberadaan…','Menjalankan semula semakan Firebase.');
-    frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=4.5.0&retry='+Date.now());
+    frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=5.0.0&retry='+Date.now());
   }
   function closeKeberadaanWorkspace(keepHash){
     const pane=$('keberadaan-workspace');if(!pane||pane.hidden)return;
@@ -277,7 +277,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   async function openModule(id){const m=MODULES[id];if(!m)return;
     // Kehadiran dibuka serta-merta. Jangan tunggu ensureOfficial() sebelum memaparkan ruang.
     if(id==='kehadiran'){openKehadiranWorkspace();return;}
-    if(id==='keberadaan'){openKeberadaanWorkspace();return;}
+    if(id==='keberadaan'||id==='relief'){openKeberadaanWorkspace();if(id==='relief'){const frame=$('keberadaan-workspace-frame');if(frame){frame.addEventListener('load',()=>frame.contentWindow?.postMessage({type:'semakmur-fi-kb-show-relief'},location.origin),{once:true});setTimeout(()=>frame.contentWindow?.postMessage({type:'semakmur-fi-kb-show-relief'},location.origin),700);}}return;}
     if(!await window.FiDashboard?.ensureOfficial()){showInfo('Modul ini masih menggunakan sistem lama dan belum dipindahkan ke Fi.');return;}
     if(!dashboardAuthenticated){showInfo('Akses sedang disahkan. Sila cuba sebentar lagi.');return;}
     if(id==='jadual'&&!bolehUrusJadual()){showInfo('Akses modul ini terhad kepada pentadbir dan penyelaras jadual waktu.');return;}
@@ -985,13 +985,13 @@ const docRequired=r=>['CRK','CTR'].includes(r.finalType||r.type)||(r.type==='RAS
 const completed=r=>{
  if(r.gpkStatus==='ditolak')return true;
  if(docRequired(r)&&!r.docPath&&!r.docName)return false;
- if(['CRK','CTR'].includes(r.type)||['CRK','CTR'].includes(r.finalType||''))return r.relief==='sah'&&r.docReviewed===true;
+ if(r.lifecycle==='DIBATALKAN')return true; if(['CRK','CTR'].includes(r.type)||['CRK','CTR'].includes(r.finalType||''))return r.docReviewed===true;
  if(r.type==='RASMI'&&r.scope==='LUAR')return r.relief==='sah';
  if(r.type==='RASMI'&&r.scope==='DALAM'||r.type==='MC')return r.gpkStatus!=='menunggu'&&r.gpkStatus!=='';
  if(r.type==='KECEMASAN')return r.gpkStatus!=='menunggu'&&(r.task==='KELUAR'||Boolean(r.finalType))&&!['tanpa','sementara'].includes(r.relief);
  return false;
 };
-const pending=r=>!completed(r)||['tanpa','sementara'].includes(r.relief);
+const pending=r=>r.lifecycle!=='DIBATALKAN'&&!completed(r);
 let stop=null,authApp=null;
 let initTries=0;
 function clear(){['kb-dash-total','kb-dash-pending','kb-dash-docs','kb-dash-relief'].forEach(k=>set(k,'—'));}
@@ -1012,7 +1012,7 @@ async function init(){
     const rows=snap.docs.map(d=>d.data()).filter(d=>d.testMode===isTest);
     set('kb-dash-total',rows.length);set('kb-dash-pending',rows.filter(pending).length);
     set('kb-dash-docs',rows.filter(r=>(['CRK','CTR'].includes(r.finalType||r.type)||r.type==='RASMI'&&r.scope==='LUAR')&&!r.docPath&&!r.docName).length);
-    set('kb-dash-relief',rows.filter(r=>['sah','tanpa','sementara'].includes(r.relief)).length);
+    set('kb-dash-relief',rows.filter(r=>r.lifecycle!=='DIBATALKAN'&&r.reliefStatus==='DIAGIH').length);
     set('kb-dash-caption',(isTest?'Mod UJIAN · ':'')+'Rekod saya (maksimum 100) · data Firestore');
    },e=>{clear();set('kb-dash-caption','Statistik belum dapat dibaca ('+(e.code||'sambungan')+').');});
   }catch(e){clear();set('kb-dash-caption','Statistik belum tersedia.');}
