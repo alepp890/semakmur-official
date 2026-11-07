@@ -354,3 +354,10 @@
   #tabs [data-tab]{position:relative!important;}
   .formbar{padding-bottom:calc(26px + env(safe-area-inset-bottom))!important;}
 }
+
+/* SeMAKMUR Fi V5.0 — e-Relief Automatik: tambahan sahaja, reka bentuk Bestari dikekalkan */
+.relief-box .compact-list{margin-top:10px}.relief-box .item{padding:11px;display:grid;gap:7px}
+.relief-box .detail-line{line-height:1.5;white-space:normal;overflow-wrap:anywhere}
+.relief-box .actions{margin-top:8px;gap:7px}.relief-box .actions .mini{min-height:36px}
+#my-relief-box{margin-top:16px}#relief-alert-count{display:inline-flex;justify-content:center;min-width:19px}
+#relief-box .pill{white-space:normal;text-align:center}
