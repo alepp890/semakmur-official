@@ -257,14 +257,14 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       $('fi-keberadaan-loading').hidden=true;
     }else{
       kbWorkspaceStatus('Membuka e-Keberadaan…','Menyediakan borang dan status akaun MOE.');
-      if(!frame.getAttribute('src'))frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=6.7.0');
+      if(!frame.getAttribute('src'))frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=4.5.0');
     }
     fiV6Header();
   }
   function retryKeberadaanWorkspace(){
     const frame=$('keberadaan-workspace-frame');if(!frame)return;
     frame.dataset.fiReady='0';kbWorkspaceStatus('Memuat semula e-Keberadaan…','Menjalankan semula semakan Firebase.');
-    frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=6.7.0&retry='+Date.now());
+    frame.setAttribute('src','modulaplikasi/Fi-KeberadaanGuru.html?embed=1&v=4.5.0&retry='+Date.now());
   }
   function closeKeberadaanWorkspace(keepHash){
     const pane=$('keberadaan-workspace');if(!pane||pane.hidden)return;
@@ -468,6 +468,20 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       `<div class="fi-v6-no-data">${!DAYS.includes(day)?'Tiada jadual pada hari minggu.':'Tiada jadual waktu tersedia untuk hari ini.'}</div>`;
     if(fiV6ScheduleOpen)fiV6RenderSchedule();
   }
+  // Ringkasan ketiadaan disediakan oleh FiKRSyncKetiadaanHariIni, bukan senarai cuti mentah.
+  // Rekod mentah MC, alasan kesihatan dan dokumen tidak dihantar ke Dashboard umum.
+  window.fiApplyKetiadaanHariIni=function(data){
+    const host=$('fi-v45-absence-list'),note=$('fi-v45-absence-note');
+    if(!host)return;
+    if(!data){host.innerHTML='<div class="fi-v6-no-data">Maklumat keberadaan belum diselaraskan.</div>';return;}
+    const names={CRK:'CRK',CTR:'CTR',URUSAN_RASMI:'Urusan Rasmi',CUTI_ATAU_URUSAN:'Cuti / Urusan'};
+    const items=Array.isArray(data.items)?data.items:[];
+    if(note)note.textContent='Rekod dengan sokongan atau tindakan relief · kemas kini berkala';
+    host.innerHTML=items.length?items.map(x=>
+      '<div class="fi-v45-absence-row"><span class="fi-v45-absence-icon"><i class="fa-solid fa-user-clock" aria-hidden="true"></i></span>'+
+      '<span class="fi-v45-absence-details"><strong>'+escapeHtml(x.name||'Guru')+'</strong><small>'+escapeHtml(names[x.category]||'Keberadaan')+' · '+escapeHtml(x.period||'')+'</small></span></div>'
+    ).join(''):'<div class="fi-v6-no-data">Tiada rekod ketiadaan yang telah disahkan untuk hari ini.</div>';
+  };
   function applySummary(){
     renderShortcuts();
     $('home-summary').innerHTML=summaryWidget('blue','Kelas Sekarang',waktuKiniDanSeterusnya(),'calendar')+
@@ -885,7 +899,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
 
 
 const $=id=>document.getElementById(id),norm=s=>String(s||'').trim().toLowerCase();
-let auth=null,db=null,user=null,stop=null,schoolStop=null,schoolDate=null,loaded=false,initial=false;
+let auth=null,db=null,user=null,stop=null,schoolStop=null,absenceStop=null,schoolDate=null,loaded=false,initial=false;
 function note(t,m){
  $('fi-panel').hidden=false;$('fi-panel-title').textContent=t;$('fi-panel-message').textContent=m;
  $('fi-login-button').hidden=false;$('fi-refresh-button').hidden=true;$('fi-read-button').hidden=true;
@@ -920,12 +934,16 @@ function watchSchool(){
  if(!user||!db)return;
  const date=dateMY();if(schoolStop&&schoolDate===date)return;
  if(schoolStop)schoolStop();schoolDate=date;
+ if(absenceStop)absenceStop();
+ absenceStop=onSnapshot(doc(db,'semakmur_fi_keberadaan_hari_ini',date),snap=>{
+   window.fiApplyKetiadaanHariIni?.(snap.exists()?snap.data():null);
+ },error=>{console.warn('Ringkasan keberadaan belum tersedia:',error.code||error.message);window.fiApplyKetiadaanHariIni?.(null);});
  schoolStop=onSnapshot(doc(db,'semakmur_fi_ringkasan_sekolah',date),snap=>{
    window.fiApplySchoolSummary?.(snap.exists()?snap.data():null);
  },error=>{console.warn('Ringkasan Kehadiran belum tersedia:',error.code||error.message);window.fiApplySchoolSummary?.(null);});
 }
 setInterval(()=>{if(user&&schoolDate!==dateMY())watchSchool();},60000);
-async function logout(){if(stop)stop();if(schoolStop)schoolStop();stop=schoolStop=null;if(auth)await signOut(auth);user=null;window.FiAuthenticatedUser=null;location.replace('../Fi-LoginSession.html');}
+async function logout(){if(stop)stop();if(schoolStop)schoolStop();if(absenceStop)absenceStop();stop=schoolStop=absenceStop=null;if(auth)await signOut(auth);user=null;window.FiAuthenticatedUser=null;location.replace('../Fi-LoginSession.html');}
 function login(){location.replace('../Fi-LoginSession.html');}
 window.FiDashboard={
  load:async()=>{if(!auth)throw new Error('Firebase belum dimulakan.');await auth.authStateReady();if(!auth.currentUser){login();return;}user=auth.currentUser;window.FiAuthenticatedUser={uid:user.uid,email:user.email};if(!stop)watch();},
@@ -942,7 +960,7 @@ try{
  const app=initializeApp(config,'semakmur-fi-dashboard');auth=getAuth(app);db=getFirestore(app);
  window.fiBridgeResolve?.(window.FiDashboard);
  onAuthStateChanged(auth,u=>{
-   if(!u){if(stop)stop();stop=null;window.FiAuthenticatedUser=null;login();return;}
+   if(!u){if(stop)stop();if(absenceStop)absenceStop();stop=absenceStop=null;window.FiAuthenticatedUser=null;login();return;}
    if(u.uid!==user?.uid||!stop){user=u;window.FiAuthenticatedUser={uid:u.uid,email:u.email};watch();}
  },fail);
 }catch(e){fail(e);window.fiBridgeReject?.(e);}

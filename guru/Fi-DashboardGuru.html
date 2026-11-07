@@ -18,7 +18,7 @@
 <!-- FontAwesome Icons -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 <!-- Styles dashboard dimuatkan selepas gaya asas untuk keutamaan CSS V3. -->
-<link href="Fi-DashboardGuru-Mobile.css?v=4.4.0" rel="stylesheet"/>
+<link href="Fi-DashboardGuru-Mobile.css?v=4.5.0" rel="stylesheet"/>
 
 
 
@@ -27,7 +27,7 @@
 
 
 <!-- Tema SeMAKMUR Clean Teal V3 — Desktop sahaja; semua fungsi Fi kekal. -->
-<link href="Fi-DashboardGuru-Desktop.css?v=4.4.0" rel="stylesheet"/>
+<link href="Fi-DashboardGuru-Desktop.css?v=4.5.0" rel="stylesheet"/>
 
 
 <!-- Bestari V4.3 — floating Pautan Pantas desktop + kalendar tanpa latar. -->
@@ -122,7 +122,7 @@
 </section>
 <!-- V6.5: e-Keberadaan dalam ruang Dashboard Fi, tanpa halaman baharu. -->
 <section aria-label="Ruang kerja e-Keberadaan" class="erph-workspace" hidden="" id="keberadaan-workspace">
-<div class="erph-workspace-toolbar">
+<div class="erph-workspace-toolbar" id="kb-extra-toolbar">
 <button aria-label="Kembali ke Dashboard Guru" onclick="closeKeberadaanWorkspace()" type="button">← Kembali</button>
 <strong>Smart Keberadaan</strong>
 <span class="erph-workspace-subtitle">SeMAKMUR</span>
@@ -180,6 +180,11 @@
 <section aria-labelledby="fi-v6-schedule-title" class="fi-v6-home-section fi-v6-schedule-summary">
 <div class="fi-v6-section-line"><h2 id="fi-v6-schedule-title"><i class="fa-solid fa-calendar-check"></i> Jadual Waktu Hari Ini</h2><button class="fi-v6-view-link" onclick="fiV6OpenSchedule()" type="button">Lihat Penuh <i class="fa-solid fa-arrow-right"></i></button></div>
 <div class="fi-v6-schedule-cards" id="fi-v6-home-schedule-list"><div class="fi-v6-mini-placeholder">Menyediakan jadual…</div></div>
+</section>
+<section aria-labelledby="fi-v45-absence-title" class="fi-v6-home-section fi-v45-absence-section">
+  <div class="fi-v6-section-line"><h2 id="fi-v45-absence-title"><i class="fa-solid fa-person-circle-minus" aria-hidden="true"></i> Keberadaan Guru Hari Ini</h2></div>
+  <p id="fi-v45-absence-note" class="fi-v45-absence-note">Rekod yang telah disokong atau memerlukan tindakan relief</p>
+  <div id="fi-v45-absence-list" class="fi-v45-absence-list"><div class="fi-v6-no-data">Menunggu penyegerakan data Keberadaan…</div></div>
 </section>
 </section>
 <!-- Jadual PWA ialah skrin tersendiri; anak panah kembali berada di header tetap. -->
@@ -294,5 +299,5 @@
 
 
 
-<script defer="" src="Fi-DashboardGuru.js?v=4.4.0"></script></body>
+<script defer="" src="Fi-DashboardGuru.js?v=4.5.0"></script></body>
 </html>

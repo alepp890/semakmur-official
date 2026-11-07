@@ -2173,3 +2173,17 @@ html body.dashboard-v6{color:var(--v6-ink)!important;background:#e7f2ff!importan
 .fi-v8-hem-metrics>div{background:#eef7ff;border:1px solid #d7e6fb;border-radius:12px;padding:12px;font-size:13px;font-weight:750;color:#254a77;}
 .fi-v8-hem-metrics strong{display:block;color:#103e7a;font-size:24px;margin-top:4px;}
 .fi-v8-hem-metrics small{color:#5f7690;display:block;margin-top:3px;}
+
+/* V4.5 PWA – tambah ringkasan tanpa mengubah kad lama */
+@media(max-width:767px){
+ #kb-extra-toolbar{display:none!important}
+ .fi-v45-absence-section{display:block!important}
+ .fi-v45-absence-note{font-size:12px!important;color:#587089!important;margin:3px 0 10px!important;line-height:1.5!important}
+ .fi-v45-absence-list{display:grid!important;gap:8px!important}
+ .fi-v45-absence-row{display:flex!important;align-items:center!important;gap:11px!important;background:#fff!important;border:1px solid #d9e6f3!important;border-radius:14px!important;padding:12px 13px!important;box-shadow:0 2px 8px #0d376110!important}
+ .fi-v45-absence-icon{width:40px!important;height:40px!important;flex-shrink:0!important;display:grid!important;place-items:center!important;color:#146ca8!important;background:#e7f4ff!important;border-radius:12px!important;font-size:16px!important}
+ .fi-v45-absence-details{min-width:0!important;display:grid!important;gap:3px!important}
+ .fi-v45-absence-details strong{font:800 13.5px/1.4 'Plus Jakarta Sans',sans-serif!important;color:#153d65!important}
+ .fi-v45-absence-details small{font:650 11.5px/1.45 'Plus Jakarta Sans',sans-serif!important;color:#55738d!important}
+}
+@media(min-width:768px){.fi-v45-absence-section{display:none!important}}
