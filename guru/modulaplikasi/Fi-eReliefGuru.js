@@ -2,7 +2,8 @@
 /* SeMAKMUR Smart e-Relief V5.1 — menggunakan Firebase login Fi; tiada data palsu. */
 const $=id=>document.getElementById(id),esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateMY=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
-let user=null,auth=null,db=null,roles=[],stop=null,rows=[],report=null,staff=[],fns=null,day='';
+let user=null,auth=null,db=null,roles=[],stop=null,rows=[],report=null,staff=[],fns=null,day='',schedulePublished=false,staffLoading=false;
+let resolvedExecUrl='';
 function warn(text,error=false){const el=$('message');el.hidden=!text;el.textContent=text||'';el.classList.toggle('error',error);}
 function metrics(data){return data.map(x=>`<div class="metric"><strong>${esc(x[0])}</strong><span>${esc(x[1])}</span></div>`).join('');}
 function badge(status){const s=String(status||''),warning=/TIADA|PERLU/.test(s),critical=/BATAL/.test(s);return `<span class="pill ${critical?'critical':warning?'warn':''}">${esc(s)}</span>`;}
@@ -22,22 +23,38 @@ function listTable(r,own=false){if(!r.length)return '<p class="empty">Tiada tuga
 }
 function draw(){const current=rows.filter(x=>x.status!=='DIBATALKAN'&&x.status!=='DIBATALKAN_GPK');
  $('daily-summary').innerHTML=metrics([[current.length,'Kelas perlukan relief'],[current.filter(x=>x.status==='DIAGIH').length,'Berjaya diagih'],[current.filter(x=>x.status==='TIADA_GANTI').length,'Belum terisi'],[current.filter(x=>x.phase==='BACKUP').length,'Relief Backup']]);
- $('daily-list').innerHTML=listTable(current);
+ $('daily-list').innerHTML=schedulePublished?listTable(current):'<p class="empty">Jadual bagi tarikh ini belum diterbitkan. Agihan rasmi hari persekolahan dibuat selepas 7.25 pagi.</p>';
  const mine=current.filter(x=>x.replacementUid===user?.uid);
- $('my-count').textContent=mine.length+' tugasan';$('my-list').innerHTML=`<div class="table-holder">${listTable(mine,true)}</div>`;
+ $('my-count').textContent=mine.length+' tugasan';$('my-list').innerHTML=schedulePublished?`<div class="table-holder">${listTable(mine,true)}</div>`:'<p class="empty">Jadual hari ini belum diterbitkan.</p>';
 }
-function listenDate(date){day=date;$('view-date').value=date;if(stop)stop();rows=[];draw();
+function listenDate(date){day=date;$('view-date').value=date;if(stop)stop();rows=[];schedulePublished=false;draw();
  stop=fns.onSnapshot(fns.doc(db,'semakmur_fi_relief_public_harian',date),snap=>{
-  rows=snap.exists()?(Array.isArray(snap.data().rows)?snap.data().rows:[]):[];
-  $('published').textContent=snap.exists()&&snap.data().published?'Jadual diterbitkan':'Belum diterbitkan';warn('');draw();
- },e=>{warn('Jadual belum dapat dibaca: '+(e.code||e.message),true);rows=[];draw();});
+  schedulePublished=!!(snap.exists()&&snap.data().published===true);
+  rows=schedulePublished&&Array.isArray(snap.data().rows)?snap.data().rows:[];
+  $('published').textContent=schedulePublished?'Jadual diterbitkan':'Belum diterbitkan';warn('');draw();
+ },e=>{schedulePublished=false;warn('Gagal membaca jadual Firestore: '+(e.code||e.message),true);rows=[];draw();});
 }
 function currentTab(name){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
  document.querySelectorAll('[data-panel]').forEach(el=>el.hidden=el.dataset.panel!==name);}
-function endpoint(){const v=document.querySelector('meta[name="semakmur-fi-document-webapp"]')?.content?.trim();
- if(!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(v||''))throw Error('Masukkan URL Web App /exec dalam Fi-eReliefGuru.html.');return v;}
+// Satu URL Web App untuk kedua-dua modul; cuba rujukan Fi-KeberadaanGuru.html
+// jika meta e-Relief masih berisi placeholder. URL ini BUKAN kunci rahsia.
+async function endpoint(){
+ const valid=v=>/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(v||'');
+ let v=document.querySelector('meta[name="semakmur-fi-document-webapp"]')?.content?.trim()||'';
+ if(valid(v))return v;
+ if(valid(resolvedExecUrl))return resolvedExecUrl;
+ try{
+  const response=await fetch('Fi-KeberadaanGuru.html',{cache:'no-store'});
+  if(response.ok){
+   const html=new DOMParser().parseFromString(await response.text(),'text/html');
+   v=html.querySelector('meta[name="semakmur-fi-document-webapp"]')?.content?.trim()||'';
+   if(valid(v)){resolvedExecUrl=v;return v;}
+  }
+ }catch(_e){}
+ throw Error('URL Web App /exec belum ditetapkan. Isi URL deployment Fi-Sync dalam meta semakmur-fi-document-webapp pada Fi-KeberadaanGuru.html (atau Fi-eReliefGuru.html), kemudian upload semula HTML.');
+}
 async function api(action,rest={}){
- if(!auth?.currentUser)throw Error('Log masuk diperlukan.');const url=endpoint(),idToken=await auth.currentUser.getIdToken(true);
+ if(!auth?.currentUser)throw Error('Log masuk diperlukan.');const url=await endpoint(),idToken=await auth.currentUser.getIdToken(true);
  const nonce=globalThis.crypto?.randomUUID?.()||String(Date.now())+Math.random().toString(36).slice(2);
  return new Promise((resolve,reject)=>{
   const iframe=document.createElement('iframe');iframe.hidden=true;iframe.name='r51-'+nonce;
@@ -53,9 +70,32 @@ async function api(action,rest={}){
 }
 function selectedIds(id){return [...$(id).selectedOptions].map(o=>o.value);}
 function staffOptions(list){return list.map(s=>`<option value="${esc(s.id)}">${esc(s.name)} — ${esc(s.category)}</option>`).join('');}
-async function loadStaff(){warn('Memuatkan senarai guru…');try{const r=await api('relief51Staff');staff=r.staff||[];
- $('absent-staff').innerHTML=staffOptions(staff);$('emergency-staff').innerHTML=staffOptions(staff);warn('');}
- catch(e){warn('Senarai guru gagal: '+e.message,true);}}
+function staffStatus(message,kind=''){
+ const box=document.querySelector('.staff-state'),node=$('sim-staff-status');
+ if(node)node.textContent=message;
+ if(box){box.classList.remove('is-error','is-success');if(kind)box.classList.add('is-'+kind);}
+}
+async function loadStaff(){
+ if(staffLoading)return;
+ staffLoading=true;staff=[];
+ $('generate-simulation').disabled=true;
+ $('reload-sim-staff').disabled=true;
+ $('absent-staff').innerHTML='';$('emergency-staff').innerHTML='';
+ staffStatus('Memuatkan senarai guru daripada Master_Staf…');
+ try{
+  const result=await api('relief51Staff');
+  if(!Array.isArray(result.staff)||!result.staff.length)throw Error('Backend tidak memulangkan senarai guru. Semak FiKRSyncPeranan dan Master_Staf.');
+  staff=result.staff.filter(x=>x&&x.id&&x.name);
+  if(!staff.length)throw Error('Tiada ID_Staf atau Nama_Samaran yang sah.');
+  staff.sort((a,b)=>a.name.localeCompare(b.name,'ms'));
+  $('absent-staff').innerHTML=staffOptions(staff);
+  $('emergency-staff').innerHTML=staffOptions(staff);
+  $('generate-simulation').disabled=false;
+  staffStatus(staff.length+' guru tersedia untuk simulasi. Pilih guru yang tidak hadir.','success');
+ }catch(e){
+  staffStatus('Senarai guru GAGAL dibaca: '+(e.message||e)+'. Semak URL Web App /exec, deployment terkini dan peranan ADMIN_SISTEM.','error');
+ }finally{staffLoading=false;$('reload-sim-staff').disabled=false;}
+}
 function simTable(d){const r=d.rows||[],initial=new Map((d.mainRows||[]).map(x=>[x.slotId+'|'+x.classId,x]));
  const changed=r.filter(x=>{const p=initial.get(x.slotId+'|'+x.classId);return !p||p.replacementId!==x.replacementId;}).length;
  return `<p class="muted-note">Jadual utama: ${esc((d.mainRows||[]).length)} tugasan. ${d.backup?'Relief Backup: '+changed+' tugasan baharu/berubah; yang lain dikekalkan.':''}</p>`;
@@ -107,13 +147,13 @@ async function confirmRelief(id){if(!confirm('Sahkan bahawa anda sudah melaksana
 async function start(){const conf=window.SeMAKMURFirebasePilotConfig;if(!conf?.projectId)throw Error('Konfigurasi Firebase tidak ditemui.');
  const [app,authmod,fire]=await Promise.all([import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')]);
  const fb=app.getApps().find(a=>a.name==='semakmur-fi-dashboard')||app.initializeApp(conf,'semakmur-fi-dashboard');auth=authmod.getAuth(fb);db=fire.getFirestore(fb);fns=fire;
- authmod.onAuthStateChanged(auth,async u=>{if(stop)stop();if(!u){warn('Sila log masuk semula melalui Dashboard Guru.',true);return;}
+ authmod.onAuthStateChanged(auth,async u=>{if(stop)stop();if(!u){user=null;roles=[];warn('Sila log masuk semula melalui Dashboard Guru.',true);return;}
   try{const profile=await fire.getDoc(fire.doc(db,'semakmur_dashboard_fi',u.uid));if(!profile.exists()||profile.data().active!==true||profile.data().ownerEmail?.toLowerCase()!==u.email.toLowerCase())throw Error('Profil guru tidak aktif.');
    user=u;const rt=await fire.getDoc(fire.doc(db,'semakmur_fi_keberadaan_roles',u.uid));roles=rt.exists()&&rt.data().active===true?rt.data().roles||[]:[];
    $('account').textContent=profile.data().profile?.namaSamaran||u.email;
    $('tab-statistik').hidden=!roles.some(r=>['GPK','GB','ADMIN_SISTEM'].includes(r));
    $('tab-makmal').hidden=!roles.includes('ADMIN_SISTEM');
-   if(roles.includes('ADMIN_SISTEM'))loadStaff();listenDate($('view-date').value);
+   if(roles.includes('ADMIN_SISTEM')){loadStaff();}else{staffStatus('Makmal Admin memerlukan peranan ADMIN_SISTEM.');}listenDate($('view-date').value);
   }catch(e){warn('Akses ditolak: '+e.message,true);}
  });
 }
@@ -121,7 +161,7 @@ function init(){if(new URLSearchParams(location.search).get('embed')==='1')docum
  document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>currentTab(el.dataset.tab)));
  $('view-date').addEventListener('change',()=>{if(user)listenDate($('view-date').value)});
  $('refresh').addEventListener('click',()=>{if(user)listenDate($('view-date').value)});
- $('generate-simulation').addEventListener('click',simulate);
+ $('generate-simulation').addEventListener('click',simulate);$('reload-sim-staff').addEventListener('click',loadStaff);
  $('clear-simulation').addEventListener('click',()=>{$('absent-staff').selectedIndex=-1;$('emergency-staff').selectedIndex=-1;$('sim-results').innerHTML='<p class="empty">Pilihan dikosongkan.</p>'});
  $('load-stats').addEventListener('click',stats);$('csv-stats').addEventListener('click',csv);$('print-stats').addEventListener('click',()=>window.print());
  $('daily-list').addEventListener('click',e=>{const b=e.target.closest('button.cancel-slot');if(b)cancelSlot(b.dataset.id)});

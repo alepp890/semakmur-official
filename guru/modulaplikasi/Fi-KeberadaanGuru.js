@@ -6,7 +6,7 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const str=x=>String(x??'').trim(), localDay=()=>{const x=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',day:'2-digit',month:'2-digit',year:'numeric'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));return `${x.year}-${x.month}-${x.day}`};
 const niceDay=x=>/^\d{4}-\d{2}-\d{2}$/.test(x)?x.split('-').reverse().join('/'):str(x);
 const TYPE={CRK:'CRK',CTR:'CTR',MC:'Cuti Sakit (MC)',RASMI:'Urusan Rasmi / Bengkel / LDP / PLC',KECEMASAN:'Kecemasan'};
-let statsLoaded=false,user=null,roles=[],realRoles=[],profile=null,records=[],myRecords=[],reliefQueue=[],myRelief=[],reliefStaff=[],tab='borang',busy=false,db=null,fns=null,unsubs=[];
+let statsLoaded=false,user=null,roles=[],realRoles=[],profile=null,records=[],myRecords=[],reliefQueue=[],myRelief=[],reliefStaff=[],todayReliefRows=null,tab='borang',busy=false,db=null,fns=null,unsubs=[];
 const has=r=>roles.includes(r);
 const isAdmin=()=>roles.some(r=>['ADMIN_SISTEM','GPK','GB'].includes(r));
 const isReliefViewer=()=>roles.some(r=>['ADMIN_SISTEM','GPK','GB','RELIEF_PEMANTAU'].includes(r));
@@ -37,6 +37,18 @@ function needsTeacherAction(r){return r.lifecycle!=='DIBATALKAN'&&r.ownerUid===u
 function reminderOutstanding(r){return r.lifecycle!=='DIBATALKAN'&&needAttention(r);}
 function showMessage(msg='',kind='info'){const a=$('alert');a.hidden=!msg;a.textContent=msg;a.style.background=kind==='error'?'#fff0f1':'#fff5e7';a.style.color=kind==='error'?'#a2454e':'#855815';}
 function toast(msg){$('toast').textContent=msg;$('toast').hidden=false;setTimeout(()=>{$('toast').hidden=true},3600)}
+function showActionError(error){
+ const message=String(error?.message||error||'Tindakan gagal.');
+ if(!$('dialog').hidden){
+  let node=document.getElementById('fi-action-error');
+  if(!node){node=document.createElement('div');node.id='fi-action-error';node.setAttribute('role','alert');
+   node.style.cssText='margin:10px 0;padding:12px 14px;border:1px solid #eab3b3;border-radius:10px;background:#fff0f1;color:#9f2935;font-size:13px;line-height:1.6;white-space:pre-wrap;';
+   $('dialog-content').prepend(node);}
+  node.textContent='Tindakan belum berjaya: '+message;
+  node.scrollIntoView({block:'nearest'});
+ }else showMessage('Tindakan belum berjaya: '+message,'error');
+ console.error('Fi e-Keberadaan:',message);
+}
 function setRoleUI(){
  const personal=roles.filter(r=>['GB','GPK','ADMIN_SISTEM','RELIEF_PEMANTAU'].includes(r)).map(r=>r==='ADMIN_SISTEM'?'Admin Sistem':r==='RELIEF_PEMANTAU'?'Pemantau Relief':r);
  $('role-label').textContent=personal.join(' / ')||'Guru';
@@ -64,7 +76,13 @@ function renderStats(){
   value('kb-stat-total',source.length);
   value('kb-stat-pending',source.filter(needAttention).length);
   value('kb-stat-docs',source.filter(r=>docRequired(r)&&!r.docPath&&!r.docName).length);
-  value('kb-stat-relief',reliefQueue.filter(r=>r.engineVersion===2&&r.status==='DIAGIH').length);
+  // V5.1.1: jangan gabungkan relief V5.0 sejarah dengan jadual rasmi V5.1 hari ini.
+  // Tidak diterbitkan => '—', bukannya 0 atau nombor dari enjin lama.
+  const published=Array.isArray(todayReliefRows);
+  const current=published?todayReliefRows.filter(r=>r.status==='DIAGIH'):[];
+  value('kb-stat-relief',published?(isAdmin()?current.length:current.filter(r=>r.replacementUid===user?.uid).length):'—');
+  const reliefLabel=$('kb-stat-relief')?.previousElementSibling;
+  if(reliefLabel)reliefLabel.textContent=isAdmin()?'Relief Aktif Hari Ini':'Relief Saya Hari Ini';
   const desc=$('kb-stat-scope');
   if(desc)desc.textContent=has('ADMIN_SISTEM')?'Semua rekod rasmi':isAdmin()?'Rekod dibenarkan mengikut peranan':'Permohonan saya';
   const note=$('kb-stat-updated');
@@ -353,9 +371,16 @@ function tellDashboard(type,message=''){
  if(!FI_EMBED||window.parent===window)return;
  try{window.parent.postMessage({type,message},location.origin);}catch(_){}
 }
-function handlers(){document.addEventListener('click',ev=>{const tabBtn=ev.target.closest('#tabs [data-tab]');if(tabBtn){tab=tabBtn.dataset.tab;draw();return;}const card=ev.target.closest('[data-card-id]');if(card){const rec=records.find(r=>r.id===card.dataset.cardId)||myRecords.find(r=>r.id===card.dataset.cardId);if(rec)openRecord(rec,card.dataset.context||'mine');return;}const confirmRel=ev.target.closest('#confirm-relief');if(confirmRel){applyReliefAction(confirmRel.dataset.reliefId,confirmRel.dataset.reliefAction).catch(e=>toast(e.message||String(e)));return;}
+function handlers(){document.addEventListener('click',ev=>{
+ const reliefLink=ev.target.closest('a.fi51-relief-link');
+ if(reliefLink&&FI_EMBED&&window.parent!==window){
+  ev.preventDefault();
+  tellDashboard('semakmur-fi-kb-open-relief');
+  return;
+ }
+ const tabBtn=ev.target.closest('#tabs [data-tab]');if(tabBtn){tab=tabBtn.dataset.tab;draw();return;}const card=ev.target.closest('[data-card-id]');if(card){const rec=records.find(r=>r.id===card.dataset.cardId)||myRecords.find(r=>r.id===card.dataset.cardId);if(rec)openRecord(rec,card.dataset.context||'mine');return;}const confirmRel=ev.target.closest('#confirm-relief');if(confirmRel){applyReliefAction(confirmRel.dataset.reliefId,confirmRel.dataset.reliefAction).catch(showActionError);return;}
  const ra=ev.target.closest('[data-relief-action]');if(ra){const r=reliefQueue.find(x=>x.id===ra.dataset.reliefId);if(r)confirmReliefAction(r,ra.dataset.reliefAction);return;}
- const x=ev.target.closest('[data-do]');if(x){const r=records.find(r=>r.id===x.dataset.id)||myRecords.find(r=>r.id===x.dataset.id);if(r)confirmAction(r,x.dataset.do);return;}const o=ev.target.closest('[data-open-doc]');if(o){showDocument(o.dataset.openDoc).catch(e=>toast(e.message||String(e)));return;}if(ev.target.id==='dialog-close'||ev.target.id==='cancel-action'){closeDialog();return;}const c=ev.target.closest('#confirm-action');if(c){applyAction(c.dataset.id,c.dataset.action).catch(e=>toast(e.message||String(e)));return;}});
+ const x=ev.target.closest('[data-do]');if(x){const r=records.find(r=>r.id===x.dataset.id)||myRecords.find(r=>r.id===x.dataset.id);if(r)confirmAction(r,x.dataset.do);return;}const o=ev.target.closest('[data-open-doc]');if(o){showDocument(o.dataset.openDoc).catch(e=>toast(e.message||String(e)));return;}if(ev.target.id==='dialog-close'||ev.target.id==='cancel-action'){closeDialog();return;}const c=ev.target.closest('#confirm-action');if(c){applyAction(c.dataset.id,c.dataset.action).catch(showActionError);return;}});
  $('document').addEventListener('change',()=>{const file=$('document').files[0];try{if(file)validateFile(file);$('document-status').textContent=file?('Sedia dimuat naik: '+file.name):'Tiada dokumen dipilih.';}catch(e){$('document').value='';$('document-status').textContent=e.message;}});
  $('apply-form').addEventListener('submit',submit);['type','scope','period','start'].forEach(id=>$(id).addEventListener('change',syncForm));$('list-status-filter').addEventListener('change',e=>{if(tab!=='borang'){listFilterValue[tab]=e.target.value;draw();}});$('dialog').addEventListener('click',e=>{if(e.target===$('dialog'))closeDialog()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('dialog').hidden)closeDialog();});
 
@@ -363,7 +388,7 @@ function handlers(){document.addEventListener('click',ev=>{const tabBtn=ev.targe
 async function init(){handlers();$('start').min=localDay();$('end').min=localDay();$('start').value=localDay();$('end').value=localDay();syncForm();
  try{const cfg=window.SeMAKMURFirebasePilotConfig;if(!cfg?.projectId)throw Error('Konfigurasi Firebase tidak tersedia.');const [app,authlib,dbLib]=await Promise.all([import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')]);
  const fb=app.getApps().find(a=>a.name==='semakmur-fi-dashboard')||app.initializeApp(cfg,'semakmur-fi-dashboard');const auth=authlib.getAuth(fb);db=dbLib.getFirestore(fb);fns={...dbLib};
- authlib.onAuthStateChanged(auth,async u=>{unsubs.forEach(fn=>fn());unsubs=[];user=null;records=[];myRecords=[];myRelief=[];reliefQueue=[];statsLoaded=false;renderStats();if(!u){$('user-label').textContent='Belum log masuk';showMessage('Sila log masuk melalui Fi-LoginSession.html.','error');tellDashboard('semakmur-fi-kb-error','Sesi log masuk tidak tersedia.');return;}try{const staff=await dbLib.getDoc(dbLib.doc(db,'semakmur_dashboard_fi',u.uid));const raw=staff.data();if(!staff.exists()||raw?.active!==true||str(raw.ownerEmail).toLowerCase()!==str(u.email).toLowerCase()||raw.profile?.email?.toLowerCase()!==u.email.toLowerCase())throw Error('Akaun guru tidak sah atau belum aktif.');user={uid:u.uid,email:u.email,name:str(raw.profile?.namaPenuh)||u.displayName||'Guru'};profile=raw;$('user-label').textContent=user.name;
+ authlib.onAuthStateChanged(auth,async u=>{unsubs.forEach(fn=>fn());unsubs=[];user=null;records=[];myRecords=[];myRelief=[];reliefQueue=[];todayReliefRows=null;statsLoaded=false;renderStats();if(!u){$('user-label').textContent='Belum log masuk';showMessage('Sila log masuk melalui Fi-LoginSession.html.','error');tellDashboard('semakmur-fi-kb-error','Sesi log masuk tidak tersedia.');return;}try{const staff=await dbLib.getDoc(dbLib.doc(db,'semakmur_dashboard_fi',u.uid));const raw=staff.data();if(!staff.exists()||raw?.active!==true||str(raw.ownerEmail).toLowerCase()!==str(u.email).toLowerCase()||raw.profile?.email?.toLowerCase()!==u.email.toLowerCase())throw Error('Akaun guru tidak sah atau belum aktif.');user={uid:u.uid,email:u.email,name:str(raw.profile?.namaPenuh)||u.displayName||'Guru'};profile=raw;$('user-label').textContent=user.name;
  try{const roleSnap=await dbLib.getDoc(dbLib.doc(db,'semakmur_fi_keberadaan_roles',u.uid));const roleData=roleSnap.data();realRoles=roleSnap.exists()&&roleData.active===true&&roleData.ownerEmail===u.email?(roleData.roles||[]):[];}catch{realRoles=[];}
  roles=realRoles.filter(r=>['GB','GPK','ADMIN_SISTEM','RELIEF_PEMANTAU'].includes(r));
  $('mode-label').textContent='RASMI';
@@ -382,6 +407,12 @@ async function init(){handlers();$('start').min=localDay();$('end').min=localDay
      unsubs.push(dbLib.onSnapshot(dbLib.query(dbLib.collection(db,'semakmur_fi_relief_harian'),dbLib.orderBy('date','desc'),dbLib.limit(100)),s=>{reliefQueue=s.docs.map(x=>({id:x.id,...x.data()})).filter(r=>r.engineVersion===2);renderReliefQueue();renderStats();},e=>console.warn('Senarai relief belum tersedia:',e.code||e.message)));
    }
  }
+ // Ringkasan relief untuk hari ini perlu menggunakan jadual rasmi V5.1 yang diterbitkan.
+ unsubs.push(dbLib.onSnapshot(dbLib.doc(db,'semakmur_fi_relief_public_harian',localDay()),snap=>{
+   const data=snap.exists()?snap.data():null;
+   todayReliefRows=data?.published===true&&Array.isArray(data.rows)?data.rows:null;
+   renderStats();
+ },e=>{todayReliefRows=null;renderStats();console.warn('Jadual Relief V5.1 belum dapat dibaca:',e.code||e.message)}));
  // Tugasan relief yang ditujukan kepada guru ini, dibaca terus daripada Firestore.
  unsubs.push(dbLib.onSnapshot(dbLib.query(dbLib.collection(db,'semakmur_fi_relief_harian'),dbLib.where('replacementUid','==',u.uid),dbLib.limit(100)),snap=>{
    myRelief=snap.docs.map(x=>({id:x.id,...x.data()})).filter(r=>r.engineVersion===2);renderMyRelief();

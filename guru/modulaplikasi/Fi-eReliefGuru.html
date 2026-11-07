@@ -1,9 +1,9 @@
 <!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="semakmur-fi-document-webapp" content="https://script.google.com/macros/s/AKfycbxAfH81KhITcmO8PokjH1mHkg43pivqfNVQgH-kXBeQI_Spa9POM8MJk6QqFLEfbp7a/exec">
+<meta name="semakmur-fi-document-webapp" content="ISI_URL_WEBAPP_EXEC">
 <title>Smart e-Relief | SeMAKMUR Digital</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="Fi-eReliefGuru-Desktop.css?v=5.1"><link rel="stylesheet" href="Fi-eReliefGuru-Mobile.css?v=5.1">
+<link rel="stylesheet" href="Fi-eReliefGuru-Desktop.css?v=5.1.1"><link rel="stylesheet" href="Fi-eReliefGuru-Mobile.css?v=5.1.1">
 <script src="../../firebase-pilot-config.js"></script></head>
 <body><main class="relief-app" id="app">
 <header class="app-head"><div><small>SeMAKMUR Digital · Kurikulum</small><h1>Smart e-Relief</h1><p>Jadual harian, tugasan sendiri dan analitik sekolah.</p></div><div class="account" id="account">Menyemak akaun MOE…</div></header>
@@ -35,12 +35,13 @@
 <div class="section-head"><h2>Makmal Simulasi Admin</h2><span class="sub">Data ujian terasing</span></div>
 <div class="filters"><label>Tarikh simulasi <input type="date" id="sim-date"></label>
 <label class="toggle"><input id="sim-two" type="checkbox">Uji 2 hari berturut-turut</label></div>
+<div class="staff-state"><div id="sim-staff-status" role="status" aria-live="polite">Menyemak senarai guru aktif…</div><button class="btn muted" id="reload-sim-staff" type="button">Muat Semula Senarai Guru</button></div>
 <div class="two-cols"><div><label for="absent-staff" class="field-label">Guru tidak hadir (boleh pilih ramai)</label><select id="absent-staff" multiple size="11" aria-label="Guru tidak hadir"></select>
 <p class="muted-note">Gunakan Ctrl/Command untuk memilih beberapa guru.</p></div>
 <div><label for="emergency-staff" class="field-label">Guru kecemasan selepas agihan utama (pilihan)</label><select id="emergency-staff" multiple size="11"></select>
 <label class="field-label" for="emergency-from">Mula tidak boleh mengajar</label><input id="emergency-from" type="time" value="09:00"></div></div>
-<div class="filters"><button id="generate-simulation" class="btn" type="button">Jana Relief Ujian</button>
+<div class="filters"><button id="generate-simulation" class="btn" type="button" disabled>Jana Relief Ujian</button>
 <button id="clear-simulation" class="btn muted" type="button">Kosongkan Pilihan</button></div>
 <div id="sim-results"><p class="empty">Pilih guru yang tidak hadir, kemudian jana. Jadual sebenar tidak akan berubah.</p></div>
 <p class="muted-note">Makmal menggunakan fungsi pemilihan guru yang sama seperti agihan 7.25 pagi; hasilnya disimpan dalam koleksi ujian dengan ID Admin.</p></div></section>
-</main><script defer src="Fi-eReliefGuru.js?v=5.1"></script></body></html>
+</main><script defer src="Fi-eReliefGuru.js?v=5.1.1"></script></body></html>
