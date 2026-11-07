@@ -2187,3 +2187,6 @@ html body.dashboard-v6{color:var(--v6-ink)!important;background:#e7f2ff!importan
  .fi-v45-absence-details small{font:650 11.5px/1.45 'Plus Jakarta Sans',sans-serif!important;color:#55738d!important}
 }
 @media(min-width:768px){.fi-v45-absence-section{display:none!important}}
+
+/* V5.1 ringkasan relief individu */
+.fi51-widget-small{font-size:12px;line-height:1.55;margin-top:4px}.fi51-widget-link{border:1px solid #b4d9f2;background:#e8f4ff;color:#23527e;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;margin-top:7px}

@@ -120,6 +120,11 @@
 </div>
 </div>
 </section>
+<!-- Smart e-Relief V5.1: ruang kerja khas, tanpa menggantikan e-Keberadaan. -->
+<section aria-label="Ruang kerja e-Relief" class="erph-workspace" hidden id="relief-workspace">
+<div class="erph-workspace-toolbar"><button type="button" onclick="closeReliefWorkspace()">← Kembali</button><strong>Smart e-Relief</strong><span class="erph-workspace-subtitle">SeMAKMUR</span></div>
+<div class="fi-keberadaan-frame-wrap"><iframe id="relief-workspace-frame" loading="eager" referrerpolicy="same-origin" title="Modul Smart e-Relief"></iframe></div>
+</section>
 <!-- V6.5: e-Keberadaan dalam ruang Dashboard Fi, tanpa halaman baharu. -->
 <section aria-label="Ruang kerja e-Keberadaan" class="erph-workspace" hidden="" id="keberadaan-workspace">
 <div class="erph-workspace-toolbar" id="kb-extra-toolbar">
@@ -173,7 +178,7 @@
 </section>
 <section aria-labelledby="fi-v6-info-title" class="fi-v6-home-section fi-v6-info-section">
 <h2 id="fi-v6-info-title"><i class="fa-solid fa-clipboard-list"></i> Ringkasan Hari Ini</h2>
-<div class="fi-v6-info-card"><span class="fi-v6-info-icon relief"><i class="fa-solid fa-person-chalkboard"></i></span><div><strong>Relief Hari Ini</strong><div id="fi-v6-relief-value">Menyemak maklumat…</div></div></div>
+<div class="fi-v6-info-card"><span class="fi-v6-info-icon relief"><i class="fa-solid fa-person-chalkboard"></i></span><div><strong>Relief Saya Hari Ini</strong><div id="fi-v6-relief-value">Menyemak tugasan saya…</div><button class="fi51-widget-link" type="button" data-module="relief">Buka e-Relief</button></div></div>
 <div class="fi-v6-info-card"><span class="fi-v6-info-icon duty"><i class="fa-solid fa-user-group"></i></span><div><strong>Minggu Bertugas</strong><div id="fi-v6-duty-value">Menyemak maklumat…</div></div></div>
 <div class="fi-v6-info-card"><span class="fi-v6-info-icon action"><i class="fa-solid fa-list-check"></i></span><div><strong>Tindakan</strong><div id="fi-v6-actions-value">Menyemak maklumat…</div></div></div>
 </section>
@@ -299,5 +304,5 @@
 
 
 
-<script defer="" src="Fi-DashboardGuru.js?v=5.0.0"></script></body>
+<script defer="" src="Fi-DashboardGuru.js?v=5.1.0"></script><script defer src="Fi-ReliefWidget-V51.js?v=5.1.0"></script></body>
 </html>
