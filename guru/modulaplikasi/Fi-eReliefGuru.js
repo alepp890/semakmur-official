@@ -75,27 +75,43 @@ function staffStatus(message,kind=''){
  if(node)node.textContent=message;
  if(box){box.classList.remove('is-error','is-success');if(kind)box.classList.add('is-'+kind);}
 }
+// V5.1.2: Makmal Admin membaca cache roster Firestore secara terus.
+// Ini tidak memintas Firestore Security Rules. Hanya peranan istimewa
+// dibenarkan membaca semakmur_fi_relief_staf/active.
 async function loadStaff(){
  if(staffLoading)return;
  staffLoading=true;staff=[];
  $('generate-simulation').disabled=true;
  $('reload-sim-staff').disabled=true;
  $('absent-staff').innerHTML='';$('emergency-staff').innerHTML='';
- staffStatus('Memuatkan senarai guru daripada Master_Staf…');
+ staffStatus('Memuatkan senarai guru daripada Firestore…');
  try{
-  const result=await api('relief51Staff');
-  if(!Array.isArray(result.staff)||!result.staff.length)throw Error('Backend tidak memulangkan senarai guru. Semak FiKRSyncPeranan dan Master_Staf.');
-  staff=result.staff.filter(x=>x&&x.id&&x.name);
-  if(!staff.length)throw Error('Tiada ID_Staf atau Nama_Samaran yang sah.');
+  if(!user || !roles.includes('ADMIN_SISTEM'))throw Error('Akses Makmal Admin memerlukan peranan ADMIN_SISTEM.');
+  if(!fns?.getDocFromServer||!db)throw Error('Sambungan Firestore belum tersedia.');
+  const snap=await fns.getDocFromServer(fns.doc(db,'semakmur_fi_relief_staf','active'));
+  if(!snap.exists())throw Error('Dokumen semakmur_fi_relief_staf/active belum wujud. Jalankan penyelarasan roster daripada Master_Staf di backend.');
+  const source=snap.data()?.staff;
+  if(!Array.isArray(source)||!source.length)throw Error('Roster Firestore kosong. Semak penyelarasan semakmur_fi_relief_staf/active.');
+  staff=source
+   .map(x=>({id:String(x?.idStaf||'').trim(),name:String(x?.name||'').trim(),category:String(x?.category||'—').trim()}))
+   .filter(x=>x.id&&x.name);
+  // Gandaan ID boleh berlaku semasa sync roster; paparkan setiap guru sekali sahaja.
+  staff=[...new Map(staff.map(x=>[x.id,x])).values()];
+  if(!staff.length)throw Error('Roster tidak mempunyai medan idStaf dan name yang sah.');
   staff.sort((a,b)=>a.name.localeCompare(b.name,'ms'));
   $('absent-staff').innerHTML=staffOptions(staff);
   $('emergency-staff').innerHTML=staffOptions(staff);
   $('generate-simulation').disabled=false;
-  staffStatus(staff.length+' guru tersedia untuk simulasi. Pilih guru yang tidak hadir.','success');
+  staffStatus(staff.length+' guru tersedia daripada Firestore untuk simulasi. Sahkan roster sepadan dengan Master_Staf.','success');
  }catch(e){
-  staffStatus('Senarai guru GAGAL dibaca: '+(e.message||e)+'. Semak URL Web App /exec, deployment terkini dan peranan ADMIN_SISTEM.','error');
+  console.error('[SeMAKMUR V5.1.2] Makmal Admin: roster Firestore gagal dibaca',e);
+  const info=e?.code==='permission-denied'
+   ?'Akses Firestore ditolak. Semak profil aktif dan dokumen peranan ADMIN_SISTEM.'
+   :(e?.message||String(e));
+  staffStatus('Senarai guru GAGAL dibaca daripada Firestore: '+info,'error');
  }finally{staffLoading=false;$('reload-sim-staff').disabled=false;}
 }
+
 function simTable(d){const r=d.rows||[],initial=new Map((d.mainRows||[]).map(x=>[x.slotId+'|'+x.classId,x]));
  const changed=r.filter(x=>{const p=initial.get(x.slotId+'|'+x.classId);return !p||p.replacementId!==x.replacementId;}).length;
  return `<p class="muted-note">Jadual utama: ${esc((d.mainRows||[]).length)} tugasan. ${d.backup?'Relief Backup: '+changed+' tugasan baharu/berubah; yang lain dikekalkan.':''}</p>`;
