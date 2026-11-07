@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 
-<html lang="ms"><head><script>if(new URLSearchParams(location.search).get("embed")==="1")document.documentElement.classList.add("fi-embedded");</script><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#17496a" name="theme-color"/><title>e-Keberadaan | SeMAKMUR Fi V6.7</title>
+<html lang="ms"><head><script>if(new URLSearchParams(location.search).get("embed")==="1")document.documentElement.classList.add("fi-embedded");</script><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#17496a" name="theme-color"/><title>e-Keberadaan | SeMAKMUR Fi V4.5</title>
 <link href="../../assets/favicon.png" rel="icon"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
-<link href="Fi-KeberadaanGuru-Mobile.css?v=4.4.0" rel="stylesheet"/><link href="Fi-KeberadaanGuru-Desktop.css?v=4.4.0" rel="stylesheet"/>
+<link href="Fi-KeberadaanGuru-Mobile.css?v=4.5.0" rel="stylesheet"/><link href="Fi-KeberadaanGuru-Desktop.css?v=4.5.0" rel="stylesheet"/>
 
 
+<meta name="semakmur-fi-document-webapp" content=""/>
 </head>
 <body>
 <header class="top"><div class="topinner">
@@ -28,7 +29,7 @@
 <div class="two"><div class="fieldrow"><label for="start">Tarikh mula *</label><input id="start" required="" type="date"/></div><div class="fieldrow"><label for="end">Tarikh tamat *</label><input id="end" required="" type="date"/></div></div>
 <div class="fieldrow" hidden="" id="period-row"><label for="period">Tempoh *</label><select id="period"><option value="PENUH">Sepanjang hari</option><option value="SEPARUH">Separuh hari / masa tertentu</option></select></div>
 <div class="two" hidden="" id="time-row"><div class="fieldrow"><label for="from">Masa mula *</label><input id="from" type="time"/></div><div class="fieldrow"><label for="to">Masa tamat *</label><input id="to" type="time"/></div></div>
-<div class="fieldrow" hidden="" id="file-row"><label for="document">Dokumen kelulusan / surat diminitkan</label><input accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" id="document" type="file"/><small id="document-status" role="status">Pilih PDF, JPG atau PNG (maksimum 5 MB). Sambungan muat naik belum tersedia; fail tidak akan dihantar atau disimpan.</small></div>
+<div class="fieldrow" hidden="" id="file-row"><label for="document">Dokumen kelulusan / surat diminitkan</label><input accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" id="document" type="file"/><small id="document-status" role="status">Pilih PDF, JPG atau PNG (maksimum 5 MB). Dokumen disimpan secara persendirian melalui Google Drive sekolah.</small></div>
 <div class="fieldrow"><label for="note">Tujuan ringkas *</label><textarea id="note" maxlength="240" placeholder="Contoh: Kursus PBD / Urusan keluarga" required="" rows="2"></textarea></div>
 <div class="formbar"><span id="form-status" role="status"></span><button class="primary" id="submit" type="submit">Hantar Keberadaan</button></div>
 </form></section>
@@ -51,19 +52,13 @@
 </div>
 <p class="kb-stats-footnote" id="kb-stat-updated">Menunggu pengesahan data Firestore</p>
 </section>
-<section class="panel kb-info-card"><h2>Makluman</h2><p>Rekod e-Keberadaan dibaca daripada Firestore. Dokumen sokongan belum boleh dimuat naik dalam pelan Spark.</p></section>
+<section class="panel kb-info-card"><h2>Makluman</h2><p>Rekod e-Keberadaan dibaca daripada Firestore. Dokumen sokongan boleh dihantar ke Google Drive sekolah melalui Apps Script yang telah disahkan.</p></section>
 </aside>
 </div>
 <div class="overlay" hidden="" id="dialog"><div aria-labelledby="dialog-title" aria-modal="true" class="dialog" role="dialog"><div class="panelhead"><h2 id="dialog-title">Tindakan</h2><button class="mini secondary" id="dialog-close" type="button">Tutup</button></div><div id="dialog-content"></div></div></div>
 <div aria-live="polite" class="toast" hidden="" id="toast" role="status"></div>
 </main>
 <nav aria-label="Navigasi mudah alih" class="kb-bottom-nav"><a href="../Fi-DashboardGuru.html"><span aria-hidden="true">⌂</span>Utama</a><a aria-current="page" class="active" href="#tabs"><span aria-hidden="true">▤</span>Keberadaan</a><a href="../Fi-DashboardGuru.html#pentadbiran"><span aria-hidden="true">☷</span>Menu</a></nav>
-<script>
-  // Desktop only: the Status toolbar remains visible on Borang, with its select disabled.
-  // PWA retains the original hidden-until-status-tab presentation.
-  if (window.matchMedia('(min-width:781px)').matches) {
-    document.getElementById('kb-filter-top').hidden = false;
-  }
-</script>
-<script src="../../firebase-pilot-config.js"></script><script src="Fi-KeberadaanGuru.js?v=4.4.0" type="module"></script>
+
+<script src="../../firebase-pilot-config.js"></script><script src="Fi-KeberadaanGuru.js?v=4.5.0" type="module"></script>
 </body></html>

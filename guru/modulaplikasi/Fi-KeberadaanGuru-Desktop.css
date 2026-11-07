@@ -333,3 +333,24 @@
   .fi-embedded .kb-stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}
 }
 @media(max-width:780px){.kb-v42-stat-icon{display:none!important}}
+
+/* V4.5 desktop: status bar tetap kelihatan di semua tab */
+@media(min-width:781px){ .kb-filter-top{display:flex!important;max-width:none!important;} .kb-filter-top select:disabled{opacity:1!important;color:#243d76!important;cursor:not-allowed!important;} }
+
+/* V4.5 PWA: semakan UI kecil sahaja; reka bentuk lain dikekalkan */
+@media(max-width:780px){
+  html.fi-embedded .kb-titlebar,html.fi-embedded .top{display:none!important}
+  .kb-filter-top,.fi-embedded .kb-filter-top{display:flex!important;position:relative!important;width:100%!important;max-width:none!important;margin:0 0 12px!important;}
+  .kb-filter-top[hidden]{display:none!important}
+  .kb-filter-top select:disabled{opacity:1!important;color:#244760!important;-webkit-text-fill-color:#244760!important;cursor:not-allowed!important}
+  .record-card,.fi-embedded .record-card{display:grid!important;grid-template-columns:minmax(0,1fr) auto 17px!important;align-items:center!important;column-gap:9px!important;}
+  .record-card .item-main{grid-column:1 / 3!important;grid-row:1!important;min-width:0!important;}
+  .record-card .item-heading{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;min-height:24px!important;}
+  .record-card .item-title{min-width:0!important;overflow-wrap:anywhere!important;}
+  .record-card .item-heading .pill{position:static!important;transform:none!important;justify-self:end!important;max-width:145px!important;margin:0!important;text-align:center!important;}
+  .record-card>.chevron{grid-column:3!important;grid-row:1!important;position:static!important;transform:none!important;align-self:center!important;margin:0!important;}
+  .item-date-new,.item-owner{margin-top:3px!important;line-height:1.4!important;}
+  .kb-unread{position:absolute!important;right:4px!important;top:2px!important;background:#d5233b!important;color:#fff!important;border-radius:999px!important;min-width:19px!important;height:19px!important;padding:0 4px!important;font:800 10px/19px 'Plus Jakarta Sans',sans-serif!important;text-align:center!important;}
+  #tabs [data-tab]{position:relative!important;}
+  .formbar{padding-bottom:calc(26px + env(safe-area-inset-bottom))!important;}
+}

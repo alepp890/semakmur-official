@@ -1,4 +1,4 @@
-/* SeMAKMUR Fi Bestari V4.4.0 — skrip modul asal, nama diseragamkan. */
+/* SeMAKMUR Fi V4.5 — operasi rasmi, akses berperanan dan lampiran Google Drive. */
 /* SeMAKMUR Fi e-Keberadaan V6.7-SPARK: frontend UI refinements and atomic audit. Firebase Storage is DISABLED (Spark plan).
    Real Firebase data and role-based views; no role-switching demo. */
 const $=id=>document.getElementById(id);
@@ -6,9 +6,9 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const str=x=>String(x??'').trim(), localDay=()=>{const x=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',day:'2-digit',month:'2-digit',year:'numeric'}).formatToParts(new Date()).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));return `${x.year}-${x.month}-${x.day}`};
 const niceDay=x=>/^\d{4}-\d{2}-\d{2}$/.test(x)?x.split('-').reverse().join('/'):str(x);
 const TYPE={CRK:'CRK',CTR:'CTR',MC:'Cuti Sakit (MC)',RASMI:'Urusan Rasmi / Bengkel / LDP / PLC',KECEMASAN:'Kecemasan'};
-let statsLoaded=false,user=null,roles=[],realRoles=[],testAccess=false,profile=null,records=[],myRecords=[],reliefQueue=[],tab='borang',busy=false,db=null,fns=null,unsubs=[];
-let readRef=null,seenReady=false,seenAt={status:0,tindakan:0,peringatan:0};
-const isAdmin=()=>testAccess||roles.some(r=>['GPK','GB','PENYELARAS'].includes(r)),has=r=>roles.includes(r);
+let statsLoaded=false,user=null,roles=[],realRoles=[],profile=null,records=[],myRecords=[],reliefQueue=[],tab='borang',busy=false,db=null,fns=null,unsubs=[];
+const has=r=>roles.includes(r);
+const isAdmin=()=>roles.some(r=>['ADMIN_SISTEM','GPK','GB','PENYELARAS'].includes(r));
 const docRequired=r=>['CRK','CTR'].includes(r.finalType||r.type)||(r.type==='RASMI'&&r.scope==='LUAR');
 const reliefLabel=r=>(r.type==='RASMI'&&r.scope==='LUAR'&&r.docPath&&r.relief==='belum'?'Menunggu Semakan Surat':r.type==='RASMI'&&r.scope==='DALAM'&&r.task==='SEKAT_CALON'&&r.gpkStatus!=='disahkan'?'Layak Jadi Relief':({belum:'Belum Relief',sah:'Relief Dengan Pengesahan',tanpa:'Relief Tanpa Sokongan',sementara:'Relief Sementara',tiada:'Tiada Relief',dikecualikan:'Tidak Boleh Diberi Relief'}[r.relief]||'Belum Relief'));
 const reliefTone=r=>r.relief==='sah'||r.relief==='dikecualikan'?'success':r.relief==='tanpa'||r.relief==='sementara'?'warning':'neutral';
@@ -16,46 +16,40 @@ function status(r){if(r.gpkStatus==='ditolak')return ['Tidak Disokong','danger']
 function completed(r){if(r.gpkStatus==='ditolak')return true;if(docRequired(r)&&!r.docPath&&!r.docName)return false;if(['CRK','CTR'].includes(r.type)||['CRK','CTR'].includes(r.finalType||''))return r.relief==='sah'&&r.docReviewed===true;if(r.type==='RASMI'&&r.scope==='LUAR')return r.relief==='sah';if(r.type==='RASMI'&&r.scope==='DALAM'||r.type==='MC')return r.gpkStatus!=='menunggu'&&r.gpkStatus!=='';if(r.type==='KECEMASAN')return r.gpkStatus!=='menunggu'&&(r.task==='KELUAR'||Boolean(r.finalType))&&!['tanpa','sementara'].includes(r.relief);return false;}
 function needAttention(r){return !completed(r)||['tanpa','sementara'].includes(r.relief);}
 const requireGpk=r=>r.type==='MC'||r.type==='KECEMASAN'||r.type==='RASMI'&&r.scope==='DALAM';
-function needActionForRole(r){if(has('GPK')&&(requireGpk(r)&&r.gpkStatus==='menunggu'||r.type==='KECEMASAN'&&r.task==='UMUM'&&!r.finalType||r.relief==='tanpa'||docRequired(r)&&!r.docPath))return true;
- if(has('PENYELARAS'))return r.relief==='belum'&&(['CRK','CTR'].includes(r.type)||r.type==='RASMI'&&r.scope==='LUAR')||r.relief==='belum'&&['MC','KECEMASAN'].includes(r.type)&&r.task!=='KELUAR'&&r.gpkStatus==='menunggu';
- return false;}
+function needActionForRole(r){
+  if(r.testMode===true)return false; // rekod sejarah UJIAN tidak terlibat dalam operasi rasmi
+  if(has('GPK') && (requireGpk(r)&&r.gpkStatus==='menunggu' || r.type==='KECEMASAN'&&r.task==='UMUM'&&r.gpkStatus==='disahkan'&&!r.finalType))return true;
+  if(has('PENYELARAS') && (
+    (['CRK','CTR'].includes(r.type)||['CRK','CTR'].includes(r.finalType||'')||r.type==='RASMI'&&r.scope==='LUAR')&&
+    (r.relief==='belum'||r.relief==='tanpa'||r.relief==='sementara'||r.docPath&&!r.docReviewed) ||
+    (['MC','KECEMASAN'].includes(r.type)&&r.task!=='KELUAR'&&r.gpkStatus==='menunggu'&&r.relief==='belum')
+  ))return true;
+  return false;
+}
+function needsTeacherAction(r){return r.ownerUid===user?.uid && docRequired(r) && !r.docPath;}
+function reminderOutstanding(r){return r.testMode!==true && needAttention(r);}
 function showMessage(msg='',kind='info'){const a=$('alert');a.hidden=!msg;a.textContent=msg;a.style.background=kind==='error'?'#fff0f1':'#fff5e7';a.style.color=kind==='error'?'#a2454e':'#855815';}
 function toast(msg){$('toast').textContent=msg;$('toast').hidden=false;setTimeout(()=>{$('toast').hidden=true},3600)}
 function setRoleUI(){
- const personal=roles.filter(r=>['GB','GPK','PENYELARAS'].includes(r)).map(r=>r==='PENYELARAS'?'Penyelaras Relief':r);
- $('role-label').textContent=testAccess?['Admin Sistem',...personal].join(' / '):(personal.join(' / ')||'Guru');
+ const personal=roles.filter(r=>['GB','GPK','PENYELARAS','ADMIN_SISTEM'].includes(r)).map(r=>r==='PENYELARAS'?'Penyelaras Relief':r==='ADMIN_SISTEM'?'Admin Sistem':r);
+ $('role-label').textContent=personal.join(' / ')||'Guru';
  $('tabs').querySelector('[data-tab=tindakan]').hidden=!isAdmin();
  $('tabs').querySelector('[data-tab=peringatan]').hidden=!isAdmin();
- // Queue relief hanya untuk peranan operasi sebenar, tidak untuk Admin Sistem tanpa pelantikan.
  $('relief-box').hidden=!roles.some(r=>['GPK','GB','PENYELARAS'].includes(r));
  if((tab==='tindakan'||tab==='peringatan')&&!isAdmin())tab='borang';
 }
-const eventMs=r=>{
- const v=r.updatedAt;
- return typeof v?.toMillis==='function'?v.toMillis():Number(r.createdMs||0);
-};
-function unreadFor(name){
- if(!user||!seenReady)return 0;
- const newer=r=>eventMs(r)>seenAt[name];
- if(name==='status')return myRecords.filter(r=>r.updatedByUid!==user.uid&&newer(r)).length;
- if(name==='tindakan')return records.filter(r=>(testAccess?needAttention(r):(has('GB')?needAttention(r):needActionForRole(r)))&&newer(r)).length;
- if(name==='peringatan')return records.filter(r=>needAttention(r)&&newer(r)).length;
- return 0;
-}
+// Badge merah = tugasan tertunggak, bukan bilangan rekod dan bukan masa terakhir tab dibuka.
 function renderUnread(){
+ const counts={
+   status:myRecords.filter(needsTeacherAction).length,
+   tindakan:records.filter(needActionForRole).length,
+   peringatan:has('GPK')?records.filter(reminderOutstanding).length:0
+ };
  for(const [name,id] of [['status','my-count'],['tindakan','work-count'],['peringatan','remind-count']]){
-  const x=$(id),n=unreadFor(name);
-  x.hidden=n<1;x.textContent=n>99?'99+':String(n);
-  x.setAttribute('aria-label',n+' makluman baharu');
+   const node=$(id),n=counts[name];if(!node)continue;
+   node.hidden=n===0;node.textContent=n>99?'99+':String(n);
+   node.setAttribute('aria-label',n+' tindakan masih tertunggak');
  }
-}
-async function markTabSeen(which){
- if(!['status','tindakan','peringatan'].includes(which)||!user||!fns||!readRef)return;
- const prev=seenAt[which];seenAt[which]=Date.now();seenReady=true;renderUnread();
- const field={status:'seenStatus',tindakan:'seenTindakan',peringatan:'seenPeringatan'}[which];
- try{
-  await fns.setDoc(readRef,{ownerUid:user.uid,ownerEmail:user.email,[field]:fns.serverTimestamp()},{merge:true});
- }catch(e){seenAt[which]=prev;renderUnread();showMessage('Tidak dapat menyimpan status notifikasi: '+(e.code||e.message),'error');}
 }
 function renderStats(){
   const source=isAdmin()?records:myRecords;
@@ -65,25 +59,21 @@ function renderStats(){
   value('kb-stat-docs',source.filter(r=>docRequired(r)&&!r.docPath&&!r.docName).length);
   value('kb-stat-relief',source.filter(r=>['sah','tanpa','sementara'].includes(r.relief)).length);
   const desc=$('kb-stat-scope');
-  if(desc)desc.textContent=testAccess?'Semua rekod (rasmi dan ujian)':isAdmin()?'Rekod dibenarkan mengikut peranan':'Permohonan saya';
+  if(desc)desc.textContent=has('ADMIN_SISTEM')?'Semua rekod rasmi':isAdmin()?'Rekod dibenarkan mengikut peranan':'Permohonan saya';
   const note=$('kb-stat-updated');
   if(note)note.textContent=statsLoaded?'Berdasarkan rekod yang berjaya dibaca · maks. 100 rekod':'Menunggu pengesahan data Firestore';
 }
-const listFilterValue={status:'SEMUA',tindakan:'AKTIF',peringatan:'AKTIF'};
+const listFilterValue={status:'SEMUA',tindakan:'SEMUA',peringatan:'SEMUA'};
 function draw(){
  setRoleUI();
  document.querySelectorAll('#tabs [data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
  ['borang','status','tindakan','peringatan'].forEach(k=>$('panel-'+k).hidden=k!==tab);
- // V4.2: On desktop the full-width Status bar stays visible on every tab.
- // On Borang the filter is frozen (disabled); mobile behavior remains as before.
- const kbDesktopFilter = window.matchMedia('(min-width:781px)').matches;
- $('kb-filter-top').hidden=tab==='borang' && !kbDesktopFilter;
+ // Status sentiasa kelihatan di desktop dan PWA; bekukan pada tab Borang.
+ $('kb-filter-top').hidden=false;
  $('list-status-filter').disabled=tab==='borang';
  $('list-status-filter').value=tab==='borang'?'SEMUA':(listFilterValue[tab]||'SEMUA');
- // Maintain previous counters in DOM for compatibility; no redesign of notifications in this release.
- $('my-count').textContent=myRecords.length;
- $('work-count').textContent=records.filter(needActionForRole).length;
- $('remind-count').textContent=records.filter(needAttention).length;
+ // Badge dikira daripada keadaan semasa setiap rekod, bukan masa dibaca.
+ renderUnread();
  if(tab==='status')renderMine();
  if(tab==='tindakan'){renderActions();renderReliefQueue();}
  if(tab==='peringatan')renderReminders();
@@ -107,7 +97,7 @@ function compact(r,context){
 function requestExplanation(r){
  const label=cardStatus(r)[0];
  if(r.gpkStatus==='ditolak')return ['Permohonan tidak disokong','Permohonan ini tidak disokong oleh GPK. Sila rujuk catatan pentadbir dan hubungi pihak sekolah untuk tindakan susulan.'];
- if(docRequired(r)&&!r.docPath&&!r.docName)return ['Dokumen sokongan diperlukan','Permohonan ini belum mempunyai dokumen kelulusan atau surat sokongan yang direkodkan. Sila kemukakan dokumen melalui saluran rasmi sekolah. Muat naik terus dalam modul ini belum tersedia pada pelan Firebase Spark.'];
+ if(docRequired(r)&&!r.docPath&&!r.docName)return ['Dokumen sokongan diperlukan','Permohonan ini belum mempunyai dokumen kelulusan atau surat sokongan yang direkodkan. Sila kemukakan dokumen melalui saluran rasmi sekolah. Gunakan butang Muat Naik Dokumen untuk melengkapkan bukti melalui storan Google Drive sekolah.'];
  if(requireGpk(r)&&r.gpkStatus==='menunggu')return ['Menunggu tindakan GPK','Permohonan ini sedang menunggu semakan atau sokongan Guru Penolong Kanan. Status belum bermaksud kelulusan cuti rasmi.'];
  if(r.relief==='sementara')return ['Relief sementara direkodkan','Perlindungan kelas sementara telah direkodkan untuk operasi sekolah. Ia bukan bukti kelulusan cuti rasmi; dokumen dan keputusan akhir masih perlu disemak.'];
  if(r.relief==='tanpa')return ['Relief tanpa sokongan lengkap','Kelas boleh dilindungi sementara, tetapi dokumen atau pengesahan masih belum lengkap. Permohonan perlu tindakan susulan mengikut prosedur sekolah.'];
@@ -120,7 +110,7 @@ function openRecord(r,context){
  const category=TYPE[r.finalType||r.type]||r.type;
  const [summaryTitle,summaryText]=requestExplanation(r);
  const bits=[
-   `<div class="record-summary"><span class="pill ${tone}">${esc(label)}</span>${r.testMode===true?'<span class="pill warning">UJIAN</span>':''}</div>`,
+   `<div class="record-summary"><span class="pill ${tone}">${esc(label)}</span></div>`,
    `<section class="kb-popup-status-explanation" role="status"><strong>${esc(summaryTitle)}</strong><p>${esc(summaryText)}</p></section>`,
    `<div class="popup-field"><span>Nama Guru</span><strong>${esc(r.ownerName||user?.name||'Guru')}</strong></div>`,
    `<div class="popup-field"><span>Kategori</span><strong>${esc(category)}</strong></div>`,
@@ -134,7 +124,7 @@ function openRecord(r,context){
  openDialog(category,bits.filter(Boolean).join(''));
 }
 function actionButtons(r,context){let buttons=[];const b=(action,label,cls='secondary')=>`<button class="${cls} mini" data-do="${action}" data-id="${esc(r.id)}" type="button">${label}</button>`;
- // Lampiran belum tersedia pada pelan Spark; tiada butang muat naik.
+ if(r.ownerUid===user?.uid&&docRequired(r)&&!r.docPath&&!r.docReviewed)buttons.push(b('upload','Muat Naik Dokumen','secondary'));
  if(context==='action'){
   if(has('GPK')&&requireGpk(r)&&r.gpkStatus==='menunggu'){buttons.push(b('support','Sokong','success'),b('reject','Tidak Sokong','danger'));}
   if(has('GPK')&&r.type==='KECEMASAN'&&r.task==='UMUM'&&r.gpkStatus==='disahkan'&&!r.finalType)buttons.push(b('final','Tentukan Jenis Cuti'));
@@ -145,6 +135,8 @@ function actionButtons(r,context){let buttons=[];const b=(action,label,cls='seco
   if(has('PENYELARAS')&&(r.type==='MC'||r.type==='KECEMASAN'&&r.task!=='KELUAR')&&r.gpkStatus==='menunggu'&&r.relief==='belum')buttons.push(b('temporary','Relief Sementara','warn'));
   if(has('GB'))buttons.push('<span class="note">Untuk makluman GB</span>');
  }
+ if(context==='mine'&&r.ownerUid===user?.uid&&docRequired(r)&&!r.docPath&&!r.docReviewed)buttons.push(b('upload','Muat Naik Dokumen','secondary'));
+ if(context==='remind'&&r.ownerUid===user?.uid&&docRequired(r)&&!r.docPath&&!r.docReviewed)buttons.push(b('upload','Muat Naik Dokumen','secondary'));
  if(context==='remind'&&has('GPK'))buttons.push(b('remind','Tanda Peringatan'));
  return buttons.length?`<div class="actions">${buttons.join('')}</div>`:'';
 }
@@ -157,10 +149,10 @@ function renderMine(){
 function renderActions(){
  const filt=listFilterValue.tindakan;
  let x=[...records];
- if(filt==='AKTIF')x=x.filter(r=>testAccess?needAttention(r):(has('GB')?needAttention(r):needActionForRole(r)));
+ if(filt==='AKTIF')x=x.filter(r=>has('GB')&&!has('GPK')&&!has('PENYELARAS')?needAttention(r):needActionForRole(r));
  if(filt==='SELESAI')x=x.filter(completed);
  x.sort((a,b)=>b.createdMs-a.createdMs);
- $('action-title').textContent=testAccess?'Semua Rekod — Admin Sistem':has('GB')?'Makluman Guru Besar':has('GPK')?'Tindakan GPK':'Tindakan Penyelaras Relief';
+ $('action-title').textContent=has('ADMIN_SISTEM')&&!has('GPK')&&!has('PENYELARAS')?'Semua Rekod Rasmi — Admin Sistem':has('GB')?'Makluman Guru Besar':has('GPK')?'Tindakan GPK':'Tindakan Penyelaras Relief';
  $('action-total').textContent=x.length+' rekod';showList('action-list',x,'action');
 }
 function renderReminders(){
@@ -179,7 +171,7 @@ function syncForm(){const type=$('type').value,scope=$('scope').value,period=$('
  $('scope-row').hidden=!scopeVisible;$('task-row').hidden=!taskVisible;$('emergency-row').hidden=!emergencyVisible;$('period-row').hidden=!periodVisible;$('time-row').hidden=!timeVisible;$('file-row').hidden=!fileVisible;
  $('scope').required=scopeVisible;$('task').required=taskVisible;$('emergency').required=emergencyVisible;$('period').required=periodVisible;$('from').required=timeVisible;$('to').required=timeVisible;
  $('from').disabled=!timeVisible;$('to').disabled=!timeVisible;
- if(!fileVisible){$('document').value='';$('document-status').textContent='Pilih PDF, JPG atau PNG (maksimum 5 MB). Sambungan muat naik belum tersedia; fail tidak akan dihantar atau disimpan.';}
+ if(!fileVisible){$('document').value='';$('document-status').textContent='Pilih PDF, JPG atau PNG (maksimum 5 MB). Fail disimpan secara persendirian di Google Drive sekolah.';}
  $('end').min=$('start').value||localDay();if($('end').value<$('start').value)$('end').value=$('start').value;
 }
 function validateFile(file){if(!file)return;const okay=['application/pdf','image/jpeg','image/png'].includes(file.type)&&/\.(pdf|jpe?g|png)$/i.test(file.name);if(!okay)throw Error('Hanya PDF, JPG atau PNG dibenarkan.');if(file.size>5*1024*1024)throw Error('Fail melebihi 5 MB.');}
@@ -200,7 +192,7 @@ function confirmAction(r,action){let title={approve:'Relief Dengan Kebenaran',wi
  if(['reject','without','temporary','support','remind'].includes(action))body+='<div class="fieldrow"><label for="admin-note">Catatan ringkas</label><textarea id="admin-note" rows="2" maxlength="200" placeholder="Pilihan"></textarea></div>';
  body+=`<div class="actions" style="margin-top:15px;justify-content:flex-end"><button class="secondary mini" id="cancel-action" type="button">Batal</button><button class="primary mini" id="confirm-action" data-action="${esc(action)}" data-id="${esc(r.id)}" type="button">Sahkan</button></div>`;openDialog(title,body);
 }
-async function applyAction(id,act){const r=records.find(x=>x.id===id);if(!r)throw Error('Rekod tidak ditemui.');if(testAccess && r.testMode!==true&&!roles.some(k=>['GPK','PENYELARAS'].includes(k)))throw Error('Admin Sistem boleh melihat rekod rasmi, tetapi tidak meluluskan tanpa pelantikan rasmi.');if(busy)return;const who=user.uid;let change={updatedAt:fns.serverTimestamp(),updatedByUid:who};
+async function applyAction(id,act){const r=records.find(x=>x.id===id);if(!r)throw Error('Rekod tidak ditemui.');if(r.testMode===true)throw Error('Rekod ujian lama tidak boleh diproses dalam mod rasmi.');if(busy)return;const who=user.uid;let change={updatedAt:fns.serverTimestamp(),updatedByUid:who};
  const note=str($('admin-note')?.value), fType=$('final-type')?.value;
  if(act==='approve'){if(!has('PENYELARAS'))throw Error('Akses Penyelaras sahaja.');if(!r.docPath&&!r.docName)throw Error('Dokumen diperlukan.');if(!$('doc-ack')?.checked)throw Error('Sahkan semakan dokumen dahulu.');change.relief='sah';change.docReviewed=true;}
  if(act==='without'||act==='temporary'){if(!has('PENYELARAS'))throw Error('Akses Penyelaras sahaja.');if(act==='temporary'&&(r.type==='KECEMASAN'&&r.task==='KELUAR'||r.gpkStatus!=='menunggu'))throw Error('Tidak boleh aktifkan relief sementara untuk kes ini.');change.relief=act==='without'?'tanpa':'sementara';}
@@ -208,7 +200,7 @@ async function applyAction(id,act){const r=records.find(x=>x.id===id);if(!r)thro
  if(act==='final'){if(!has('GPK')||r.type!=='KECEMASAN'||r.task!=='UMUM')throw Error('Hanya GPK boleh menentukan jenis kecemasan.');if(!fType)throw Error('Pilih jenis.');change.finalType=fType==='KECEMASAN'?'':fType;change.docReviewed=false;}
  if(act==='remind'){if(!has('GPK'))throw Error('Hanya GPK boleh merekodkan peringatan.');change.reminderAt=fns.serverTimestamp();}
  if(note)change.adminNote=note.slice(0,200);
- if(act==='upload'){if(r.ownerUid!==user.uid)throw Error('Dokumen hanya boleh dimuat naik pemohon.');const file=$('add-file')?.files[0];if(!file)throw Error('Sila pilih fail dahulu.');validateFile(file);await uploadProof(id,file);closeDialog();toast('Dokumen dimuat naik untuk semakan.');return;}
+ if(act==='upload'){if(r.ownerUid!==user.uid)throw Error('Dokumen hanya boleh dimuat naik pemohon.');const file=$('add-file')?.files[0];if(!file)throw Error('Sila pilih fail dahulu.');validateFile(file);busy=true;try{await uploadProof(id,file);closeDialog();toast('Dokumen telah disimpan di Google Drive sekolah.');}finally{busy=false;}return;}
  busy=true;try{await commitChange(id,change,act);closeDialog();toast('Tindakan direkodkan.');}finally{busy=false;}}
 // Every update atomically creates an immutable audit row. A transaction prevents lost writes.
 async function commitChange(id,change,action){
@@ -217,7 +209,7 @@ async function commitChange(id,change,action){
  await fns.runTransaction(db,async tr=>{
    const snapshot=await tr.get(ref);if(!snapshot.exists())throw Error('Rekod sudah tiada. Muat semula.');
    const before=snapshot.data();
-   if(testAccess && before.testMode!==true&&!roles.some(k=>['GPK','PENYELARAS'].includes(k)))throw Error('Rekod rasmi memerlukan kuasa GPK/Penyelaras.');
+   if(before.testMode===true)throw Error('Rekod UJIAN lama tidak boleh dipinda.');
    const revision=Number(before.revision||0)+1;
    const update={...change,revision,lastActionId:audit.id,updatedAt:fns.serverTimestamp(),updatedByUid:user.uid,updatedByEmail:user.email};
    // created/owner fields cannot be changed; Firebase Rules enforce the same constraint.
@@ -227,56 +219,103 @@ async function commitChange(id,change,action){
      finalType:update.finalType??before.finalType,testMode:before.testMode===true,at:fns.serverTimestamp()});
  });
 }
-async function uploadProof(){throw Error('Muat naik dokumen belum disokong pada pelan Spark.');}
+// Google Drive via Apps Script Web App. Form POST to isolated iframe avoids Apps Script CORS redirects.
+// Never put a service-account key or Drive folder ID in frontend. Endpoint is public, requests require Firebase ID token.
+function docEndpoint(){
+ const el=document.querySelector('meta[name="semakmur-fi-document-webapp"]');
+ const url=(el?.content||'').trim();
+ if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(url))
+   throw Error('Tetapkan URL Web App Apps Script dokumen di Fi-KeberadaanGuru.html dahulu.');
+ return url;
+}
+function fileBase64(file){return new Promise((resolve,reject)=>{
+ const rd=new FileReader();rd.onerror=()=>reject(Error('Fail tidak dapat dibaca.'));
+ rd.onload=()=>resolve(String(rd.result).split(',')[1]||'');rd.readAsDataURL(file);
+});}
+async function transportDoc(action,id,file){
+ if(!user)throw Error('Sesi MOE tidak tersedia.');
+ const url=docEndpoint();
+ const app=(await import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js')).getApps().find(a=>a.name==='semakmur-fi-dashboard');
+ if(!app)throw Error('Firebase belum disambungkan.');
+ const auth=(await import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js')).getAuth(app);
+ if(!auth.currentUser)throw Error('Sila log masuk semula.');
+ const idToken=await auth.currentUser.getIdToken(true);
+ const nonce=(crypto.randomUUID?.()||String(Date.now())+Math.random().toString(36));
+ const body={action,requestId:id,idToken,nonce};
+ if(file){body.fileName=file.name;body.mimeType=file.type;body.base64=await fileBase64(file);}
+ return new Promise((resolve,reject)=>{
+  const iframe=document.createElement('iframe');iframe.name='fi-doc-'+nonce;iframe.hidden=true;
+  iframe.setAttribute('aria-hidden','true');iframe.setAttribute('sandbox','allow-forms allow-scripts allow-same-origin');
+  const form=document.createElement('form');form.method='POST';form.action=url;form.target=iframe.name;form.hidden=true;
+  const f=document.createElement('input');f.name='payload';f.type='hidden';f.value=JSON.stringify(body);form.appendChild(f);
+  let ended=false;
+  function cleanup(){window.clearTimeout(watchdog);window.removeEventListener('message',onMessage);form.remove();iframe.remove();}
+  function onMessage(ev){
+   if(!/^https:\/\/(script\.google\.com|([a-z0-9-]+\.)?script\.googleusercontent\.com)$/.test(ev.origin))return;
+   const data=ev.data;if(data?.channel!=='semakmur-fi-doc-v1'||data.nonce!==nonce)return;
+   if(ended)return;ended=true;cleanup();data.ok?resolve(data):reject(Error(data.error||'Operasi dokumen gagal.'));
+  }
+  const watchdog=window.setTimeout(()=>{if(ended)return;ended=true;cleanup();reject(Error('Tiada respons Apps Script. Semak deployment dan sambungan internet.'));},45000);
+  window.addEventListener('message',onMessage);document.body.append(iframe,form);form.submit();
+ });
+}
+async function uploadProof(id,file){
+ validateFile(file);
+ const result=await transportDoc('upload',id,file);
+ if(!result.fileName)throw Error('Respons backend tidak mengesahkan nama fail.');
+ return result;
+}
+async function showDocument(id){
+ const result=await transportDoc('view',id,null);
+ if(!result.base64||!result.mimeType)throw Error('Dokumen tidak dapat dibuka.');
+ const binary=atob(result.base64),bytes=new Uint8Array(binary.length);
+ for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+ const blob=new Blob([bytes],{type:result.mimeType}),u=URL.createObjectURL(blob);
+ // Buka dalam tab baru; fallback muat turun jika popup disekat.
+ const a=document.createElement('a');a.href=u;a.target='_blank';a.rel='noopener';
+ a.download=String(result.fileName||'dokumen').replace(/[\/\\]/g,'_');document.body.appendChild(a);a.click();a.remove();
+ window.setTimeout(()=>URL.revokeObjectURL(u),30000);
+}
 async function submit(ev){ev.preventDefault();if(busy)return;let d;try{d=payload();}catch(e){$('form-status').textContent=e.message;return;}
- if(d.file&&!window.confirm('Dokumen dipilih tetapi belum boleh dimuat naik dalam Firebase Spark. Permohonan akan dihantar TANPA lampiran dan kekal Perlu Dokumen. Teruskan?'))return;
- busy=true;$('submit').disabled=true;$('form-status').textContent='Menyimpan…';try{const id=fns.doc(fns.collection(db,'semakmur_fi_keberadaan')).id;
- const rec={id,testMode:testAccess,ownerUid:user.uid,ownerEmail:user.email,ownerName:user.name,type:d.type,scope:d.scope,task:d.task,start:d.start,end:d.end,period:d.period,from:d.from,to:d.to,note:d.note,docPath:'',docName:'',docReviewed:false,gpkStatus:'menunggu',relief:'belum',finalType:'',adminNote:'',updatedByUid:user.uid,createdAt:fns.serverTimestamp(),updatedAt:fns.serverTimestamp(),createdMs:Date.now()};
- {const audit=fns.doc(fns.collection(db,'semakmur_fi_keberadaan_audit'));rec.revision=1;rec.lastActionId=audit.id;rec.updatedByEmail=user.email;const b=fns.writeBatch(db);b.set(fns.doc(db,'semakmur_fi_keberadaan',id),rec);b.set(audit,{requestId:id,ownerUid:user.uid,action:'CREATE',byUid:user.uid,byEmail:user.email,revision:1,gpkStatus:rec.gpkStatus,relief:rec.relief,finalType:rec.finalType,testMode:rec.testMode,at:fns.serverTimestamp()});await b.commit();/* Spark: lampiran belum diaktifkan. */}
- $('apply-form').reset();$('start').value=localDay();$('end').value=localDay();syncForm();tab='status';draw();markTabSeen('status');toast('Rekod keberadaan dihantar.');
+
+ busy=true;$('submit').disabled=true;$('form-status').textContent='Menyimpan…';try{if(d.file)docEndpoint();const id=fns.doc(fns.collection(db,'semakmur_fi_keberadaan')).id;
+ const rec={id,testMode:false,ownerUid:user.uid,ownerEmail:user.email,ownerName:user.name,type:d.type,scope:d.scope,task:d.task,start:d.start,end:d.end,period:d.period,from:d.from,to:d.to,note:d.note,docPath:'',docName:'',docReviewed:false,gpkStatus:'menunggu',relief:'belum',finalType:'',adminNote:'',updatedByUid:user.uid,createdAt:fns.serverTimestamp(),updatedAt:fns.serverTimestamp(),createdMs:Date.now()};
+ {const audit=fns.doc(fns.collection(db,'semakmur_fi_keberadaan_audit'));rec.revision=1;rec.lastActionId=audit.id;rec.updatedByEmail=user.email;const b=fns.writeBatch(db);b.set(fns.doc(db,'semakmur_fi_keberadaan',id),rec);b.set(audit,{requestId:id,ownerUid:user.uid,action:'CREATE',byUid:user.uid,byEmail:user.email,revision:1,gpkStatus:rec.gpkStatus,relief:rec.relief,finalType:rec.finalType,testMode:rec.testMode,at:fns.serverTimestamp()});await b.commit();}
+ if(d.file){$('form-status').textContent='Rekod disimpan. Memuat naik lampiran ke Google Drive…';try{await uploadProof(id,d.file);}catch(uploadError){$('form-status').textContent='Permohonan telah direkodkan tetapi fail belum disimpan: '+(uploadError.message||uploadError);tab='status';draw();return;}}
+ $('apply-form').reset();$('start').value=localDay();$('end').value=localDay();syncForm();tab='status';draw();toast('Rekod keberadaan dihantar.');
  }catch(e){$('form-status').textContent='Gagal menyimpan: '+(e.code||e.message||e);}finally{busy=false;$('submit').disabled=false;if($('form-status').textContent==='Menyimpan…')$('form-status').textContent='';}}
-async function showDocument(){toast('Pembukaan dokumen belum tersedia pada pelan Spark.');}
+
 const FI_EMBED=new URLSearchParams(location.search).get('embed')==='1';
 function tellDashboard(type,message=''){
  if(!FI_EMBED||window.parent===window)return;
  try{window.parent.postMessage({type,message},location.origin);}catch(_){}
 }
-function handlers(){document.addEventListener('click',ev=>{const tabBtn=ev.target.closest('#tabs [data-tab]');if(tabBtn){tab=tabBtn.dataset.tab;draw();markTabSeen(tab);return;}const card=ev.target.closest('[data-card-id]');if(card){const rec=records.find(r=>r.id===card.dataset.cardId)||myRecords.find(r=>r.id===card.dataset.cardId);if(rec)openRecord(rec,card.dataset.context||'mine');return;}const x=ev.target.closest('[data-do]');if(x){const r=records.find(r=>r.id===x.dataset.id);if(r)confirmAction(r,x.dataset.do);return;}const o=ev.target.closest('[data-open-doc]');if(o){showDocument(o.dataset.openDoc);return;}if(ev.target.id==='dialog-close'||ev.target.id==='cancel-action'){closeDialog();return;}const c=ev.target.closest('#confirm-action');if(c){applyAction(c.dataset.id,c.dataset.action).catch(e=>toast(e.message||String(e)));return;}});
- $('document').addEventListener('change',()=>{const file=$('document').files[0];try{if(file)validateFile(file);$('document-status').textContent=file?('Dipilih: '+file.name+' · Belum dimuat naik. Rekod boleh dihantar tanpa lampiran sahaja.'):'Tiada dokumen dipilih. Sambungan muat naik belum tersedia.';}catch(e){$('document').value='';$('document-status').textContent=e.message;}});
- $('apply-form').addEventListener('submit',submit);['type','scope','period','start'].forEach(id=>$(id).addEventListener('change',syncForm));$('list-status-filter').addEventListener('change',e=>{if(tab!=='borang'){listFilterValue[tab]=e.target.value;draw();}});$('dialog').addEventListener('click',e=>{if(e.target===$('dialog'))closeDialog()});window.addEventListener('resize',()=>{$('kb-filter-top').hidden=tab==='borang'&&!window.matchMedia('(min-width:781px)').matches;});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('dialog').hidden)closeDialog();});
+function handlers(){document.addEventListener('click',ev=>{const tabBtn=ev.target.closest('#tabs [data-tab]');if(tabBtn){tab=tabBtn.dataset.tab;draw();return;}const card=ev.target.closest('[data-card-id]');if(card){const rec=records.find(r=>r.id===card.dataset.cardId)||myRecords.find(r=>r.id===card.dataset.cardId);if(rec)openRecord(rec,card.dataset.context||'mine');return;}const x=ev.target.closest('[data-do]');if(x){const r=records.find(r=>r.id===x.dataset.id)||myRecords.find(r=>r.id===x.dataset.id);if(r)confirmAction(r,x.dataset.do);return;}const o=ev.target.closest('[data-open-doc]');if(o){showDocument(o.dataset.openDoc).catch(e=>toast(e.message||String(e)));return;}if(ev.target.id==='dialog-close'||ev.target.id==='cancel-action'){closeDialog();return;}const c=ev.target.closest('#confirm-action');if(c){applyAction(c.dataset.id,c.dataset.action).catch(e=>toast(e.message||String(e)));return;}});
+ $('document').addEventListener('change',()=>{const file=$('document').files[0];try{if(file)validateFile(file);$('document-status').textContent=file?('Sedia dimuat naik: '+file.name):'Tiada dokumen dipilih.';}catch(e){$('document').value='';$('document-status').textContent=e.message;}});
+ $('apply-form').addEventListener('submit',submit);['type','scope','period','start'].forEach(id=>$(id).addEventListener('change',syncForm));$('list-status-filter').addEventListener('change',e=>{if(tab!=='borang'){listFilterValue[tab]=e.target.value;draw();}});$('dialog').addEventListener('click',e=>{if(e.target===$('dialog'))closeDialog()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('dialog').hidden)closeDialog();});
 
 }
 async function init(){handlers();$('start').min=localDay();$('end').min=localDay();$('start').value=localDay();$('end').value=localDay();syncForm();
  try{const cfg=window.SeMAKMURFirebasePilotConfig;if(!cfg?.projectId)throw Error('Konfigurasi Firebase tidak tersedia.');const [app,authlib,dbLib]=await Promise.all([import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')]);
  const fb=app.getApps().find(a=>a.name==='semakmur-fi-dashboard')||app.initializeApp(cfg,'semakmur-fi-dashboard');const auth=authlib.getAuth(fb);db=dbLib.getFirestore(fb);fns={...dbLib};
- authlib.onAuthStateChanged(auth,async u=>{unsubs.forEach(fn=>fn());unsubs=[];user=null;records=[];myRecords=[];seenReady=false;seenAt={status:0,tindakan:0,peringatan:0};readRef=null;statsLoaded=false;renderStats();if(!u){$('user-label').textContent='Belum log masuk';showMessage('Sila log masuk melalui Fi-LoginSession.html.','error');tellDashboard('semakmur-fi-kb-error','Sesi log masuk tidak tersedia.');return;}try{const staff=await dbLib.getDoc(dbLib.doc(db,'semakmur_dashboard_fi',u.uid));const raw=staff.data();if(!staff.exists()||raw?.active!==true||str(raw.ownerEmail).toLowerCase()!==str(u.email).toLowerCase()||raw.profile?.email?.toLowerCase()!==u.email.toLowerCase())throw Error('Akaun guru tidak sah atau belum aktif.');user={uid:u.uid,email:u.email,name:str(raw.profile?.namaPenuh)||u.displayName||'Guru'};profile=raw;$('user-label').textContent=user.name;
+ authlib.onAuthStateChanged(auth,async u=>{unsubs.forEach(fn=>fn());unsubs=[];user=null;records=[];myRecords=[];statsLoaded=false;renderStats();if(!u){$('user-label').textContent='Belum log masuk';showMessage('Sila log masuk melalui Fi-LoginSession.html.','error');tellDashboard('semakmur-fi-kb-error','Sesi log masuk tidak tersedia.');return;}try{const staff=await dbLib.getDoc(dbLib.doc(db,'semakmur_dashboard_fi',u.uid));const raw=staff.data();if(!staff.exists()||raw?.active!==true||str(raw.ownerEmail).toLowerCase()!==str(u.email).toLowerCase()||raw.profile?.email?.toLowerCase()!==u.email.toLowerCase())throw Error('Akaun guru tidak sah atau belum aktif.');user={uid:u.uid,email:u.email,name:str(raw.profile?.namaPenuh)||u.displayName||'Guru'};profile=raw;$('user-label').textContent=user.name;
  try{const roleSnap=await dbLib.getDoc(dbLib.doc(db,'semakmur_fi_keberadaan_roles',u.uid));const roleData=roleSnap.data();realRoles=roleSnap.exists()&&roleData.active===true&&roleData.ownerEmail===u.email?(roleData.roles||[]):[];}catch{realRoles=[];}
- testAccess=realRoles.includes('ADMIN_UJIAN');roles=realRoles.filter(r=>r!=='ADMIN_UJIAN');
- $('mode-label').textContent=testAccess?'ADMIN · FIRESTORE':'Fi · RASMI';
+ roles=realRoles.filter(r=>['GB','GPK','PENYELARAS','ADMIN_SISTEM'].includes(r));
+ $('mode-label').textContent='RASMI';
  setRoleUI();
- readRef=dbLib.doc(db,'semakmur_fi_keberadaan_bacaan',u.uid);
- unsubs.push(dbLib.onSnapshot(readRef,snap=>{
-  const v=snap.exists()?snap.data():{};
-  const num=x=>typeof x?.toMillis==='function'?x.toMillis():0;
-  seenAt={status:num(v.seenStatus),tindakan:num(v.seenTindakan),peringatan:num(v.seenPeringatan)};
-  seenReady=true;renderUnread();
- },e=>{seenReady=false;console.warn('Status notifikasi tidak dapat dibaca:',e.code||e.message);}));
  const coll=dbLib.collection(db,'semakmur_fi_keberadaan');
  unsubs.push(dbLib.onSnapshot(dbLib.query(coll,dbLib.where('ownerUid','==',u.uid),dbLib.limit(100)),s=>{
-   myRecords=s.docs.map(x=>x.data());statsLoaded=true;
-   if(!testAccess&&!isAdmin())records=[...myRecords];
+   myRecords=s.docs.map(x=>x.data()).filter(r=>r.testMode===false);statsLoaded=true;
+   if(!isAdmin())records=[...myRecords];
    draw();
  },e=>showMessage('Gagal membaca rekod sendiri: '+(e.code||e.message),'error')));
- if(testAccess){
-   // Admin Sistem: baca semua rekod termasuk rasmi, read-only kecuali ada peranan rasmi lain.
-   unsubs.push(dbLib.onSnapshot(dbLib.query(coll,dbLib.limit(100)),s=>{
-     records=s.docs.map(x=>x.data());statsLoaded=true;draw();
-   },e=>showMessage('Bacaan Admin Sistem ditolak. Pasang Rules gabungan V6.7 dahulu.','error')));
- }else if(isAdmin()){
+ if(isAdmin()){
    unsubs.push(dbLib.onSnapshot(dbLib.query(coll,dbLib.where('testMode','==',false),dbLib.limit(100)),s=>{
-     records=s.docs.map(x=>x.data());statsLoaded=true;draw();
-   },e=>showMessage('Bacaan pentadbir ditolak. Semak Rules V6.3 dan pelantikan.','error')));
-   unsubs.push(dbLib.onSnapshot(dbLib.query(dbLib.collection(db,'semakmur_fi_relief_harian'),dbLib.orderBy('date','desc'),dbLib.limit(100)),s=>{reliefQueue=s.docs.map(x=>x.data());renderReliefQueue();},e=>console.warn('Senarai relief belum tersedia:',e.code||e.message)));
+     records=s.docs.map(x=>x.data()).filter(r=>r.testMode===false);statsLoaded=true;draw();
+   },e=>showMessage('Bacaan rekod rasmi gagal. Semak Firestore Rules dan peranan rasmi: '+(e.code||e.message),'error')));
+   if(roles.some(r=>['GPK','GB','PENYELARAS'].includes(r))){
+     unsubs.push(dbLib.onSnapshot(dbLib.query(dbLib.collection(db,'semakmur_fi_relief_harian'),dbLib.orderBy('date','desc'),dbLib.limit(100)),s=>{reliefQueue=s.docs.map(x=>x.data());renderReliefQueue();},e=>console.warn('Senarai relief belum tersedia:',e.code||e.message)));
+   }
  }
  showMessage('');draw();tellDashboard('semakmur-fi-kb-ready');}catch(e){$('user-label').textContent='Semakan akaun gagal';tellDashboard('semakmur-fi-kb-error',String(e.code||e.message||e));showMessage('Semakan akaun gagal: '+(e.code||e.message||e),'error');}}
  ,e=>{$('user-label').textContent='Pengesahan gagal';showMessage('Pengesahan Firebase gagal: '+(e.code||e.message||e),'error');tellDashboard('semakmur-fi-kb-error',String(e.code||e.message||e));}
