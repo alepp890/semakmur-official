@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 
-<html lang="ms"><head><script>if(new URLSearchParams(location.search).get("embed")==="1")document.documentElement.classList.add("fi-embedded");</script><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#17496a" name="theme-color"/><title>e-Keberadaan | SeMAKMUR Fi V5.0</title>
+<html lang="ms"><head><script>if(new URLSearchParams(location.search).get("embed")==="1")document.documentElement.classList.add("fi-embedded");</script><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/><meta content="#17496a" name="theme-color"/><title>e-Keberadaan | SeMAKMUR Fi V5.1</title>
 <link href="../../assets/favicon.png" rel="icon"/>
 <link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
 <link href="Fi-KeberadaanGuru-Mobile.css?v=5.0.0" rel="stylesheet"/><link href="Fi-KeberadaanGuru-Desktop.css?v=5.0.0" rel="stylesheet"/>
 
 
-<meta name="semakmur-fi-document-webapp" content="https://script.google.com/macros/s/AKfycbzfOWoJMsxeZUjFZBJjrAXcF4N0MQDxO0Ap8EFo6EcUiwBVCL3W7Rq5J8zFy2JtRPZROg/exec"/>
-</head>
+<meta name="semakmur-fi-document-webapp" content="ISI_URL_WEBAPP_EXEC"/>
+<style>/* Jadual relief V5.1 berpindah ke modul khas; kekalkan elemen warisan bagi JS V5.0. */
+#my-relief-box,#relief-box{display:none!important}
+.fi51-relief-link{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#155b91;text-decoration:none;border:1px solid #b9cfe2;border-radius:9px;padding:8px 12px;margin:6px 0 12px}
+</style></head>
 <body>
 <header class="top"><div class="topinner">
 <div class="topbrand"><strong>e-Keberadaan</strong><small>SeMAKMUR Digital · Pentadbiran</small></div>
@@ -33,8 +36,8 @@
 <div class="fieldrow"><label for="note">Tujuan ringkas *</label><textarea id="note" maxlength="240" placeholder="Contoh: Kursus PBD / Urusan keluarga" required="" rows="2"></textarea></div>
 <div class="formbar"><span id="form-status" role="status"></span><button class="primary" id="submit" type="submit">Hantar Keberadaan</button></div>
 </form></section>
-<section class="panel" hidden="" id="panel-status"><div class="panelhead"><h2>Status Permohonan</h2><span id="status-total">0 rekod</span></div><div class="compact-list" id="my-list"></div><details class="relief-box" id="my-relief-box"><summary>Jadual Relief Saya</summary><div class="compact-list" id="my-relief-list"></div></details></section>
-<section class="panel" hidden="" id="panel-tindakan"><div class="panelhead"><h2 id="action-title">Tindakan / Makluman</h2><span id="action-total">0 rekod</span></div><div class="compact-list" id="action-list"></div>
+<section class="panel" hidden="" id="panel-status"><div class="panelhead"><h2>Status Permohonan</h2><span id="status-total">0 rekod</span></div><div class="compact-list" id="my-list"></div><a class="fi51-relief-link" href="Fi-eReliefGuru.html?embed=1">Buka Modul Smart e-Relief →</a><details class="relief-box" id="my-relief-box"><summary>Jadual Relief Saya</summary><div class="compact-list" id="my-relief-list"></div></details></section>
+<section class="panel" hidden="" id="panel-tindakan"><div class="panelhead"><h2 id="action-title">Tindakan / Makluman</h2><span id="action-total">0 rekod</span></div><div class="compact-list" id="action-list"></div><a class="fi51-relief-link" href="Fi-eReliefGuru.html?embed=1">Buka Jadual Smart e-Relief →</a>
 <details class="relief-box" hidden="" id="relief-box"><summary>Smart e-Relief Automatik <span class="kb-unread" hidden id="relief-alert-count"></span><span id="relief-total">0</span></summary>
 <div class="compact-list" id="relief-queue"></div>
 <p class="relief-caption">Agihan automatik dijalankan setiap 5 minit. Kelas tanpa guru ganti memerlukan tindakan GPK.</p></details></section>
