@@ -2190,3 +2190,17 @@ html body.dashboard-v6{color:var(--v6-ink)!important;background:#e7f2ff!importan
 
 /* V5.1 ringkasan relief individu */
 .fi51-widget-small{font-size:12px;line-height:1.55;margin-top:4px}.fi51-widget-link{border:1px solid #b4d9f2;background:#e8f4ff;color:#23527e;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;margin-top:7px}
+
+
+/* V5.1.1 | Rakaman 08-11-2026: iframe e-Relief ikut lebar ruang dashboard (desktop + PWA). */
+#relief-workspace{min-width:0!important;width:100%;}
+#relief-workspace>.fi-keberadaan-frame-wrap{
+  display:flex!important;flex:1 1 auto!important;min-width:0!important;width:100%!important;
+  min-height:0!important;overflow:hidden!important;
+}
+#relief-workspace-frame{
+  display:block!important;flex:1 1 0%!important;width:100%!important;min-width:0!important;
+  height:100%!important;min-height:0!important;border:0!important;background:#f4f7fc!important;
+}
+@media(min-width:768px){#relief-workspace .erph-workspace-toolbar{display:none!important}}
+@media(max-width:767px){body.fi-v6-on-relief #relief-workspace{padding-bottom:calc(76px + env(safe-area-inset-bottom))!important}}

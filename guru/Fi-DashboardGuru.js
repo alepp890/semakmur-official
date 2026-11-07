@@ -282,7 +282,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
     rememberWorkspace('relief');
     if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#relief');
-    if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-eReliefGuru.html?embed=1&v=5.1.0';
+    if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-eReliefGuru.html?embed=1&v=5.1.1';
     fiV6Header();
   }
   function closeReliefWorkspace(keepHash){
@@ -783,6 +783,10 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
         kbWorkspaceStatus('Tidak dapat membuka e-Keberadaan',String(e.data.message||'Sila semak sambungan Firebase.'),true);
       }else if(e.data?.type==='semakmur-fi-kb-back'){
         closeKeberadaanWorkspace();switchMainMenu('laman_utama');
+      }else if(e.data?.type==='semakmur-fi-kb-open-relief'){
+        // Navigasi daripada iframe Keberadaan: buka workspace Relief di Dashboard,
+        // bukan memuatkan Relief di dalam iframe Keberadaan.
+        openReliefWorkspace();
       }
     });
     $('v4-back').addEventListener('click',fiV6Back);
