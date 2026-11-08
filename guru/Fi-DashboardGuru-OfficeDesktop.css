@@ -1,0 +1,266 @@
+/* SeMAKMUR Digital — Office Management Desktop V6.0.0
+   Scope EXCLUSIVE desktop >= 1024px. Mobile/PWA and module iframes unchanged.
+   Dynamic variables set only after confirmed desktop mount by OfficeDesktop.js.
+*/
+/* Elemen baharu MESTI tersembunyi pada PWA, walaupun laman diresize. */
+#fi-office-brand,#fi-office-user,#fi-office-settings-link{display:none!important}
+@media (min-width:1024px) {
+ body.dashboard-v7.fi-office-desktop{
+   --of-main:#50304D;--of-secondary:#96738F;--of-soft:#D8C6D8;
+   --of-accent:#C6A46C;--of-page:#F8F5F8;--of-ink:#29242D;
+   --of-border:#e8dce8;--of-rail:linear-gradient(169deg,#50304D,#29242D);
+   --of-hero:linear-gradient(110deg,#fff,#F8F5F8 55%,#D8C6D8);
+   --of-button:linear-gradient(125deg,#50304D,#96738F);
+   --of-feature:linear-gradient(130deg,#50304D,#29242D 72%);
+   --of-shadow:0 6px 24px rgba(35,28,34,.055);
+   background:var(--of-page)!important;color:var(--of-ink)!important;
+   font:500 13px/1.5 'Plus Jakarta Sans',sans-serif!important;
+ }
+ body.fi-office-desktop *{box-sizing:border-box}
+ body.dashboard-v7.fi-office-desktop :is(button,input,select,textarea):focus-visible{outline:3px solid var(--of-accent)!important;outline-offset:2px!important}
+ /* OfficeFlow inspired icon rail — navigation handlers remain untouched. */
+ body.dashboard-v7.fi-office-desktop #sidebar-container.side-bg{
+  width:75px!important;min-width:75px!important;flex:0 0 75px!important;
+  background:var(--of-rail)!important;border-right:1px solid rgba(255,255,255,.12)!important;
+  box-shadow:3px 0 20px rgba(24,31,28,.12)!important;overflow:visible!important;
+ }
+ body.dashboard-v7.fi-office-desktop #sidebar-container>.min-h-0>.h-20{
+  min-height:86px!important;height:86px!important;justify-content:center!important;padding:0!important;
+ }
+ body.dashboard-v7.fi-office-desktop #sidebar-container .brand-identity-symbol{
+  display:grid!important;place-items:center!important;width:42px!important;height:42px!important;
+  background:linear-gradient(132deg,var(--of-accent),var(--of-secondary))!important;
+  border:1px solid rgba(255,255,255,.25)!important;border-radius:13px!important;color:#fff!important;
+ }
+ body.dashboard-v7.fi-office-desktop #sidebar-container>.min-h-0>.h-20>div:last-child{display:none!important}
+ body.dashboard-v7.fi-office-desktop #sidebar-container .side-profile{
+  display:flex!important;justify-content:center!important;align-items:center!important;
+  background:transparent!important;border:0!important;padding:11px 0!important;
+  margin:11px 0 17px!important;box-shadow:none!important;
+ }
+ body.dashboard-v7.fi-office-desktop #sidebar-container .profile-avatar-wrap{margin:0!important}
+ body.dashboard-v7.fi-office-desktop #sidebar-container .side-profile .profile-avatar{
+  width:43px!important;height:43px!important;min-width:43px!important;min-height:43px!important;
+  border:2px solid rgba(255,255,255,.7)!important;box-shadow:0 2px 10px rgba(0,0,0,.15)!important;
+ }
+ body.dashboard-v7.fi-office-desktop #sidebar-container .side-profile .profile-caption,
+ body.dashboard-v7.fi-office-desktop #sidebar-container .side-profile .profile-edit-overlay{display:none!important}
+ body.dashboard-v7.fi-office-desktop #desktop-nav{
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  gap:9px!important;padding:0 7px!important;overflow-x:visible!important;
+ }
+ body.dashboard-v7.fi-office-desktop #desktop-nav .nav-link{
+  display:grid!important;place-items:center!important;width:54px!important;height:48px!important;
+  min-height:48px!important;padding:0!important;border-radius:13px!important;
+  background:transparent!important;border:1px solid transparent!important;color:#f6f6f1!important;
+ }
+ body.dashboard-v7.fi-office-desktop #desktop-nav .nav-link:hover:not(.active){background:rgba(255,255,255,.15)!important}
+ body.dashboard-v7.fi-office-desktop #desktop-nav .nav-link.active{
+  background:linear-gradient(135deg,var(--of-accent),var(--of-secondary))!important;
+  border-color:rgba(255,255,255,.3)!important;box-shadow:0 5px 12px rgba(0,0,0,.19)!important;
+ }
+ body.dashboard-v7.fi-office-desktop #desktop-nav .nav-link .nav-svg{
+  width:22px!important;height:22px!important;flex:none!important;
+ }
+ body.dashboard-v7.fi-office-desktop #desktop-nav .nav-link span{display:none!important}
+ body.dashboard-v7.fi-office-desktop #desktop-nav #fi-office-settings-link:not([hidden]){display:grid!important}
+ body.dashboard-v7.fi-office-desktop #desktop-nav #fi-office-settings-link[hidden]{display:none!important}
+ body.dashboard-v7.fi-office-desktop #sidebar-container>div:last-child{
+  display:flex!important;justify-content:center!important;padding:12px 5px!important;
+ }
+ body.dashboard-v7.fi-office-desktop #sidebar-container>div:last-child span{display:none!important}
+ body.dashboard-v7.fi-office-desktop #sidebar-container>div:last-child button{
+  overflow:hidden!important;font-size:0!important;width:43px!important;height:41px!important;border-radius:10px!important;
+  background:rgba(255,255,255,.13)!important;display:grid!important;place-items:center!important;
+ }
+ body.dashboard-v7.fi-office-desktop #sidebar-container>div:last-child button::before{content:'⏻';font-size:25px!important;color:#fff}
+ /* White toolbar with school identity, authenticated profile and live clock. */
+ body.dashboard-v7.fi-office-desktop .dashboard-main-header{
+  position:relative!important;flex:0 0 88px!important;height:88px!important;min-height:88px!important;
+  padding:0 24px!important;gap:18px!important;
+  background:#fff!important;border-bottom:1px solid var(--of-border)!important;
+  box-shadow:0 3px 15px rgba(36,35,33,.045)!important;z-index:30!important;
+ }
+ body.dashboard-v7.fi-office-desktop .dashboard-main-header::before{display:none!important}
+ body.dashboard-v7.fi-office-desktop .dashboard-main-header :is(.dashboard-name,.header-caption,.header-clock,.header-clock strong,.header-clock span){color:var(--of-ink)!important}
+ body.dashboard-v7.fi-office-desktop #fi-office-brand{display:flex!important;align-items:center;gap:11px;min-width:205px;padding-right:22px;border-right:1px solid var(--of-border);height:44px}
+ body.dashboard-v7.fi-office-desktop .fi-office-brand-mark{display:grid;place-items:center;background:var(--of-button);color:#fff;width:39px;height:39px;border-radius:12px;font-weight:800;font-size:22px;transform:skew(-4deg)}
+ body.dashboard-v7.fi-office-desktop .fi-office-header-brand strong{display:block;line-height:1.2;font-size:16px;letter-spacing:-.04em;color:var(--of-ink)}
+ body.dashboard-v7.fi-office-desktop .fi-office-header-brand small{font-size:10px;color:#78736e;white-space:nowrap}
+ body.dashboard-v7.fi-office-desktop .header-layout{flex:0 1 275px;min-width:115px}
+ body.dashboard-v7.fi-office-desktop .dashboard-name{font-size:14px!important;font-weight:800!important;line-height:1.3!important;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+ body.dashboard-v7.fi-office-desktop .header-caption{font-size:10px!important;color:#857f7b!important}
+ body.dashboard-v7.fi-office-desktop .bestari-header-search{
+  border-radius:13px!important;background:var(--of-page)!important;border-color:var(--of-border)!important;
+  box-shadow:none!important;max-width:400px!important;flex:1 1 180px!important;height:41px!important;
+ }
+ body.dashboard-v7.fi-office-desktop .bestari-header-search svg{color:var(--of-main)!important}
+ body.dashboard-v7.fi-office-desktop .dashboard-main-header .bestari-header-search input[type="search"]{color:var(--of-ink)!important;font-size:12px!important}
+ body.dashboard-v7.fi-office-desktop .header-tools{gap:12px!important;flex:none!important}
+ body.dashboard-v7.fi-office-desktop .header-icon-button{color:var(--of-main)!important}
+ body.dashboard-v7.fi-office-desktop .header-icon-button:hover{background:var(--of-page)!important}
+ body.dashboard-v7.fi-office-desktop .bestari-calendar-trigger{background:transparent!important;color:var(--of-main)!important;border:0!important}
+ body.dashboard-v7.fi-office-desktop .bestari-calendar-trigger svg{color:var(--of-main)!important}
+ body.dashboard-v7.fi-office-desktop .header-divider{background:var(--of-border)!important}
+ body.dashboard-v7.fi-office-desktop .header-clock{min-width:126px!important}
+ body.dashboard-v7.fi-office-desktop .header-clock span{font-size:10px!important}
+ body.dashboard-v7.fi-office-desktop .header-clock strong{font-size:14px!important}
+ body.dashboard-v7.fi-office-desktop #fi-office-user{
+  display:flex!important;align-items:center;gap:9px;padding:3px 1px 3px 11px;
+  border-left:1px solid var(--of-border);background:transparent;color:var(--of-ink);
+  max-width:205px;text-align:left;min-width:0;
+ }
+ body.dashboard-v7.fi-office-desktop .fi-office-user-initial{width:35px;height:35px;min-width:35px;display:grid;place-items:center;border-radius:50%;background:var(--of-button);color:#fff;font-weight:800}
+ body.dashboard-v7.fi-office-desktop .fi-office-user-name{min-width:0;flex:1}
+ body.dashboard-v7.fi-office-desktop .fi-office-user-name strong{font-size:11px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ body.dashboard-v7.fi-office-desktop .fi-office-user-name small{font-size:10px;color:#777}
+ body.dashboard-v7.fi-office-desktop .fi-office-user i{color:var(--of-main);font-size:10px}
+ /* Main body: clean ivory, prominent hero, flexible OfficeFlow grid. */
+ body.dashboard-v7.fi-office-desktop #page-scroll{
+  padding:18px 24px 33px!important;gap:14px!important;
+  background:linear-gradient(150deg,var(--of-page),#fff 48%,var(--of-page))!important;
+  color:var(--of-ink)!important;
+ }
+ body.dashboard-v7.fi-office-desktop .dashboard-section-bar{margin:0 0 12px!important;padding:0 4px!important}
+ body.dashboard-v7.fi-office-desktop .dashboard-section-bar .bread-label{color:#79726f!important}
+ body.dashboard-v7.fi-office-desktop .dashboard-section-bar #header-status{color:var(--of-main)!important}
+ body.dashboard-v7.fi-office-desktop #dashboard-grid-container{grid-template-columns:minmax(0,1fr)!important;gap:0!important;margin-top:0!important}
+ body.dashboard-v7.fi-office-desktop #main-left-column{display:contents!important}
+ body.dashboard-v7.fi-office-desktop #page-laman_utama{width:100%;min-width:0}
+ body.dashboard-v7.fi-office-desktop #right-panel{display:none!important}
+ body.dashboard-v7.fi-office-desktop .fi-office-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-flow:row dense;align-items:start;gap:15px;min-width:0}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile{min-width:0;position:relative;grid-column:span 12}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile[data-span="4"]{grid-column:span 4}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile[data-span="6"]{grid-column:span 6}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile[data-span="8"]{grid-column:span 8}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile[data-span="12"]{grid-column:span 12}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile[data-disabled="true"]{display:none!important}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile-content{min-width:0;height:100%}
+ body.dashboard-v7.fi-office-desktop #page-scroll :is(.card-coligo,.right-card){
+  background:#fff!important;border:1px solid var(--of-border)!important;
+  border-radius:16px!important;box-shadow:var(--of-shadow)!important;overflow:hidden!important;
+ }
+ body.dashboard-v7.fi-office-desktop #page-scroll :is(.quicklinks-topline h2,.home-summary-title h2,.right-card-head h2){color:var(--of-ink)!important;font-size:13px!important;font-weight:800!important}
+ body.dashboard-v7.fi-office-desktop #page-scroll :is(.right-head-icon,.quick-head-icon){background:color-mix(in srgb,var(--of-soft) 45%,#fff)!important;color:var(--of-main)!important}
+ body.dashboard-v7.fi-office-desktop #page-scroll :is(.right-head-icon,.quick-head-icon) :is(svg,i){color:var(--of-main)!important;stroke:var(--of-main)!important}
+ body.dashboard-v7.fi-office-desktop #right-schedule-list :is(strong,b),body.dashboard-v7.fi-office-desktop .right-card-body :is(strong,b){color:var(--of-ink)!important}
+ body.dashboard-v7.fi-office-desktop :is(.schedule-day-label,.info-pill){background:var(--of-page)!important;color:var(--of-main)!important;border-color:var(--of-border)!important}
+ /* CSS-only botanical/art deco hero art; no borrowed photo or fake school picture. */
+ body.dashboard-v7.fi-office-desktop .fi-office-hero{
+  display:grid;grid-template-columns:minmax(0,1.3fr) minmax(210px,.7fr);align-items:center;
+  background:var(--of-hero);min-height:228px;border:1px solid var(--of-border);
+  border-radius:19px;box-shadow:var(--of-shadow);overflow:hidden;position:relative;
+ }
+ body.dashboard-v7.fi-office-desktop .fi-office-hero::before{
+  content:"";position:absolute;inset:0 0 0 auto;width:42%;opacity:.3;
+  background:repeating-linear-gradient(120deg,transparent 0 46px,var(--of-secondary) 47px,transparent 48px);
+  mask-image:linear-gradient(90deg,transparent,#000);
+ }
+ body.dashboard-v7.fi-office-desktop .fi-office-hero-copy{padding:25px 30px;z-index:1;position:relative;min-width:0}
+ body.dashboard-v7.fi-office-desktop .fi-office-eyebrow{display:flex;align-items:center;gap:9px;letter-spacing:.22em;color:var(--of-main);font-weight:800;font-size:9px}
+ body.dashboard-v7.fi-office-desktop .fi-office-eyebrow i{width:17px;height:1px;background:var(--of-accent)}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero h2{color:var(--of-ink);font-size:clamp(22px,2.45vw,34px);line-height:1.2;letter-spacing:-.05em;margin:10px 0 7px;font-weight:800}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero h2 em{color:var(--of-main);font-family:Georgia,serif;font-style:italic;font-weight:600}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero p{color:#66625d;font-size:12px;max-width:560px;margin:0;line-height:1.8}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero-badges{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero-badges span{padding:6px 10px;border-radius:999px;background:color-mix(in srgb,var(--of-soft) 34%,white);border:1px solid var(--of-border);color:var(--of-ink);font-weight:700;font-size:10px;white-space:nowrap}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero-badges i{margin-right:4px;color:var(--of-main)}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero-art{height:100%;min-height:225px;position:relative;overflow:hidden;isolation:isolate}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero-disc{position:absolute;width:245px;height:245px;top:-30px;left:-10px;border-radius:50%;background:color-mix(in srgb,var(--of-accent) 20%,white);box-shadow:0 0 0 38px color-mix(in srgb,var(--of-soft) 30%,transparent)}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero-arch{position:absolute;right:30px;top:15px;width:min(235px,85%);height:210px;border-radius:120px 120px 0 0;background:linear-gradient(160deg,var(--of-secondary),var(--of-main));box-shadow:inset 11px 8px 28px rgba(255,255,255,.13),0 15px 23px rgba(37,23,36,.12);overflow:hidden}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero-arch::before{content:'';position:absolute;inset:13px;border:1px solid #ffffff44;border-radius:110px 110px 0 0}
+ body.dashboard-v7.fi-office-desktop .fi-office-plant-stem{position:absolute;width:3px;background:var(--of-accent);transform-origin:bottom;left:112px;bottom:-12px;border-radius:3px}
+ body.dashboard-v7.fi-office-desktop .fi-office-plant-stem.s1{height:172px;transform:rotate(-27deg)}
+ body.dashboard-v7.fi-office-desktop .fi-office-plant-stem.s2{height:185px;transform:rotate(18deg)}
+ body.dashboard-v7.fi-office-desktop .fi-office-plant-stem.s3{height:133px;transform:rotate(49deg)}
+ body.dashboard-v7.fi-office-desktop .fi-office-plant-leaf{position:absolute;width:53px;height:27px;border-radius:96% 1% 96% 1%;background:color-mix(in srgb,var(--of-soft) 70%,white);box-shadow:inset 0 0 8px rgba(0,0,0,.08)}
+ body.dashboard-v7.fi-office-desktop .fi-office-plant-leaf.l1{left:62px;top:54px;transform:rotate(49deg)}
+ body.dashboard-v7.fi-office-desktop .fi-office-plant-leaf.l2{left:143px;top:80px;transform:rotate(-47deg)}
+ body.dashboard-v7.fi-office-desktop .fi-office-plant-leaf.l3{left:78px;top:118px;transform:rotate(18deg)}
+ body.dashboard-v7.fi-office-desktop .fi-office-plant-leaf.l4{left:157px;top:140px;transform:rotate(-34deg)}
+ /* Existing live statistic cards, quick links and widgets inside repositionable tiles. */
+ body.dashboard-v7.fi-office-desktop #summary-section{padding:0 0 12px!important}
+ body.dashboard-v7.fi-office-desktop #home-summary{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;padding:13px 14px 0!important}
+ body.dashboard-v7.fi-office-desktop #home-summary .summary-widget{min-height:116px!important;border-radius:13px!important;box-shadow:none!important;border-color:var(--of-border)!important;background:linear-gradient(125deg,color-mix(in srgb,var(--of-soft) 28%,white),#fff)!important}
+ body.dashboard-v7.fi-office-desktop #home-summary .summary-widget:nth-child(4n+2){background:linear-gradient(125deg,color-mix(in srgb,var(--of-secondary) 17%,white),#fff)!important}
+ body.dashboard-v7.fi-office-desktop #home-summary .summary-widget:nth-child(4n+3){background:linear-gradient(125deg,color-mix(in srgb,var(--of-accent) 20%,white),#fff)!important}
+ body.dashboard-v7.fi-office-desktop #home-summary .summary-widget:nth-child(4n+4){background:linear-gradient(125deg,color-mix(in srgb,var(--of-soft) 40%,white),#fff)!important}
+ body.dashboard-v7.fi-office-desktop #home-summary .summary-widget :is(.big-metric,.summary-head h3){color:var(--of-ink)!important}
+ body.dashboard-v7.fi-office-desktop #page-scroll #home-quicklinks{margin:0!important}
+ body.dashboard-v7.fi-office-desktop #page-scroll #home-quicklinks #home-modules .shortcut-card{
+  background:var(--of-button)!important;border:1px solid #ffffff77!important;
+  box-shadow:0 5px 15px color-mix(in srgb,var(--of-main) 26%,transparent)!important;
+  min-height:112px!important;
+ }
+ body.dashboard-v7.fi-office-desktop #page-scroll #home-quicklinks #home-modules .shortcut-card:nth-child(4n+2){background:linear-gradient(135deg,var(--of-secondary),var(--of-main))!important}
+ body.dashboard-v7.fi-office-desktop #page-scroll #home-quicklinks #home-modules .shortcut-card:nth-child(4n+3){background:linear-gradient(135deg,var(--of-main),var(--of-ink))!important}
+ body.dashboard-v7.fi-office-desktop #page-scroll #home-quicklinks #home-modules .shortcut-card:nth-child(4n+4){background:linear-gradient(135deg,var(--of-accent),var(--of-secondary))!important}
+ body.dashboard-v7.fi-office-desktop #page-scroll #home-quicklinks #home-modules .shortcut-arrow{color:var(--of-main)!important}
+ body.dashboard-v7.fi-office-desktop #right-keberadaan-stats{background:linear-gradient(145deg,#fff,color-mix(in srgb,var(--of-soft) 17%,white))!important}
+ body.dashboard-v7.fi-office-desktop #right-keberadaan-stats .kb-dashboard-widget-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;padding:12px!important}
+ body.dashboard-v7.fi-office-desktop #right-keberadaan-stats .kb-dashboard-widget-grid>div{background:color-mix(in srgb,var(--of-soft) 18%,white)!important}
+ body.dashboard-v7.fi-office-desktop #right-keberadaan-stats .kb-dash-open{background:var(--of-button)!important;color:#fff!important}
+ body.dashboard-v7.fi-office-desktop #fi-office-grid #right-timetable,
+ body.dashboard-v7.fi-office-desktop #fi-office-grid #right-announcements,
+ body.dashboard-v7.fi-office-desktop #fi-office-grid #right-calendar-panel,
+ body.dashboard-v7.fi-office-desktop #fi-office-grid #right-keberadaan-stats{height:100%}
+ body.dashboard-v7.fi-office-desktop #fi-office-grid .muted-caption{color:#7f7773!important}
+ /* Drag, accessible arrow controls and edit mode. */
+ body.dashboard-v7.fi-office-desktop .fi-office-tile-controls{display:none}
+ body.dashboard-v7.fi-office-desktop.fi-office-editing .fi-office-grid{padding:3px}
+ body.dashboard-v7.fi-office-desktop.fi-office-editing .fi-office-tile{padding:8px;border:1.5px dashed var(--of-secondary);border-radius:17px;background:#ffffff80}
+ body.dashboard-v7.fi-office-desktop.fi-office-editing .fi-office-tile[data-disabled="true"]{display:block!important;opacity:.42}
+ body.dashboard-v7.fi-office-desktop.fi-office-editing .fi-office-tile-controls{
+  display:flex;align-items:center;justify-content:flex-start;gap:12px;
+  margin-bottom:8px;padding:2px 5px;min-height:28px;color:var(--of-main);font-size:11px;font-weight:800;
+ }
+ body.dashboard-v7.fi-office-desktop .fi-office-move-handle{cursor:grab;display:flex;align-items:center;gap:7px}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile-actions{display:flex;gap:6px}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile-actions button{width:29px;height:27px;background:#fff;color:var(--of-main);border:1px solid var(--of-border);border-radius:8px}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile.fi-office-dragging{opacity:.36}
+ /* Admin-only studio drawer; transparent outside so tiles remain draggable. */
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-mask{position:fixed;inset:0 0 0 auto;z-index:100;width:350px;max-width:min(96vw,350px);pointer-events:none;display:flex;justify-content:flex-end}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-mask[hidden]{display:none!important}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor{pointer-events:auto;background:#fff;border-left:1px solid var(--of-border);box-shadow:-12px 0 40px rgba(30,27,30,.17);width:100%;height:100vh;display:flex;flex-direction:column;color:var(--of-ink)}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-top{padding:24px 19px 16px;background:var(--of-page);border-bottom:1px solid var(--of-border)}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-eyebrow{color:var(--of-main);font-size:10px;font-weight:800;letter-spacing:.13em}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-top h2{margin:7px 0 6px;font-size:20px;font-weight:800;letter-spacing:-.03em;color:var(--of-ink)}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-top p{font-size:11px;color:#6f6d6b;line-height:1.65}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-scroll{padding:18px;overflow:auto;flex:1;min-height:0}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-scroll h3{font-size:12px;font-weight:800;margin:3px 0 10px}
+ body.dashboard-v7.fi-office-desktop .fi-office-themes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:20px}
+ body.dashboard-v7.fi-office-desktop .fi-office-theme-option{display:flex;flex-direction:column;gap:6px;padding:5px;border:1.5px solid var(--of-border);border-radius:10px;background:#fff;min-width:0;color:var(--of-ink);text-align:left;font-size:10px;font-weight:700}
+ body.dashboard-v7.fi-office-desktop .fi-office-theme-option.is-selected{border-color:var(--of-main);box-shadow:0 0 0 1px var(--of-main)}
+ body.dashboard-v7.fi-office-desktop .fi-office-theme-strip{display:block;height:32px;border-radius:7px;width:100%}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-row{display:flex;gap:6px;justify-content:space-between;align-items:baseline}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-row small{font-size:10px;color:#888}
+ body.dashboard-v7.fi-office-desktop .fi-office-config-row{border:1px solid var(--of-border);border-radius:10px;padding:9px 10px;margin-bottom:8px;display:grid;grid-template-columns:1fr 1fr;gap:7px;align-items:center}
+ body.dashboard-v7.fi-office-desktop .fi-office-config-row strong{grid-column:1/-1;font-size:11px}
+ body.dashboard-v7.fi-office-desktop .fi-office-config-row label{display:flex;align-items:center;gap:5px;font-size:10px;color:#625c5a}
+ body.dashboard-v7.fi-office-desktop .fi-office-config-row select{min-width:0;width:104px;border:1px solid var(--of-border);background:#fff;padding:5px 4px;border-radius:6px;font-size:10px;color:var(--of-ink)}
+ body.dashboard-v7.fi-office-desktop .fi-office-config-row input{accent-color:var(--of-main)}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-note{margin-top:11px;font-size:10px;color:var(--of-main);border-radius:9px;background:var(--of-page);padding:10px;line-height:1.5}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-note.is-error{color:#a33232;background:#fff1f0}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-footer{display:flex;gap:8px;padding:13px 16px;border-top:1px solid var(--of-border);background:#fff}
+ body.dashboard-v7.fi-office-desktop .fi-office-editor-footer button{border-radius:9px;padding:10px;font-weight:800;font-size:11px;flex:1;min-width:0}
+ body.dashboard-v7.fi-office-desktop .fi-office-btn-secondary{background:#f4f2f1;color:var(--of-ink);border:1px solid var(--of-border)}
+ body.dashboard-v7.fi-office-desktop .fi-office-btn-primary{background:var(--of-button);color:#fff;border:0}
+ body.dashboard-v7.fi-office-desktop .fi-office-btn-primary:disabled{opacity:.65;cursor:wait}
+ body.dashboard-v7.fi-office-desktop .app-footer{color:#89817d!important}
+}
+@media (min-width:1024px) and (max-width:1360px){
+ body.dashboard-v7.fi-office-desktop .fi-office-header-brand{min-width:165px;padding-right:12px!important}
+ body.dashboard-v7.fi-office-desktop .header-layout{flex:0 1 190px}
+ body.dashboard-v7.fi-office-desktop .bestari-header-search{display:none!important}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile[data-span="4"]{grid-column:span 6}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile[data-span="8"]{grid-column:span 12}
+ body.dashboard-v7.fi-office-desktop #home-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero-art{opacity:.78}
+}
+@media (min-width:1024px) and (max-width:1130px){
+ body.dashboard-v7.fi-office-desktop .fi-office-user-name{display:none!important}
+ body.dashboard-v7.fi-office-desktop .fi-office-user{padding-left:8px;max-width:55px!important}
+ body.dashboard-v7.fi-office-desktop .fi-office-tile[data-span="6"]{grid-column:span 12}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero{grid-template-columns:1fr minmax(150px,.5fr)}
+ body.dashboard-v7.fi-office-desktop .fi-office-hero-art{min-height:200px}
+}
