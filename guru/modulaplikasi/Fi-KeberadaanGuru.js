@@ -303,10 +303,9 @@ async function commitChange(id,change,action){
 // Google Drive via Apps Script Web App. Form POST to isolated iframe avoids Apps Script CORS redirects.
 // Never put a service-account key or Drive folder ID in frontend. Endpoint is public, requests require Firebase ID token.
 function docEndpoint(){
- const el=document.querySelector('meta[name="semakmur-fi-document-webapp"]');
- const url=(el?.content||'').trim();
- if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(url))
-   throw Error('Tetapkan URL Web App Apps Script dokumen di Fi-KeberadaanGuru.html dahulu.');
+ const url=String(window.SeMAKMURFiAPIConfig?.webAppExecUrl||'').trim();
+ if(!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url))
+   throw Error('URL Web App Fi-Sync tidak sah. Semak satu fail: Fi-APIConfig.js.');
  return url;
 }
 function fileBase64(file){return new Promise((resolve,reject)=>{

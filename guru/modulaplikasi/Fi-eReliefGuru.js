@@ -3,7 +3,6 @@
 const $=id=>document.getElementById(id),esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateMY=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 let user=null,auth=null,db=null,roles=[],stop=null,rows=[],report=null,staff=[],fns=null,day='',schedulePublished=false,staffLoading=false;
-let resolvedExecUrl='';
 function warn(text,error=false){const el=$('message');el.hidden=!text;el.textContent=text||'';el.classList.toggle('error',error);}
 function metrics(data){return data.map(x=>`<div class="metric"><strong>${esc(x[0])}</strong><span>${esc(x[1])}</span></div>`).join('');}
 function badge(status){const s=String(status||''),warning=/TIADA|PERLU/.test(s),critical=/BATAL/.test(s);return `<span class="pill ${critical?'critical':warning?'warn':''}">${esc(s)}</span>`;}
@@ -36,22 +35,13 @@ function listenDate(date){day=date;$('view-date').value=date;if(stop)stop();rows
 }
 function currentTab(name){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
  document.querySelectorAll('[data-panel]').forEach(el=>el.hidden=el.dataset.panel!==name);}
-// Satu URL Web App untuk kedua-dua modul; cuba rujukan Fi-KeberadaanGuru.html
-// jika meta e-Relief masih berisi placeholder. URL ini BUKAN kunci rahsia.
+// V5.1.3: URL tunggal, dikongsi bersama e-Keberadaan.
+// Jangan lagi memuat turun HTML modul lain untuk mencari endpoint.
 async function endpoint(){
- const valid=v=>/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(v||'');
- let v=document.querySelector('meta[name="semakmur-fi-document-webapp"]')?.content?.trim()||'';
- if(valid(v))return v;
- if(valid(resolvedExecUrl))return resolvedExecUrl;
- try{
-  const response=await fetch('Fi-KeberadaanGuru.html',{cache:'no-store'});
-  if(response.ok){
-   const html=new DOMParser().parseFromString(await response.text(),'text/html');
-   v=html.querySelector('meta[name="semakmur-fi-document-webapp"]')?.content?.trim()||'';
-   if(valid(v)){resolvedExecUrl=v;return v;}
-  }
- }catch(_e){}
- throw Error('URL Web App /exec belum ditetapkan. Isi URL deployment Fi-Sync dalam meta semakmur-fi-document-webapp pada Fi-KeberadaanGuru.html (atau Fi-eReliefGuru.html), kemudian upload semula HTML.');
+ const url=String(window.SeMAKMURFiAPIConfig?.webAppExecUrl||'').trim();
+ if(!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url))
+   throw Error('URL Web App Fi-Sync tiada/tidak sah. Semak Fi-APIConfig.js.');
+ return url;
 }
 async function api(action,rest={}){
  if(!auth?.currentUser)throw Error('Log masuk diperlukan.');const url=await endpoint(),idToken=await auth.currentUser.getIdToken(true);
@@ -62,11 +52,21 @@ async function api(action,rest={}){
   const form=document.createElement('form');form.method='POST';form.action=url;form.target=iframe.name;form.hidden=true;
   const input=document.createElement('input');input.type='hidden';input.name='payload';input.value=JSON.stringify({action,nonce,idToken,...rest});form.append(input);
   let done=false;const finish=()=>{clearTimeout(timer);window.removeEventListener('message',received);form.remove();iframe.remove();};
-  function received(e){if(!/^https:\/\/(script\.google\.com|([a-z0-9-]+\.)?script\.googleusercontent\.com)$/.test(e.origin))return;
+  function received(e){if(!/^https:\/\/(script\.google\.com|(?:[a-z0-9-]+\.)*script\.googleusercontent\.com)$/.test(e.origin))return;
    if(e.data?.channel!=='semakmur-fi-doc-v1'||e.data.nonce!==nonce||done)return;done=true;finish();e.data.ok?resolve(e.data):reject(Error(e.data.error||'Permintaan gagal'));}
-  const timer=setTimeout(()=>{if(!done){done=true;finish();reject(Error('Tiada respons Apps Script.'))}},90000);
+  const timer=setTimeout(()=>{if(!done){done=true;finish();reject(Error('Tiada respons backend untuk '+action+'. Permintaan mungkin masih diproses; semak Apps Script > Executions, deployment /exec dan Console sebelum mengulang.'))}},90000);
   window.addEventListener('message',received);document.body.append(iframe,form);form.submit();
  });
+}
+async function testFiConnection(){
+ const btn=$('test-fi-connection');if(btn)btn.disabled=true;
+ warn('Menguji laluan POST Fi-Sync dan pengesahan Firebase…');
+ try{
+  const result=await api('fiBackendHealth');
+  warn('Sambungan backend berjaya. Versi: '+String(result.version||'tidak dinyatakan')+
+    '. Pengesahan pengguna dan laluan POST berfungsi.');
+ }catch(e){warn('Ujian backend gagal: '+e.message,true);}
+ finally{if(btn)btn.disabled=false;}
 }
 function selectedIds(id){return [...$(id).selectedOptions].map(o=>o.value);}
 function staffOptions(list){return list.map(s=>`<option value="${esc(s.id)}">${esc(s.name)} — ${esc(s.category)}</option>`).join('');}
@@ -93,7 +93,7 @@ async function loadStaff(){
   const source=snap.data()?.staff;
   if(!Array.isArray(source)||!source.length)throw Error('Roster Firestore kosong. Semak penyelarasan semakmur_fi_relief_staf/active.');
   staff=source
-   .map(x=>({id:String(x?.idStaf||'').trim(),name:String(x?.name||'').trim(),category:String(x?.category||'—').trim()}))
+   .map(x=>({id:String(x?.idStaf||'').trim(),name:String(x?.name||'').trim(),category:String(x?.category||x?.kategori||'—').trim()}))
    .filter(x=>x.id&&x.name);
   // Gandaan ID boleh berlaku semasa sync roster; paparkan setiap guru sekali sahaja.
   staff=[...new Map(staff.map(x=>[x.id,x])).values()];
@@ -177,7 +177,7 @@ function init(){if(new URLSearchParams(location.search).get('embed')==='1')docum
  document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>currentTab(el.dataset.tab)));
  $('view-date').addEventListener('change',()=>{if(user)listenDate($('view-date').value)});
  $('refresh').addEventListener('click',()=>{if(user)listenDate($('view-date').value)});
- $('generate-simulation').addEventListener('click',simulate);$('reload-sim-staff').addEventListener('click',loadStaff);
+ $('generate-simulation').addEventListener('click',simulate);$('reload-sim-staff').addEventListener('click',loadStaff);$('test-fi-connection').addEventListener('click',testFiConnection);
  $('clear-simulation').addEventListener('click',()=>{$('absent-staff').selectedIndex=-1;$('emergency-staff').selectedIndex=-1;$('sim-results').innerHTML='<p class="empty">Pilihan dikosongkan.</p>'});
  $('load-stats').addEventListener('click',stats);$('csv-stats').addEventListener('click',csv);$('print-stats').addEventListener('click',()=>window.print());
  $('daily-list').addEventListener('click',e=>{const b=e.target.closest('button.cancel-slot');if(b)cancelSlot(b.dataset.id)});
