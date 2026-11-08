@@ -135,9 +135,28 @@ function simTable(d){const r=d.rows||[],initial=new Map((d.mainRows||[]).map(x=>
  const changed=r.filter(x=>{const p=initial.get(x.slotId+'|'+x.classId);return !p||p.replacementId!==x.replacementId;}).length;
  return `<p class="muted-note">Jadual utama: ${esc((d.mainRows||[]).length)} tugasan. ${d.backup?'Relief Backup: '+changed+' tugasan baharu/berubah; yang lain dikekalkan.':''}</p>`;
 }
-function simDayTable(d){const r=d.rows||[];return `<div class="section-head"><h3>${esc(d.date)}</h3><span class="sub">${r.length} waktu | ${r.filter(x=>x.status==='DIAGIH').length} diagih</span></div>
- <div class="table-holder"><table><thead><tr><th>Waktu</th><th>Kelas</th><th>Subjek</th><th>Guru ganti</th><th>Kaedah</th><th>Catatan pemilihan</th></tr></thead><tbody>${r.map(x=>`<tr>
- <td>${esc(shortSlot(x.slotId))}</td><td>${esc(x.classId)}</td><td>${esc(x.subject)}</td><td>${esc(x.replacementName||'Tiada')}</td><td>${badge(x.assignmentMode)}</td><td>${esc(x.policyNote)}</td></tr>`).join('')}</tbody></table></div>`;}
+// V5.1.5: paparkan guru asal sebenar daripada enjin jadual,
+// bukan meneka daripada senarai guru yang dipilih dalam borang.
+function simReason(x){
+ const original=String(x.policyNote||'').trim();
+ const parsed=original.match(/^Keutamaan\s+(\d+)\s*,\s*hakiki\s+(\d+)\s*,\s*relief semasa\s+(\d+)$/i);
+ if(!parsed)return esc(original||'Tiada catatan');
+ const category=x.assignmentMode==='BNK'?'Guru BNK':x.assignmentMode==='BIASA'?'Guru biasa':
+  x.assignmentMode==='GPK'?'Guru Penolong Kanan':x.assignmentMode==='PECAH_PAIRING'?'Pecah pairing':
+  String(x.assignmentMode||'Guru dipilih');
+ return `<span title="${esc(original)}">${esc(category)} · ${esc(parsed[2])} waktu hakiki · ${esc(parsed[3])} relief sebelum slot ini <small>(Keutamaan ${esc(parsed[1])})</small></span>`;
+}
+function simDayTable(d){
+ const r=d.rows||[];
+ return `<div class="section-head"><h3>${esc(d.date)}</h3><span class="sub">${r.length} waktu | ${r.filter(x=>x.status==='DIAGIH').length} diagih</span></div>
+ <div class="table-holder"><table><thead><tr><th>Waktu</th><th>Kelas</th><th>Subjek</th><th>Guru asal (tidak hadir)</th><th>Guru ganti</th><th>Kaedah</th><th>Asas pemilihan</th></tr></thead><tbody>${r.map(x=>`<tr>
+ <td>${esc(shortSlot(x.slotId))}${x.from&&x.to?`<br><small>${esc(x.from)}–${esc(x.to)}</small>`:''}</td>
+ <td>${esc(x.classId)}</td><td>${esc(x.subject)}</td>
+ <td><strong>${esc(Array.isArray(x.originalNames)&&x.originalNames.length?x.originalNames.join(' / '):'Nama belum tersedia — semak versi backend')}</strong></td>
+ <td><strong>${esc(x.replacementName||'Tiada')}</strong></td><td>${badge(x.assignmentMode)}</td>
+ <td>${simReason(x)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
 async function simulate(){const absentIds=selectedIds('absent-staff'),emergencyIds=selectedIds('emergency-staff');if(!absentIds.length){warn('Pilih sekurang-kurangnya seorang guru tidak hadir.',true);return;}
  $('generate-simulation').disabled=true;warn('Menjana simulasi dengan enjin V5.1…');
  try{const data=await api('relief51Simulate',{date:$('sim-date').value,absentIds,emergencyIds,
