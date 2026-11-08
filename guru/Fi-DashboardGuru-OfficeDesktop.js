@@ -1,4 +1,4 @@
-/* SeMAKMUR Fi Office Desktop V6.0.0
+/* SeMAKMUR Fi Office Desktop V6.2.0
  * Desktop >=1024px sahaja. Widget asal dipindahkan, bukan diklon.
  * Tema + susunan disimpan dalam Firestore selepas pengesahan ADMIN_SISTEM.
  * Tidak mengubah login, PWA, data modul, atau backend Apps Script.
@@ -17,48 +17,109 @@
  ];
  const KEYS=WIDGETS.map(w=>w.id);
  const THEME_LIST=[
-  ['forest-executive','Forest Executive','#173C34','#7B9278','#B0AB75','#BF7854','#F7F4EC','#252B27'],
-  ['burgundy-prestige','Burgundy Prestige','#67283C','#B57985','#D9B88F','#AA978B','#F8F2EC','#2C2428'],
-  ['terracotta-studio','Terracotta Studio','#B75F45','#DC9B7F','#E6C9A8','#838568','#FAF5ED','#392F2B'],
-  ['olive-champagne','Olive & Champagne','#424C32','#7B8964','#D4BA88','#BFB7A8','#F7F6F0','#282C25'],
-  ['plum-pearl','Plum & Pearl','#50304D','#96738F','#D8C6D8','#C6A46C','#F8F5F8','#29242D'],
-  ['charcoal-copper','Charcoal & Copper','#282B29','#555A55','#B76D47','#D5AA72','#EBE9E4','#1C1E1B'],
-  ['emerald-luxe','Emerald Luxe','#136E52','#4D9A79','#B9DDC9','#D2AC61','#F2F8F3','#25342D'],
-  ['mocha-sand','Mocha & Sand','#4B372D','#896B59','#BA9270','#D8C5AC','#F6F1E8','#2D2925'],
-  ['rosewood-modern','Rosewood Modern','#834C50','#C08A8E','#E9C7C5','#929B85','#FBF7F4','#302C2D'],
-  ['nordic-moss','Nordic Moss','#334D43','#799080','#AAC5B2','#C9A15F','#F7F8F4','#303833']
+  ['forest-executive','Forest Executive',['Forest','Sage','Olive','Copper','Ivory','White','Charcoal'],['#173C34','#7B9278','#B0AB75','#BF7854','#F7F4EC','#FFFFFF','#252B27']],
+  ['burgundy-prestige','Burgundy Prestige',['Burgundy','Dusty Rose','Champagne','Taupe','Cream','White','Ink'],['#67283C','#B57985','#D9B88F','#AA978B','#F8F2EC','#FFFFFF','#2C2428']],
+  ['terracotta-studio','Terracotta Studio',['Terracotta','Clay','Sand','Olive','Linen','White','Espresso'],['#B75F45','#DC9B7F','#E6C9A8','#838568','#FAF5ED','#FFFFFF','#392F2B']],
+  ['olive-champagne','Olive & Champagne',['Deep Olive','Moss','Champagne','Stone','Porcelain','White','Graphite'],['#424C32','#7B8964','#D4BA88','#BFB7A8','#F7F6F0','#FFFFFF','#282C25']],
+  ['plum-pearl','Plum & Pearl',['Deep Plum','Mauve','Lavender','Antique Gold','Pearl','White','Midnight Ink'],['#50304D','#96738F','#D8C6D8','#C6A46C','#F8F5F8','#FFFFFF','#29242D']],
+  ['charcoal-copper','Charcoal & Copper',['Charcoal','Graphite','Copper','Warm Gold','Warm Gray','White','Black'],['#282B29','#555A55','#B76D47','#D5AA72','#EBE9E4','#FFFFFF','#1C1E1B']],
+  ['emerald-luxe','Emerald Luxe',['Emerald','Jade','Mint','Gold','Mist','White','Deep Ink'],['#136E52','#4D9A79','#B9DDC9','#D2AC61','#F2F8F3','#FFFFFF','#25342D']],
+  ['mocha-sand','Mocha & Sand',['Espresso','Mocha','Caramel','Sand','Oat','White','Dark Cocoa'],['#4B372D','#896B59','#BA9270','#D8C5AC','#F6F1E8','#FFFFFF','#2D2925']],
+  ['rosewood-modern','Rosewood Modern',['Rosewood','Rose','Blush','Sage','Ivory','White','Dark Slate'],['#834C50','#C08A8E','#E9C7C5','#929B85','#FBF7F4','#FFFFFF','#302C2D']],
+  ['nordic-moss','Nordic Moss',['Pine','Moss','Eucalyptus','Mustard','Snow','White','Graphite'],['#334D43','#799080','#AAC5B2','#C9A15F','#F7F8F4','#FFFFFF','#303833']],
+  ['midnight-gold','Midnight Gold',['Midnight Navy','Ocean Blue','Solar Yellow','Coral','Frost','White','Dark Ink'],['#102A43','#1F5F8B','#FFD34D','#F77759','#F5F8FC','#FFFFFF','#17212D']],
+  ['cobalt-tangerine','Cobalt Tangerine',['Royal Cobalt','Deep Royal','Tangerine','Aqua','Cloud','White','Graphite'],['#2454D3','#173DA5','#FF8B38','#4ED6C3','#F1F5FF','#FFFFFF','#202638']],
+  ['electric-plum','Electric Plum',['Deep Plum','Orchid','Electric Lime','Hot Rose','Soft Ice','White','Plum Ink'],['#44205E','#8A3DAD','#D4F04F','#FF6C91','#FAF6FC','#FFFFFF','#241C2B']],
+  ['teal-flame','Teal Flame',['Deep Teal','Bright Teal','Vivid Coral','Mango','Mint Mist','White','Deep Ink'],['#074B4C','#0C978B','#FF725E','#FFC45B','#F1FAF8','#FFFFFF','#173232']],
+  ['crimson-citrus','Crimson Citrus',['Crimson','Raspberry','Citrus Yellow','Peach','Soft Blush','White','Berry Ink'],['#7D1D35','#CC3D5D','#F6D34B','#FF9B73','#FFF5F5','#FFFFFF','#2C2028']],
+  ['emerald-spark','Emerald Spark',['Deep Emerald','Emerald','Lemon','Magenta','Dew','White','Charcoal'],['#075E41','#0AA678','#FDE047','#E75BA1','#F1FCF7','#FFFFFF','#1D2C27']],
+  ['graphite-neon','Graphite Neon',['Graphite','Steel Slate','Electric Cyan','Neon Lime','Fog','White','Deep Black'],['#252A35','#485465','#30D9E8','#D5F65C','#F3F6F8','#FFFFFF','#161B23']],
+  ['indigo-sunset','Indigo Sunset',['Midnight Indigo','Royal Indigo','Sunset Amber','Pink','Snow','White','Ink'],['#26265C','#5955C8','#FFB02E','#FC789D','#F5F4FE','#FFFFFF','#26243C']],
+  ['chocolate-pop','Chocolate Pop',['Dark Cocoa','Mocha','Turquoise','Mango','Oat','White','Black'],['#382920','#80604C','#30CFBA','#FFA63D','#FBF6EF','#FFFFFF','#241F1D']],
+  ['fuchsia-turquoise','Fuchsia Turquoise',['Deep Wine','Fuchsia','Aqua','Sunshine','Pearl','White','Ink'],['#64234C','#E6448B','#32CDBB','#FFD166','#FFF5FA','#FFFFFF','#2D2631']]
  ];
- const THEMES=Object.fromEntries(THEME_LIST.map(t=>[t[0],{name:t[1],main:t[2],secondary:t[3],soft:t[4],accent:t[5],page:t[6],ink:t[7]}]));
- const BASE={theme:'plum-pearl',order:[...KEYS],widths:Object.fromEntries(WIDGETS.map(w=>[w.id,w.width])),hidden:[]};
+ const THEMES=Object.fromEntries(THEME_LIST.map(t=>[t[0],{name:t[1],labels:t[2],values:t[3],main:t[3][0],secondary:t[3][1],soft:t[3][2],accent:t[3][3],page:t[3][4],ink:t[3][6]}]));
+ const ROLE_ITEMS=[
+  ['sidebar','Sidebar'],['text','Tulisan isi'],['heading','Tajuk / tulisan utama'],
+  ['onDark','Tulisan atas warna gelap'],['border','Border'],['button','Butang'],
+  ['accent','Aksen / ikon'],['surface','Latar kad'],['page','Latar halaman'],['hero','Latar banner']
+ ];
+ const EFFECT_ITEMS=[['sidebar','Sidebar'],['buttons','Butang'],['quicklinks','Pautan Pantas'],
+  ['hero','Banner'],['statistics','Kad statistik'],['panels','Panel / kad']];
+ const FONT_ITEMS=[['body','Teks biasa',12,19],['heading','Tajuk seksyen',14,26],
+  ['metric','Nombor / statistik',20,38],['button','Tulisan butang',11,18]];
+ const BASE={theme:'plum-pearl',style:'gradient',order:[...KEYS],
+  widths:Object.fromEntries(WIDGETS.map(w=>[w.id,w.width])),hidden:[],
+  effects:Object.fromEntries(EFFECT_ITEMS.map(v=>[v[0],'gradient'])),
+  fontSizes:{body:13,heading:16,metric:26,button:12}};
  const $=id=>document.getElementById(id);
- let published=structuredClone(BASE),draft=null, editing=false, admin=false;
- let mounted=false, auth=null, db=null, user=null, firestore=null;
+ let published=null,draft=null,editing=false,admin=false;
+ let mounted=false,auth=null,db=null,user=null,firestore=null;
  let unsubAuth=null,unsubConfig=null,unsubRole=null,initAttempt=0;
- const holders=new Map(), tiles=new Map();
- let grid=null, drawer=null, pendingSave=false,dragging=null,categoryObserver=null;
+ const holders=new Map(),tiles=new Map(),sectionActionRefs=[];
+ let grid=null,drawer=null,pendingSave=false,dragging=null,categoryObserver=null;
  const clone=x=>JSON.parse(JSON.stringify(x));
+ const HEX=/^#[0-9a-fA-F]{6}$/;
+ const colorOK=x=>typeof x==='string'&&HEX.test(x);
+ function defaultColors(name){
+  const t=THEMES[name]||THEMES[BASE.theme];const v=t.values;
+  return {sidebar:v[0],text:v[6],heading:v[0],onDark:'#FFFFFF',border:v[2],
+   button:v[0],accent:v[3],surface:v[5],page:v[4],hero:v[4]};
+ }
  function normalize(data){
   const d=data&&typeof data==='object'?data:{};
+  const theme=THEMES[d.theme]?d.theme:BASE.theme;
   const order=Array.isArray(d.order)?d.order.filter(k=>KEYS.includes(k)):[];
   const full=[...new Set(order),...KEYS.filter(k=>!order.includes(k))];
   const widths={};for(const w of WIDGETS){const v=Number(d.widths?.[w.id]);widths[w.id]=[4,6,8,12].includes(v)?v:w.width;}
   const hidden=[...new Set(Array.isArray(d.hidden)?d.hidden.filter(k=>KEYS.includes(k)):[])];
-  return {theme:THEMES[d.theme]?d.theme:BASE.theme,order:full,widths,hidden};
+  const defaults=defaultColors(theme),colors={};
+  for(const [k] of ROLE_ITEMS){colors[k]=colorOK(d.colors?.[k])?d.colors[k].toUpperCase():defaults[k];}
+  const style=['solid','gradient','mixed'].includes(d.style)?d.style:'gradient';
+  const effects={};for(const [k] of EFFECT_ITEMS){effects[k]=['solid','gradient'].includes(d.effects?.[k])?d.effects[k]:'gradient';}
+  const fontSizes={};for(const [k,_,min,max] of FONT_ITEMS){const v=Number(d.fontSizes?.[k]);fontSizes[k]=Number.isInteger(v)&&v>=min&&v<=max?v:BASE.fontSizes[k];}
+  return {theme,style,order:full,widths,hidden,colors,effects,fontSizes};
  }
+ published=normalize(BASE);
  function el(tag,cls,text){const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;}
- function applyTheme(name){
-  const t=THEMES[name]||THEMES[BASE.theme],b=document.body;
+ function luminance(hex){const c=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(x=>x<=0.04045?x/12.92:((x+0.055)/1.055)**2.4);return c[0]*0.2126+c[1]*0.7152+c[2]*0.0722;}
+ function contrast(a,b){const x=luminance(a),y=luminance(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);}
+ function legible(bg,preferred){return contrast(bg,preferred)>=4.5?preferred:(contrast(bg,'#FFFFFF')>=contrast(bg,'#17212D')?'#FFFFFF':'#17212D');}
+ function applyTheme(config){
+  if(!mounted)return;
+  const c=normalize(config),t=THEMES[c.theme],r=c.colors,b=document.body;
+  const mode=part=>c.style==='mixed'?c.effects[part]:c.style;
+  const bg=(part,a,z)=>mode(part)==='solid'?a:`linear-gradient(127deg,${a} 0%,${z} 100%)`;
   const vars={
    '--of-main':t.main,'--of-secondary':t.secondary,'--of-soft':t.soft,
-   '--of-accent':t.accent,'--of-page':t.page,'--of-ink':t.ink,
-   '--of-border':`color-mix(in srgb, ${t.secondary} 24%, #fff)`,
-   '--of-rail':`linear-gradient(169deg,${t.main} 0%,${t.ink} 100%)`,
-   '--of-hero':`radial-gradient(ellipse at 95% 12%,${t.soft}70 0%, transparent 39%),linear-gradient(112deg,#ffffff 1%,${t.page} 52%,${t.soft} 100%)`,
-   '--of-button':`linear-gradient(125deg,${t.main},${t.secondary})`,
-   '--of-feature':`linear-gradient(130deg,${t.main},${t.ink} 72%)`
+   '--of-accent':r.accent,'--of-page':r.page,'--of-ink':r.text,
+   '--of-heading':r.heading,'--of-on-dark':r.onDark,'--of-surface':r.surface,'--of-border':r.border,
+   '--of-rail':bg('sidebar',r.sidebar,t.ink),
+   '--of-hero':mode('hero')==='solid'?r.hero:`linear-gradient(112deg,${r.surface},${r.hero} 67%,${t.soft})`,
+   '--of-button':bg('buttons',r.button,t.secondary),
+   '--of-feature':bg('panels',r.sidebar,t.ink),
+   '--of-quick-1':bg('quicklinks',r.button,t.secondary),
+   '--of-quick-2':bg('quicklinks',t.secondary,r.button),
+   '--of-quick-3':bg('quicklinks',r.sidebar,t.ink),
+   '--of-quick-4':bg('quicklinks',r.button,r.sidebar),
+   '--of-stat-bg':bg('statistics',r.surface,r.hero),
+   '--of-stat-bg-2':bg('statistics',r.surface,t.page),
+   '--of-panel-bg':bg('panels',r.surface,r.hero),
+   '--of-stat-icon-1':bg('statistics',r.button,t.secondary),
+   '--of-stat-icon-2':bg('statistics',r.accent,r.button),
+   '--of-stat-icon-3':bg('statistics',t.secondary,r.sidebar),
+   '--of-stat-icon-4':bg('statistics',r.sidebar,t.ink),
+   '--of-button-text':legible(r.button,r.onDark),
+   '--of-shortcut-text':legible(r.button,r.onDark),
+   '--of-sidebar-text':legible(r.sidebar,r.onDark),
+   '--of-size-body':`${c.fontSizes.body}px`,
+   '--of-size-heading':`${c.fontSizes.heading}px`,
+   '--of-size-metric':`${c.fontSizes.metric}px`,
+   '--of-size-button':`${c.fontSizes.button}px`
   };
   Object.entries(vars).forEach(([k,v])=>b.style.setProperty(k,v));
-  b.dataset.fiOfficeTheme=name;
+  b.dataset.fiOfficeTheme=c.theme;b.dataset.fiOfficeStyle=c.style;
+  b.dataset.fiOfficeHeroDark=String(luminance(r.hero)<0.22);
  }
  function addHeader(){
   const head=document.querySelector('.dashboard-main-header');if(!head||$('fi-office-brand'))return;
@@ -104,13 +165,22 @@
   const home=$('page-laman_utama');grid=el('div','fi-office-grid');grid.id='fi-office-grid';
   home.insertBefore(grid,home.firstChild);
   for(const w of WIDGETS){const t=createTile(w);if(t){tiles.set(w.id,t);grid.appendChild(t);}}
-  createEditor();bindGrid();applyLayout(published);observeCategory();updateHeroDay();
+  installSectionActions();createEditor();bindGrid();applyLayout(published);observeCategory();updateHeroDay();
   window.FiOfficeDesk={isDesktop:true,getCurrent:()=>clone(published)};
   startFirebase();
  }
  function unmount(){
   if(!mounted)return;
   closeEditor(true);
+  // Restore original action buttons before their desktop-only wrappers are removed.
+  for(const item of sectionActionRefs){
+   if(item.original && item.marker?.parentNode){
+    item.marker.parentNode.replaceChild(item.button,item.marker);
+    item.button.classList.remove('fi-office-section-action');
+   }
+   item.slot?.remove();
+  }
+  sectionActionRefs.length=0;
   for(const [,h] of holders){if(h.placeholder?.parentNode)h.placeholder.parentNode.replaceChild(h.node,h.placeholder);}
   holders.clear();tiles.clear();grid?.remove();grid=null;mounted=false;
   drawer?.remove();drawer=null;
@@ -137,7 +207,7 @@
  }
  function applyLayout(config){
   if(!mounted||!grid)return;
-  const c=normalize(config);applyTheme(c.theme);
+  const c=normalize(config);applyTheme(c);
   for(const key of c.order){const tile=tiles.get(key);if(!tile)continue;grid.appendChild(tile);tile.dataset.span=c.widths[key];tile.dataset.disabled=String(c.hidden.includes(key));tile.draggable=editing&&admin;}
   document.body.classList.toggle('fi-office-editing',editing&&admin);
   moveQuicklinks(!$('page-laman_utama')?.classList.contains('hidden'));
@@ -149,6 +219,43 @@
   if(next<0||next>=draft.order.length)return;
   [draft.order[idx],draft.order[next]]=[draft.order[next],draft.order[idx]];
   applyLayout(draft);
+ }
+ function installSectionActions(){
+  // Only working actions: original Keberadaan button, Firestore-backed modules,
+  // and existing school calendar. Buttons do not create/fabricate data.
+  const configs=[
+   ['summary','e-Relief','relief'],
+   ['timetable','Buka Takwim','calendar'],
+   ['announcements','Besarkan','expand'],
+   ['calendar','Buka Takwim','calendar'],
+   ['quicklinks','Menu Modul','menu'],
+   ['keberadaan','Buka e-Keberadaan','keberadaan']
+  ];
+  for(const [id,label,action] of configs){
+   const tile=tiles.get(id);if(!tile)continue;
+   const section=tile.querySelector('.fi-office-tile-content > :first-child');
+   const head=section?.querySelector('.right-card-head,.quicklinks-topline,.home-summary-title');
+   if(!head)continue;
+   // Existing e-Keberadaan action keeps its data-module handler.
+   let button=id==='keberadaan'?section.querySelector('.kb-dash-open'):null;
+   let marker=null;
+   if(button){marker=document.createComment('fi-office-original-section-action');button.parentNode.insertBefore(marker,button);}
+   if(!button){button=el('button','fi-office-section-action');button.type='button';button.textContent=label;
+     if(action==='relief')button.dataset.module='relief';
+     else if(action==='keberadaan')button.dataset.module='keberadaan';
+     else button.addEventListener('click',()=>{
+      if(action==='calendar')$('bestari-calendar-trigger')?.click();
+      if(action==='menu')document.querySelector('#desktop-nav .nav-link[data-page="lain_lain"]')?.click();
+      if(action==='expand'){
+        const active=tile.classList.toggle('fi-office-expanded');
+        button.textContent=active?'Kecilkan':'Besarkan';button.setAttribute('aria-pressed',String(active));
+      }
+     });
+   }
+   button.classList.add('fi-office-section-action');
+   const target=el('div','fi-office-action-slot');target.appendChild(button);head.appendChild(target);
+   sectionActionRefs.push({button,slot:target,marker,original:!!marker});
+  }
  }
  function bindGrid(){
   grid.addEventListener('click',e=>{
@@ -176,32 +283,80 @@
  function createEditor(){
   if(drawer)return;
   drawer=el('div','fi-office-editor-mask');drawer.id='fi-office-editor-mask';drawer.hidden=true;
-  drawer.innerHTML=`<div class="fi-office-editor" role="dialog" aria-modal="true" aria-labelledby="fi-office-editor-title"><div class="fi-office-editor-top"><span class="fi-office-editor-eyebrow">ADMIN SISTEM · DESKTOP SAHAJA</span><h2 id="fi-office-editor-title">Reka Bentuk Dashboard</h2><p>Pilih tema gradient, seret widget, tetapkan lebar dan sorok panel. Perubahan hanya diterbitkan selepas disimpan.</p></div><div class="fi-office-editor-scroll"><h3>10 Tema Office Management</h3><div class="fi-office-themes" id="fi-office-themes"></div><div class="fi-office-editor-row"><h3>Kedudukan & lebar panel</h3><small>Seret kad pada dashboard atau guna anak panah.</small></div><div id="fi-office-widgets-config"></div><div class="fi-office-editor-note" id="fi-office-editor-status" role="status">Pratonton belum diterbitkan.</div></div><div class="fi-office-editor-footer"><button id="fi-office-reset" type="button" class="fi-office-btn-secondary">Susunan asal</button><button id="fi-office-cancel" type="button" class="fi-office-btn-secondary">Batal</button><button id="fi-office-save" type="button" class="fi-office-btn-primary">Terbitkan</button></div></div>`;
+  drawer.innerHTML=`<div class="fi-office-editor" role="dialog" aria-modal="true" aria-labelledby="fi-office-editor-title">
+   <div class="fi-office-editor-top"><span class="fi-office-editor-eyebrow">ADMIN SISTEM · DESKTOP SAHAJA</span>
+    <h2 id="fi-office-editor-title">Theme & Layout Studio</h2>
+    <p>Pilih 20 palet, gaya warna, warna komponen dan saiz tulisan. Ubah panel kemudian Terbitkan kepada semua guru desktop.</p></div>
+   <div class="fi-office-editor-scroll" id="fi-office-editor-scroll">
+    <h3>1. Palet Warna (20 pilihan)</h3><div class="fi-office-themes" id="fi-office-themes"></div>
+    <h3>2. Gaya Paparan</h3><div id="fi-office-style-settings"></div>
+    <h3>3. Tetapan Warna Setiap Elemen</h3><p class="fi-office-hint">Pilih nama warna dalam palet, atau gunakan kotak warna untuk warna tersuai.</p>
+    <div id="fi-office-colors"></div><p id="fi-office-contrast-notice" class="fi-office-contrast-notice" role="status"></p>
+    <h3>4. Saiz Tulisan Desktop (px)</h3><div id="fi-office-fonts"></div>
+    <div class="fi-office-editor-row"><h3>5. Susunan & Lebar Panel</h3><small>Seret panel atau tetapkan di bawah.</small></div>
+    <div id="fi-office-widgets-config"></div>
+    <div class="fi-office-editor-note" id="fi-office-editor-status" role="status">Pratonton belum diterbitkan.</div>
+   </div><div class="fi-office-editor-footer"><button id="fi-office-reset" type="button" class="fi-office-btn-secondary">Asal</button>
+   <button id="fi-office-cancel" type="button" class="fi-office-btn-secondary">Batal</button>
+   <button id="fi-office-save" type="button" class="fi-office-btn-primary">Terbitkan</button></div></div>`;
   document.body.appendChild(drawer);
   drawer.addEventListener('click',e=>{if(e.target===drawer)closeEditor(true);});
   $('fi-office-cancel').addEventListener('click',()=>closeEditor(true));
-  $('fi-office-reset').addEventListener('click',()=>{if(!editing)return;draft=clone(BASE);applyLayout(draft);editorStatus('Susunan asal dipratonton. Klik Terbitkan untuk menyimpan.');});
+  $('fi-office-reset').addEventListener('click',()=>{if(!editing)return;draft=normalize(BASE);applyLayout(draft);editorStatus('Konfigurasi asal dipratonton. Klik Terbitkan untuk menyimpan.');});
   $('fi-office-save').addEventListener('click',saveLayout);
   $('fi-office-themes').addEventListener('click',e=>{
    const btn=e.target.closest('button[data-theme]');if(!btn||!draft)return;
-   draft.theme=btn.dataset.theme;applyLayout(draft);editorStatus('Tema dipratonton. Klik Terbitkan untuk menyimpan.');
+   draft.theme=btn.dataset.theme;draft.colors=defaultColors(draft.theme);
+   applyLayout(draft);editorStatus('Palet dipratonton. Warna peranan diset semula mengikut palet baharu.');
+  });
+  $('fi-office-style-settings').addEventListener('change',e=>{
+   if(!draft)return;
+   if(e.target.matches('[data-style]'))draft.style=e.target.value;
+   else if(e.target.matches('[data-effect]'))draft.effects[e.target.dataset.effect]=e.target.value;
+   else return;
+   applyLayout(draft);editorStatus('Gaya paparan dipratonton. Klik Terbitkan untuk menyimpan.');
+  });
+  const changeColor=e=>{
+   const k=e.target?.dataset?.color;if(!draft||!ROLE_ITEMS.some(r=>r[0]===k)||!colorOK(e.target.value))return;
+   draft.colors[k]=e.target.value.toUpperCase();applyLayout(draft);
+   editorStatus('Warna tersuai sedang dipratonton.');
+  };
+  $('fi-office-colors').addEventListener('change',changeColor);
+  $('fi-office-fonts').addEventListener('input',e=>{
+   const k=e.target?.dataset?.font;if(!draft||!FONT_ITEMS.some(f=>f[0]===k))return;
+   draft.fontSizes[k]=Number(e.target.value);
+   const label=$(`fi-office-font-value-${k}`);if(label)label.textContent=e.target.value+'px';
+   applyTheme(draft);editorStatus('Saiz tulisan dipratonton.');
   });
   $('fi-office-widgets-config').addEventListener('change',e=>{
    if(!draft)return;
    const id=e.target.closest('[data-widget]')?.dataset.widget;if(!KEYS.includes(id))return;
    if(e.target.matches('select[data-width]'))draft.widths[id]=Number(e.target.value);
    if(e.target.matches('input[data-hide]'))draft.hidden=e.target.checked?[...new Set([...draft.hidden,id])]:draft.hidden.filter(x=>x!==id);
-   applyLayout(draft);editorStatus('Perubahan dipratonton. Klik Terbitkan untuk menyimpan.');
+   applyLayout(draft);editorStatus('Susunan dipratonton. Klik Terbitkan untuk menyimpan.');
   });
  }
  function editorStatus(message,isError=false){const node=$('fi-office-editor-status');if(node){node.textContent=message;node.classList.toggle('is-error',isError);}}
  function renderEditorOptions(){
   if(!drawer||!draft)return;
-  $('fi-office-themes').innerHTML=THEME_LIST.map(t=>`<button type="button" data-theme="${t[0]}" aria-pressed="${t[0]===draft.theme}" class="fi-office-theme-option ${t[0]===draft.theme?'is-selected':''}"><span class="fi-office-theme-strip" style="background:linear-gradient(110deg,${t[2]},${t[3]} 55%,${t[4]})"></span><span>${t[1]}</span></button>`).join('');
+  const scroller=$('fi-office-editor-scroll'),pos=scroller?.scrollTop||0;
+  const t=THEMES[draft.theme];
+  $('fi-office-themes').innerHTML=THEME_LIST.map((p,i)=>`<button type="button" data-theme="${p[0]}" aria-pressed="${p[0]===draft.theme}" class="fi-office-theme-option ${p[0]===draft.theme?'is-selected':''}"><span class="fi-office-theme-strip" style="background:linear-gradient(110deg,${p[3][0]},${p[3][1]} 55%,${p[3][2]})"></span><span>${String(i+1).padStart(2,'0')} · ${p[1]}</span></button>`).join('');
+  $('fi-office-style-settings').innerHTML=`<label class="fi-office-editor-field"><span>Gaya keseluruhan</span><select data-style>${[['solid','Solid'],['gradient','Gradient'],['mixed','Campuran (pilih setiap elemen)']].map(v=>`<option value="${v[0]}" ${draft.style===v[0]?'selected':''}>${v[1]}</option>`).join('')}</select></label><div class="fi-office-effect-grid">${EFFECT_ITEMS.map(([k,label])=>`<label><span>${label}</span><select data-effect="${k}" ${draft.style==='mixed'?'':'disabled'}><option value="solid" ${draft.effects[k]==='solid'?'selected':''}>Solid</option><option value="gradient" ${draft.effects[k]==='gradient'?'selected':''}>Gradient</option></select></label>`).join('')}</div>`;
+  $('fi-office-colors').innerHTML=ROLE_ITEMS.map(([k,label])=>{
+   const value=draft.colors[k];
+   return `<div class="fi-office-color-row"><label for="fi-office-palette-${k}">${label}</label><select id="fi-office-palette-${k}" data-color="${k}" aria-label="Palet warna ${label}"><option value="${value}">Semasa: ${value}</option>${t.values.map((color,i)=>`<option value="${color}" ${value===color?'selected':''}>${t.labels[i]} · ${color}</option>`).join('')}</select><input type="color" data-color="${k}" value="${value}" aria-label="Pilih warna tersuai untuk ${label}" title="Warna tersuai" /></div>`;
+  }).join('');
+  const textContrast=contrast(draft.colors.text,draft.colors.surface);
+  const headContrast=contrast(draft.colors.heading,draft.colors.surface);
+  $('fi-office-contrast-notice').textContent=(textContrast<4.5||headContrast<3)?`⚠ Kontras tulisan/kad rendah (${Math.min(textContrast,headContrast).toFixed(1)}:1). Untuk keterbacaan, pilih tulisan yang lebih gelap bagi latar kad cerah.`:'✓ Kontras tulisan pada latar kad memadai.';
+  $('fi-office-contrast-notice').classList.toggle('is-warning',textContrast<4.5||headContrast<3);
+  $('fi-office-fonts').innerHTML=FONT_ITEMS.map(([k,label,min,max])=>`<label class="fi-office-font-row"><span>${label}</span><input type="range" data-font="${k}" min="${min}" max="${max}" step="1" value="${draft.fontSizes[k]}"/><strong id="fi-office-font-value-${k}">${draft.fontSizes[k]}px</strong></label>`).join('');
   $('fi-office-widgets-config').innerHTML=draft.order.map(k=>{
    const w=WIDGETS.find(v=>v.id===k),span=draft.widths[k],hide=draft.hidden.includes(k);
    return `<div class="fi-office-config-row" data-widget="${k}"><strong>${w.title}</strong><label>Lebar <select data-width aria-label="Lebar ${w.title}">${[4,6,8,12].map(n=>`<option value="${n}" ${span===n?'selected':''}>${n===12?'Penuh (12)':n===8?'Besar (8)':n===6?'Separuh (6)':'Kecil (4)'}</option>`).join('')}</select></label><label class="fi-office-checkbox"><input data-hide type="checkbox" ${hide?'checked':''}/> Sorok</label></div>`;
   }).join('');
+  if(scroller)scroller.scrollTop=pos;
  }
  function openEditor(){
   if(!mounted||!admin||!user)return;
