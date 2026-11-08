@@ -63,7 +63,7 @@
  function addHeader(){
   const head=document.querySelector('.dashboard-main-header');if(!head||$('fi-office-brand'))return;
   const brand=el('div','fi-office-header-brand');brand.id='fi-office-brand';
-  brand.innerHTML='<span class="fi-office-brand-mark" aria-hidden="true">S</span><span><strong>SeMAKMUR</strong><small>Digital Management</small></span>';
+  brand.innerHTML='<span class="fi-office-brand-mark" aria-hidden="true">S</span><span><strong>SeMAKMUR</strong><small>Digital Dashboard</small></span>';
   head.insertBefore(brand,head.firstChild);
   const userbtn=el('button','fi-office-user');userbtn.type='button';userbtn.id='fi-office-user';userbtn.title='Profil akaun guru';
   userbtn.innerHTML='<span class="fi-office-user-initial" id="fi-office-user-initial">G</span><span class="fi-office-user-name"><strong id="fi-office-user-name">Guru SeMAKMUR</strong><small>Portal Sekolah</small></span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i>';
