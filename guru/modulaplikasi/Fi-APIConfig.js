@@ -6,6 +6,6 @@
  * Update only this file if the active deployment URL is different.
  */
 window.SeMAKMURFiAPIConfig = Object.freeze({
-  webAppExecUrl: 'https://script.google.com/macros/s/AKfycbxAfH81KhITcmO8PokjH1mHkg43pivqfNVQgH-kXBeQI_Spa9POM8MJk6QqFLEfbp7a/exec',
+  webAppExecUrl: 'https://script.google.com/macros/s/AKfycbziZDUw-NNzgXXaw1r5vqdRCM9ozv5OXWVPs9bjXjXp96gJSSa3zRFy0skHItLtSKWqqA/exec',
   clientRelease: 'V5.1.3'
 });
