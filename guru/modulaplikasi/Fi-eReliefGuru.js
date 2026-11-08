@@ -52,8 +52,27 @@ async function api(action,rest={}){
   const form=document.createElement('form');form.method='POST';form.action=url;form.target=iframe.name;form.hidden=true;
   const input=document.createElement('input');input.type='hidden';input.name='payload';input.value=JSON.stringify({action,nonce,idToken,...rest});form.append(input);
   let done=false;const finish=()=>{clearTimeout(timer);window.removeEventListener('message',received);form.remove();iframe.remove();};
-  function received(e){if(!/^https:\/\/(script\.google\.com|(?:[a-z0-9-]+\.)*script\.googleusercontent\.com)$/.test(e.origin))return;
-   if(e.data?.channel!=='semakmur-fi-doc-v1'||e.data.nonce!==nonce||done)return;done=true;finish();e.data.ok?resolve(e.data):reject(Error(e.data.error||'Permintaan gagal'));}
+  // Apps Script HtmlService may reply from the sandbox hostname
+  // n-<id>-script.googleusercontent.com, not only *.script.googleusercontent.com.
+  // Keep an origin allowlist and the per-request nonce; do not accept opaque ('null') origins.
+  function trustedFiOrigin(origin){
+   try{
+    const u=new URL(origin);
+    if(u.protocol!=='https:'||u.port||u.username||u.password)return false;
+    const host=u.hostname.toLowerCase();
+    return host==='script.google.com'||host==='script.googleusercontent.com'||
+     host.endsWith('.script.googleusercontent.com')||host.endsWith('-script.googleusercontent.com');
+   }catch(_e){return false;}
+  }
+  function received(e){
+   if(e.data?.channel!=='semakmur-fi-doc-v1')return;
+   if(!trustedFiOrigin(e.origin)){
+    console.warn('[SeMAKMUR FiBridge] Respons pada origin tidak dibenarkan:',e.origin);
+    return;
+   }
+   if(e.data.nonce!==nonce||done)return;
+   done=true;finish();e.data.ok?resolve(e.data):reject(Error(e.data.error||'Permintaan gagal'));
+  }
   const timer=setTimeout(()=>{if(!done){done=true;finish();reject(Error('Tiada respons backend untuk '+action+'. Permintaan mungkin masih diproses; semak Apps Script > Executions, deployment /exec dan Console sebelum mengulang.'))}},90000);
   window.addEventListener('message',received);document.body.append(iframe,form);form.submit();
  });
@@ -104,7 +123,7 @@ async function loadStaff(){
   $('generate-simulation').disabled=false;
   staffStatus(staff.length+' guru tersedia daripada Firestore untuk simulasi. Sahkan roster sepadan dengan Master_Staf.','success');
  }catch(e){
-  console.error('[SeMAKMUR V5.1.2] Makmal Admin: roster Firestore gagal dibaca',e);
+  console.error('[SeMAKMUR V5.1.4] Makmal Admin: roster Firestore gagal dibaca',e);
   const info=e?.code==='permission-denied'
    ?'Akses Firestore ditolak. Semak profil aktif dan dokumen peranan ADMIN_SISTEM.'
    :(e?.message||String(e));
