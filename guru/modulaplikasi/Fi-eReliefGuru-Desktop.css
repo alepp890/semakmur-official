@@ -14,3 +14,40 @@ body.is-embed .app-head{display:none}body.is-embed .relief-app{padding-top:12px}
 .staff-state.is-success{background:#eef8f3;border-color:#b9dac9;color:#1e674b}
 .staff-state .btn{font-size:12px;padding:7px 10px}
 @media(max-width:767px){.staff-state{align-items:stretch}.staff-state .btn{width:100%}}
+
+
+/* V5.2 — progress overlay, desktop sahaja; PWA tidak diubah */
+body.fi-host-desktop .fi-process-backdrop:not([hidden]){position:fixed;inset:0;z-index:999999;display:grid;place-items:center;background:rgba(12,32,48,.62);backdrop-filter:blur(4px);padding:24px}
+ body.fi-host-desktop .fi-process-card{width:min(420px,100%);padding:32px 24px;background:#fff;border-radius:19px;text-align:center;box-shadow:0 25px 85px rgba(0,0,0,.24);display:grid;justify-items:center;gap:13px;font-family:'Plus Jakarta Sans',sans-serif;color:#173C34}
+ body.fi-host-desktop .fi-process-card strong{font-size:17px;line-height:1.45}.fi-process-card small{color:#586575;font-size:13px;line-height:1.6}
+ body.fi-host-desktop .fi-process-spinner{display:block;width:47px;height:47px;border:4px solid #d6e6dd;border-top-color:#14765a;border-radius:100%;animation:fi-progress-rotate .8s linear infinite}
+ @keyframes fi-progress-rotate{to{transform:rotate(360deg)}}
+ @media(prefers-reduced-motion:reduce){body.fi-host-desktop .fi-process-spinner{animation-duration:2.5s}}
+
+/* V5.2 — Susunan jadual mengikut Guru Asal, desktop sahaja */
+body:not(.fi-host-desktop) .relief-desktop-view{display:none!important}
+body.fi-host-desktop .relief-mobile-view{display:none!important}
+body.fi-host-desktop .relief-desktop-view{display:grid;gap:16px;min-width:0;width:100%}
+body.fi-host-desktop .relief-group-block{border:1px solid #d9e6df;border-radius:14px;overflow:hidden;background:white;min-width:0}
+body.fi-host-desktop .relief-group-block h3{margin:0;background:#173C34;color:white;padding:13px 17px;font-size:14px;font-weight:800;letter-spacing:.02em;overflow-wrap:anywhere}
+body.fi-host-desktop .relief-group-line{display:grid;grid-template-columns:minmax(92px,.65fr) minmax(94px,.7fr) minmax(135px,1.4fr) minmax(100px,.85fr);gap:10px 15px;align-items:center;padding:13px 16px;border-top:1px solid #e8eeea;min-width:0}
+body.fi-host-desktop .relief-group-line:first-of-type{border-top:0}
+body.fi-host-desktop .relief-group-line > div{min-width:0;overflow-wrap:anywhere}
+body.fi-host-desktop .relief-when,body.fi-host-desktop .relief-detail,body.fi-host-desktop .relief-replacement{display:grid;gap:3px}
+body.fi-host-desktop .relief-when strong{color:#173C34;font-size:14px}
+body.fi-host-desktop .relief-group-line small,body.fi-host-desktop .relief-replacement span{color:#596b62;font-size:12px;line-height:1.5}
+body.fi-host-desktop .relief-detail strong,body.fi-host-desktop .relief-replacement strong{color:#26362e;font-size:14px}
+body.fi-host-desktop .relief-status{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+body.fi-host-desktop .relief-status .btn{font-size:12px;padding:6px 9px}
+body.fi-host-desktop .relief-group-line:hover{background:#fbfcfa}
+@media(max-width:1170px){
+ body.fi-host-desktop .relief-group-line{grid-template-columns:minmax(85px,.7fr) minmax(80px,.8fr) minmax(115px,1.3fr);gap:10px}
+ body.fi-host-desktop .relief-status{grid-column:1/-1;justify-content:flex-start}
+}
+
+/* Audit roster kategori - hanya desktop */
+body:not(.fi-host-desktop) .fi-category-audit{display:none!important}
+body.fi-host-desktop .fi-category-audit{border:1px solid #d9e6df;border-radius:10px;background:#f7faf8;padding:10px 13px;margin:0 0 16px;color:#173C34;font-size:12px}
+body.fi-host-desktop .fi-category-audit summary{cursor:pointer;font-weight:800}
+body.fi-host-desktop .fi-category-items{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+body.fi-host-desktop .fi-category-items span{background:white;border:1px solid #d9e6df;border-radius:8px;padding:5px 9px}

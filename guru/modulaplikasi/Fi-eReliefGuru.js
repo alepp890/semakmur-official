@@ -4,9 +4,30 @@ const $=id=>document.getElementById(id),esc=x=>String(x==null?'':x).replace(/[&<
 const dateMY=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 let user=null,auth=null,db=null,roles=[],stop=null,rows=[],report=null,staff=[],fns=null,day='',schedulePublished=false,staffLoading=false;
 function warn(text,error=false){const el=$('message');el.hidden=!text;el.textContent=text||'';el.classList.toggle('error',error);}
+/** Fullscreen progress only on desktop. Mobile PWA keeps its existing notice. */
+function fiDesktopHost(){
+ try{if(window.parent&&window.parent!==window&&window.parent.matchMedia)
+   return window.parent.matchMedia('(min-width:1024px)').matches;}catch(_e){}
+ return window.matchMedia('(min-width:1024px)').matches;
+}
+function fiUpdateDesktopHost(){document.body.classList.toggle('fi-host-desktop',fiDesktopHost());}
+window.addEventListener('resize',fiUpdateDesktopHost);
+function reliefBusyStart(message){
+ fiUpdateDesktopHost();if(!fiDesktopHost())return ()=>{};
+ let el=document.getElementById('fi-relief-process');
+ if(!el){el=document.createElement('div');el.id='fi-relief-process';el.className='fi-process-backdrop';
+  el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+  el.innerHTML='<div class="fi-process-card"><span class="fi-process-spinner" aria-hidden="true"></span><strong class="fi-process-message"></strong><small>Permintaan sedang diproses. Jangan tekan butang berulang kali.</small></div>';
+  document.body.append(el);
+ }
+ el.querySelector('.fi-process-message').textContent=message;
+ el.hidden=false;
+ return ()=>{el.hidden=true;};
+}
 function metrics(data){return data.map(x=>`<div class="metric"><strong>${esc(x[0])}</strong><span>${esc(x[1])}</span></div>`).join('');}
 function badge(status){const s=String(status||''),warning=/TIADA|PERLU/.test(s),critical=/BATAL/.test(s);return `<span class="pill ${critical?'critical':warning?'warn':''}">${esc(s)}</span>`;}
 function shortSlot(x){const m=String(x||'').match(/SLOT[-_]0*(\d+)$/i);return m?'W'+Number(m[1]):String(x||'');}
+function periodLabel(x){return Number(x?.periodNo)>0?'Waktu '+Number(x.periodNo):shortSlot(x?.slotId);}
 function listTable(r,own=false){if(!r.length)return '<p class="empty">Tiada tugasan relief untuk tarikh ini.</p>';
  const group={};r.forEach(x=>{const key=(x.originalNames||[]).join(' / ')||'Guru tidak hadir';(group[key]||(group[key]=[])).push(x);});
  let html='<table><thead><tr><th>Waktu</th><th>Subjek</th><th>Kelas</th><th>Guru Ganti</th><th>Kaedah</th><th>Status</th>'+((own||roles.includes('GPK'))?'<th>Tindakan</th>':'')+'</tr></thead><tbody>';
@@ -18,7 +39,28 @@ function listTable(r,own=false){if(!r.length)return '<p class="empty">Tiada tuga
    if(own)html+=`<td>${x.status==='DIAGIH'&&!x.completed?`<button class="btn muted confirm" data-id="${esc(x.id)}" type="button">Sahkan selepas PdPc</button>`:'—'}</td>`;
    else if(roles.includes('GPK'))html+=`<td>${x.status==='DIAGIH'?`<button class="btn muted cancel-slot" data-id="${esc(x.id)}" type="button">Batal (jika tidak perlu)</button>`:'—'}</td>`;
    html+='</tr>';});
- });return html+'</tbody></table>';
+ });return '<div class="relief-mobile-view">'+html+'</tbody></table></div>'+
+   '<div class="relief-desktop-view">'+groupedCards(r,own)+'</div>';
+}
+function groupedCards(items,own=false){
+ if(!items.length)return '<p class="empty">Tiada tugasan relief.</p>';
+ const grouping=new Map();
+ items.forEach(x=>{const name=(x.originalNames||[]).join(' / ')||'Guru asal tidak tersedia';
+  if(!grouping.has(name))grouping.set(name,[]);grouping.get(name).push(x);});
+ return [...grouping.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ms')).map(([name,part])=>{
+  part.sort((a,b)=>String(a.from).localeCompare(String(b.from))||String(a.classId).localeCompare(String(b.classId)));
+  const lines=part.map(x=>{
+   const action=own&&x.status==='DIAGIH'&&!x.completed
+    ?`<button class="btn muted confirm" type="button" data-id="${esc(x.id)}">Sahkan</button>`
+    :(!own&&roles.includes('GPK')&&x.status==='DIAGIH'
+      ?`<button class="btn muted cancel-slot" type="button" data-id="${esc(x.id)}">Batal</button>`:'');
+   return `<div class="relief-group-line"><div class="relief-when"><strong>${esc(periodLabel(x))}</strong><small>${esc(x.from||'')}–${esc(x.to||'')}</small></div>
+    <div class="relief-detail"><strong>${esc(x.subject)}</strong><small>${esc(x.classId)}</small></div>
+    <div class="relief-replacement"><span>Guru ganti</span><strong>${esc(x.replacementName||'Belum diagih')}</strong></div>
+    <div class="relief-status">${badge(x.completed?'SELESAI':x.status)} ${action}</div></div>`;
+  }).join('');
+  return `<section class="relief-group-block"><h3>GURU ASAL · ${esc(name)}</h3>${lines}</section>`;
+ }).join('');
 }
 function draw(){const current=rows.filter(x=>x.status!=='DIBATALKAN'&&x.status!=='DIBATALKAN_GPK');
  $('daily-summary').innerHTML=metrics([[current.length,'Kelas perlukan relief'],[current.filter(x=>x.status==='DIAGIH').length,'Berjaya diagih'],[current.filter(x=>x.status==='TIADA_GANTI').length,'Belum terisi'],[current.filter(x=>x.phase==='BACKUP').length,'Relief Backup']]);
@@ -121,12 +163,21 @@ async function loadStaff(){
   $('absent-staff').innerHTML=staffOptions(staff);
   $('emergency-staff').innerHTML=staffOptions(staff);
   $('generate-simulation').disabled=false;
-  staffStatus(staff.length+' guru tersedia daripada Firestore untuk simulasi. Sahkan roster sepadan dengan Master_Staf.','success');
+  staffStatus(staff.length+' staf dengan '+new Set(staff.map(s=>s.category)).size+' kategori daripada Firestore. Rujuk Master_Staf jika data tidak terkini.','success');
+  let info=$('sim-category-overview');
+  if(!info){info=document.createElement('div');info.id='sim-category-overview';info.className='fi-category-audit';
+   const anchor=document.querySelector('.staff-state');anchor?.insertAdjacentElement('afterend',info);}
+  const cats=new Map();staff.forEach(s=>cats.set(s.category,(cats.get(s.category)||0)+1));
+  info.innerHTML='<details><summary>Semak Kategori_Staf daripada roster ('+cats.size+' kategori)</summary><div class="fi-category-items">'+
+   [...cats.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ms')).map(([name,n])=>
+    '<span>'+esc(name)+' <strong>'+n+'</strong></span>').join('')+'</div></details>';
+
  }catch(e){
   console.error('[SeMAKMUR V5.1.4] Makmal Admin: roster Firestore gagal dibaca',e);
   const info=e?.code==='permission-denied'
    ?'Akses Firestore ditolak. Semak profil aktif dan dokumen peranan ADMIN_SISTEM.'
    :(e?.message||String(e));
+  const cats=$('sim-category-overview');if(cats)cats.innerHTML='';
   staffStatus('Senarai guru GAGAL dibaca daripada Firestore: '+info,'error');
  }finally{staffLoading=false;$('reload-sim-staff').disabled=false;}
 }
@@ -138,18 +189,32 @@ function simTable(d){const r=d.rows||[],initial=new Map((d.mainRows||[]).map(x=>
 // V5.1.5: paparkan guru asal sebenar daripada enjin jadual,
 // bukan meneka daripada senarai guru yang dipilih dalam borang.
 function simReason(x){
+ if(x.policyRound && Number.isFinite(Number(x.priorHakiki))){
+  const type=x.replacementCategory||({BNK:'Guru BNK',PRAKTIKAL:'Guru Praktikal',BIASA:'Guru Biasa',GPK:'GPK',PECAH_PAIRING:'Pecah pairing'})[x.assignmentMode]||x.assignmentMode;
+  return `${esc(type)} · ${esc(x.priorHakiki)} waktu hakiki · ${esc(x.priorRelief)} relief sebelum slot ini · Pusingan ${esc(x.policyRound)}`;
+ }
  const original=String(x.policyNote||'').trim();
  const parsed=original.match(/^Keutamaan\s+(\d+)\s*,\s*hakiki\s+(\d+)\s*,\s*relief semasa\s+(\d+)$/i);
- if(!parsed)return esc(original||'Tiada catatan');
- const category=x.assignmentMode==='BNK'?'Guru BNK':x.assignmentMode==='BIASA'?'Guru biasa':
-  x.assignmentMode==='GPK'?'Guru Penolong Kanan':x.assignmentMode==='PECAH_PAIRING'?'Pecah pairing':
-  String(x.assignmentMode||'Guru dipilih');
- return `<span title="${esc(original)}">${esc(category)} · ${esc(parsed[2])} waktu hakiki · ${esc(parsed[3])} relief sebelum slot ini <small>(Keutamaan ${esc(parsed[1])})</small></span>`;
+ if(parsed)return `${esc(parsed[2])} waktu hakiki · ${esc(parsed[3])} relief sebelum slot ini (Keutamaan ${esc(parsed[1])})`;
+ return esc(original||'Tiada catatan');
+}
+function groupedSimulation(items){
+ const groups=new Map();items.forEach(x=>{
+  const name=(x.originalNames||[]).join(' / ')||'Guru asal belum tersedia';
+  if(!groups.has(name))groups.set(name,[]);groups.get(name).push(x);
+ });
+ return [...groups.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ms')).map(([name,records])=>
+  `<section class="relief-group-block"><h3>GURU ASAL · ${esc(name)}</h3>`+
+  records.sort((a,b)=>String(a.from).localeCompare(String(b.from))).map(x=>
+   `<div class="relief-group-line"><div class="relief-when"><strong>${esc(periodLabel(x))}</strong><small>${esc(x.from)}–${esc(x.to)}</small></div>
+    <div class="relief-detail"><strong>${esc(x.subject)}</strong><small>${esc(x.classId)}</small></div>
+    <div class="relief-replacement"><span>Guru ganti</span><strong>${esc(x.replacementName||'Belum diagih')}</strong><small>${simReason(x)}</small></div>
+    <div class="relief-status">${badge(x.assignmentMode)}</div></div>`).join('')+'</section>').join('');
 }
 function simDayTable(d){
  const r=d.rows||[];
  return `<div class="section-head"><h3>${esc(d.date)}</h3><span class="sub">${r.length} waktu | ${r.filter(x=>x.status==='DIAGIH').length} diagih</span></div>
- <div class="table-holder"><table><thead><tr><th>Waktu</th><th>Kelas</th><th>Subjek</th><th>Guru asal (tidak hadir)</th><th>Guru ganti</th><th>Kaedah</th><th>Asas pemilihan</th></tr></thead><tbody>${r.map(x=>`<tr>
+ <div class="relief-desktop-view">${groupedSimulation(r)}</div><div class="table-holder relief-mobile-view"><table><thead><tr><th>Waktu</th><th>Kelas</th><th>Subjek</th><th>Guru asal (tidak hadir)</th><th>Guru ganti</th><th>Kaedah</th><th>Asas pemilihan</th></tr></thead><tbody>${r.map(x=>`<tr>
  <td>${esc(shortSlot(x.slotId))}${x.from&&x.to?`<br><small>${esc(x.from)}–${esc(x.to)}</small>`:''}</td>
  <td>${esc(x.classId)}</td><td>${esc(x.subject)}</td>
  <td><strong>${esc(Array.isArray(x.originalNames)&&x.originalNames.length?x.originalNames.join(' / '):'Nama belum tersedia — semak versi backend')}</strong></td>
@@ -158,11 +223,12 @@ function simDayTable(d){
 }
 
 async function simulate(){const absentIds=selectedIds('absent-staff'),emergencyIds=selectedIds('emergency-staff');if(!absentIds.length){warn('Pilih sekurang-kurangnya seorang guru tidak hadir.',true);return;}
- $('generate-simulation').disabled=true;warn('Menjana simulasi dengan enjin V5.1…');
+ $('generate-simulation').disabled=true;warn('Menjana simulasi e-Relief…');
+ const stopBusy=reliefBusyStart('Sedang mencari guru ganti dan menjana simulasi…');
  try{const data=await api('relief51Simulate',{date:$('sim-date').value,absentIds,emergencyIds,
   emergencyFrom:$('emergency-from').value,twoDays:$('sim-two').checked});
  $('sim-results').innerHTML=`<div class="notice">Simulasi berjaya disimpan (ID ${esc(data.sessionId)}). Data rasmi tidak diubah.</div>`+(data.days||[]).map(d=>simTable(d)+simDayTable(d)).join('');warn('');}
- catch(e){warn('Simulasi gagal: '+e.message,true);}finally{$('generate-simulation').disabled=false;}}
+ catch(e){warn('Simulasi gagal: '+e.message,true);}finally{stopBusy();$('generate-simulation').disabled=false;}}
 function tabulate(header,items){if(!items.length)return '<p class="empty">Tiada data untuk tempoh dipilih.</p>';
  return `<table><thead><tr>${header.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${items.map(row=>`<tr>${row.map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;}
 function drawStats(s){$('stat-metrics').innerHTML=metrics([[s.totalNeeded,'Slot perlu pengganti'],[s.assigned,'Slot diagih'],[s.unfilled,'Slot tidak terisi'],[s.coverage+'%','Kadar liputan'],[s.avgPerEligible,'Purata waktu / guru layak'],[s.breakPairing,'Pecah pairing'],[s.backup,'Relief Backup'],[s.confirmed,'Pengakuan terlaksana']]);
@@ -211,7 +277,7 @@ async function start(){const conf=window.SeMAKMURFirebasePilotConfig;if(!conf?.p
   }catch(e){warn('Akses ditolak: '+e.message,true);}
  });
 }
-function init(){if(new URLSearchParams(location.search).get('embed')==='1')document.body.classList.add('is-embed');const today=dateMY();$('view-date').value=today;$('sim-date').value=today;$('stat-month').value=today.slice(0,7);
+function init(){fiUpdateDesktopHost();if(new URLSearchParams(location.search).get('embed')==='1')document.body.classList.add('is-embed');const today=dateMY();$('view-date').value=today;$('sim-date').value=today;$('stat-month').value=today.slice(0,7);
  document.querySelectorAll('[data-tab]').forEach(el=>el.addEventListener('click',()=>currentTab(el.dataset.tab)));
  $('view-date').addEventListener('change',()=>{if(user)listenDate($('view-date').value)});
  $('refresh').addEventListener('click',()=>{if(user)listenDate($('view-date').value)});

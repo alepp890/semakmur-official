@@ -37,6 +37,25 @@ function needsTeacherAction(r){return r.lifecycle!=='DIBATALKAN'&&r.ownerUid===u
 function reminderOutstanding(r){return r.lifecycle!=='DIBATALKAN'&&needAttention(r);}
 function showMessage(msg='',kind='info'){const a=$('alert');a.hidden=!msg;a.textContent=msg;a.style.background=kind==='error'?'#fff0f1':'#fff5e7';a.style.color=kind==='error'?'#a2454e':'#855815';}
 function toast(msg){$('toast').textContent=msg;$('toast').hidden=false;setTimeout(()=>{$('toast').hidden=true},3600)}
+/** Desktop sahaja: proses sedang berjalan pada pusat skrin, bukan status di atas. */
+function fiDesktopHost(){
+ try{if(window.parent&&window.parent!==window&&window.parent.matchMedia)
+   return window.parent.matchMedia('(min-width:1024px)').matches;}catch(_e){}
+ return window.matchMedia('(min-width:1024px)').matches;
+}
+function fiUpdateDesktopHost(){document.body.classList.toggle('fi-host-desktop',fiDesktopHost());}
+window.addEventListener('resize',fiUpdateDesktopHost);
+function kbBusyStart(text){
+ fiUpdateDesktopHost();if(!fiDesktopHost())return ()=>{};
+ let node=document.getElementById('kb-process');
+ if(!node){node=document.createElement('div');node.id='kb-process';node.className='fi-process-backdrop';
+  node.setAttribute('role','status');node.setAttribute('aria-live','polite');
+  node.innerHTML='<div class="fi-process-card"><span class="fi-process-spinner" aria-hidden="true"></span><strong class="fi-process-message"></strong><small>Jangan tutup halaman atau tekan Sahkan sekali lagi.</small></div>';
+  document.body.append(node);
+ }
+ node.querySelector('.fi-process-message').textContent=text;node.hidden=false;
+ return ()=>{node.hidden=true;};
+}
 function showActionError(error){
  const message=String(error?.message||error||'Tindakan gagal.');
  if(!$('dialog').hidden){
@@ -244,8 +263,9 @@ async function applyAction(id,act){
  const note=str($('admin-note')?.value),fType=$('final-type')?.value;
  if(['cancelRequest','cancelMyRelief','reviewProof'].includes(act)){
   if(note.length<6)throw Error('Sila masukkan sebab sekurang-kurangnya 6 aksara.');
-  busy=true;try{const result=await transportDoc(act,id,null,{reason:note});closeDialog();toast('Tindakan berjaya direkodkan. '+(result.sync||''));}
-  finally{busy=false;}return;
+  busy=true;const endBusy=kbBusyStart(act==='cancelRequest'?'Sedang membatalkan permohonan…':'Sedang menghentikan relief…');
+  try{const result=await transportDoc(act,id,null,{reason:note});closeDialog();toast('Tindakan berjaya direkodkan. '+(result.sync||''));}
+  finally{endBusy();busy=false;}return;
  }
  if(act==='upload'){
   if(r.ownerUid!==user?.uid)throw Error('Hanya pemohon boleh muat naik.');
