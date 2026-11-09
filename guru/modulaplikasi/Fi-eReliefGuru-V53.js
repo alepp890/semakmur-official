@@ -54,28 +54,30 @@
   return text.join(' ');
  }
  function renderCards(rows,date){if(!rows?.length)return '<p class="empty">Belum ada waktu yang memerlukan relief pada tarikh ini.</p>';
-  const map=new Map();rows.forEach(r=>{const name=(r.originalNames||[]).join(' / ')||'Guru asal';
+  const map=new Map();rows.forEach(r=>{const names=(r.originalNames||[]);
+   const abs=(r.absentTeacherIds||[]).map(id=>names[(r.allTeachers||[]).indexOf(id)]||id);
+   const name=r.status==='PAIRING_DITERUSKAN'&&abs.length?abs.join(' / '):(names.join(' / ')||'Guru asal');
    if(!map.has(name))map.set(name,[]);map.get(name).push(r);});
   return [...map.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ms')).map(([name,items])=>
    `<section class="relief-group-block"><h3>GURU ASAL · ${esc(name)}</h3>`+
    items.sort((a,b)=>a.from.localeCompare(b.from)).map(r=>{
-    const label=teacherLoadText(r.replacementId,date);
-    const status=r.status==='DIBATALKAN_SIM'?'Cuti dibatalkan':r.status==='PERLU_SERAH_TUGAS'?'PERLU SERAH TUGAS':
+    const label=r.status==='PAIRING_DITERUSKAN'?'Hakiki kekal · 0 Relief tambahan':teacherLoadText(r.replacementId,date);
+    const status=r.status==='PAIRING_DITERUSKAN'?'PAIRING DITERUSKAN':r.status==='DIBATALKAN_SIM'?'Cuti dibatalkan':r.status==='PERLU_SERAH_TUGAS'?'PERLU SERAH TUGAS':
      r.status==='TIADA_GANTI'?'TIADA GANTI':r.assignmentMode==='PECAH_PAIRING'?'PECAH PAIRING':r.assignmentMode||'—';
-    return `<div class="relief-group-line ${r.status==='DIBATALKAN_SIM'?'fi-v53-cancelled':''}">
+    return `<div class="relief-group-line ${r.status==='PAIRING_DITERUSKAN'?'fi-v54-pairing-continued':''} ${r.status==='DIBATALKAN_SIM'?'fi-v53-cancelled':''}">
       <div class="relief-when"><strong>${esc(shortTime(r))}</strong><small>${esc(r.from)}–${esc(r.to)}</small></div>
       <div class="relief-detail"><strong>${esc(r.subject)}</strong><small>${esc(r.classId)}</small></div>
-      <div class="relief-replacement"><span>Guru ganti</span><strong>${esc(r.replacementName||'Belum diagih')}</strong>
-       <small>${esc(label||'—')}</small>${r.proposedReplacementName?`<small>Cadangan serah tugas: ${esc(r.proposedReplacementName)}</small>`:''}</div>
+      <div class="relief-replacement"><span>${r.status==='PAIRING_DITERUSKAN'?'Guru meneruskan kelas':'Guru ganti'}</span><strong>${esc(r.status==='PAIRING_DITERUSKAN'?(r.continuingNames||[]).join(' / '):r.replacementName||'Belum diagih')}</strong>
+       <small>${esc(label||'—')}</small>${r.status==='PAIRING_DITERUSKAN'?`<small>Cuti: ${esc((r.absentTeacherIds||[]).map(id=>((r.allTeachers||[]).indexOf(id)>=0?(r.originalNames||[])[(r.allTeachers||[]).indexOf(id)]:id)).join(' / '))}</small>`:''}${r.proposedReplacementName?`<small>Cadangan serah tugas: ${esc(r.proposedReplacementName)}</small>`:''}</div>
       <div class="relief-status"><span class="fi-v53-state ${r.status==='PERLU_SERAH_TUGAS'?'is-handover':''}">${esc(status)}</span></div>
     </div>`;
    }).join('')+'</section>').join('');
  }
  function renderDays(){const week=state.week;if(!week)return;
   el('sim53-week-title').textContent=`Minggu ${week.weekStart} hingga ${week.weekEnd}`;
-  el('sim53-totals').textContent=`${week.totals.generatedDays}/5 hari · ${week.totals.assigned} relief · ${week.totals.pairing} pecah pairing`;
+  el('sim53-totals').textContent=`${week.totals.generatedDays}/5 hari · ${week.totals.assigned} relief · ${week.totals.pairing} pecah pairing · ${week.totals.continued||0} pairing diteruskan`;
   el('sim53-days').innerHTML=week.days.length?week.days.map(d=>`<button type="button" class="fi-v53-day" data-open-day="${esc(d.date)}"
-   aria-pressed="${d.date===selectedDate()}">${esc(d.date)} <strong>${Number(d.summary?.diagih||0)} relief</strong></button>`).join(''):
+   aria-pressed="${d.date===selectedDate()}">${esc(d.date)} <strong>${Number(d.summary?.diagih||0)} relief</strong>${d.policyVersion!=='V5.4-MAKMAL'?'<small>Versi lama · perlu jana semula</small>':''}</button>`).join(''):
    '<p class="empty">Minggu ini belum mempunyai simulasi. Jana satu hari untuk bermula.</p>';
  }
  function renderWeekly(){const w=state.week;if(!w)return;
@@ -103,7 +105,7 @@
   if(!day){el('sim53-day-results').innerHTML='<p class="empty">Tarikh ini belum dijana. Pilih rekod cuti dan klik Jana agihan hari terpilih.</p>';
    el('sim53-day-summary').textContent='Tiada keputusan';return;}
   const summary=day.summary||{};
-  el('sim53-day-summary').textContent=`${summary.diagih||0} diagih · ${summary.tiada||0} tiada ganti · ${summary.handover||0} perlu serah tugas`;
+  el('sim53-day-summary').textContent=`${summary.diagih||0} diagih · ${summary.pairingDiteruskan||0} pairing diteruskan (0 relief) · ${summary.tiada||0} tiada ganti · ${summary.handover||0} perlu serah tugas`;
   const changes=(day.changes||[]).length?`<details open class="fi-v53-changes"><summary>Perubahan selepas agihan utama (${day.changes.length})</summary>
    <div class="fi-v53-table-scroll"><table><thead><tr><th>Masa / Slot</th><th>Kelas</th><th>Perubahan</th><th>Guru asal agihan</th><th>Selepas perubahan</th></tr></thead><tbody>
    ${day.changes.map(x=>`<tr><td>${esc(x.time)} · ${esc(x.slotId)}</td><td>${esc(x.classId)}</td><td>${esc(x.type)}</td><td>${esc(x.old)}</td><td>${esc(x.new)}</td></tr>`).join('')}

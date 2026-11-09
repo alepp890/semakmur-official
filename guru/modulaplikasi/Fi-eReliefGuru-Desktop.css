@@ -212,3 +212,10 @@ body.fi-host-desktop .fi-v53-admin-workspace{display:grid!important}
 body:not(.fi-host-desktop) .fi-v53-admin-workspace{display:none!important}
 body:not(.fi-host-desktop) .fi-v52-mobile-lab{display:contents}
 
+
+/* V5.4 — Status pairing diteruskan; maklumat sahaja, bukan relief. */
+@media (min-width: 768px) {
+ .fi-v54-pairing-continued{background:color-mix(in srgb, var(--fi-green,#17735b) 7%, white)!important;border-left:3px solid #24916b!important}
+ .fi-v54-pairing-continued .fi-v53-state{background:#e1f3ea!important;color:#145c3f!important;border:1px solid #9fd1b4!important}
+ .fi-v54-pairing-continued .relief-replacement strong{color:#175f48!important}
+}
