@@ -287,4 +287,12 @@ function init(){fiUpdateDesktopHost();if(new URLSearchParams(location.search).ge
  $('daily-list').addEventListener('click',e=>{const b=e.target.closest('button.cancel-slot');if(b)cancelSlot(b.dataset.id)});
  $('my-list').addEventListener('click',e=>{const b=e.target.closest('button.confirm');if(b)confirmRelief(b.dataset.id)});
  start().catch(e=>warn(e.message,true));}
+// V5.3: Jambatan terkawal untuk Studio desktop; tidak mengubah laluan PWA/relief rasmi.
+window.SeMAKMURReliefStudioBridge={
+  api:(action,payload)=>api(action,payload),
+  staff:()=>staff.slice(),
+  isAdmin:()=>!!user&&roles.includes('ADMIN_SISTEM'),
+  begin:message=>reliefBusyStart(message),
+  health:()=>testFiConnection()
+};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
