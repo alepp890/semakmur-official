@@ -234,3 +234,10 @@ body.fi-host-desktop .fi-v55-audit-note{font-size:11px;line-height:1.6;color:#64
 .fi-v55-official-audit{margin-top:5px;max-width:250px;font-size:11px;color:#436650}
 .fi-v55-official-audit summary{cursor:pointer;font-weight:700}
 .fi-v55-official-audit small{white-space:normal;line-height:1.5;display:block;margin-top:4px}
+
+/* V5.5.1 — Fallback desktop untuk iframe modul yang tidak menerima fi-host-desktop.
+   Kekalkan pengalaman mobile lama bagi lebar di bawah 600px. */
+@media (min-width:600px){
+  body:not(.fi-host-desktop) .fi-v52-mobile-lab{display:none!important}
+  body:not(.fi-host-desktop) .fi-v53-admin-workspace{display:grid!important;gap:13px;margin-top:12px;min-width:0}
+}

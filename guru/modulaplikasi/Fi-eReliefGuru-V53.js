@@ -12,7 +12,7 @@
   v.textContent=text;v.classList.toggle('fi-v53-error',error);};
  const selectedDate=()=>el('sim53-date')?.value||'';
  const staffOpt=(list)=>list.map(s=>`<option value="${esc(s.id)}">${esc(s.name)} (${esc(s.category||'—')})</option>`).join('');
- function isDesktop(){return document.body.classList.contains('fi-host-desktop');}
+ function isDesktop(){return document.body.classList.contains('fi-host-desktop') || (typeof window.matchMedia==='function' && window.matchMedia('(min-width:600px)').matches);}
  function ensure(){if(!bridge()?.isAdmin())throw Error('Sila log masuk sebagai ADMIN_SISTEM terlebih dahulu.');}
  async function call(action,payload={}){ensure();return bridge().api(action,payload);}
  async function withBusy(label,fn){if(state.busy)return;state.busy=true;
