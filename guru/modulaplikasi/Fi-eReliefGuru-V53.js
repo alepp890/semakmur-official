@@ -13,8 +13,17 @@
  const selectedDate=()=>el('sim53-date')?.value||'';
  const staffOpt=(list)=>list.map(s=>`<option value="${esc(s.id)}">${esc(s.name)} (${esc(s.category||'—')})</option>`).join('');
  function isDesktop(){return document.body.classList.contains('fi-host-desktop') || (typeof window.matchMedia==='function' && window.matchMedia('(min-width:600px)').matches);}
- function ensure(){if(!bridge()?.isAdmin())throw Error('Sila log masuk sebagai ADMIN_SISTEM terlebih dahulu.');}
- async function call(action,payload={}){ensure();return bridge().api(action,payload);}
+ async function ensure(){
+  const b=bridge();
+  if(!b||typeof b.isAdmin!=='function'||typeof b.api!=='function')
+   throw Error('Sambungan Makmal ke e-Relief tidak tersedia. Pastikan Fi-eReliefGuru.js V5.5.2 dimuatkan.');
+  if(typeof b.ready==='function')await b.ready();
+  const s=typeof b.status==='function'?b.status():{};
+  if(s.signedIn===false)throw Error('Sesi Firebase tidak aktif. Log masuk melalui Dashboard Guru.');
+  if(s.profileReady===false)throw Error('Profil guru belum disahkan. Semak akaun dan sambungan Firebase.');
+  if(!b.isAdmin())throw Error('Peranan ADMIN_SISTEM tidak ditemui dalam sesi e-Relief. Semak semakmur_fi_keberadaan_roles bagi UID anda.');
+ }
+ async function call(action,payload={}){await ensure();return bridge().api(action,payload);}
  async function withBusy(label,fn){if(state.busy)return;state.busy=true;
   const buttons=['sim53-generate','sim53-apply-cancel','sim53-apply-emergency','sim53-reload-leaves','sim53-refresh'];
   buttons.forEach(id=>{if(el(id))el(id).disabled=true});

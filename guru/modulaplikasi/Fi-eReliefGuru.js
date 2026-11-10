@@ -3,6 +3,25 @@
 const $=id=>document.getElementById(id),esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const dateMY=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 let user=null,auth=null,db=null,roles=[],stop=null,rows=[],report=null,staff=[],fns=null,day='',schedulePublished=false,staffLoading=false;
+
+// V5.5.2: Sambungan Makmal Admin kepada sesi Firebase sah modul yang sama.
+// Makmal V53.js sebelum ini memanggil SeMAKMURReliefStudioBridge,
+// tetapi tiada kod yang mencipta objek tersebut. JANGAN bypass pengesahan server.
+let fiStudioMarkAuthReady;
+const fiStudioAuthReady = new Promise(resolve=>{fiStudioMarkAuthReady=resolve;});
+function fiStudioSettleAuth(){if(fiStudioMarkAuthReady){fiStudioMarkAuthReady();fiStudioMarkAuthReady=null;}}
+function fiStudioIsAdmin(){return !!(user?.uid && auth?.currentUser?.uid===user.uid && Array.isArray(roles) && roles.includes('ADMIN_SISTEM'));}
+window.SeMAKMURReliefStudioBridge=Object.freeze({
+  ready:()=>fiStudioAuthReady,
+  isAdmin:fiStudioIsAdmin,
+  status:()=>({signedIn:!!auth?.currentUser,profileReady:!!user?.uid,isAdmin:fiStudioIsAdmin()}),
+  api:(action,payload={})=>{
+    if(!fiStudioIsAdmin())throw Error('Akses Makmal Admin memerlukan ADMIN_SISTEM yang telah disahkan.');
+    return api(action,payload); // Firebase ID token dikirim oleh api(); backend kekal menyemak peranan.
+  },
+  begin:()=>()=>{}
+});
+
 function warn(text,error=false){const el=$('message');el.hidden=!text;el.textContent=text||'';el.classList.toggle('error',error);}
 function metrics(data){return data.map(x=>`<div class="metric"><strong>${esc(x[0])}</strong><span>${esc(x[1])}</span></div>`).join('');}
 function badge(status){const s=String(status||''),warning=/TIADA|PERLU/.test(s),critical=/BATAL/.test(s);return `<span class="pill ${critical?'critical':warning?'warn':''}">${esc(s)}</span>`;}
@@ -197,7 +216,7 @@ async function confirmRelief(id){if(!confirm('Sahkan bahawa anda sudah melaksana
 async function start(){const conf=window.SeMAKMURFirebasePilotConfig;if(!conf?.projectId)throw Error('Konfigurasi Firebase tidak ditemui.');
  const [app,authmod,fire]=await Promise.all([import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')]);
  const fb=app.getApps().find(a=>a.name==='semakmur-fi-dashboard')||app.initializeApp(conf,'semakmur-fi-dashboard');auth=authmod.getAuth(fb);db=fire.getFirestore(fb);fns=fire;
- authmod.onAuthStateChanged(auth,async u=>{if(stop)stop();if(!u){user=null;roles=[];warn('Sila log masuk semula melalui Dashboard Guru.',true);return;}
+ authmod.onAuthStateChanged(auth,async u=>{if(stop)stop();user=null;roles=[];if(!u){warn('Sila log masuk semula melalui Dashboard Guru.',true);fiStudioSettleAuth();return;}
   try{const profile=await fire.getDoc(fire.doc(db,'semakmur_dashboard_fi',u.uid));if(!profile.exists()||profile.data().active!==true||profile.data().ownerEmail?.toLowerCase()!==u.email.toLowerCase())throw Error('Profil guru tidak aktif.');
    user=u;const rt=await fire.getDoc(fire.doc(db,'semakmur_fi_keberadaan_roles',u.uid));roles=rt.exists()&&rt.data().active===true?rt.data().roles||[]:[];
    $('account').textContent=profile.data().profile?.namaSamaran||u.email;
@@ -207,7 +226,8 @@ async function start(){const conf=window.SeMAKMURFirebasePilotConfig;if(!conf?.p
    $('relief55-check-ops').hidden=!roles.includes('ADMIN_SISTEM');
    if(roles.includes('ADMIN_SISTEM'))fi55Health();
    if(roles.includes('ADMIN_SISTEM')){loadStaff();}else{staffStatus('Makmal Admin memerlukan peranan ADMIN_SISTEM.');}listenDate($('view-date').value);
-  }catch(e){warn('Akses ditolak: '+e.message,true);}
+  }catch(e){user=null;roles=[];warn('Akses ditolak: '+e.message,true);}
+  finally{fiStudioSettleAuth();}
  });
 }
 function init(){if(new URLSearchParams(location.search).get('embed')==='1')document.body.classList.add('is-embed');const today=dateMY();$('view-date').value=today;$('sim-date').value=today;$('stat-month').value=today.slice(0,7);
@@ -221,5 +241,5 @@ function init(){if(new URLSearchParams(location.search).get('embed')==='1')docum
  $('load-stats').addEventListener('click',stats);$('csv-stats').addEventListener('click',csv);$('print-stats').addEventListener('click',()=>window.print());
  $('daily-list').addEventListener('click',e=>{const b=e.target.closest('button.cancel-slot');if(b)cancelSlot(b.dataset.id)});
  $('my-list').addEventListener('click',e=>{const b=e.target.closest('button.confirm');if(b)confirmRelief(b.dataset.id)});
- start().catch(e=>warn(e.message,true));}
+ start().catch(e=>{warn(e.message,true);fiStudioSettleAuth();});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
