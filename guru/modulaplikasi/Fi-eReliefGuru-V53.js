@@ -1,12 +1,12 @@
 'use strict';
-/* SeMAKMUR Smart e-Relief V5.3 — Makmal Mingguan desktop sahaja.
+/* SeMAKMUR Smart e-Relief V5.5 — Makmal Mingguan desktop sahaja.
  * Modul relief rasmi & PWA sedia ada kekal. Semua mutasi di backend ADMIN_SISTEM.
  */
 (()=>{
  const el=id=>document.getElementById(id);
  const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const bridge=()=>window.SeMAKMURReliefStudioBridge;
- const state={week:null,leaves:[],staff:[],draft:[],busy:false,initialized:false};
+ const state={week:null,leaves:[],staff:[],draft:[],busy:false,initialized:false,requestSerial:0};
  const shortTime=x=>x?.periodNo?`Waktu ${x.periodNo}`:String(x?.slotId||'').replace(/^.*SLOT-0*/,'Slot ');
  const message=(text,error=false)=>{const v=el('sim53-week-status');if(!v)return;
   v.textContent=text;v.classList.toggle('fi-v53-error',error);};
@@ -38,7 +38,7 @@
   el('sim53-staff').innerHTML=options;el('sim53-emergency-staff').innerHTML=options;
  }
  async function loadLeaves(){const date=selectedDate();if(!date)return;
-  const res=await call('relief53LeaveList',{date});
+  const res=await call('relief53LeaveList',{date});if(date!==selectedDate())return;
   state.leaves=Array.isArray(res.leaveRecords)?res.leaveRecords:[];
   state.staff=Array.isArray(res.staff)?res.staff:[];
   renderLeaveOptions();
@@ -53,6 +53,22 @@
   if(d.pending)text.push(`· ${d.pending} Perlu Serah Tugas`);
   return text.join(' ');
  }
+ function auditDetails(r){const a=r.audit;if(!a||!r.replacementId)return '';
+  const max=Number(a.berturutSelepas)||0,limit=Number(a.hadBerturut)||0;
+  const valid=Number(a.totalSelepas)<=Number(a.hadHarian)&&(!limit||max<=limit);
+  const others=(a.calonAlternatif||[]).map(t=>`${t.nama}: ${t.hakiki}H, ${t.reliefHari}R (minggu ${t.reliefMinggu}R)`).join(' · ');
+  return `<details class="fi-v55-audit-row"><summary>Audit Agihan · ${esc(valid?'Lulus had jadual':'Perlu semakan')} · ${esc(a.hakiki)}H + ${esc(a.reliefSelepas)}R = ${esc(a.totalSelepas)} waktu</summary>
+   <div class="fi-v55-audit-grid"><span>Hakiki asal<strong>${esc((a.slotsHakiki||[]).join(', ')||'0 waktu')}</strong></span>
+   <span>Relief slot<strong>${esc(r.slotId)} (${esc(r.from)}–${esc(r.to)})</strong></span>
+   <span>Beban selepas<strong>${esc(a.hakiki)}H + ${esc(a.reliefSelepas)}R = ${esc(a.totalSelepas)} waktu</strong></span>
+   <span>Had maksimum<strong>${esc(a.hadHarian)} waktu sehari</strong></span>
+   <span>Berturut-turut<strong>${esc(max)} / ${esc(limit||'Belum dinilai')} waktu</strong></span>
+   <span>Relief minggu sebelum dipilih<strong>${esc(a.reliefMingguSebelum||0)}</strong></span>
+   <span>Pusingan<strong>${esc(a.pusingan||'—')}</strong></span>
+   <span>Calon layak dalam pusingan<strong>${esc(a.calonLayakPusingan||0)}</strong></span></div>
+   ${others?`<p class="fi-v55-audit-note"><b>Contoh alternatif pusingan sama:</b> ${esc(others)}</p>`:''}
+   <p class="fi-v55-audit-note">Audit menunjukkan pematuhan syarat pada masa dipilih, bukan bukti optimum global atau pengesahan telah mengajar.</p></details>`;
+ }
  function renderCards(rows,date){if(!rows?.length)return '<p class="empty">Belum ada waktu yang memerlukan relief pada tarikh ini.</p>';
   const map=new Map();rows.forEach(r=>{const names=(r.originalNames||[]);
    const abs=(r.absentTeacherIds||[]).map(id=>names[(r.allTeachers||[]).indexOf(id)]||id);
@@ -61,7 +77,7 @@
   return [...map.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ms')).map(([name,items])=>
    `<section class="relief-group-block"><h3>GURU ASAL · ${esc(name)}</h3>`+
    items.sort((a,b)=>a.from.localeCompare(b.from)).map(r=>{
-    const label=r.status==='PAIRING_DITERUSKAN'?'Hakiki kekal · 0 Relief tambahan':teacherLoadText(r.replacementId,date);
+    const label=r.status==='PAIRING_DITERUSKAN'?'Hakiki kekal · 0 Relief tambahan':r.audit?`${r.audit.hakiki} Hakiki + ${r.audit.reliefSelepas} Relief`:teacherLoadText(r.replacementId,date);
     const status=r.status==='PAIRING_DITERUSKAN'?'PAIRING DITERUSKAN':r.status==='DIBATALKAN_SIM'?'Cuti dibatalkan':r.status==='PERLU_SERAH_TUGAS'?'PERLU SERAH TUGAS':
      r.status==='TIADA_GANTI'?'TIADA GANTI':r.assignmentMode==='PECAH_PAIRING'?'PECAH PAIRING':r.assignmentMode||'—';
     return `<div class="relief-group-line ${r.status==='PAIRING_DITERUSKAN'?'fi-v54-pairing-continued':''} ${r.status==='DIBATALKAN_SIM'?'fi-v53-cancelled':''}">
@@ -70,6 +86,7 @@
       <div class="relief-replacement"><span>${r.status==='PAIRING_DITERUSKAN'?'Guru meneruskan kelas':'Guru ganti'}</span><strong>${esc(r.status==='PAIRING_DITERUSKAN'?(r.continuingNames||[]).join(' / '):r.replacementName||'Belum diagih')}</strong>
        <small>${esc(label||'—')}</small>${r.status==='PAIRING_DITERUSKAN'?`<small>Cuti: ${esc((r.absentTeacherIds||[]).map(id=>((r.allTeachers||[]).indexOf(id)>=0?(r.originalNames||[])[(r.allTeachers||[]).indexOf(id)]:id)).join(' / '))}</small>`:''}${r.proposedReplacementName?`<small>Cadangan serah tugas: ${esc(r.proposedReplacementName)}</small>`:''}</div>
       <div class="relief-status"><span class="fi-v53-state ${r.status==='PERLU_SERAH_TUGAS'?'is-handover':''}">${esc(status)}</span></div>
+      ${auditDetails(r)}
     </div>`;
    }).join('')+'</section>').join('');
  }
@@ -77,7 +94,7 @@
   el('sim53-week-title').textContent=`Minggu ${week.weekStart} hingga ${week.weekEnd}`;
   el('sim53-totals').textContent=`${week.totals.generatedDays}/5 hari · ${week.totals.assigned} relief · ${week.totals.pairing} pecah pairing · ${week.totals.continued||0} pairing diteruskan`;
   el('sim53-days').innerHTML=week.days.length?week.days.map(d=>`<button type="button" class="fi-v53-day" data-open-day="${esc(d.date)}"
-   aria-pressed="${d.date===selectedDate()}">${esc(d.date)} <strong>${Number(d.summary?.diagih||0)} relief</strong>${d.policyVersion!=='V5.4-MAKMAL'?'<small>Versi lama · perlu jana semula</small>':''}</button>`).join(''):
+   aria-pressed="${d.date===selectedDate()}">${esc(d.date)} <strong>${Number(d.summary?.diagih||0)} relief</strong>${d.policyVersion!=='V5.5-MAKMAL'?'<small>Versi lama · perlu jana semula</small>':''}</button>`).join(''):
    '<p class="empty">Minggu ini belum mempunyai simulasi. Jana satu hari untuk bermula.</p>';
  }
  function renderWeekly(){const w=state.week;if(!w)return;
@@ -104,24 +121,50 @@
  function renderSelected(){const day=currentDay();renderEvents(day);
   if(!day){el('sim53-day-results').innerHTML='<p class="empty">Tarikh ini belum dijana. Pilih rekod cuti dan klik Jana agihan hari terpilih.</p>';
    el('sim53-day-summary').textContent='Tiada keputusan';return;}
-  const summary=day.summary||{};
-  el('sim53-day-summary').textContent=`${summary.diagih||0} diagih · ${summary.pairingDiteruskan||0} pairing diteruskan (0 relief) · ${summary.tiada||0} tiada ganti · ${summary.handover||0} perlu serah tugas`;
-  const changes=(day.changes||[]).length?`<details open class="fi-v53-changes"><summary>Perubahan selepas agihan utama (${day.changes.length})</summary>
-   <div class="fi-v53-table-scroll"><table><thead><tr><th>Masa / Slot</th><th>Kelas</th><th>Perubahan</th><th>Guru asal agihan</th><th>Selepas perubahan</th></tr></thead><tbody>
-   ${day.changes.map(x=>`<tr><td>${esc(x.time)} · ${esc(x.slotId)}</td><td>${esc(x.classId)}</td><td>${esc(x.type)}</td><td>${esc(x.old)}</td><td>${esc(x.new)}</td></tr>`).join('')}
-   </tbody></table></div></details>`:'';
-  el('sim53-day-results').innerHTML=`<details class="fi-v53-snapshot"><summary>Agihan asal 7.25 pagi (${day.mainRows?.length||0} slot) — lihat sejarah</summary>
-  ${renderCards(day.mainRows,day.date)}</details>${changes}
-  <h3 class="fi-v53-final-title">Keputusan akhir selepas perubahan (simulasi)</h3>${renderCards(day.rows,day.date)}`;
+  const s=day.summary||{};
+  el('sim53-day-summary').textContent=`${s.diagih||0} diagih · ${s.pairingDiteruskan||0} pairing diteruskan · ${s.dipulihkan||0} jadual dipulihkan · ${s.tiada||0} tiada ganti · ${s.handover||0} perlu serah tugas`;
+  const grouped=(day.eventTimeline||[]).map(ev=>{
+   const c=(day.changes||[]).filter(x=>x.eventKey===ev.eventKey);
+   return `<details open class="fi-v53-changes"><summary>${esc(ev.at)} · ${esc(ev.kind==='CANCEL'?'Batal cuti':'Kecemasan')}: ${esc(ev.name)} (${c.length} perubahan)</summary>
+    ${c.length?`<div class="fi-v53-table-scroll"><table><thead><tr><th>Slot / Masa</th><th>Kelas</th><th>Jenis perubahan</th><th>Sebelum</th><th>Selepas</th></tr></thead><tbody>
+    ${c.map(x=>`<tr><td>${esc(x.slotId)} · ${esc(x.time)}</td><td>${esc(x.classId)}</td><td>${esc(x.type.replace(/_/g,' '))}</td><td>${esc(x.old)}</td><td>${esc(x.new)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted-note">Tiada perubahan pada agihan aktif.</p>'}</details>`;
+  }).join('');
+  const restored=(day.historyRows||[]).length?`<details open class="fi-v53-changes"><summary>Jadual asal dipulihkan (${day.historyRows.length}) — bukan relief</summary>
+   ${renderCards(day.historyRows,day.date)}</details>`:'';
+  el('sim53-day-results').innerHTML=`<h3 class="fi-v53-final-title">Jadual aktif selepas perubahan (SIMULASI)</h3>
+   ${renderCards(day.rows||[],day.date)}${restored}
+   <details class="fi-v53-snapshot"><summary>Agihan asal 7.25 pagi (${day.mainRows?.length||0} rekod) — sejarah asal</summary>
+   ${renderCards(day.mainRows||[],day.date)}</details>
+   <h3 class="fi-v53-final-title">Kronologi pembatalan cuti / kecemasan</h3>
+   ${grouped||'<p class="muted-note">Tiada perubahan selepas agihan utama.</p>'}
+   <p class="fi-v55-audit-note">Makmal sahaja: tidak menulis rekod rasmi, tidak menghantar notifikasi dan tidak mengesahkan serah tugas.</p>`;
+ }
+ function exportAuditCSV(){const day=currentDay();if(!day)return message('Jana simulasi sebelum eksport audit.',true);
+  const headers=['Tarikh','Slot_ID','Kelas','Subjek','Masa_Mula','Masa_Tamat','Guru_Ganti','ID_Staf','Status','Hakiki','Relief_Selepas','Jumlah','Had_Harian','Berturut','Had_Berturut','Relief_Minggu_Sebelum','Pusingan','Keputusan'];
+  const data=(day.rows||[]).filter(x=>x.replacementId).map(r=>{const a=r.audit||{};
+   return [day.date,r.slotId,r.classId,r.subject,r.from,r.to,r.replacementName,r.replacementId,r.status,
+    a.hakiki??'',a.reliefSelepas??'',a.totalSelepas??'',a.hadHarian??'',a.berturutSelepas??'',a.hadBerturut??'',a.reliefMingguSebelum??'',a.pusingan??'',a.keputusan||'BELUM_DIAUDIT'];});
+  const csv='\ufeff'+[headers,...data].map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const obj=new Blob([csv],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(obj),link=document.createElement('a');
+  link.href=u;link.download='SeMAKMUR_Audit_Relief_SIMULASI_'+day.date+'.csv';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);
  }
  function renderWeek(data){state.week=data;renderDays();renderWeekly();renderSelected();
   if(data.warning)message('PERHATIAN: '+data.warning,true);}
  async function refreshWeek(){const date=selectedDate();if(!date)return;
   const data=await call('relief53WeekGet',{date});renderWeek(data);
  }
- async function loadDate(){state.draft=[];displayDraft();await withBusy('Membaca cuti dan simulasi mingguan…',async()=>{
-  await loadLeaves();await refreshWeek();
- });}
+ async function loadDate(){state.draft=[];displayDraft();const request=++state.requestSerial;
+  message('Memuatkan sejarah minggu; rekod cuti dibaca secara berasingan…');
+  const start=performance.now();
+  // Dua bacaan serentak. Hasil minggu dipaparkan sebaik selesai, tanpa menunggu cuti.
+  const tasks=[refreshWeek().then(()=>{if(request===state.requestSerial)message('Statistik minggu dipaparkan ('+Math.round(performance.now()-start)+' ms). Rekod cuti mungkin masih dimuatkan.');}),
+   loadLeaves()];
+  const results=await Promise.allSettled(tasks);
+  if(request!==state.requestSerial)return;
+  const rejected=results.filter(x=>x.status==='rejected');
+  if(rejected.length)message('Ada bacaan gagal: '+rejected.map(x=>x.reason?.message||String(x.reason)).join('; '),true);
+  else message('Selesai. Makmal sedia untuk ujian.');
+ }
  async function generate(){if(!selectedDate())return message('Pilih tarikh.',true);
   const ids=selectedCaseKeys(),replace=el('sim53-replace-day').checked;
   if(!ids.length&&!state.draft.length)return message('Pilih rekod cuti atau tambah senario cuti.',true);
@@ -143,6 +186,7 @@
   el('sim53-refresh').addEventListener('click',()=>withBusy('Memuatkan statistik minggu…',refreshWeek));
   el('sim53-reload-leaves').addEventListener('click',()=>withBusy('Memuatkan rekod cuti…',loadLeaves));
   el('sim53-generate').addEventListener('click',generate);
+  el('sim55-export-audit')?.addEventListener('click',exportAuditCSV);
   el('sim53-add-case').addEventListener('click',()=>{
    const staffId=el('sim53-staff').value,s=state.staff.find(x=>x.id===staffId);
    if(!s)return message('Senarai guru belum dimuatkan.',true);

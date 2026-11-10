@@ -219,3 +219,18 @@ body:not(.fi-host-desktop) .fi-v52-mobile-lab{display:contents}
  .fi-v54-pairing-continued .fi-v53-state{background:#e1f3ea!important;color:#145c3f!important;border:1px solid #9fd1b4!important}
  .fi-v54-pairing-continued .relief-replacement strong{color:#175f48!important}
 }
+
+/* V5.5: audit agihan di bawah baris, desktop sahaja */
+body.fi-host-desktop .fi-v55-audit-row{grid-column:1 / -1;border-top:1px dashed #ceddd4;margin-top:4px;padding-top:6px;min-width:0;color:#294d3b}
+body.fi-host-desktop .fi-v55-audit-row summary{cursor:pointer;font-size:11px;font-weight:750;color:#28644e;list-style-position:inside}
+body.fi-host-desktop .fi-v55-audit-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:9px}
+body.fi-host-desktop .fi-v55-audit-grid span{display:grid;gap:3px;background:#f5f9f6;border:1px solid #e1eae4;border-radius:8px;padding:8px;font-size:11px;color:#5f746a;overflow-wrap:anywhere}
+body.fi-host-desktop .fi-v55-audit-grid strong{font-size:12px;color:#1b4634}
+body.fi-host-desktop .fi-v55-audit-note{font-size:11px;line-height:1.6;color:#64746d;margin:10px 0 0}
+@media(max-width:1100px){body.fi-host-desktop .fi-v55-audit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){body.fi-host-desktop .fi-v55-audit-grid{grid-template-columns:minmax(0,1fr)}}
+
+.fi-v55-inapp-alert:not([hidden]){display:block;padding:10px 13px;border:1px solid #e1bd79;border-radius:10px;background:#fff7e8;color:#70501b;margin:9px 0;font-size:13px;font-weight:650}
+.fi-v55-official-audit{margin-top:5px;max-width:250px;font-size:11px;color:#436650}
+.fi-v55-official-audit summary{cursor:pointer;font-weight:700}
+.fi-v55-official-audit small{white-space:normal;line-height:1.5;display:block;margin-top:4px}
