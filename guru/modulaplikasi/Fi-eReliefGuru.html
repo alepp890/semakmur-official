@@ -47,12 +47,18 @@
 <div class="fi-v53-admin-workspace" id="fi-v53-studio">
 <div class="fi-v53-grid fi-v53-overview">
   <div class="fi-v53-panel"><label for="sim53-date">Tarikh untuk diuji</label><input id="sim53-date" type="date"><small>Satu hari setiap kali. Data Isnin–Jumaat dikekalkan bagi minggu yang sama.</small></div>
-  <div class="fi-v53-panel"><strong id="sim53-week-title">Minggu persekolahan</strong><p id="sim53-week-status" role="status">Belum dimuatkan</p><button type="button" class="btn muted" id="sim53-refresh">Muat semula minggu</button></div>
+  <div class="fi-v53-panel"><strong id="sim53-week-title">Minggu persekolahan</strong><p id="sim53-week-status" role="status">Belum dimuatkan</p>
+  <p class="muted-note" id="sim53-week-read-status">Statistik belum dimuatkan.</p>
+  <p class="muted-note" id="sim53-leave-read-status">Cuti belum dimuatkan.</p>
+  <p class="muted-note" id="sim53-api-status">Tiada permintaan aktif.</p>
+  <button type="button" class="btn muted" id="sim53-refresh">Muat semula minggu</button>
+  <button type="button" class="btn muted" id="sim53-test-backend">Uji sambungan Apps Script</button></div>
 </div>
 <div class="fi-v53-panel fi-v53-leave">
   <div class="section-head"><h3>1 · Cuti / Keberadaan yang menjadi asas simulasi</h3><button type="button" class="btn muted fi-v53-section-action" id="sim53-reload-leaves">Muat rekod cuti</button></div>
   <p class="muted-note">Pilih rekod e-Keberadaan yang ada. Nota, dokumen dan alasan peribadi tidak dipaparkan. Cuti simulasi tidak mengubah cuti sebenar.</p>
   <div id="sim53-leave-list" class="fi-v53-leaves">Memuatkan rekod untuk tarikh ini…</div>
+  <p id="sim53-staff-status" class="muted-note" role="status">Memuatkan senarai guru daripada Firestore…</p>
   <details class="fi-v53-manual"><summary>Tambah senario cuti ujian (jika belum ada permohonan)</summary>
    <div class="fi-v53-controls"><label>Guru<select id="sim53-staff"></select></label>
     <label>Kategori<select id="sim53-type"><option>CRK</option><option>CTR</option><option>MC</option><option>RASMI</option><option>KECEMASAN</option></select></label>
@@ -85,4 +91,4 @@
 <div class="fi-v53-warning" role="note">Makmal V5.3 menyimpan ujian mengikut Admin + tarikh. Paparan agihan utama 7.25 pagi tidak ditimpa oleh kejadian susulan. Status PERLU SERAH TUGAS memerlukan keputusan manusia sebelum dianggap dilaksanakan.</div>
 </div>
 <p class="muted-note">Makmal menggunakan fungsi pemilihan guru yang sama seperti agihan 7.25 pagi; hasilnya disimpan dalam koleksi ujian dengan ID Admin.</p></div></section>
-</main><script defer src="Fi-eReliefGuru.js?v=5.5.2"></script><script defer src="Fi-eReliefGuru-V53.js?v=5.5.2"></script></body></html>
+</main><script defer src="Fi-eReliefGuru.js?v=5.5.3"></script><script defer src="Fi-eReliefGuru-V53.js?v=5.5.3"></script></body></html>

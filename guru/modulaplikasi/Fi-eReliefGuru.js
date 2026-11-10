@@ -8,6 +8,8 @@ let user=null,auth=null,db=null,roles=[],stop=null,rows=[],report=null,staff=[],
 // Makmal V53.js sebelum ini memanggil SeMAKMURReliefStudioBridge,
 // tetapi tiada kod yang mencipta objek tersebut. JANGAN bypass pengesahan server.
 let fiStudioMarkAuthReady;
+let fiStudioRosterPromise=null;
+const fiStudioRosterCopy=()=>staff.map(x=>({id:x.id,name:x.name,category:x.category}));
 const fiStudioAuthReady = new Promise(resolve=>{fiStudioMarkAuthReady=resolve;});
 function fiStudioSettleAuth(){if(fiStudioMarkAuthReady){fiStudioMarkAuthReady();fiStudioMarkAuthReady=null;}}
 function fiStudioIsAdmin(){return !!(user?.uid && auth?.currentUser?.uid===user.uid && Array.isArray(roles) && roles.includes('ADMIN_SISTEM'));}
@@ -19,7 +21,14 @@ window.SeMAKMURReliefStudioBridge=Object.freeze({
     if(!fiStudioIsAdmin())throw Error('Akses Makmal Admin memerlukan ADMIN_SISTEM yang telah disahkan.');
     return api(action,payload); // Firebase ID token dikirim oleh api(); backend kekal menyemak peranan.
   },
-  begin:()=>()=>{}
+  begin:()=>()=>{},
+  staff:()=>fiStudioIsAdmin()?fiStudioRosterCopy():[],
+  loadStaff:async()=>{
+    if(!fiStudioIsAdmin())throw Error('Sesi ADMIN_SISTEM belum disahkan.');
+    const list=await loadStaff();
+    if(!list.length)throw Error('Senarai guru Firestore belum berjaya dimuatkan. Semak status senarai guru pada Makmal.');
+    return list;
+  }
 });
 
 function warn(text,error=false){const el=$('message');el.hidden=!text;el.textContent=text||'';el.classList.toggle('error',error);}
@@ -97,7 +106,7 @@ async function endpoint(){
  return url;
 }
 async function api(action,rest={}){
- if(!auth?.currentUser)throw Error('Log masuk diperlukan.');const url=await endpoint(),idToken=await auth.currentUser.getIdToken(true);
+ if(!auth?.currentUser)throw Error('Log masuk diperlukan.');const url=await endpoint(),idToken=await auth.currentUser.getIdToken();
  const nonce=globalThis.crypto?.randomUUID?.()||String(Date.now())+Math.random().toString(36).slice(2);
  return new Promise((resolve,reject)=>{
   const iframe=document.createElement('iframe');iframe.hidden=true;iframe.name='r51-'+nonce;
@@ -131,38 +140,41 @@ function staffStatus(message,kind=''){
 // V5.1.2: Makmal Admin membaca cache roster Firestore secara terus.
 // Ini tidak memintas Firestore Security Rules. Hanya peranan istimewa
 // dibenarkan membaca semakmur_fi_relief_staf/active.
-async function loadStaff(){
- if(staffLoading)return;
- staffLoading=true;staff=[];
- $('generate-simulation').disabled=true;
- $('reload-sim-staff').disabled=true;
- $('absent-staff').innerHTML='';$('emergency-staff').innerHTML='';
- staffStatus('Memuatkan senarai guru daripada Firestore…');
- try{
-  if(!user || !roles.includes('ADMIN_SISTEM'))throw Error('Akses Makmal Admin memerlukan peranan ADMIN_SISTEM.');
-  if(!fns?.getDocFromServer||!db)throw Error('Sambungan Firestore belum tersedia.');
-  const snap=await fns.getDocFromServer(fns.doc(db,'semakmur_fi_relief_staf','active'));
-  if(!snap.exists())throw Error('Dokumen semakmur_fi_relief_staf/active belum wujud. Jalankan penyelarasan roster daripada Master_Staf di backend.');
-  const source=snap.data()?.staff;
-  if(!Array.isArray(source)||!source.length)throw Error('Roster Firestore kosong. Semak penyelarasan semakmur_fi_relief_staf/active.');
-  staff=source
-   .map(x=>({id:String(x?.idStaf||'').trim(),name:String(x?.name||'').trim(),category:String(x?.category||x?.kategori||'—').trim()}))
-   .filter(x=>x.id&&x.name);
-  // Gandaan ID boleh berlaku semasa sync roster; paparkan setiap guru sekali sahaja.
-  staff=[...new Map(staff.map(x=>[x.id,x])).values()];
-  if(!staff.length)throw Error('Roster tidak mempunyai medan idStaf dan name yang sah.');
-  staff.sort((a,b)=>a.name.localeCompare(b.name,'ms'));
-  $('absent-staff').innerHTML=staffOptions(staff);
-  $('emergency-staff').innerHTML=staffOptions(staff);
-  $('generate-simulation').disabled=false;
-  staffStatus(staff.length+' guru tersedia daripada Firestore untuk simulasi. Sahkan roster sepadan dengan Master_Staf.','success');
- }catch(e){
-  console.error('[SeMAKMUR V5.1.2] Makmal Admin: roster Firestore gagal dibaca',e);
-  const info=e?.code==='permission-denied'
-   ?'Akses Firestore ditolak. Semak profil aktif dan dokumen peranan ADMIN_SISTEM.'
-   :(e?.message||String(e));
-  staffStatus('Senarai guru GAGAL dibaca daripada Firestore: '+info,'error');
- }finally{staffLoading=false;$('reload-sim-staff').disabled=false;}
+function loadStaff(force=false){
+ if(staffLoading)return fiStudioRosterPromise||Promise.resolve(fiStudioRosterCopy());
+ if(!force&&staff.length)return Promise.resolve(fiStudioRosterCopy());
+ staffLoading=true;
+ fiStudioRosterPromise=(async()=>{
+  staff=[];
+  $('generate-simulation').disabled=true;
+  $('reload-sim-staff').disabled=true;
+  $('absent-staff').innerHTML='';$('emergency-staff').innerHTML='';
+  staffStatus('Memuatkan senarai guru daripada Firestore…');
+  try{
+   if(!user||!roles.includes('ADMIN_SISTEM'))throw Error('Akses Makmal Admin memerlukan peranan ADMIN_SISTEM.');
+   if(!fns?.getDocFromServer||!db)throw Error('Sambungan Firestore belum tersedia.');
+   const snap=await fns.getDocFromServer(fns.doc(db,'semakmur_fi_relief_staf','active'));
+   if(!snap.exists())throw Error('Dokumen semakmur_fi_relief_staf/active tidak wujud. Jalankan sync roster dahulu.');
+   const source=snap.data()?.staff;
+   if(!Array.isArray(source)||!source.length)throw Error('Roster Firestore kosong.');
+   staff=source.map(x=>({id:String(x?.idStaf||'').trim(),name:String(x?.name||'').trim(),category:String(x?.category||x?.kategori||'—').trim()}))
+    .filter(x=>x.id&&x.name);
+   staff=[...new Map(staff.map(x=>[x.id,x])).values()].sort((a,b)=>a.name.localeCompare(b.name,'ms'));
+   if(!staff.length)throw Error('Roster tiada medan idStaf/name yang sah.');
+   $('absent-staff').innerHTML=staffOptions(staff);
+   $('emergency-staff').innerHTML=staffOptions(staff);
+   $('generate-simulation').disabled=false;
+   staffStatus(staff.length+' guru tersedia daripada Firestore.','success');
+   window.dispatchEvent(new CustomEvent('semakmur-relief-staff-loaded',{detail:{staff:fiStudioRosterCopy()}}));
+   return fiStudioRosterCopy();
+  }catch(e){
+   console.error('[SeMAKMUR V5.5.3] Roster Firestore gagal',e);
+   const info=e?.code==='permission-denied'?'Firestore menolak bacaan roster (permission-denied).':(e?.message||String(e));
+   staffStatus('Senarai guru gagal dibaca: '+info,'error');
+   return [];
+  }finally{staffLoading=false;$('reload-sim-staff').disabled=false;}
+ })();
+ return fiStudioRosterPromise;
 }
 
 function simTable(d){const r=d.rows||[],initial=new Map((d.mainRows||[]).map(x=>[x.slotId+'|'+x.classId,x]));
@@ -224,7 +236,8 @@ async function start(){const conf=window.SeMAKMURFirebasePilotConfig;if(!conf?.p
    $('tab-makmal').hidden=!roles.includes('ADMIN_SISTEM');
    $('relief55-backup-now').hidden=!roles.includes('ADMIN_SISTEM');
    $('relief55-check-ops').hidden=!roles.includes('ADMIN_SISTEM');
-   if(roles.includes('ADMIN_SISTEM'))fi55Health();
+   // V5.5.3: Jangan lancar panggilan Apps Script tambahan ketika Makmal membaca data.
+   if(roles.includes('ADMIN_SISTEM'))$('relief55-ops-health').textContent='Klik “Semak operasi” untuk status automatik dan Sheets.';
    if(roles.includes('ADMIN_SISTEM')){loadStaff();}else{staffStatus('Makmal Admin memerlukan peranan ADMIN_SISTEM.');}listenDate($('view-date').value);
   }catch(e){user=null;roles=[];warn('Akses ditolak: '+e.message,true);}
   finally{fiStudioSettleAuth();}
@@ -236,7 +249,7 @@ function init(){if(new URLSearchParams(location.search).get('embed')==='1')docum
  $('refresh').addEventListener('click',()=>{if(user)listenDate($('view-date').value)});
  $('relief55-backup-now').addEventListener('click',fi55BackupNow);
  $('relief55-check-ops').addEventListener('click',fi55Health);
- $('generate-simulation').addEventListener('click',simulate);$('reload-sim-staff').addEventListener('click',loadStaff);$('test-fi-connection').addEventListener('click',testFiConnection);
+ $('generate-simulation').addEventListener('click',simulate);$('reload-sim-staff').addEventListener('click',()=>loadStaff(true));$('test-fi-connection').addEventListener('click',testFiConnection);
  $('clear-simulation').addEventListener('click',()=>{$('absent-staff').selectedIndex=-1;$('emergency-staff').selectedIndex=-1;$('sim-results').innerHTML='<p class="empty">Pilihan dikosongkan.</p>'});
  $('load-stats').addEventListener('click',stats);$('csv-stats').addEventListener('click',csv);$('print-stats').addEventListener('click',()=>window.print());
  $('daily-list').addEventListener('click',e=>{const b=e.target.closest('button.cancel-slot');if(b)cancelSlot(b.dataset.id)});

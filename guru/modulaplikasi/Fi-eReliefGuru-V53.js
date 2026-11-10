@@ -6,29 +6,76 @@
  const el=id=>document.getElementById(id);
  const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const bridge=()=>window.SeMAKMURReliefStudioBridge;
- const state={week:null,leaves:[],staff:[],draft:[],busy:false,initialized:false,requestSerial:0};
+ const state={week:null,leaves:[],staff:[],draft:[],busy:false,initialized:false,requestSerial:0,loadDatePromise:null,loadDateKey:'',apiStates:{},apiSeq:0};
  const shortTime=x=>x?.periodNo?`Waktu ${x.periodNo}`:String(x?.slotId||'').replace(/^.*SLOT-0*/,'Slot ');
  const message=(text,error=false)=>{const v=el('sim53-week-status');if(!v)return;
   v.textContent=text;v.classList.toggle('fi-v53-error',error);};
  const selectedDate=()=>el('sim53-date')?.value||'';
  const staffOpt=(list)=>list.map(s=>`<option value="${esc(s.id)}">${esc(s.name)} (${esc(s.category||'—')})</option>`).join('');
+ function rosterStatus(msg,error=false){const node=el('sim53-staff-status');if(!node)return;
+  node.textContent=msg;node.classList.toggle('fi-v53-error',error);}
+ function populateStaff(staff){if(!Array.isArray(staff)||!staff.length)return false;
+  state.staff=[...new Map(staff.filter(x=>x?.id&&x?.name).map(x=>[x.id,x])).values()]
+    .sort((a,b)=>a.name.localeCompare(b.name,'ms'));
+  const keepA=el('sim53-staff')?.value,keepE=el('sim53-emergency-staff')?.value;
+  const options=staffOpt(state.staff);
+  el('sim53-staff').innerHTML=options;
+  el('sim53-emergency-staff').innerHTML=options;
+  if(state.staff.some(x=>x.id===keepA))el('sim53-staff').value=keepA;
+  if(state.staff.some(x=>x.id===keepE))el('sim53-emergency-staff').value=keepE;
+  rosterStatus(state.staff.length+' guru dimuatkan daripada Firestore, tanpa menunggu statistik mingguan.');
+  return true;
+ }
+ async function loadRosterQuick(){
+  try{await ensure();const b=bridge();
+   if(populateStaff(b.staff?.()||[]))return;
+   if(typeof b.loadStaff!=='function')throw Error('Bridge roster belum tersedia. Pastikan Fi-eReliefGuru.js V5.5.3 dimuatkan.');
+   const list=await b.loadStaff();
+   if(!populateStaff(list))throw Error('Senarai guru Firestore kosong atau gagal dibaca.');
+  }catch(e){rosterStatus('Senarai guru: '+(e?.message||String(e)),true);}
+ }
+ function renderApiStatus(){const node=el('sim53-api-status');if(!node)return;
+  node.textContent=Object.entries(state.apiStates).map(([act,v])=>`${act}: ${v}`).join(' · ')||'Tiada permintaan aktif.';
+ }
  function isDesktop(){return document.body.classList.contains('fi-host-desktop') || (typeof window.matchMedia==='function' && window.matchMedia('(min-width:600px)').matches);}
  async function ensure(){
   const b=bridge();
   if(!b||typeof b.isAdmin!=='function'||typeof b.api!=='function')
-   throw Error('Sambungan Makmal ke e-Relief tidak tersedia. Pastikan Fi-eReliefGuru.js V5.5.2 dimuatkan.');
-  if(typeof b.ready==='function')await b.ready();
+   throw Error('Sambungan Makmal ke e-Relief tidak tersedia. Pastikan Fi-eReliefGuru.js V5.5.3 dimuatkan.');
+  if(typeof b.ready==='function'){
+   let timeoutId;
+   try{await Promise.race([b.ready(),new Promise((_,reject)=>{
+    timeoutId=setTimeout(()=>reject(Error('Pengesahan sesi Firebase mengambil lebih 20 saat. Semak Console dan sambungan Dashboard Guru.')),20000);
+   })]);}finally{clearTimeout(timeoutId);}
+  }
   const s=typeof b.status==='function'?b.status():{};
   if(s.signedIn===false)throw Error('Sesi Firebase tidak aktif. Log masuk melalui Dashboard Guru.');
   if(s.profileReady===false)throw Error('Profil guru belum disahkan. Semak akaun dan sambungan Firebase.');
   if(!b.isAdmin())throw Error('Peranan ADMIN_SISTEM tidak ditemui dalam sesi e-Relief. Semak semakmur_fi_keberadaan_roles bagi UID anda.');
  }
- async function call(action,payload={}){await ensure();return bridge().api(action,payload);}
+ const inFlightReads=new Map();
+ async function call(action,payload={}){
+  const key=['relief53WeekGet','relief53LeaveList'].includes(action)?action+'|'+(payload.date||''):'';
+  if(key&&inFlightReads.has(key))return inFlightReads.get(key);
+  const request=(async()=>{
+   const began=performance.now();state.apiStates[action]='Menyemak sesi';renderApiStatus();
+   await ensure();
+   state.apiStates[action]='Menghubungi Apps Script';renderApiStatus();
+   const tick=setTimeout(()=>{state.apiStates[action]='Masih menunggu Apps Script (15s+). Semak Executions jika berterusan.';renderApiStatus();},15000);
+   try{const data=await bridge().api(action,payload);
+    state.apiStates[action]='Selesai '+Math.round(performance.now()-began)+' ms';renderApiStatus();return data;
+   }catch(e){state.apiStates[action]='GAGAL '+Math.round(performance.now()-began)+' ms: '+(e?.message||e);renderApiStatus();throw e;}
+   finally{clearTimeout(tick);}
+  })();
+  if(key)inFlightReads.set(key,request);
+  try{return await request;}
+  finally{if(key&&inFlightReads.get(key)===request)inFlightReads.delete(key);}
+ }
  async function withBusy(label,fn){if(state.busy)return;state.busy=true;
   const buttons=['sim53-generate','sim53-apply-cancel','sim53-apply-emergency','sim53-reload-leaves','sim53-refresh'];
   buttons.forEach(id=>{if(el(id))el(id).disabled=true});
   message(label);const stop=bridge()?.begin(label)||(()=>{});
-  try{const ret=await fn();if(!state.week?.warning)message('Selesai. Rekod ujian disimpan dan statistik minggu telah dikemas kini.');return ret;}
+  try{const ret=await fn();if(!state.week?.warning)message('Selesai. Makmal sedia untuk diteruskan.');return ret;}
   catch(e){message(e?.message||String(e),true);return null;}
   finally{stop();state.busy=false;buttons.forEach(id=>{if(el(id))el(id).disabled=false});}
  }
@@ -43,13 +90,12 @@
     <input type="checkbox" name="sim53-leave" value="${esc(l.requestId)}">
     <span><strong>${esc(l.name)}</strong><small>${esc(l.type)}${l.scope?' · '+esc(l.scope):''} · ${esc(l.from)}–${esc(l.to)} · ${esc(l.status||'belum disahkan')}</small></span>
   </label>`).join(''):'<p class="empty">Tiada rekod Keberadaan aktif untuk tarikh ini. Gunakan “Tambah senario cuti ujian”.</p>';
-  const options=staffOpt(state.staff);
-  el('sim53-staff').innerHTML=options;el('sim53-emergency-staff').innerHTML=options;
+  populateStaff(state.staff);
  }
  async function loadLeaves(){const date=selectedDate();if(!date)return;
   const res=await call('relief53LeaveList',{date});if(date!==selectedDate())return;
   state.leaves=Array.isArray(res.leaveRecords)?res.leaveRecords:[];
-  state.staff=Array.isArray(res.staff)?res.staff:[];
+  if(Array.isArray(res.staff)&&res.staff.length)populateStaff(res.staff);
   renderLeaveOptions();
  }
  function selectedCaseKeys(){return [...document.querySelectorAll('input[name="sim53-leave"]:checked')].map(x=>x.value);}
@@ -162,17 +208,30 @@
  async function refreshWeek(){const date=selectedDate();if(!date)return;
   const data=await call('relief53WeekGet',{date});renderWeek(data);
  }
- async function loadDate(){state.draft=[];displayDraft();const request=++state.requestSerial;
-  message('Memuatkan sejarah minggu; rekod cuti dibaca secara berasingan…');
-  const start=performance.now();
-  // Dua bacaan serentak. Hasil minggu dipaparkan sebaik selesai, tanpa menunggu cuti.
-  const tasks=[refreshWeek().then(()=>{if(request===state.requestSerial)message('Statistik minggu dipaparkan ('+Math.round(performance.now()-start)+' ms). Rekod cuti mungkin masih dimuatkan.');}),
-   loadLeaves()];
-  const results=await Promise.allSettled(tasks);
-  if(request!==state.requestSerial)return;
-  const rejected=results.filter(x=>x.status==='rejected');
-  if(rejected.length)message('Ada bacaan gagal: '+rejected.map(x=>x.reason?.message||String(x.reason)).join('; '),true);
-  else message('Selesai. Makmal sedia untuk ujian.');
+ async function loadDate(force=false){
+  const date=selectedDate();if(!date)return;
+  // Jangan lancarkan panggilan berganda apabila tab Makmal diklik berulang kali.
+  if(state.loadDatePromise&&state.loadDateKey===date)return state.loadDatePromise;
+  state.draft=[];displayDraft();const request=++state.requestSerial;
+  state.loadDateKey=date;
+  message('Memuatkan statistik mingguan dan cuti secara berasingan…');
+  const started=performance.now();
+  const task=(async()=>{
+   const jobs=[
+    refreshWeek().then(()=>{if(request===state.requestSerial){
+      el('sim53-week-read-status').textContent='Statistik berjaya dibaca ('+Math.round(performance.now()-started)+' ms).';
+    }}).catch(e=>{if(request===state.requestSerial)el('sim53-week-read-status').textContent='Statistik GAGAL: '+(e.message||e);throw e;}),
+    loadLeaves().then(()=>{if(request===state.requestSerial)el('sim53-leave-read-status').textContent='Rekod cuti berjaya dibaca.';})
+     .catch(e=>{if(request===state.requestSerial)el('sim53-leave-read-status').textContent='Rekod cuti GAGAL: '+(e.message||e);throw e;})
+   ];
+   const results=await Promise.allSettled(jobs);
+   if(request!==state.requestSerial)return;
+   const fail=results.filter(x=>x.status==='rejected');
+   if(fail.length)message('Ada bacaan gagal: '+fail.map(x=>x.reason?.message||String(x.reason)).join('; '),true);
+   else message('Selesai. Makmal sedia untuk ujian.');
+  })();
+  state.loadDatePromise=task;
+  try{await task;}finally{if(state.loadDatePromise===task)state.loadDatePromise=null;}
  }
  async function generate(){if(!selectedDate())return message('Pilih tarikh.',true);
   const ids=selectedCaseKeys(),replace=el('sim53-replace-day').checked;
@@ -190,9 +249,20 @@
   });
  }
  function setup(){if(state.initialized||!el('fi-v53-studio'))return;state.initialized=true;
+  window.addEventListener('semakmur-relief-staff-loaded',e=>populateStaff(e.detail?.staff||[]));
+  rosterStatus('Memuatkan guru daripada Firestore secara berasingan…');
+  el('sim53-week-read-status').textContent='Statistik belum dimuatkan.';
+  el('sim53-leave-read-status').textContent='Rekod cuti belum dimuatkan.';
+  loadRosterQuick();
   el('sim53-date').value=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
   el('sim53-date').addEventListener('change',loadDate);
-  el('sim53-refresh').addEventListener('click',()=>withBusy('Memuatkan statistik minggu…',refreshWeek));
+  el('sim53-refresh').addEventListener('click',()=>withBusy('Memuatkan statistik minggu…',async()=>{await refreshWeek();el('sim53-week-read-status').textContent='Statistik berjaya dikemas kini.';}));
+  el('sim53-test-backend').addEventListener('click',async()=>{
+   const btn=el('sim53-test-backend');btn.disabled=true;message('Menguji laluan iframe POST ke Apps Script…');
+   try{const x=await call('fiBackendHealth');message('Ujian iframe POST berjaya. Backend '+(x.version||'versi tidak dinyatakan')+'.');}
+   catch(e){message('Ujian iframe POST GAGAL: '+(e.message||e),true);}
+   finally{btn.disabled=false;}
+  });
   el('sim53-reload-leaves').addEventListener('click',()=>withBusy('Memuatkan rekod cuti…',loadLeaves));
   el('sim53-generate').addEventListener('click',generate);
   el('sim55-export-audit')?.addEventListener('click',exportAuditCSV);
@@ -209,7 +279,7 @@
   el('sim53-apply-emergency').addEventListener('click',()=>eventCall({kind:'EMERGENCY',staffId:el('sim53-emergency-staff').value,at:el('sim53-emergency-at').value}));
   el('sim53-days').addEventListener('click',e=>{const b=e.target.closest('[data-open-day]');if(!b)return;el('sim53-date').value=b.dataset.openDay;loadDate();});
   const tab=document.querySelector('[data-tab="makmal"]');if(tab)tab.addEventListener('click',()=>{
-   if(isDesktop()){loadDate();}
+   if(isDesktop()){loadDate();loadRosterQuick();}
   });
   displayDraft();
  }
