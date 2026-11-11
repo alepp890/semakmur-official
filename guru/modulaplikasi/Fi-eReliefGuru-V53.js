@@ -77,7 +77,7 @@
   message(label);const stop=bridge()?.begin(label)||(()=>{});
   try{const ret=await fn();if(!state.week?.warning&&!String(label).includes('Memadam'))message('Selesai. Makmal sedia untuk diteruskan.');return ret;}
   catch(e){message(e?.message||String(e),true);return null;}
-  finally{stop();state.busy=false;buttons.forEach(id=>{if(el(id))el(id).disabled=false});}
+  finally{stop();state.busy=false;buttons.forEach(id=>{if(el(id))el(id).disabled=false});if(currentDay())renderEvents(currentDay());}
  }
  function displayDraft(){el('sim53-draft-cases').innerHTML=state.draft.length?
   state.draft.map((c,i)=>`<span class="fi-v53-draft">${esc(c.name)} · ${esc(c.type)} · ${esc(c.from)}–${esc(c.to)}
@@ -141,7 +141,7 @@
     const restored=r.status==='JADUAL_ASAL_DIPULIHKAN';
     const handover=r.status==='PERLU_SERAH_TUGAS';
     const empty=r.status==='TIADA_GANTI';
-    const label=pairing?'Hakiki kekal · 0 Relief tambahan':restored?'Kedua-dua guru kembali mengajar':
+    const label=pairing?'Hakiki kekal · 0 Relief tambahan':restored?'Jadual hakiki dipulihkan':
      r.audit?`${r.audit.hakiki} Hakiki${r.audit.pairingPecah?' − '+r.audit.pairingPecah+' Pecah Pairing':''} + ${r.audit.reliefSelepas} Relief`:teacherLoadText(r.replacementId,date);
     const status=r.manualBackup&&r.status==='DIAGIH'?`MANUAL ${r.manualTier||1}`:pairing?'PAIRING DITERUSKAN':restored?'JADUAL DIPULIHKAN':handover?'PERLU SERAH TUGAS':
      empty?'BELUM DIAGIH':r.assignmentMode==='PECAH_PAIRING'?'PECAH PAIRING':r.assignmentMode==='BNK'?'BNK':
@@ -189,9 +189,10 @@
    .filter(c=>!canceled.has(c.key));
   el('sim53-cancel-target').innerHTML=targets.length?targets.map(c=>`<option value="${esc(c.key)}">${esc(c.name)} · ${esc(c.type)}</option>`).join(''):
    '<option value="">Tiada cuti aktif untuk dibatalkan</option>';
-  el('sim53-events').innerHTML=(day?.events||[]).map(e=>`<div class="fi-v53-event-record">${esc(e.at)} · ${esc(e.kind==='CANCEL'?'Batal cuti':'Kecemasan')}: ${esc(e.name)}</div>`).join('');
-  el('sim53-apply-cancel').disabled=!day||!targets.length;
-  el('sim53-apply-emergency').disabled=!day;
+  el('sim53-events').innerHTML=(day?.events||[]).map(e=>`<div class="fi-v53-event-record">${esc(e.at)} · ${esc(e.kind==='KB_UPDATE'?'Kemas kini Keberadaan':e.kind==='CANCEL'?'Batal cuti':'Kecemasan')}: ${esc(e.name)}</div>`).join('');
+  el('sim53-apply-cancel').disabled=!day||!targets.length||!!day.integrationId;
+  el('sim53-apply-emergency').disabled=!day||!!day.integrationId;
+  el('sim53-generate').disabled=!!day?.integrationId;
  }
  function renderSelected(){const day=currentDay();renderEvents(day);
   if(!day){el('sim53-day-results').innerHTML='<p class="empty">Tarikh ini belum dijana. Pilih rekod cuti dan klik Jana agihan hari terpilih.</p>';
@@ -200,7 +201,7 @@
   el('sim53-day-summary').textContent=`${s.diagih||0} diagih · ${s.pairingDiteruskan||0} pairing diteruskan · ${s.dipulihkan||0} jadual dipulihkan · ${s.tiada||0} tiada ganti · ${s.handover||0} perlu serah tugas`;
   const grouped=(day.eventTimeline||[]).map(ev=>{
    const c=(day.changes||[]).filter(x=>x.eventKey===ev.eventKey);
-   return `<details open class="fi-v53-changes"><summary>${esc(ev.at)} · ${esc(ev.kind==='CANCEL'?'Batal cuti':'Kecemasan')}: ${esc(ev.name)} (${c.length} perubahan)</summary>
+   return `<details open class="fi-v53-changes"><summary>${esc(ev.at)} · ${esc(ev.kind==='KB_UPDATE'?'Kemas kini Keberadaan':ev.kind==='CANCEL'?'Batal cuti':'Kecemasan')}: ${esc(ev.name)} (${c.length} perubahan)</summary>
     ${c.length?`<div class="fi-v53-table-scroll"><table><thead><tr><th>Slot / Masa</th><th>Kelas</th><th>Jenis perubahan</th><th>Sebelum</th><th>Selepas</th></tr></thead><tbody>
     ${c.map(x=>`<tr><td>${esc(x.slotId)} · ${esc(x.time)}</td><td>${esc(x.classId)}</td><td>${esc(x.type.replace(/_/g,' '))}</td><td>${esc(x.old)}</td><td>${esc(x.new)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted-note">Tiada perubahan pada agihan aktif.</p>'}</details>`;
   }).join('');
@@ -211,7 +212,7 @@
   const optimizeNote=optimizer?`<p class="fi-v56-optimize-note">${esc(optimizerLabel)}: ${esc(optimizer.before)} → ${esc(optimizer.after)} slot · +${esc(optimizer.added)} diselamatkan · ${esc(optimizer.changes)} pertukaran · ${esc(optimizer.pairingSplit)} pecah pairing · baki ${esc(optimizer.remaining)}${optimizer.provenMaximum?' · optimum model disahkan':optimizer.limitReached?' · had carian / optimum belum dibuktikan':' · optimum belum dibuktikan'}${optimizer.solverFailure?' · '+esc(optimizer.solverFailure):''}</p>`:'';
   const restored=(day.historyRows||[]).length?`<details open class="fi-v53-changes"><summary>Jadual asal dipulihkan (${day.historyRows.length}) — bukan relief</summary>
    ${renderCards(day.historyRows,day.date)}</details>`:'';
-  el('sim53-day-results').innerHTML=`${optimizeNote}${manualWarningNote}<h3 class="fi-v53-final-title">Jadual aktif selepas perubahan (SIMULASI)</h3>
+  el('sim53-day-results').innerHTML=`${day.integrationId?'<p class="fi-v56-optimize-note">Sumber: Makmal e-Keberadaan V6.1. Daftar, batal dan kejadian susulan melalui e-Keberadaan; Manual Backup kekal di sini.</p>':''}${optimizeNote}${manualWarningNote}<h3 class="fi-v53-final-title">Jadual aktif selepas perubahan (SIMULASI)</h3>
    ${renderCards((day.rows||[]).filter(r=>r.status!=='DIBATALKAN_SIM'&&r.status!=='JADUAL_ASAL_DIPULIHKAN'),day.date,true)}${restored}
    <details class="fi-v53-snapshot"><summary>Agihan asal 7.25 pagi (${day.mainRows?.length||0} rekod) — sejarah asal</summary>
    ${renderCards(day.mainRows||[],day.date)}</details>
@@ -283,7 +284,7 @@
   state.loadDatePromise=task;
   try{await task;}finally{if(state.loadDatePromise===task)state.loadDatePromise=null;}
  }
- async function generate(){if(!selectedDate())return message('Pilih tarikh.',true);
+ async function generate(){if(currentDay()?.integrationId)return message('Tarikh ini diurus Makmal e-Keberadaan.',true);if(!selectedDate())return message('Pilih tarikh.',true);
   const ids=selectedCaseKeys(),replace=el('sim53-replace-day').checked;
   if(!ids.length&&!state.draft.length)return message('Pilih rekod cuti atau tambah senario cuti.',true);
   if(replace&&!confirm('Ganti snapshot Makmal bagi tarikh ini? Agihan utama dan senario terdahulu bagi hari ini akan diganti.'))return;
@@ -295,7 +296,7 @@
   });}
   finally{if(overlay){overlay.hidden=true;overlay.removeAttribute('aria-busy');}}
  }
- async function eventCall(payload){const date=selectedDate();if(!currentDay())return message('Jana agihan utama dahulu.',true);
+ async function eventCall(payload){const date=selectedDate();if(!currentDay())return message('Jana agihan utama dahulu.',true);if(currentDay().integrationId)return message('Kemas kini melalui Makmal e-Keberadaan.',true);
   await withBusy('Menguji kejadian susulan tanpa menukar agihan rasmi…',async()=>{
    const data=await call('relief53Event',{date,...payload});renderWeek(data);
   });
