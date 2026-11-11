@@ -114,8 +114,27 @@ async function api(action,rest={}){
   const form=document.createElement('form');form.method='POST';form.action=url;form.target=iframe.name;form.hidden=true;
   const input=document.createElement('input');input.type='hidden';input.name='payload';input.value=JSON.stringify({action,nonce,idToken,...rest});form.append(input);
   let done=false;const finish=()=>{clearTimeout(timer);window.removeEventListener('message',received);form.remove();iframe.remove();};
-  function received(e){if(!/^https:\/\/(script\.google\.com|(?:[a-z0-9-]+\.)*script\.googleusercontent\.com)$/.test(e.origin))return;
-   if(e.data?.channel!=='semakmur-fi-doc-v1'||e.data.nonce!==nonce||done)return;done=true;finish();e.data.ok?resolve(e.data):reject(Error(e.data.error||'Permintaan gagal'));}
+  // V5.5.4: Kekalkan pembetulan V5.1.4. Apps Script HtmlService boleh membalas
+  // daripada hostname n-<id>-script.googleusercontent.com (bukan hanya subdomain bertitik).
+  // Semak HTTPS + hostname rasmi Google dan nonce; tidak terima origin "null"/wildcard.
+  function trustedFiOrigin(origin){
+   try{
+    const u=new URL(origin);
+    if(u.protocol!=='https:'||u.port||u.username||u.password)return false;
+    const host=u.hostname.toLowerCase();
+    return host==='script.google.com'||host==='script.googleusercontent.com'||
+      host.endsWith('.script.googleusercontent.com')||host.endsWith('-script.googleusercontent.com');
+   }catch(_e){return false;}
+  }
+  function received(e){
+   if(e.data?.channel!=='semakmur-fi-doc-v1')return;
+   if(!trustedFiOrigin(e.origin)){
+    console.warn('[SeMAKMUR FiBridge] Origin respons tidak dibenarkan:',e.origin);
+    return;
+   }
+   if(e.data.nonce!==nonce||done)return;
+   done=true;finish();e.data.ok?resolve(e.data):reject(Error(e.data.error||'Permintaan gagal'));
+  }
   const timer=setTimeout(()=>{if(!done){done=true;finish();reject(Error('Tiada respons backend untuk '+action+'. Permintaan mungkin masih diproses; semak Apps Script > Executions, deployment /exec dan Console sebelum mengulang.'))}},90000);
   window.addEventListener('message',received);document.body.append(iframe,form);form.submit();
  });
