@@ -206,8 +206,9 @@
   }).join('');
   const manualWarnings=day.manualWarnings||[];
   const manualWarningNote=manualWarnings.length?`<p class="fi-v56-optimize-note" style="border-color:#e7b98c;background:#fff8ed;color:#875018">Manual Backup perlu disemak semula: ${esc(manualWarnings.join(' · '))}</p>`:'';
-  const optimizer=day.optimization;
-  const optimizeNote=optimizer?`<p class="fi-v56-optimize-note">Smart Reshuffle: ${esc(optimizer.before)} → ${esc(optimizer.after)} slot · +${esc(optimizer.added)} diselamatkan · ${esc(optimizer.changes)} pertukaran · ${esc(optimizer.pairingSplit)} pecah pairing · baki ${esc(optimizer.remaining)}</p>`:'';
+  const optimizer=day.events?.length?day.emergencyOptimization:day.optimization;
+  const optimizerLabel=day.events?.length?'Smart Reshuffle Susulan (slot masa depan)':'Smart Reshuffle Agihan Utama';
+  const optimizeNote=optimizer?`<p class="fi-v56-optimize-note">${esc(optimizerLabel)}: ${esc(optimizer.before)} → ${esc(optimizer.after)} slot · +${esc(optimizer.added)} diselamatkan · ${esc(optimizer.changes)} pertukaran · ${esc(optimizer.pairingSplit)} pecah pairing · baki ${esc(optimizer.remaining)}${optimizer.limitReached?' · had carian dicapai':''}</p>`:'';
   const restored=(day.historyRows||[]).length?`<details open class="fi-v53-changes"><summary>Jadual asal dipulihkan (${day.historyRows.length}) — bukan relief</summary>
    ${renderCards(day.historyRows,day.date)}</details>`:'';
   el('sim53-day-results').innerHTML=`${optimizeNote}${manualWarningNote}<h3 class="fi-v53-final-title">Jadual aktif selepas perubahan (SIMULASI)</h3>
@@ -233,13 +234,13 @@
   const hari=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
   const headers=['ID_Staf','Nama_Samaran','Kategori_Staf','Tarikh','Hari','Hakiki_W','Relief_W',
    'Pecah_Pairing_W','Hakiki','Relief','Pecah_Pairing','Beban_Akhir','Berturut_Maks','Had_Berturut',
-   'Relief_Mingguan','Audit_Jadual'];
+   'Relief_Mingguan','Had_Harian','Had_Relief','Pengecualian_Manual','Audit_Jadual'];
   const data=[];
   for(const staff of week.staff||[]){for(const date of generated){const d=staff.daily?.[date];if(!d)continue;
    data.push([staff.id,staff.name,staff.category,date,hari[new Date(date+'T12:00:00Z').getUTCDay()],
     (d.hakikiW||[]).join(' '),(d.reliefW||[]).join(' '),(d.pairingW||[]).join(' '),
     d.hakiki,d.relief,d.pairing,d.bebanAkhir??'',d.berturutMax??'',d.berturutHad??'',
-    staff.totalRelief,d.audit||'BELUM_DIAUDIT']);
+    staff.totalRelief,d.hadHarian??6,d.hadRelief??(staff.kind==='BNK'?3:2),d.pengecualianManual?'YA':'TIDAK',d.audit||'BELUM_DIAUDIT']);
   }}
   downloadCSV('SeMAKMUR_Statistik_Mingguan_SIMULASI_'+week.weekStart+'.csv',headers,data);
  }
@@ -325,12 +326,12 @@
    state.manualReliefId=reliefId;
    const list=Array.isArray(res.candidates)?res.candidates:[];
    const dialog=el('sim56-manual-dialog');
-   el('sim56-manual-list').innerHTML=list.length?list.map(c=>`<option value="${esc(c.staffId)}">${esc(c.name)} · ${esc(c.category)} · ${esc(c.hakiki)}H + ${esc(c.reliefHari)}R · minggu ${esc(c.reliefMinggu)}R ${c.mode==='PECAH_PAIRING'?'· Pecah pairing':''}</option>`).join(''):
-      '<option value="">Tiada calon yang memenuhi semua syarat wajib</option>';
+   el('sim56-manual-list').innerHTML=list.length?list.map(c=>`<option value="${esc(c.staffId)}">${esc(c.name)} · ${esc(c.category)} · ${esc(c.hakiki)}H + ${esc(c.reliefHari)}R · minggu ${esc(c.reliefMinggu)}R · akhir ${esc(c.bebanSelepas)}/7H ${c.mode==='PECAH_PAIRING'?'· Pecah pairing':''}</option>`).join(''):
+      '<option value="">Tiada calon memenuhi had manual 7H/3R dan had berturut-turut</option>';
    el('sim56-manual-save').disabled=!list.length;
    el('sim56-manual-reason').value='';dialog.hidden=false;
    el('sim56-manual-reason').focus();
-   message(list.length?list.length+' calon layak ditemui. Agihan manual tidak mengubah slot lain.':'Tiada calon yang memenuhi semua syarat. Gunakan audit untuk siasatan.',!list.length);
+   message(list.length?list.length+' calon Manual Backup (7H/3R; had berturut-turut kekal).':'Tiada calon yang memenuhi syarat keselamatan jadual manual. Gunakan audit untuk siasatan.',!list.length);
   }catch(e){message('Senarai calon manual gagal: '+(e?.message||e),true);}
  }
  async function saveManualSlot(){

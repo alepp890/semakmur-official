@@ -1,5 +1,5 @@
 'use strict';
-/** V5.6 additive official Manual Backup UI. No edits to Fi-eReliefGuru.js iframe bridge.
+/** V5.7 additive official Manual Backup UI. No edits to Fi-eReliefGuru.js iframe bridge.
  * Server remains authority: if a slot is not TIADA_GANTI, save is rejected.
  * Requires explicit role in dashboard profile for UI visibility.
  */
@@ -29,7 +29,7 @@
   node=document.createElement('div');node.id='fi56-official-modal';node.hidden=true;node.className='fi-v56-dialog';
   node.setAttribute('role','dialog');node.setAttribute('aria-modal','true');
   node.innerHTML=`<div class="fi-v56-dialog-inner"><h3>Manual Backup — relief rasmi</h3>
-   <p class="muted-note">Hanya slot TIADA_GANTI. Semua syarat wajib disemak di backend. Agihan rasmi mesti sudah diterbitkan.</p>
+   <p class="muted-note">Hanya slot TIADA_GANTI. Manual terkawal: maksimum 7 waktu mengajar dan 3 relief (termasuk GPK); had berturut-turut dan pertindihan kekal. Hanya slot kosong sebelum bermula.</p>
    <p id="fi56-official-state" role="status"></p>
    <label>Guru pengganti<select id="fi56-official-staff"></select></label>
    <label>Catatan sebab<textarea id="fi56-official-reason" rows="3" maxlength="300" placeholder="Sebab perlu agihan manual..."></textarea></label>
@@ -46,7 +46,7 @@
   try{const res=await api('relief56ManualCandidates',{date:qs('view-date').value,reliefId:id});
    const options=Array.isArray(res.candidates)?res.candidates:[];
    qs('fi56-official-staff').innerHTML=options.length?options.map(x=>
-    `<option value="${esc56(x.staffId)}">${esc56(x.name)} · ${esc56(x.hakiki)}H + ${esc56(x.reliefHari)}R · ${esc56(x.reliefMinggu)}R minggu · ${esc56(x.mode)}</option>`).join(''):'<option value="">Tiada guru layak</option>';
+    `<option value="${esc56(x.staffId)}">${esc56(x.name)} · ${esc56(x.hakiki)}H + ${esc56(x.reliefHari)}R · ${esc56(x.reliefMinggu)}R minggu · akhir ${esc56(x.bebanSelepas)}/7H · ${esc56(x.mode)}</option>`).join(''):'<option value="">Tiada guru layak</option>';
    qs('fi56-official-state').textContent=options.length+' calon tersedia';
    qs('fi56-official-save').disabled=!options.length;
   }catch(e){qs('fi56-official-state').textContent='Gagal: '+(e?.message||String(e));}
