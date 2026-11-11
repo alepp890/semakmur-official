@@ -1,5 +1,5 @@
 'use strict';
-/* SeMAKMUR Smart e-Relief V5.5 — Makmal Mingguan desktop sahaja.
+/* SeMAKMUR Smart e-Relief V5.5.5 — Makmal Mingguan desktop sahaja.
  * Modul relief rasmi & PWA sedia ada kekal. Semua mutasi di backend ADMIN_SISTEM.
  */
 (()=>{
@@ -72,10 +72,10 @@
   finally{if(key&&inFlightReads.get(key)===request)inFlightReads.delete(key);}
  }
  async function withBusy(label,fn){if(state.busy)return;state.busy=true;
-  const buttons=['sim53-generate','sim53-apply-cancel','sim53-apply-emergency','sim53-reload-leaves','sim53-refresh'];
+  const buttons=['sim53-generate','sim53-apply-cancel','sim53-apply-emergency','sim53-reload-leaves','sim53-refresh','sim56-reset-week','sim56-reset-all','sim53-date'];
   buttons.forEach(id=>{if(el(id))el(id).disabled=true});
   message(label);const stop=bridge()?.begin(label)||(()=>{});
-  try{const ret=await fn();if(!state.week?.warning)message('Selesai. Makmal sedia untuk diteruskan.');return ret;}
+  try{const ret=await fn();if(!state.week?.warning&&!String(label).includes('Memadam'))message('Selesai. Makmal sedia untuk diteruskan.');return ret;}
   catch(e){message(e?.message||String(e),true);return null;}
   finally{stop();state.busy=false;buttons.forEach(id=>{if(el(id))el(id).disabled=false});}
  }
@@ -124,26 +124,43 @@
    ${others?`<p class="fi-v55-audit-note"><b>Contoh alternatif pusingan sama:</b> ${esc(others)}</p>`:''}
    <p class="fi-v55-audit-note">Audit menunjukkan pematuhan syarat pada masa dipilih, bukan bukti optimum global atau pengesahan telah mengajar.</p></details>`;
  }
- function renderCards(rows,date){if(!rows?.length)return '<p class="empty">Belum ada waktu yang memerlukan relief pada tarikh ini.</p>';
-  const map=new Map();rows.forEach(r=>{const names=(r.originalNames||[]);
-   const abs=(r.absentTeacherIds||[]).map(id=>names[(r.allTeachers||[]).indexOf(id)]||id);
-   const name=r.status==='PAIRING_DITERUSKAN'&&abs.length?abs.join(' / '):(names.join(' / ')||'Guru asal');
-   if(!map.has(name))map.set(name,[]);map.get(name).push(r);});
-  return [...map.entries()].sort((a,b)=>a[0].localeCompare(b[0],'ms')).map(([name,items])=>
-   `<section class="relief-group-block"><h3>GURU ASAL · ${esc(name)}</h3>`+
-   items.sort((a,b)=>a.from.localeCompare(b.from)).map(r=>{
-    const label=r.status==='PAIRING_DITERUSKAN'?'Hakiki kekal · 0 Relief tambahan':r.audit?`${r.audit.hakiki} Hakiki + ${r.audit.reliefSelepas} Relief`:teacherLoadText(r.replacementId,date);
-    const status=r.status==='PAIRING_DITERUSKAN'?'PAIRING DITERUSKAN':r.status==='DIBATALKAN_SIM'?'Cuti dibatalkan':r.status==='PERLU_SERAH_TUGAS'?'PERLU SERAH TUGAS':
-     r.status==='TIADA_GANTI'?'TIADA GANTI':r.assignmentMode==='PECAH_PAIRING'?'PECAH PAIRING':r.assignmentMode||'—';
-    return `<div class="relief-group-line ${r.status==='PAIRING_DITERUSKAN'?'fi-v54-pairing-continued':''} ${r.status==='DIBATALKAN_SIM'?'fi-v53-cancelled':''}">
-      <div class="relief-when"><strong>${esc(shortTime(r))}</strong><small>${esc(r.from)}–${esc(r.to)}</small></div>
-      <div class="relief-detail"><strong>${esc(r.subject)}</strong><small>${esc(r.classId)}</small></div>
-      <div class="relief-replacement"><span>${r.status==='PAIRING_DITERUSKAN'?'Guru meneruskan kelas':'Guru ganti'}</span><strong>${esc(r.status==='PAIRING_DITERUSKAN'?(r.continuingNames||[]).join(' / '):r.replacementName||'Belum diagih')}</strong>
-       <small>${esc(label||'—')}</small>${r.status==='PAIRING_DITERUSKAN'?`<small>Cuti: ${esc((r.absentTeacherIds||[]).map(id=>((r.allTeachers||[]).indexOf(id)>=0?(r.originalNames||[])[(r.allTeachers||[]).indexOf(id)]:id)).join(' / '))}</small>`:''}${r.proposedReplacementName?`<small>Cadangan serah tugas: ${esc(r.proposedReplacementName)}</small>`:''}</div>
-      <div class="relief-status"><span class="fi-v53-state ${r.status==='PERLU_SERAH_TUGAS'?'is-handover':''}">${esc(status)}</span></div>
-      ${auditDetails(r)}
-    </div>`;
-   }).join('')+'</section>').join('');
+ function renderCards(rows,date){
+  if(!rows?.length)return '<p class="fi-v56-empty">Tiada rekod bagi bahagian ini.</p>';
+  const groups=new Map();
+  rows.forEach(r=>{
+   const names=r.originalNames||[];
+   const absent=(r.absentTeacherIds||[]).map(id=>names[(r.allTeachers||[]).indexOf(id)]||id);
+   const name=r.status==='PAIRING_DITERUSKAN'&&absent.length?absent.join(' / '):(names.join(' / ')||'Guru asal');
+   if(!groups.has(name))groups.set(name,[]);groups.get(name).push(r);
+  });
+  return [...groups.entries()].sort((x,y)=>x[0].localeCompare(y[0],'ms')).map(([name,items])=>{
+   const cards=items.slice().sort((x,y)=>x.from.localeCompare(y.from)).map(r=>{
+    const pairing=r.status==='PAIRING_DITERUSKAN';
+    const restored=r.status==='JADUAL_ASAL_DIPULIHKAN';
+    const handover=r.status==='PERLU_SERAH_TUGAS';
+    const empty=r.status==='TIADA_GANTI';
+    const label=pairing?'Hakiki kekal · 0 Relief tambahan':restored?'Kedua-dua guru kembali mengajar':
+     r.audit?`${r.audit.hakiki} Hakiki + ${r.audit.reliefSelepas} Relief`:teacherLoadText(r.replacementId,date);
+    const status=pairing?'PAIRING DITERUSKAN':restored?'JADUAL DIPULIHKAN':handover?'PERLU SERAH TUGAS':
+     empty?'BELUM DIAGIH':r.assignmentMode==='PECAH_PAIRING'?'PECAH PAIRING':r.assignmentMode==='BNK'?'BNK':
+     r.assignmentMode==='PRAKTIKAL'?'PRAKTIKAL':r.assignmentMode||'BIASA';
+    const teacher=pairing?(r.continuingNames||[]).join(' / '):restored?(r.originalNames||[]).join(' / '):
+     (r.replacementName||r.proposedReplacementName||'Belum diagih');
+    const teacherTitle=pairing?'Guru meneruskan kelas':restored?'Guru jadual asal':'Guru ganti';
+    const absent=pairing?`<span class="fi-v56-support">Cuti: ${esc((r.absentTeacherIds||[]).map(id=>
+     ((r.allTeachers||[]).indexOf(id)>=0?(r.originalNames||[])[(r.allTeachers||[]).indexOf(id)]:id)).join(' / '))}</span>`:'';
+    const proposed=handover&&r.proposedReplacementName?`<span class="fi-v56-support">Cadangan: ${esc(r.proposedReplacementName)}</span>`:'';
+    const mode=pairing?'is-pairing':restored?'is-restored':handover?'is-handover':empty?'is-unfilled':'is-relief';
+    return `<article class="fi-v56-row ${mode}">
+      <div class="fi-v56-col fi-v56-time"><span class="fi-v56-key">WAKTU</span><strong>${esc(shortTime(r))}</strong><small>${esc(r.from)}–${esc(r.to)}</small></div>
+      <div class="fi-v56-col fi-v56-subject"><span class="fi-v56-key">SUBJEK / KELAS</span><strong>${esc(r.subject||'—')}</strong><small>${esc(r.classId||'—')}</small></div>
+      <div class="fi-v56-col fi-v56-teacher"><span class="fi-v56-key">${esc(teacherTitle.toUpperCase())}</span><strong>${esc(teacher)}</strong><small>${esc(label||'—')}</small>${absent}${proposed}</div>
+      <div class="fi-v56-col fi-v56-status"><span class="fi-v56-key">STATUS</span><span class="fi-v56-pill">${esc(status)}</span></div>
+      ${!pairing&&!restored?auditDetails(r):''}
+     </article>`;
+   }).join('');
+   return `<section class="fi-v56-group"><div class="fi-v56-group-head"><strong>GURU ASAL · ${esc(name)}</strong><span>${items.length} waktu</span></div><div class="fi-v56-group-body">${cards}</div></section>`;
+  }).join('');
  }
  function renderDays(){const week=state.week;if(!week)return;
   el('sim53-week-title').textContent=`Minggu ${week.weekStart} hingga ${week.weekEnd}`;
@@ -187,7 +204,7 @@
   const restored=(day.historyRows||[]).length?`<details open class="fi-v53-changes"><summary>Jadual asal dipulihkan (${day.historyRows.length}) — bukan relief</summary>
    ${renderCards(day.historyRows,day.date)}</details>`:'';
   el('sim53-day-results').innerHTML=`<h3 class="fi-v53-final-title">Jadual aktif selepas perubahan (SIMULASI)</h3>
-   ${renderCards(day.rows||[],day.date)}${restored}
+   ${renderCards((day.rows||[]).filter(r=>r.status!=='DIBATALKAN_SIM'&&r.status!=='JADUAL_ASAL_DIPULIHKAN'),day.date)}${restored}
    <details class="fi-v53-snapshot"><summary>Agihan asal 7.25 pagi (${day.mainRows?.length||0} rekod) — sejarah asal</summary>
    ${renderCards(day.mainRows||[],day.date)}</details>
    <h3 class="fi-v53-final-title">Kronologi pembatalan cuti / kecemasan</h3>
@@ -248,6 +265,24 @@
    const data=await call('relief53Event',{date,...payload});renderWeek(data);
   });
  }
+ async function resetSimulation(scope){
+  if(state.busy)return;
+  const all=scope==='ALL';
+  const token=all?'PADAM SEMUA UJIAN':'KOSONGKAN MINGGU';
+  const msg=all?'Ini akan memadam SEMUA rekod simulasi milik akaun Admin ini bagi semua minggu.':'Ini akan memadam rekod simulasi bagi Isnin–Jumaat minggu tarikh dipilih.';
+  const typed=window.prompt(msg+'\n\nTidak menjejaskan cuti sebenar atau relief rasmi.\nTaip tepat: '+token);
+  if(typed===null)return;
+  if(typed.trim()!==token)return message('Pengesahan tidak sepadan. Tiada data dipadam.',true);
+  await withBusy('Memadam hanya rekod Makmal ujian…',async()=>{
+   const result=await call('relief53Reset',{date:selectedDate(),scope,confirmToken:token});
+   if(!result||result.status!=='OK'||!result.week)throw Error('Backend tidak memulangkan pengesahan reset yang lengkap.');
+   state.draft=[];displayDraft();
+   [...document.querySelectorAll('input[name="sim53-leave"]')].forEach(box=>{box.checked=false;});
+   if(el('sim53-replace-day'))el('sim53-replace-day').checked=false;
+   renderWeek(result.week);
+   message(`${result.deletedCount} rekod simulasi dipadam. ${all?'Semua minggu milik Admin ini':'Minggu terpilih'} kini boleh dijana semula. Cuti sebenar tidak diubah.`);
+  });
+ }
  function setup(){if(state.initialized||!el('fi-v53-studio'))return;state.initialized=true;
   window.addEventListener('semakmur-relief-staff-loaded',e=>populateStaff(e.detail?.staff||[]));
   rosterStatus('Memuatkan guru daripada Firestore secara berasingan…');
@@ -266,6 +301,8 @@
   el('sim53-reload-leaves').addEventListener('click',()=>withBusy('Memuatkan rekod cuti…',loadLeaves));
   el('sim53-generate').addEventListener('click',generate);
   el('sim55-export-audit')?.addEventListener('click',exportAuditCSV);
+  el('sim56-reset-week')?.addEventListener('click',()=>resetSimulation('WEEK'));
+  el('sim56-reset-all')?.addEventListener('click',()=>resetSimulation('ALL'));
   el('sim53-add-case').addEventListener('click',()=>{
    const staffId=el('sim53-staff').value,s=state.staff.find(x=>x.id===staffId);
    if(!s)return message('Senarai guru belum dimuatkan.',true);
