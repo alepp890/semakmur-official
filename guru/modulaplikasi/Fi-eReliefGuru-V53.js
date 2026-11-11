@@ -110,7 +110,7 @@
  }
  function auditDetails(r){const a=r.audit;if(!a||!r.replacementId)return '';
   const max=Number(a.berturutSelepas)||0,limit=Number(a.hadBerturut)||0;
-  const valid=Number(a.totalSelepas)<=Number(a.hadHarian)&&(!limit||max<=limit);
+  const valid=a.keputusan==='LULUS_SYARAT_JADUAL'&&Number(a.totalSelepas)<=Number(a.hadHarian)&&(!limit||max<=limit);
   const wlist=(list)=>Array.isArray(list)&&list.length?list.join(', '):'—';
   const others=(a.calonAlternatif||[]).map(t=>`${t.nama}: ${t.hakiki}H, ${t.reliefHari}R (minggu ${t.reliefMinggu}R)`).join(' · ');
   return `<details class="fi-v55-audit-row"><summary>Audit Agihan · ${esc(valid?'Lulus had jadual':'Perlu semakan')} · ${esc(a.hakiki)}H${a.pairingPecah?' − '+esc(a.pairingPecah)+'P':''} + ${esc(a.reliefSelepas)}R = ${esc(a.totalSelepas)} waktu</summary>
@@ -118,13 +118,13 @@
    <span>Relief diberikan<strong>${esc(wlist(a.slotsReliefW))}</strong></span>
    ${a.pairingPecah?`<span>Pecah pairing<strong>${esc(wlist(a.slotsPecahW))}</strong></span>`:''}
    <span>Beban selepas<strong>${esc(a.hakiki)}H${a.pairingPecah?' − '+esc(a.pairingPecah)+'P':''} + ${esc(a.reliefSelepas)}R = ${esc(a.totalSelepas)} waktu</strong></span>
-   <span>Had maksimum<strong>${esc(a.hadHarian)} waktu sehari</strong></span>
+   <span>Had maksimum<strong>${esc(a.hadHarian)} waktu · ${esc(a.hadRelief??'—')} relief${a.manualTier?' · Manual Tahap '+esc(a.manualTier):''}</strong></span>
    <span>Berturut-turut<strong>${esc(max)} / ${esc(limit||'Belum dinilai')} waktu</strong></span>
    <span>Relief minggu sebelum dipilih<strong>${esc(a.reliefMingguSebelum||0)}</strong></span>
    <span>Pusingan<strong>${esc(a.pusingan||'—')}</strong></span>
    <span>Calon layak dalam pusingan<strong>${esc(a.calonLayakPusingan||0)}</strong></span></div>
    ${others?`<p class="fi-v55-audit-note"><b>Contoh alternatif pusingan sama:</b> ${esc(others)}</p>`:''}
-   <p class="fi-v55-audit-note">Audit menunjukkan pematuhan syarat pada masa dipilih, bukan bukti optimum global atau pengesahan telah mengajar.</p></details>`;
+   <p class="fi-v55-audit-note">Audit menunjukkan beban akhir berdasarkan rekod agihan, bukan pengesahan telah mengajar.</p></details>`;
  }
  function renderCards(rows,date,allowManual=false){
   if(!rows?.length)return '<p class="fi-v56-empty">Tiada rekod bagi bahagian ini.</p>';
@@ -143,7 +143,7 @@
     const empty=r.status==='TIADA_GANTI';
     const label=pairing?'Hakiki kekal · 0 Relief tambahan':restored?'Kedua-dua guru kembali mengajar':
      r.audit?`${r.audit.hakiki} Hakiki${r.audit.pairingPecah?' − '+r.audit.pairingPecah+' Pecah Pairing':''} + ${r.audit.reliefSelepas} Relief`:teacherLoadText(r.replacementId,date);
-    const status=pairing?'PAIRING DITERUSKAN':restored?'JADUAL DIPULIHKAN':handover?'PERLU SERAH TUGAS':
+    const status=r.manualBackup&&r.status==='DIAGIH'?`MANUAL ${r.manualTier||1}`:pairing?'PAIRING DITERUSKAN':restored?'JADUAL DIPULIHKAN':handover?'PERLU SERAH TUGAS':
      empty?'BELUM DIAGIH':r.assignmentMode==='PECAH_PAIRING'?'PECAH PAIRING':r.assignmentMode==='BNK'?'BNK':
      r.assignmentMode==='PRAKTIKAL'?'PRAKTIKAL':r.assignmentMode||'BIASA';
     const teacher=pairing?(r.continuingNames||[]).join(' / '):restored?(r.originalNames||[]).join(' / '):
@@ -162,14 +162,14 @@
       ${allowManual&&empty?`<div class="fi-v56-manual-action"><button class="btn muted" type="button" data-sim56-manual="${esc(r.id)}">Agih Manual — slot kosong sahaja</button></div>`:''}
      </article>`;
    }).join('');
-   return `<section class="fi-v56-group"><div class="fi-v56-group-head"><strong>GURU ASAL · ${esc(name)}</strong><span>${items.length} waktu</span></div><div class="fi-v56-group-body">${cards}</div></section>`;
+   return `<section class="fi-v56-group"><div class="fi-v56-group-head"><strong>GURU ASAL · ${esc(name)}</strong><span>${items.length} waktu</span></div><div class="fi-v60-colhead" aria-hidden="true"><span>Waktu</span><span>Subjek / Kelas</span><span>Guru ganti / Penerus</span><span>Status</span></div><div class="fi-v56-group-body">${cards}</div></section>`;
   }).join('');
  }
  function renderDays(){const week=state.week;if(!week)return;
   el('sim53-week-title').textContent=`Minggu ${week.weekStart} hingga ${week.weekEnd}`;
   el('sim53-totals').textContent=`${week.totals.generatedDays}/5 hari · ${week.totals.assigned} relief · ${week.totals.pairing} pecah pairing · ${week.totals.continued||0} pairing diteruskan`;
   el('sim53-days').innerHTML=week.days.length?week.days.map(d=>`<button type="button" class="fi-v53-day" data-open-day="${esc(d.date)}"
-   aria-pressed="${d.date===selectedDate()}">${esc(d.date)} <strong>${Number(d.summary?.diagih||0)} relief</strong>${d.policyVersion!=='V5.6-MAKMAL'?'<small>Versi lama · perlu jana semula</small>':''}</button>`).join(''):
+   aria-pressed="${d.date===selectedDate()}">${esc(d.date)} <strong>${Number(d.summary?.diagih||0)} relief</strong>${d.policyVersion!=='V6.0-MAKMAL'?'<small>Versi lama · perlu jana semula</small>':''}</button>`).join(''):
    '<p class="empty">Minggu ini belum mempunyai simulasi. Jana satu hari untuk bermula.</p>';
  }
  function renderWeekly(){const w=state.week;if(!w)return;
@@ -207,8 +207,8 @@
   const manualWarnings=day.manualWarnings||[];
   const manualWarningNote=manualWarnings.length?`<p class="fi-v56-optimize-note" style="border-color:#e7b98c;background:#fff8ed;color:#875018">Manual Backup perlu disemak semula: ${esc(manualWarnings.join(' · '))}</p>`:'';
   const optimizer=day.events?.length?day.emergencyOptimization:day.optimization;
-  const optimizerLabel=day.events?.length?'Smart Reshuffle Susulan (slot masa depan)':'Smart Reshuffle Agihan Utama';
-  const optimizeNote=optimizer?`<p class="fi-v56-optimize-note">${esc(optimizerLabel)}: ${esc(optimizer.before)} → ${esc(optimizer.after)} slot · +${esc(optimizer.added)} diselamatkan · ${esc(optimizer.changes)} pertukaran · ${esc(optimizer.pairingSplit)} pecah pairing · baki ${esc(optimizer.remaining)}${optimizer.limitReached?' · had carian dicapai':''}</p>`:'';
+  const optimizerLabel=(optimizer?.solver==='MILP'?'Global Optimization':'Smart Reshuffle (fallback)')+(day.events?.length?' Susulan':' Agihan Utama');
+  const optimizeNote=optimizer?`<p class="fi-v56-optimize-note">${esc(optimizerLabel)}: ${esc(optimizer.before)} → ${esc(optimizer.after)} slot · +${esc(optimizer.added)} diselamatkan · ${esc(optimizer.changes)} pertukaran · ${esc(optimizer.pairingSplit)} pecah pairing · baki ${esc(optimizer.remaining)}${optimizer.provenMaximum?' · optimum model disahkan':optimizer.limitReached?' · had carian / optimum belum dibuktikan':' · optimum belum dibuktikan'}${optimizer.solverFailure?' · '+esc(optimizer.solverFailure):''}</p>`:'';
   const restored=(day.historyRows||[]).length?`<details open class="fi-v53-changes"><summary>Jadual asal dipulihkan (${day.historyRows.length}) — bukan relief</summary>
    ${renderCards(day.historyRows,day.date)}</details>`:'';
   el('sim53-day-results').innerHTML=`${optimizeNote}${manualWarningNote}<h3 class="fi-v53-final-title">Jadual aktif selepas perubahan (SIMULASI)</h3>
@@ -234,13 +234,13 @@
   const hari=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
   const headers=['ID_Staf','Nama_Samaran','Kategori_Staf','Tarikh','Hari','Hakiki_W','Relief_W',
    'Pecah_Pairing_W','Hakiki','Relief','Pecah_Pairing','Beban_Akhir','Berturut_Maks','Had_Berturut',
-   'Relief_Mingguan','Had_Harian','Had_Relief','Pengecualian_Manual','Audit_Jadual'];
+   'Relief_Mingguan','Had_Harian','Had_Relief','Pengecualian_Manual','Tahap_Manual','Audit_Jadual'];
   const data=[];
   for(const staff of week.staff||[]){for(const date of generated){const d=staff.daily?.[date];if(!d)continue;
    data.push([staff.id,staff.name,staff.category,date,hari[new Date(date+'T12:00:00Z').getUTCDay()],
     (d.hakikiW||[]).join(' '),(d.reliefW||[]).join(' '),(d.pairingW||[]).join(' '),
     d.hakiki,d.relief,d.pairing,d.bebanAkhir??'',d.berturutMax??'',d.berturutHad??'',
-    staff.totalRelief,d.hadHarian??6,d.hadRelief??(staff.kind==='BNK'?3:2),d.pengecualianManual?'YA':'TIDAK',d.audit||'BELUM_DIAUDIT']);
+    staff.totalRelief,d.hadHarian??6,d.hadRelief??(staff.kind==='BNK'?3:2),d.pengecualianManual?'YA':'TIDAK',d.manualTier||0,d.audit||'BELUM_DIAUDIT']);
   }}
   downloadCSV('SeMAKMUR_Statistik_Mingguan_SIMULASI_'+week.weekStart+'.csv',headers,data);
  }
@@ -318,26 +318,31 @@
    message(`${result.deletedCount} rekod simulasi dipadam. ${all?'Semua minggu milik Admin ini':'Minggu terpilih'} kini boleh dijana semula. Cuti sebenar tidak diubah.`);
   });
  }
+ function manualFormula(c,after){const p=after?c.pecahSelepas:c.pecahPairing,r=after?c.reliefSelepas:c.reliefHari,b=after?c.bebanSelepas:c.bebanSekarang;return `${c.hakiki}H${p?' − '+p+'P':''} + ${r}R = ${b} waktu`;}
+ function updateManualInfo(){const c=(state.manualCandidates||[]).find(x=>x.staffId===el('sim56-manual-list').value);const panel=el('sim60-manual-info');
+  panel.innerHTML=c?`<strong>${esc(c.name)} · ${esc(c.category)}</strong><span>Sekarang: ${esc(manualFormula(c,false))}</span><span>Selepas dipilih: <b>${esc(manualFormula(c,true))}</b> / ${esc(c.maksimumHarian)} waktu</span><span>Relief minggu: ${esc(c.reliefMinggu)} → ${esc(c.reliefMingguSelepas)} · Berturut: ${esc(c.berturutSelepas)}/${esc(c.hadBerturut)}${c.mode==='PECAH_PAIRING'?' · Pecah pairing baharu':''}</span>`:'';}
  async function openManualSlot(reliefId){
   if(state.busy)return;
   try{
    message('Menyemak calon untuk slot kosong…');
-   const res=await call('relief53ManualCandidates',{date:selectedDate(),reliefId});
-   state.manualReliefId=reliefId;
-   const list=Array.isArray(res.candidates)?res.candidates:[];
+   const date=selectedDate(),res=await call('relief53ManualCandidates',{date,reliefId});
+   if(date!==selectedDate())return;
+   state.manualReliefId=reliefId;state.manualDate=date;
+   const list=Array.isArray(res.candidates)?res.candidates:[],tier=list[0]?.manualTier||0;state.manualCandidates=list;
    const dialog=el('sim56-manual-dialog');
-   el('sim56-manual-list').innerHTML=list.length?list.map(c=>`<option value="${esc(c.staffId)}">${esc(c.name)} · ${esc(c.category)} · ${esc(c.hakiki)}H + ${esc(c.reliefHari)}R · minggu ${esc(c.reliefMinggu)}R · akhir ${esc(c.bebanSelepas)}/7H ${c.mode==='PECAH_PAIRING'?'· Pecah pairing':''}</option>`).join(''):
-      '<option value="">Tiada calon memenuhi had manual 7H/3R dan had berturut-turut</option>';
+   el('sim60-manual-tier').textContent=tier===2?'TAHAP 2 · Tiada calon Tahap 1. Maksimum 8 waktu; maksimum 3 berturut-turut.':tier===1?'TAHAP 1 · Maksimum 7 waktu / 3 relief.':'Tiada calon selamat di kedua-dua tahap.';
+   el('sim56-manual-list').innerHTML=list.length?list.map(c=>`<option value="${esc(c.staffId)}">${esc(c.name)} · ${esc(c.category)} · ${esc(manualFormula(c,false))} → ${esc(c.bebanSelepas)} waktu${c.mode==='PECAH_PAIRING'?' · Pecah pairing':''}</option>`).join(''):'<option value="">Tiada calon memenuhi syarat keselamatan</option>';
    el('sim56-manual-save').disabled=!list.length;
-   el('sim56-manual-reason').value='';dialog.hidden=false;
+   el('sim56-manual-reason').value='';dialog.hidden=false;updateManualInfo();
    el('sim56-manual-reason').focus();
-   message(list.length?list.length+' calon Manual Backup (7H/3R; had berturut-turut kekal).':'Tiada calon yang memenuhi syarat keselamatan jadual manual. Gunakan audit untuk siasatan.',!list.length);
+   message(list.length?list.length+' calon Manual Backup Tahap '+tier+'.':'Tiada calon yang memenuhi syarat keselamatan jadual manual.',!list.length);
   }catch(e){message('Senarai calon manual gagal: '+(e?.message||e),true);}
  }
  async function saveManualSlot(){
   const reason=el('sim56-manual-reason').value.trim(),staffId=el('sim56-manual-list').value;
   if(reason.length<8)return message('Sebab pemilihan manual perlu sekurang-kurangnya 8 aksara.',true);
-  if(!staffId||!state.manualReliefId)return message('Pilih guru yang layak.',true);
+  if(!staffId||!state.manualReliefId||state.manualDate!==selectedDate())return message('Pilih guru dan slot yang masih sah.',true);
+  if(state.manualCandidates?.[0]?.manualTier===2&&!confirm('Sahkan pengecualian Manual Backup Tahap 2 (maksimum 8 waktu)?'))return;
   await withBusy('Menyemak semula kelayakan dan menyimpan agihan manual Makmal…',async()=>{
    const data=await call('relief53ManualAssign',{date:selectedDate(),reliefId:state.manualReliefId,staffId,reason});
    el('sim56-manual-dialog').hidden=true;state.manualReliefId='';renderWeek(data);
@@ -366,6 +371,7 @@
   el('sim53-day-results').addEventListener('click',e=>{const b=e.target.closest('[data-sim56-manual]');if(b)openManualSlot(b.dataset.sim56Manual);});
   el('sim56-manual-cancel')?.addEventListener('click',()=>{el('sim56-manual-dialog').hidden=true;});
   el('sim56-manual-save')?.addEventListener('click',saveManualSlot);
+  el('sim56-manual-list')?.addEventListener('change',updateManualInfo);
   el('sim56-reset-week')?.addEventListener('click',()=>resetSimulation('WEEK'));
   el('sim56-reset-all')?.addEventListener('click',()=>resetSimulation('ALL'));
   el('sim53-add-case').addEventListener('click',()=>{

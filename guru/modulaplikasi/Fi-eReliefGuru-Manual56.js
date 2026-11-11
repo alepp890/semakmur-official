@@ -8,7 +8,9 @@
   roles.some(x=>['ADMIN_SISTEM','SU_KURIKULUM','SETIAUSAHA_KURIKULUM','GPK_PENTADBIRAN'].includes(x));
  const esc56=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const qs=id=>document.getElementById(id);
- let chosen='';
+ let chosen='',chosenDate='',candidates=[];
+ function formula(c,after){const p=after?c.pecahSelepas:c.pecahPairing,r=after?c.reliefSelepas:c.reliefHari;return `${c.hakiki}H${p?' − '+p+'P':''} + ${r}R = ${after?c.bebanSelepas:c.bebanSekarang} waktu`;}
+ function updateInfo(){const c=candidates.find(x=>x.staffId===qs('fi56-official-staff').value);qs('fi60-official-info').textContent=c?'Sekarang: '+formula(c,false)+' · Selepas: '+formula(c,true)+' · Relief minggu: '+c.reliefMinggu+' → '+c.reliefMingguSelepas+' · Berturut: '+c.berturutSelepas+'/'+c.hadBerturut:'';}
  function display(){
   const host=qs('daily-list');if(!host||!authorized()||typeof rows==='undefined')return;
   const group=new Map();
@@ -29,34 +31,34 @@
   node=document.createElement('div');node.id='fi56-official-modal';node.hidden=true;node.className='fi-v56-dialog';
   node.setAttribute('role','dialog');node.setAttribute('aria-modal','true');
   node.innerHTML=`<div class="fi-v56-dialog-inner"><h3>Manual Backup — relief rasmi</h3>
-   <p class="muted-note">Hanya slot TIADA_GANTI. Manual terkawal: maksimum 7 waktu mengajar dan 3 relief (termasuk GPK); had berturut-turut dan pertindihan kekal. Hanya slot kosong sebelum bermula.</p>
+   <p class="muted-note">Hanya slot TIADA_GANTI sebelum kelas bermula. Sistem menyemak kelayakan, beban dan pertindihan jadual sebelum menyimpan.</p>
    <p id="fi56-official-state" role="status"></p>
-   <label>Guru pengganti<select id="fi56-official-staff"></select></label>
+   <label>Guru pengganti<select id="fi56-official-staff"></select></label><div id="fi60-official-info" class="fi-v60-manual-info"></div>
    <label>Catatan sebab<textarea id="fi56-official-reason" rows="3" maxlength="300" placeholder="Sebab perlu agihan manual..."></textarea></label>
    <div class="fi-v56-dialog-actions"><button id="fi56-official-cancel" type="button" class="btn muted">Batal</button>
    <button id="fi56-official-save" type="button" class="btn">Sahkan Agihan</button></div></div>`;
   document.body.append(node);
   qs('fi56-official-cancel').addEventListener('click',()=>{node.hidden=true;});
-  qs('fi56-official-save').addEventListener('click',save);
+  qs('fi56-official-save').addEventListener('click',save);qs('fi56-official-staff').addEventListener('change',updateInfo);
   return node;
  }
  async function open(id){if(!authorized())return;
-  chosen=id;const dlg=dialog();dlg.hidden=false;qs('fi56-official-state').textContent='Menyemak senarai guru layak…';
+  chosen=id;chosenDate=qs('view-date').value;const dlg=dialog();dlg.hidden=false;qs('fi56-official-state').textContent='Menyemak senarai guru layak…';
   qs('fi56-official-save').disabled=true;
-  try{const res=await api('relief56ManualCandidates',{date:qs('view-date').value,reliefId:id});
-   const options=Array.isArray(res.candidates)?res.candidates:[];
+  try{const res=await api('relief56ManualCandidates',{date:chosenDate,reliefId:id});
+   const options=Array.isArray(res.candidates)?res.candidates:[];candidates=options;
    qs('fi56-official-staff').innerHTML=options.length?options.map(x=>
-    `<option value="${esc56(x.staffId)}">${esc56(x.name)} · ${esc56(x.hakiki)}H + ${esc56(x.reliefHari)}R · ${esc56(x.reliefMinggu)}R minggu · akhir ${esc56(x.bebanSelepas)}/7H · ${esc56(x.mode)}</option>`).join(''):'<option value="">Tiada guru layak</option>';
-   qs('fi56-official-state').textContent=options.length+' calon tersedia';
+    `<option value="${esc56(x.staffId)}">${esc56(x.name)} · ${esc56(formula(x,false))} → ${esc56(x.bebanSelepas)} waktu · ${esc56(x.mode)}</option>`).join(''):'<option value="">Tiada guru layak</option>';
+   qs('fi56-official-state').textContent=options.length?options.length+' calon · Manual Tahap '+options[0].manualTier+(options[0].manualTier===2?' · Tiada calon Tahap 1; maksimum 8 waktu, 3 berturut-turut.':' · Maksimum 7 waktu / 3 relief.'):'Tiada calon di kedua-dua tahap';updateInfo();
    qs('fi56-official-save').disabled=!options.length;
   }catch(e){qs('fi56-official-state').textContent='Gagal: '+(e?.message||String(e));}
  }
  async function save(){const id=chosen,reason=qs('fi56-official-reason').value.trim(),staffId=qs('fi56-official-staff').value;
   if(reason.length<8){qs('fi56-official-state').textContent='Sebab sekurang-kurangnya 8 aksara.';return;}
-  if(!staffId||!id)return;
-  if(!confirm('Sahkan agihan manual bagi slot yang belum terisi ini?'))return;
+  if(!staffId||!id||chosenDate!==qs('view-date').value)return;
+  if(!confirm('Sahkan agihan manual Tahap '+(candidates[0]?.manualTier||1)+' bagi slot yang belum terisi ini?'))return;
   const b=qs('fi56-official-save');b.disabled=true;
-  try{const result=await api('relief56ManualAssign',{date:qs('view-date').value,reliefId:id,staffId,reason});
+  try{const result=await api('relief56ManualAssign',{date:chosenDate,reliefId:id,staffId,reason});
    qs('fi56-official-modal').hidden=true;
    if(typeof warn==='function')warn('Manual Backup berjaya: '+(result.replacementName||staffId)+'. Jadual PWA akan dikemas kini.');
   }catch(e){qs('fi56-official-state').textContent='Gagal: '+(e?.message||String(e));}
