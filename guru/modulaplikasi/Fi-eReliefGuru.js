@@ -80,6 +80,24 @@ function fi55Notify(oldRows,newRows){
  if(added.length){div.hidden=false;div.textContent='Jadual e-Relief dikemas kini: '+added.length+' tugasan baharu/berubah untuk anda. Buka tab Relief Saya.';}
  else if(removed.length){div.hidden=false;div.textContent='Perubahan e-Relief: '+removed.length+' tugasan anda telah ditukar atau dibatalkan. Semak Relief Saya.';}
 }
+// DEMO SEMENTARA: Admin sahaja; backend melakukan pengesahan semula, bukan akses berdasarkan UI.
+async function fiAdminDemoGenerate(){
+ const btn=$('fi-admin-demo-run');
+ if(!fiStudioIsAdmin())return warn('Akses ADMIN_SISTEM diperlukan.',true);
+ const selected=window.matchMedia('(max-width:767px)').matches?($('fi-v66-date')?.value||$('view-date')?.value):($('view-date')?.value||$('fi-v66-date')?.value);
+ if(!/^20\d{2}-\d{2}-\d{2}$/.test(selected))return warn('Pilih tarikh yang sah dahulu.',true);
+ const message='TERBITKAN RELIEF RASMI bagi '+selected+' sekarang?\n\nIni benar-benar menulis tugasan ke Firestore, bukan simulasi. Trigger 07:25 kekal. Jadual yang sudah diterbitkan tidak akan dijana dua kali.\n\nTeruskan?';
+ if(!confirm(message))return;
+ btn.disabled=true;const old=btn.textContent;btn.textContent='Menjana relief…';
+ try{
+  const result=await api('relief51AdminDemoPublish',{date:selected,confirmText:'TERBITKAN'});
+  if(result.status==='TELAH_DIJANA')warn('Tarikh '+selected+' telah dijana sebelum ini. Jadual tidak digandakan.');
+  else if(result.status==='OK')warn('Berjaya! Relief rasmi '+selected+' diterbitkan: '+(result.publishedRows??0)+' tugasan. Semak senarai di bawah.');
+  else warn('Hasil penjanaan: '+(result.status||'Tiada status')+' untuk '+selected+'.');
+  if($('view-date').value!==selected)listenDate(selected);else listenDate(selected);
+ }catch(e){warn('Generate segera gagal: '+e.message,true);}
+ finally{btn.disabled=false;btn.textContent=old;}
+}
 async function fi55BackupNow(){
  if(!roles.includes('ADMIN_SISTEM'))return warn('Admin Sistem sahaja.',true);
  if(!confirm('Kira semula agihan rasmi untuk hari ini sekarang? Ini boleh mengubah jadual guru bagi waktu yang belum bermula.'))return;
@@ -259,6 +277,7 @@ async function start(){const conf=window.SeMAKMURFirebasePilotConfig;if(!conf?.p
    $('account').textContent=profile.data().profile?.namaSamaran||u.email;
    $('tab-statistik').hidden=!roles.some(r=>['GPK','GB','ADMIN_SISTEM'].includes(r));
    $('tab-makmal').hidden=!roles.includes('ADMIN_SISTEM');
+   $('fi-admin-demo-bar').hidden=!fiStudioIsAdmin();
    $('relief55-backup-now').hidden=!roles.includes('ADMIN_SISTEM');
    $('relief55-check-ops').hidden=!roles.includes('ADMIN_SISTEM');
    // V5.5.3: Jangan lancar panggilan Apps Script tambahan ketika Makmal membaca data.
@@ -273,6 +292,7 @@ function init(){if(new URLSearchParams(location.search).get('embed')==='1')docum
  $('view-date').addEventListener('change',()=>{if(user)listenDate($('view-date').value)});
  $('refresh').addEventListener('click',()=>{if(user)listenDate($('view-date').value)});
  $('relief55-backup-now').addEventListener('click',fi55BackupNow);
+ $('fi-admin-demo-run').addEventListener('click',fiAdminDemoGenerate);
  $('relief55-check-ops').addEventListener('click',fi55Health);
  $('generate-simulation').addEventListener('click',simulate);$('reload-sim-staff').addEventListener('click',()=>loadStaff(true));$('test-fi-connection').addEventListener('click',testFiConnection);
  $('clear-simulation').addEventListener('click',()=>{$('absent-staff').selectedIndex=-1;$('emergency-staff').selectedIndex=-1;$('sim-results').innerHTML='<p class="empty">Pilihan dikosongkan.</p>'});
