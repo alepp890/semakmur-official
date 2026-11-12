@@ -41,14 +41,12 @@
     return 'Keberadaan';
   }
   function renderAbsence(data){
-    const host=$('fi-v45-absence-list'),note=$('fi-v45-absence-note');if(!host)return;
+    const host=$('fi-v45-absence-list');if(!host)return;
     if(!data){
-      host.innerHTML='<div class="fi-v6-no-data">Ringkasan keberadaan belum tersedia atau belum disegerakkan.</div>';
-      if(note)note.textContent='Data yang diterbitkan oleh Fi-Sync';
+      host.innerHTML='<div class="fi-v6-no-data">Maklumat keberadaan belum tersedia.</div>';
       return;
     }
     const items=Array.isArray(data.items)?data.items:[];
-    if(note)note.textContent='Senarai keberadaan yang tersedia daripada Fi-Sync · hari ini';
     if(!items.length){host.innerHTML='<div class="fi-v6-no-data">Tiada rekod keberadaan untuk dipaparkan pada hari ini.</div>';return;}
     const grouped=Object.fromEntries(GROUPS.map(g=>[g.id,[]]));
     items.forEach(x=>{if(x&&typeof x==='object')grouped[groupFor(x)].push(x);});
