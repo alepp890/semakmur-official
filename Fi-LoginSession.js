@@ -1,9 +1,45 @@
-/* SeMAKMUR Fi V4.4.0 — Login Firestore asal dipindahkan dari HTML (tanpa ubah logik). */
+/* SeMAKMUR Fi V4.5.0 — optional auto-provision first login. */
 
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js';
 import {getAuth,onAuthStateChanged,GoogleAuthProvider,signInWithCredential,signInWithPopup,signOut,setPersistence,browserLocalPersistence} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js';
 import {getFirestore,doc,getDocFromServer} from 'https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js';
 const $=id=>document.getElementById(id), norm=s=>String(s||'').trim().toLowerCase();
+// Tetapkan URL /exec daripada projek Apps Script FiAutoSync (Web App yang baharu).
+// Ganti placeholder dengan URL Web App semasa pemasangan; login sedia ada tidak berubah.
+const FI_PROVISION_WEBAPP_URL = String(window.SeMAKMURFiAPIConfig?.webAppExecUrl || '').trim();
+async function fiProvisionFirstLogin(u){
+  if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(FI_PROVISION_WEBAPP_URL))
+    throw new Error('URL Fi Login Provision belum ditetapkan oleh pentadbir.');
+  const nonce=Array.from(crypto.getRandomValues(new Uint8Array(24)),v=>v.toString(16).padStart(2,'0')).join('');
+  const token=await u.getIdToken();
+  return new Promise((resolve,reject)=>{
+    let frame=null, finished=false;
+    const timer=setTimeout(()=>finish(new Error('Pendaftaran automatik tamat masa. Semak Web App Apps Script.')),30000);
+    function finish(error,result){
+      if(finished)return; finished=true;
+      clearTimeout(timer); window.removeEventListener('message',onMessage);
+      if(frame)frame.remove();
+      if(error)reject(error);else resolve(result);
+    }
+    function onMessage(event){
+      const d=event.data;
+      if(!d||d.source!=='SEMAKMUR_FI_BRIDGE'||d.nonce!==nonce)return;
+      // Apps Script HTMLService uses a script.googleusercontent.com iframe.
+      if(!/^https:\/\/[a-z0-9.-]+\.googleusercontent\.com$/i.test(event.origin))return;
+      if(d.type==='READY'){
+        event.source.postMessage({source:'SEMAKMUR_FI_PARENT',type:'PROVISION',nonce,token},event.origin);
+      }else if(d.type==='RESULT'){
+        if(d.result?.ok===true)finish(null,d.result);
+        else finish(new Error('Pendaftaran automatik tidak disahkan.'));
+      }else if(d.type==='ERROR')finish(new Error(d.message||'Pendaftaran gagal.'));
+    }
+    window.addEventListener('message',onMessage);
+    frame=document.createElement('iframe');frame.hidden=true;frame.title='Fi Login Provision';
+    frame.src=FI_PROVISION_WEBAPP_URL+'?bridge=1&nonce='+encodeURIComponent(nonce);
+    document.body.appendChild(frame);
+  });
+}
+
 let app,auth,db,user=null,verified=false,busy=false;
 function status(s,error=false){$('status').textContent=s;$('status').classList.toggle('error',error);}
 function toggle(on){busy=on;$('signin').disabled=on;$('spinner').hidden=!on;}
@@ -12,8 +48,20 @@ async function check(u,auto=false){
  toggle(true);status('Menyemak pendaftaran staf SeMAKMUR…');
  try{
    // Every session must use a server-confirmed active staff document.
-   const d=await getDocFromServer(doc(db,'semakmur_dashboard_fi',u.uid));
-   if(!d.exists()||d.data().active!==true||norm(d.data().ownerEmail)!==norm(u.email))throw new Error('Akaun belum didaftarkan sebagai staf aktif SeMAKMUR.');
+   let d;
+   try { d=await getDocFromServer(doc(db,'semakmur_dashboard_fi',u.uid)); }
+   catch(e){
+     // Permission denied bukan bukti akaun baharu; backend akan sahkan token dan Master_Staf.
+     if(e?.code!=='permission-denied')throw e;
+     d=null;
+   }
+   if(!d || !d.exists() || d.data().active!==true || norm(d.data().ownerEmail)!==norm(u.email)){
+     status('Mengesahkan staf aktif dan menyediakan profil Fi…');
+     await fiProvisionFirstLogin(u);
+     d=await getDocFromServer(doc(db,'semakmur_dashboard_fi',u.uid));
+   }
+   if(!d.exists()||d.data().active!==true||norm(d.data().ownerEmail)!==norm(u.email))
+     throw new Error('Akaun belum didaftarkan sebagai staf aktif SeMAKMUR.');
    verified=true;user=u;
    $('signin').hidden=true;$('actions').hidden=false;status('Akaun sah: '+u.email);
    if(auto){location.replace('guru/Fi-DashboardGuru.html');}
