@@ -1559,7 +1559,42 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(type.includes('KECEMASAN'))return 'Kecemasan';
     return 'Keberadaan';
   }
+  // Paparan status GPK sahaja. Rujukan: dokumen peranan yang diselaraskan oleh FiAutoSync.
+  let isGpk=false, lastAbsence=null, stopGpkRole=null;
+  const validGpkStatus=x=>{
+    // Status tindakan mesti dihantar oleh backend; jangan simpulkan daripada kategori cuti/relief.
+    const raw=normalize(x.gpkActionStatus||x.statusTindakanGpk||x.gpkStatus||'');
+    if(['TINDAKAN','PERLU_TINDAKAN','MENUNGGU_GPK'].includes(raw))return ['Tindakan','action'];
+    if(['SEMAKAN','PERLU_SEMAKAN','MINTA_SEMAKAN','DOKUMEN_TIDAK_LENGKAP'].includes(raw))return ['Semakan','review'];
+    if(['DISOKONG','SOKONG','DISAHKAN_GPK'].includes(raw))return ['Disokong','supported'];
+    return null;
+  };
+  async function watchGpkRole(){
+    try{
+      await window.FiBridgeReady;
+      const [{getApps},{getAuth,onAuthStateChanged},fs]=await Promise.all([
+        import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),
+        import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),
+        import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')
+      ]);
+      const app=getApps().find(a=>a.name==='semakmur-fi-dashboard');
+      if(!app)return;
+      const auth=getAuth(app),db=fs.getFirestore(app);
+      onAuthStateChanged(auth,u=>{
+        if(stopGpkRole){stopGpkRole();stopGpkRole=null;}
+        isGpk=false;
+        if(lastAbsence)renderAbsence(lastAbsence);
+        if(!u)return;
+        stopGpkRole=fs.onSnapshot(fs.doc(db,'semakmur_fi_keberadaan_roles',u.uid),snap=>{
+          const d=snap.exists()?snap.data():null;
+          isGpk=Boolean(d?.active===true && String(d.ownerEmail||'').toLowerCase()===String(u.email||'').toLowerCase() && Array.isArray(d.roles) && d.roles.includes('GPK'));
+          if(lastAbsence)renderAbsence(lastAbsence);
+        },()=>{isGpk=false;if(lastAbsence)renderAbsence(lastAbsence);});
+      });
+    }catch(err){console.warn('Status GPK tidak dapat disahkan:',err?.message||err);}
+  }
   function renderAbsence(data){
+    lastAbsence=data;
     const host=$('fi-v45-absence-list');if(!host)return;
     if(!data){
       host.innerHTML='<div class="fi-v6-no-data">Maklumat keberadaan belum tersedia.</div>';
@@ -1571,7 +1606,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     items.forEach(x=>{if(x&&typeof x==='object')grouped[groupFor(x)].push(x);});
     host.innerHTML=GROUPS.filter(g=>grouped[g.id].length).map(g=>{
       const rows=grouped[g.id].slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'ms'))
-        .map(x=>'<div class="fi-v65-absence-person"><span class="fi-v65-person-mark" aria-hidden="true"><i class="fa-solid fa-user"></i></span><span class="fi-v65-person-meta"><strong>'+esc(x.name||'Guru')+'</strong><small>'+esc(categoryText(x))+(x.period?' · '+esc(x.period):'')+'</small></span></div>').join('');
+        .map(x=>{
+          const state=isGpk?validGpkStatus(x):null;
+          const badge=state?'<span class="fi-v65-gpk-badge fi-v65-gpk-'+state[1]+'" aria-label="Status tindakan GPK: '+esc(state[0])+'">'+esc(state[0])+'</span>':'';
+          return '<div class="fi-v65-absence-person"><span class="fi-v65-person-mark" aria-hidden="true"><i class="fa-solid fa-user"></i></span><span class="fi-v65-person-meta"><strong>'+esc(x.name||'Guru')+'</strong><small>'+esc(categoryText(x))+(x.period?' · '+esc(x.period):'')+'</small></span>'+badge+'</div>';
+        }).join('');
       return '<section class="fi-v65-absence-group" aria-label="'+esc(g.label)+'"><div class="fi-v65-group-title"><span><i class="fa-solid '+esc(g.icon)+'" aria-hidden="true"></i> '+esc(g.label)+'</span><span class="fi-v65-group-count">'+grouped[g.id].length+'</span></div><div class="fi-v65-person-list">'+rows+'</div></section>';
     }).join('');
   }
@@ -1591,6 +1630,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const obs=new MutationObserver(syncStatic);obs.observe(el,{childList:true,characterData:true,subtree:true});
     });
     syncStatic();
+    watchGpkRole();
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncStatic();});
     // Firestore sync untuk senarai ketiadaan kekal dilaksanakan oleh dashboard asal.
   }

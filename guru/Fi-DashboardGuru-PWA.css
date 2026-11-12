@@ -2238,3 +2238,12 @@ html body.dashboard-v6{color:var(--v6-ink)!important;background:#e7f2ff!importan
   .dashboard-v6 #fi-v45-absence-list .fi-v6-no-data{background:#f6faff!important;border:1px dashed #d4e5fa!important;font-size:11px!important}
 }
 
+
+/* SeMAKMUR Dashboard GPK: label tindakan e-Keberadaan (paparan sahaja). */
+@media (max-width:780px){
+ .dashboard-v6 .fi-v65-person-meta{flex:1;min-width:0}
+ .dashboard-v6 .fi-v65-gpk-badge{flex:none;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:999px;padding:4px 8px;font:800 10.5px/1.2 'Plus Jakarta Sans',sans-serif;border:1px solid transparent}
+ .dashboard-v6 .fi-v65-gpk-action{color:#92510a;background:#fff2da;border-color:#ffe1a7}
+ .dashboard-v6 .fi-v65-gpk-review{color:#185b89;background:#eaf5ff;border-color:#c6e5fa}
+ .dashboard-v6 .fi-v65-gpk-supported{color:#18734b;background:#e6f7ee;border-color:#bfe9cf}
+}
