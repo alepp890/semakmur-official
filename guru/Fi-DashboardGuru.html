@@ -19,6 +19,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 <!-- Styles dashboard dimuatkan selepas gaya asas untuk keutamaan CSS V3. -->
 <link href="Fi-DashboardGuru-Mobile.css?v=5.1.1" rel="stylesheet"/>
+<link href="Fi-DashboardGuru-PWA-V65.css?v=6.5.0" rel="stylesheet"/>
 
 
 
@@ -86,7 +87,7 @@
 <!-- Header bergerak: hanya dipakai pada paparan mobile. -->
 <div aria-label="Header aplikasi mudah alih" class="v4-mobile-head" id="v4-mobile-head">
 <button aria-label="Kembali" class="v4-back" hidden="" id="v4-back" type="button"><i aria-hidden="true" class="fa-solid fa-arrow-left"></i></button>
-<strong id="v4-header-title">SeMAKMUR Smart System</strong>
+<strong id="v4-header-title">SeMAKMUR I-System</strong>
 <div class="v4-head-actions">
 <button aria-label="Notifikasi" id="v4-bell" type="button"><svg fill="none" height="19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="19"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path><path d="M10 21h4"></path></svg></button>
 <button aria-label="Profil guru" id="v4-profile" type="button"><span id="v4-initial">G</span></button>
@@ -156,7 +157,7 @@
 <!-- Fi V6: paparan PWA ikut turutan yang ditetapkan. Tidak memaparkan nombor contoh. -->
 <section aria-label="Laman Utama SeMAKMUR PWA" id="fi-v6-mobile-home">
 <div class="fi-v6-hero">
-<div class="fi-v6-hero-top"><span class="fi-v6-school-mark"><i aria-hidden="true" class="fa-solid fa-school"></i></span><strong>SeMAKMUR <span>Dashboard</span></strong><span class="fi-v6-hero-date" id="fi-v6-date-short">—</span></div>
+<div class="fi-v6-hero-top"><span class="fi-v6-school-mark"><i aria-hidden="true" class="fa-solid fa-school"></i></span><strong>Dashboard Guru</strong><span class="fi-v6-hero-date" id="fi-v6-date-short">—</span></div>
 <button aria-label="Lihat profil guru" class="fi-v6-profile-card" onclick="openProfile()" type="button">
 <span aria-hidden="true" class="fi-v6-profile-image"><span id="fi-v6-profile-initial">G</span><img alt="" hidden="" id="fi-v6-profile-photo"/></span>
 <span class="fi-v6-profile-text"><small>Selamat Datang,</small><strong id="fi-v6-profile-name">Guru SeMAKMUR</strong><em id="fi-v8-profile-email">Akaun Guru</em></span>
@@ -180,7 +181,7 @@
 </section>
 <section aria-labelledby="fi-v6-info-title" class="fi-v6-home-section fi-v6-info-section">
 <h2 id="fi-v6-info-title"><i class="fa-solid fa-clipboard-list"></i> Ringkasan Hari Ini</h2>
-<div class="fi-v6-info-card"><span class="fi-v6-info-icon relief"><i class="fa-solid fa-person-chalkboard"></i></span><div><strong>Relief Saya Hari Ini</strong><div id="fi-v6-relief-value">Menyemak tugasan saya…</div><button class="fi51-widget-link" type="button" data-module="relief">Buka e-Relief</button></div></div>
+<div class="fi-v6-info-card fi-v65-relief-card"><span class="fi-v6-info-icon relief"><i class="fa-solid fa-person-chalkboard"></i></span><div class="fi-v65-relief-body"><div class="fi-v65-relief-heading"><strong>Relief Saya Hari Ini</strong><button class="fi-v6-view-link fi-v65-relief-link" type="button" data-module="relief" aria-label="Lihat penuh jadual e-Relief saya">Lihat Penuh <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div><div id="fi-v6-relief-value" aria-live="polite">Menyemak tugasan saya…</div></div></div>
 <div class="fi-v6-info-card"><span class="fi-v6-info-icon duty"><i class="fa-solid fa-user-group"></i></span><div><strong>Minggu Bertugas</strong><div id="fi-v6-duty-value">Menyemak maklumat…</div></div></div>
 <div class="fi-v6-info-card"><span class="fi-v6-info-icon action"><i class="fa-solid fa-list-check"></i></span><div><strong>Tindakan</strong><div id="fi-v6-actions-value">Menyemak maklumat…</div></div></div>
 </section>
@@ -190,7 +191,7 @@
 </section>
 <section aria-labelledby="fi-v45-absence-title" class="fi-v6-home-section fi-v45-absence-section">
   <div class="fi-v6-section-line"><h2 id="fi-v45-absence-title"><i class="fa-solid fa-person-circle-minus" aria-hidden="true"></i> Keberadaan Guru Hari Ini</h2></div>
-  <p id="fi-v45-absence-note" class="fi-v45-absence-note">Rekod yang telah disokong atau memerlukan tindakan relief</p>
+  <p id="fi-v45-absence-note" class="fi-v45-absence-note">Ringkasan keberadaan guru mengikut kategori</p>
   <div id="fi-v45-absence-list" class="fi-v45-absence-list"><div class="fi-v6-no-data">Menunggu penyegerakan data Keberadaan…</div></div>
 </section>
 </section>
@@ -309,5 +310,6 @@
 <script defer="" src="Fi-DashboardGuru.js?v=5.1.1"></script>
 <script defer src="Fi-ReliefWidget-V51.js?v=5.1.0"></script>
 <!-- Tema dan susun atur admin desktop dikendalikan berasingan. -->
-<script defer src="Fi-DashboardGuru-OfficeDesktop.js?v=6.2.0"></script></body>
+<script defer src="Fi-DashboardGuru-OfficeDesktop.js?v=6.2.0"></script>
+<script defer src="Fi-DashboardGuru-PWA-V65.js?v=6.5.0"></script></body>
 </html>

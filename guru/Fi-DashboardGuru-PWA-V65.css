@@ -1,0 +1,29 @@
+/* SeMAKMUR Dashboard Guru PWA V6.5: tema asal kekal. Penambahbaikan terhad mobile. */
+@media(max-width:767px){
+  .dashboard-v6 .fi-v6-hero-top strong{font-size:14px!important;letter-spacing:-.02em;line-height:1.35}
+  .dashboard-v6 .fi-v6-hero-date{font-size:11px!important;font-weight:750!important;white-space:nowrap;letter-spacing:-.02em}
+  .dashboard-v6 .fi-v65-relief-card{align-items:flex-start}
+  .dashboard-v6 .fi-v65-relief-body{flex:1;min-width:0}
+  .dashboard-v6 .fi-v65-relief-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+  .dashboard-v6 .fi-v65-relief-heading>strong{margin-bottom:0;font-size:12px}
+  .dashboard-v6 .fi-v65-relief-link{font-size:11px!important;font-weight:800!important;padding:1px 0!important;flex:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+  .dashboard-v6 .fi-v65-relief-link>i{font-size:10px}
+  .dashboard-v6 #fi-v6-relief-value{font-size:12px!important;line-height:1.55;color:#56708f}
+  /* Samakan kad Keberadaan dengan Ringkasan dan Jadual Waktu. */
+  .dashboard-v6 #fi-v6-mobile-home .fi-v45-absence-section{background:#fff!important;border:1px solid #d9e8fb!important;border-radius:16px!important;padding:12px!important;box-shadow:var(--v6-shadow,0 5px 18px #123a6415)!important;margin-top:0!important}
+  .dashboard-v6 .fi-v45-absence-note{font-size:11px!important;margin:0 0 11px!important;color:#6a819b!important}
+  .dashboard-v6 .fi-v45-absence-list{display:grid!important;gap:11px!important}
+  .dashboard-v6 .fi-v65-absence-group{border:1px solid #dce8f6;border-radius:12px;overflow:hidden;background:#fff}
+  .dashboard-v6 .fi-v65-group-title{background:#f4f8fe;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:10px 11px;border-bottom:1px solid #e6edf8;color:#17436e;font-size:11px;font-weight:800;line-height:1.45}
+  .dashboard-v6 .fi-v65-group-title>span:first-child{display:flex;align-items:flex-start;gap:7px;min-width:0}
+  .dashboard-v6 .fi-v65-group-title i{font-size:12px;color:#2577b6;margin-top:1px}
+  .dashboard-v6 .fi-v65-group-count{border-radius:999px;padding:2px 7px;color:#1b6397;background:#e1f1fe;min-width:23px;text-align:center}
+  .dashboard-v6 .fi-v65-person-list{padding:0 11px}
+  .dashboard-v6 .fi-v65-absence-person{display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid #ebf0f8}
+  .dashboard-v6 .fi-v65-absence-person:last-child{border-bottom:0}
+  .dashboard-v6 .fi-v65-person-mark{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:10px;background:#eaf4ff;color:#266eaa;font-size:12px}
+  .dashboard-v6 .fi-v65-person-meta{display:grid;gap:3px;min-width:0}
+  .dashboard-v6 .fi-v65-person-meta strong{font-size:12px;font-weight:800;color:#173b61;overflow-wrap:anywhere}
+  .dashboard-v6 .fi-v65-person-meta small{font-size:11px;font-weight:600;color:#647f99}
+  .dashboard-v6 #fi-v45-absence-list .fi-v6-no-data{background:#f6faff!important;border:1px dashed #d4e5fa!important;font-size:11px!important}
+}
