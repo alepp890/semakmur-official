@@ -1435,3 +1435,8 @@
  }
 }
 
+
+/* Only for privileged desktop users: 8 quick links in a balanced 4x2 grid. */
+@media(min-width:1280px){
+  body.fi-manual-access #home-modules{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
