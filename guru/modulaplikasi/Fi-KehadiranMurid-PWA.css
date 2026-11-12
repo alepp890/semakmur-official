@@ -333,3 +333,24 @@ html,body{color:#112d60!important;background:linear-gradient(140deg,#edf7ff,#f9f
   :is(.tabs,.fi-attendance-tabs)[hidden],:is(.tabs,.fi-attendance-tabs)>button[hidden]{display:none!important;}
   .tabs .kb-unread[hidden]{display:none!important;}
 }
+
+/* SeMAKMUR I-System V6.8 — e-Relief V6.6 tabs, only when Kehadiran tabs are shown. */
+@media (max-width:767px){
+  html body #fi-attendance-tabs.fi-attendance-tabs:not([hidden]){
+    display:flex!important;flex-wrap:wrap!important;justify-content:center!important;align-items:center!important;
+    gap:7px!important;grid-template-columns:none!important;overflow:visible!important;
+    background:#f2f6fb!important;border:0!important;border-bottom:1px solid #e0e8f2!important;
+    border-radius:0!important;margin:0 0 12px!important;padding:12px 9px!important;
+  }
+  html body #fi-attendance-tabs.fi-attendance-tabs>button{
+    flex:0 1 auto!important;min-width:0!important;width:auto!important;max-width:100%!important;
+    min-height:37px!important;padding:9px 12px!important;border:1px solid #d4e2f1!important;
+    border-radius:11px!important;background:#fff!important;color:#35506f!important;box-shadow:none!important;
+    font:750 12px/1.4 'Plus Jakarta Sans',system-ui,sans-serif!important;text-align:center!important;
+  }
+  html body #fi-attendance-tabs.fi-attendance-tabs>button.active{
+    background:#e8f1fd!important;color:#1b508b!important;border-color:#7db7e7!important;
+  }
+  html body #fi-attendance-tabs.fi-attendance-tabs[hidden],
+  html body #fi-attendance-tabs.fi-attendance-tabs>button[hidden]{display:none!important;}
+}

@@ -157,26 +157,6 @@ html.fi-embedded body{height:100%;min-height:0;overflow-y:auto;overflow-x:hidden
   .popup-field{grid-template-columns:1fr;gap:3px;}
 }
 
-/* V6.7: unified Kehadiran design language and tab badge states. */
-.tabs,.fi-embedded .tabs{overflow:visible!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px!important}
-.tabs button,.fi-embedded .tabs button{position:relative!important;white-space:normal!important;min-width:0!important;width:100%!important;flex:unset!important;min-height:48px!important;padding:11px 12px!important;line-height:1.3;text-align:center}
-.tabs button[hidden],.kb-unread[hidden]{display:none!important}
-.kb-unread{position:absolute;right:3px;top:3px;background:#dc2626!important;color:#fff!important;border-radius:7px;padding:2px 5px;min-width:19px;height:19px;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1;font-weight:800;box-shadow:0 2px 5px #a10e2040;z-index:1}
-.record-summary{display:flex;align-items:center;gap:7px}
-@media(min-width:768px){
- .tabs,.fi-embedded .tabs{grid-template-columns:repeat(4,minmax(0,1fr))!important}
- .fi-embedded .wrap{padding-bottom:28px!important}
-}
-@media(max-width:767px){
- html.fi-embedded,html.fi-embedded body{height:100%;min-height:0}
- html.fi-embedded body{overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain}
- .fi-embedded .wrap{padding-bottom:calc(72px + env(safe-area-inset-bottom))!important}
- .tabs,.fi-embedded .tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
- .tabs button,.fi-embedded .tabs button{min-width:0!important;max-width:none!important;min-height:53px!important;padding:10px 13px!important;font-size:12px!important}
- .fi-embedded .formbar{padding-bottom:4px!important}
-}
-
-
 /* SeMAKMUR Fi V5.0 — e-Relief Automatik: tambahan sahaja, reka bentuk Bestari dikekalkan */
 .relief-box .compact-list{margin-top:10px}.relief-box .item{padding:11px;display:grid;gap:7px}
 .relief-box .detail-line{line-height:1.5;white-space:normal;overflow-wrap:anywhere}
@@ -205,4 +185,58 @@ html.fi-embedded body{height:100%;min-height:0;overflow-y:auto;overflow-x:hidden
   input[type="file"]{height:auto;min-height:44px;}
   input[type="checkbox"],input[type="radio"]{accent-color:#188cdf;}
   :is(button,.btn,.primary):focus-visible{outline:2px solid #5a9bcc;outline-offset:2px;}
+}
+
+/* SeMAKMUR I-System V6.8 — mobile tabs identical to e-Relief V6.6.
+   Visual-only: existing tab IDs, data-tab, hidden state and handlers are untouched. */
+@media (max-width:767px){
+  html body nav#tabs.tabs{
+    display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;
+    align-items:center!important;justify-content:center!important;
+    grid-template-columns:none!important;column-gap:7px!important;row-gap:7px!important;
+    width:100%!important;min-width:0!important;overflow:visible!important;
+    margin:0 0 0!important;padding:12px 9px!important;
+    background:#f2f6fb!important;border:0!important;
+    border-bottom:1px solid #e0e8f2!important;border-radius:0!important;
+    white-space:normal!important;
+  }
+  html body nav#tabs.tabs > button{
+    display:inline-flex!important;position:relative!important;align-items:center!important;justify-content:center!important;
+    flex:0 1 auto!important;align-self:auto!important;
+    width:auto!important;max-width:100%!important;min-width:0!important;
+    min-height:37px!important;padding:9px 12px!important;
+    border:1px solid #d4e2f1!important;border-radius:11px!important;
+    background:#fff!important;color:#35506f!important;box-shadow:none!important;
+    font-family:'Plus Jakarta Sans',system-ui,sans-serif!important;
+    font-weight:750!important;font-size:12px!important;line-height:1.4!important;
+    white-space:normal!important;text-align:center!important;
+  }
+  html body nav#tabs.tabs > button.active{
+    color:#1b508b!important;background:#e8f1fd!important;
+    border-color:#7db7e7!important;box-shadow:none!important;
+  }
+  html body nav#tabs.tabs > button[hidden],
+  html body nav#tabs.tabs[hidden],html body nav#tabs .kb-unread[hidden]{display:none!important;}
+  html body nav#tabs.tabs > button:focus-visible{outline:2px solid #247eab!important;outline-offset:2px!important;}
+  html body nav#tabs.tabs .kb-unread:not([hidden]){
+    position:static!important;display:inline-flex!important;align-items:center;justify-content:center;
+    margin-left:5px;min-width:17px;height:17px;padding:2px 5px;border-radius:9px;
+    background:#dc2626!important;color:white!important;font-size:10px;font-weight:800;line-height:1;
+  }
+  /* Kehadiran-style form elements, scoped to form/dialog (not header or tabs). */
+  html body #apply-form :is(input:not([type=checkbox]):not([type=radio]),select,textarea),
+  html body .dialog :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+    box-sizing:border-box;max-width:100%;width:100%;min-height:44px;
+    padding:10px 11px;border:1px solid #cddbed;border-radius:10px;
+    background:#fff;color:#1c4d69;font:600 13px/1.4 'Plus Jakarta Sans',system-ui,sans-serif;
+  }
+  html body #apply-form :is(input,select,textarea):focus-visible,
+  html body .dialog :is(input,select,textarea):focus-visible{
+    outline:2px solid #5a9bcc;outline-offset:1px;
+  }
+  html body #apply-form textarea,html body .dialog textarea{min-height:88px;resize:vertical;}
+  html body #apply-form input[type=file]{height:auto;}
+  html body #apply-form .fieldrow label{font-size:12px;font-weight:750;color:#264b6c;}
+  html body #apply-form .primary{min-height:44px;border-radius:10px;font-size:13px;}
+  html body #apply-form :is(input,select,textarea):disabled{opacity:.6;}
 }

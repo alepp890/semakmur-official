@@ -73,3 +73,36 @@
   input[type="checkbox"],input[type="radio"]{accent-color:#188cdf;}
   :is(button,.btn,.primary):focus-visible{outline:2px solid #5a9bcc;outline-offset:2px;}
 }
+
+/* SeMAKMUR I-System V6.9 — penyelarasan borang e-Relief dengan Smart e-Kehadiran.
+   CSS sahaja, khusus skrin PWA. Jangan ubah id, peristiwa, multi-select, atau tab. */
+@media (max-width:767px){
+  body .relief-app :is(.fi-v53-panel,.fi-v53-controls,.fi-v53-event,.fi-v56-dialog-inner,.two-cols,.filters)
+   :is(select:not([multiple]),input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),textarea){
+    box-sizing:border-box;
+    min-height:44px;
+    max-width:100%;
+    border:1px solid #b6d4f2;
+    border-radius:10px;
+    background:#fff;
+    color:#14528f;
+    font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+    font-size:13px;
+    font-weight:650;
+    line-height:1.4;
+    padding:10px 11px;
+    box-shadow:none;
+  }
+  body .relief-app :is(.fi-v53-panel,.fi-v53-controls,.fi-v53-event,.fi-v56-dialog-inner,.two-cols)
+   :is(select:not([multiple]),input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),textarea){width:100%;}
+  body .relief-app :is(.fi-v53-panel,.fi-v53-controls,.fi-v53-event,.fi-v56-dialog-inner,.two-cols,.filters)
+   select:not([multiple]){appearance:auto;-webkit-appearance:menulist;cursor:pointer;}
+  body .relief-app :is(.fi-v53-panel,.fi-v53-controls,.fi-v53-event,.fi-v56-dialog-inner,.two-cols,.filters)
+   :is(input,select,textarea):focus-visible{outline:2px solid #5a9bcc;outline-offset:1px;}
+  body .relief-app :is(.fi-v53-panel,.fi-v53-controls,.fi-v53-event,.fi-v56-dialog-inner,.two-cols)
+   textarea{min-height:88px;resize:vertical;}
+  body .relief-app :is(.fi-v53-panel,.fi-v53-controls,.fi-v53-event,.fi-v56-dialog-inner,.two-cols)
+   select[multiple]{width:100%;min-height:160px;border:1px solid #b6d4f2;border-radius:10px;background:#fff;color:#14528f;font-size:13px;}
+  body .relief-app :is(.fi-v53-panel,.fi-v53-controls,.fi-v53-event,.fi-v56-dialog-inner,.two-cols)
+   :is(label,.field-label){font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-weight:750;font-size:12px;color:#264b6c;}
+}
