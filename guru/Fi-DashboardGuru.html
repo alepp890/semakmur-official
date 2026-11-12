@@ -35,6 +35,9 @@
 
 <!-- Bestari V4.3 — floating Pautan Pantas desktop + kalendar tanpa latar. -->
 
+<style id="fi-v66-relief-toolbar-only">
+@media(max-width:767px){#relief-workspace>.erph-workspace-toolbar{display:none!important}}
+</style>
 </head>
 <body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5 dashboard-v6 dashboard-v7">
 <div aria-hidden="true" id="sidebar-backdrop" onclick="closeMobileMenu()"></div>
@@ -310,5 +313,23 @@
 <script defer src="Fi-ReliefWidget-V51.js?v=5.1.0"></script>
 <!-- Tema dan susun atur admin desktop dikendalikan berasingan. -->
 <script defer src="Fi-DashboardGuru-OfficeDesktop.js?v=6.2.0"></script>
-<script defer src="Fi-DashboardGuru-PWA-V65.js?v=6.5.1"></script></body>
+<script defer src="Fi-DashboardGuru-PWA-V65.js?v=6.5.1"></script><script id="fi-v66-relief-audit-back">
+/* Semasa audit relief dipaparkan, butang kembali PWA pulang ke senarai,
+   bukan menutup workspace. Tidak mengubah navigasi modul lain. */
+(function(){
+ document.addEventListener('click',function(event){
+  const trigger=event.target.closest('#v4-back');
+  const workspace=document.getElementById('relief-workspace');
+  if(!trigger||!workspace||workspace.hidden)return;
+  const frame=document.getElementById('relief-workspace-frame');
+  try{
+   if(frame?.contentWindow?.document?.body?.classList.contains('fi-v66-audit-open')){
+    event.preventDefault();event.stopImmediatePropagation();
+    frame.contentWindow.postMessage({type:'semakmur-relief-audit-back'},location.origin);
+   }
+  }catch(_){/* Fallback kepada butang kembali asal Dashboard Guru. */}
+ },true);
+})();
+</script>
+</body>
 </html>
