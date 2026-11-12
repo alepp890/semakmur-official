@@ -32,6 +32,11 @@ window.SeMAKMURReliefStudioBridge=Object.freeze({
   }
 });
 
+// PWA shell sahaja: notifikasi keadaan sedia/ralat kepada Dashboard; tidak mengubah agihan.
+function fiReliefShellSignal(type,message=''){
+ if(new URLSearchParams(location.search).get('embed')!=='1'||window.parent===window)return;
+ window.parent.postMessage({type:'semakmur-fi-relief-'+type,message},location.origin);
+}
 function warn(text,error=false){const el=$('message');el.hidden=!text;el.textContent=text||'';el.classList.toggle('error',error);}
 function metrics(data){return data.map(x=>`<div class="metric"><strong>${esc(x[0])}</strong><span>${esc(x[1])}</span></div>`).join('');}
 function badge(status){const s=String(status||''),warning=/TIADA|PERLU/.test(s),critical=/BATAL/.test(s);return `<span class="pill ${critical?'critical':warning?'warn':''}">${esc(s)}</span>`;}
@@ -93,8 +98,8 @@ function listenDate(date){day=date;$('view-date').value=date;if(stop)stop();rows
   schedulePublished=!!(snap.exists()&&snap.data().published===true);
   const old=rows;rows=schedulePublished&&Array.isArray(snap.data().rows)?snap.data().rows:[];
   fi55Notify(old,rows);fi55HasSnapshot=true;
-  $('published').textContent=schedulePublished?'Jadual diterbitkan':'Belum diterbitkan';draw();
- },e=>{schedulePublished=false;warn('Gagal membaca jadual Firestore: '+(e.code||e.message),true);rows=[];draw();});
+  $('published').textContent=schedulePublished?'Jadual diterbitkan':'Belum diterbitkan';draw();fiReliefShellSignal('ready');
+ },e=>{schedulePublished=false;warn('Gagal membaca jadual Firestore: '+(e.code||e.message),true);rows=[];draw();fiReliefShellSignal('error',e.code||e.message);});
 }
 function currentTab(name){document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
  document.querySelectorAll('[data-panel]').forEach(el=>el.hidden=el.dataset.panel!==name);}
@@ -248,7 +253,7 @@ async function confirmRelief(id){if(!confirm('Sahkan bahawa anda sudah melaksana
 async function start(){const conf=window.SeMAKMURFirebasePilotConfig;if(!conf?.projectId)throw Error('Konfigurasi Firebase tidak ditemui.');
  const [app,authmod,fire]=await Promise.all([import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')]);
  const fb=app.getApps().find(a=>a.name==='semakmur-fi-dashboard')||app.initializeApp(conf,'semakmur-fi-dashboard');auth=authmod.getAuth(fb);db=fire.getFirestore(fb);fns=fire;
- authmod.onAuthStateChanged(auth,async u=>{if(stop)stop();user=null;roles=[];if(!u){warn('Sila log masuk semula melalui Dashboard Guru.',true);fiStudioSettleAuth();return;}
+ authmod.onAuthStateChanged(auth,async u=>{if(stop)stop();user=null;roles=[];if(!u){warn('Sila log masuk semula melalui Dashboard Guru.',true);fiReliefShellSignal('error','Sila log masuk semula melalui Dashboard Guru.');fiStudioSettleAuth();return;}
   try{const profile=await fire.getDoc(fire.doc(db,'semakmur_dashboard_fi',u.uid));if(!profile.exists()||profile.data().active!==true||profile.data().ownerEmail?.toLowerCase()!==u.email.toLowerCase())throw Error('Profil guru tidak aktif.');
    user=u;const rt=await fire.getDoc(fire.doc(db,'semakmur_fi_keberadaan_roles',u.uid));roles=rt.exists()&&rt.data().active===true?rt.data().roles||[]:[];
    $('account').textContent=profile.data().profile?.namaSamaran||u.email;
@@ -259,7 +264,7 @@ async function start(){const conf=window.SeMAKMURFirebasePilotConfig;if(!conf?.p
    // V5.5.3: Jangan lancar panggilan Apps Script tambahan ketika Makmal membaca data.
    if(roles.includes('ADMIN_SISTEM'))$('relief55-ops-health').textContent='Klik “Semak operasi” untuk status automatik dan Sheets.';
    if(roles.includes('ADMIN_SISTEM')){loadStaff();}else{staffStatus('Makmal Admin memerlukan peranan ADMIN_SISTEM.');}listenDate($('view-date').value);
-  }catch(e){user=null;roles=[];warn('Akses ditolak: '+e.message,true);}
+  }catch(e){user=null;roles=[];warn('Akses ditolak: '+e.message,true);fiReliefShellSignal('error',e.message);}
   finally{fiStudioSettleAuth();}
  });
 }
@@ -274,7 +279,7 @@ function init(){if(new URLSearchParams(location.search).get('embed')==='1')docum
  $('load-stats').addEventListener('click',stats);$('csv-stats').addEventListener('click',csv);$('print-stats').addEventListener('click',()=>window.print());
  $('daily-list').addEventListener('click',e=>{const b=e.target.closest('button.cancel-slot');if(b)cancelSlot(b.dataset.id)});
  $('my-list').addEventListener('click',e=>{const b=e.target.closest('button.confirm');if(b)confirmRelief(b.dataset.id)});
- start().catch(e=>{warn(e.message,true);fiStudioSettleAuth();});}
+ start().catch(e=>{warn(e.message,true);fiReliefShellSignal('error',e.message);fiStudioSettleAuth();});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 
 ;
