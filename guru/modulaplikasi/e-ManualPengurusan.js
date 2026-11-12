@@ -1,0 +1,3039 @@
+/* e-ManualPengurusan — FI integrated, Firebase authenticated + Fi-Sync backend.
+ * Desktop access only. Backend enforces GB/GPK/ADMIN_SISTEM for EVERY action.
+ * This script preserves the existing ManualPengurusan business logic.
+ */
+let fiManualAuthContext = null;
+const FI_MANUAL_LOGIN = '../../Fi-LoginSession.html';
+
+function fiManualDeny(error) {
+  console.error('e-ManualPengurusan:', error && error.message || error);
+  const label = document.getElementById('loader-text');
+  if (label) label.textContent = String(error && error.message || 'Akses tidak dibenarkan.');
+  document.getElementById('global-loader')?.setAttribute('aria-busy', 'false');
+}
+function fiManualDesktop() { return window.matchMedia('(min-width: 768px)').matches; }
+async function fiManualEnsureAccess() {
+  if (!fiManualDesktop()) throw new Error('e-Manual Pengurusan hanya tersedia pada paparan desktop.');
+  const cfg = window.SeMAKMURFirebasePilotConfig;
+  if (!cfg || !cfg.projectId) throw new Error('Konfigurasi Firebase Fi tidak tersedia.');
+  const [{getApps,initializeApp},{getAuth},{getFirestore,doc,getDocFromServer}] = await Promise.all([
+    import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),
+    import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),
+    import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')
+  ]);
+  const app = getApps().find(a=>a.name==='semakmur-fi-dashboard') || initializeApp(cfg,'semakmur-fi-dashboard');
+  const auth = getAuth(app);
+  await auth.authStateReady();
+  const user = auth.currentUser;
+  if (!user || !user.email) { window.location.replace(FI_MANUAL_LOGIN); throw new Error('Sesi Fi tiada. Log masuk semula.'); }
+  const db = getFirestore(app);
+  const [profileSnap,roleSnap] = await Promise.all([
+    getDocFromServer(doc(db,'semakmur_dashboard_fi',user.uid)),
+    getDocFromServer(doc(db,'semakmur_fi_keberadaan_roles',user.uid))
+  ]);
+  const email = String(user.email).trim().toLowerCase();
+  const profile = profileSnap.exists() ? profileSnap.data() : null;
+  const role = roleSnap.exists() ? roleSnap.data() : null;
+  const profileOk = profile?.active===true && String(profile.ownerEmail||'').trim().toLowerCase()===email &&
+    String(profile.profile?.email||'').trim().toLowerCase()===email;
+  const roleOk = role?.active===true && String(role.ownerEmail||'').trim().toLowerCase()===email &&
+    Array.isArray(role.roles) && role.roles.some(r=>['GB','GPK','ADMIN_SISTEM'].includes(r));
+  if (!profileOk || !roleOk) throw new Error('Akses e-Manual Pengurusan hanya untuk Admin Sistem, GPK dan Guru Besar yang aktif.');
+  fiManualAuthContext = { auth, uid:user.uid, email };
+  return fiManualAuthContext;
+}
+function fiManualApiUrl() {
+  const url=String(window.SeMAKMURFiAPIConfig?.webAppExecUrl||'').trim();
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url))
+    throw new Error('Fi-APIConfig.js tidak mempunyai URL /exec yang sah.');
+  return url;
+}
+function fiManualTrustedOrigin(origin) {
+  try { const u=new URL(origin); const h=u.hostname.toLowerCase();
+    return u.protocol==='https:' && !u.port &&
+      (h==='script.google.com'||h==='script.googleusercontent.com'||h.endsWith('.script.googleusercontent.com')||h.endsWith('-script.googleusercontent.com'));
+  } catch(_) { return false; }
+}
+async function fiManualRequest(request) {
+  if(!fiManualDesktop()) throw new Error('Modul hanya boleh digunakan pada desktop.');
+  if (!fiManualAuthContext) throw new Error('Sesi pengurusan belum disahkan.');
+  const user=fiManualAuthContext.auth.currentUser;
+  if(!user || user.uid!==fiManualAuthContext.uid) throw new Error('Sesi Fi berubah. Sila buka semula modul.');
+  const idToken=await user.getIdToken();
+  const nonce = 'manual-'+(window.crypto.randomUUID ? window.crypto.randomUUID() : String(Date.now())+'-'+Math.random().toString(36).slice(2));
+  const body={action:'fiManual',manualAction:String(request.action||''),request,idToken,nonce};
+  return new Promise((resolve,reject)=>{
+    const iframe=document.createElement('iframe');iframe.name='fi-manual-'+nonce;iframe.hidden=true;
+    iframe.setAttribute('aria-hidden','true');
+    iframe.setAttribute('sandbox','allow-forms allow-scripts allow-same-origin');
+    const form=document.createElement('form');form.method='POST';form.action=fiManualApiUrl();form.target=iframe.name;form.hidden=true;
+    const field=document.createElement('input');field.type='hidden';field.name='payload';field.value=JSON.stringify(body);form.appendChild(field);
+    let done=false;
+    function cleanup(){clearTimeout(watchdog);window.removeEventListener('message',onMessage);iframe.remove();form.remove();}
+    function settle(error,data){if(done)return;done=true;cleanup();error?reject(error):resolve(data);}
+    function onMessage(event){
+      if(!fiManualTrustedOrigin(event.origin))return;
+      const data=event.data;
+      if(data?.channel!=='semakmur-fi-doc-v1'||data.nonce!==nonce)return;
+      if(data.ok!==true)return settle(new Error(data.error||'Backend Fi menolak permintaan.'));
+      settle(null,data);
+    }
+    const watchdog=setTimeout(()=>settle(new Error('Apps Script Fi tidak memberi respons. Semak deployment dan Executions.')),90000);
+    window.addEventListener('message',onMessage);
+    document.body.append(iframe,form);form.submit();
+  });
+}
+
+
+    let ALL_STAF = [];
+    let ALL_LOKASI = [];
+    let ALL_JAWATANKUASA = [];
+    let ALL_PERANAN = [];
+    let ALL_SUBJEK = [];
+    let ALL_SEKSYEN = [];
+    let ALL_KUMPULAN = [];
+    let ALL_TAKWIM = [];
+    let MANUAL_V4_EFFECTIVE_DATE = '';
+    let MANUAL_V4_REASON = '';
+
+
+    let CURRENT_STAF_FILTER = 'Semua';
+    let CURRENT_JK_FILTER = 'Semua';
+    let currentDetailStafId = '';
+
+    let statePengurusanKelas = {}; 
+    let stateBilikKhas = {};      
+    let kumpulanBertugasState = {}; 
+    let statePenghantaranRph = {};
+    let statePencerapanPdp = {};
+    let stateSemakanBuku = {};
+
+    let activeCategoryInduk = 'Pentadbiran';
+    let activeSubJkName = '';
+    let MANUAL_V3_ACTIVE_MODULE = 'kelas';
+    let MANUAL_V3_DIRTY = false;
+    let MANUAL_V3_CLEAN_YEAR = '2027';
+    function markManualV3Dirty(){ MANUAL_V3_DIRTY=true; const el=document.getElementById('manualUnsavedBadge'); if(el)el.classList.remove('hidden'); }
+    function clearManualV3Dirty(){ MANUAL_V3_DIRTY=false; MANUAL_V3_CLEAN_YEAR=document.getElementById('selTahunAktif')?.value||'2027'; const el=document.getElementById('manualUnsavedBadge'); if(el)el.classList.add('hidden'); }
+    window.addEventListener('beforeunload',e=>{if(MANUAL_V3_DIRTY){e.preventDefault();e.returnValue='';}});
+
+
+    const SPECIAL_GROUPS = [
+      { ID_Staf: 'GRP001', Nama_Penuh: 'Semua Guru' },
+      { ID_Staf: 'GRP002', Nama_Penuh: 'Semua Ketua Panitia' },
+      { ID_Staf: 'GRP003', Nama_Penuh: 'Semua Guru Mata Pelajaran' },
+      { ID_Staf: 'GRP004', Nama_Penuh: 'Semua Guru Kelas' },
+      { ID_Staf: 'GRP005', Nama_Penuh: 'Semua Guru Bertugas Mingguan' },
+      { ID_Staf: 'GRP006', Nama_Penuh: 'Semua Guru Bilik Khas' }
+    ];
+
+    function populateDropdownTahunAuto() {
+      const sel = document.getElementById('selTahunAktif');
+      if (!sel) return;
+
+      const currentYear = new Date().getFullYear();
+      const baseYear = 2027;
+      const targetMaxYear = Math.max(baseYear + 1, currentYear + 1);
+
+      let html = '';
+      for (let y = baseYear; y <= targetMaxYear; y++) {
+        html += `<option value="${y}" ${y === 2027 ? 'selected' : ''}>${y}</option>`;
+      }
+      sel.innerHTML = html;
+      updateYearLabelsUI();
+    }
+
+    function updateYearLabelsUI() {
+      const activeYear = document.getElementById('selTahunAktif')?.value || '2027';
+      const lblSidebar = document.getElementById('lblTahunSidebar');
+      if (lblSidebar) lblSidebar.innerText = activeYear;
+
+      document.querySelectorAll('.lblTahunSpan').forEach(el => el.innerText = activeYear);
+    }
+
+    async function onChangeTahunAktif() {
+      const sel=document.getElementById('selTahunAktif');
+      const proposed=sel.value;
+      if(MANUAL_V3_DIRTY){
+        const ans=await Swal.fire({title:'Ada perubahan belum disimpan',text:'Tukar tahun akan membuang pengisian yang belum disimpan. Teruskan?',icon:'warning',showCancelButton:true,confirmButtonText:'Tukar tahun',cancelButtonText:'Batal'});
+        if(!ans.isConfirmed){sel.value=MANUAL_V3_CLEAN_YEAR;return;}
+      }
+      updateYearLabelsUI();
+      await fetchMasterStafData();
+      MANUAL_V3_CLEAN_YEAR=proposed;
+    }
+
+    function getNextStafID() {
+      let maxNum = 0;
+      ALL_STAF.forEach(s => {
+        if (s.ID_Staf) {
+          const match = s.ID_Staf.match(/^SKSM(\d+)$/i);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (num > maxNum) maxNum = num;
+          }
+        }
+      });
+      return 'SKSM' + String(maxNum + 1).padStart(3, '0');
+    }
+
+    function getNextJkID() {
+      let maxNum = 0;
+      ALL_JAWATANKUASA.forEach(j => {
+        const id = j.ID_Tugasan || j.id_tugasan || j.ID_Jawatankuasa || '';
+        const match = id.match(/^TGS(\d+)/i);
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (num > maxNum) maxNum = num;
+        }
+      });
+      return 'TGS' + String(maxNum + 1).padStart(3, '0');
+    }
+
+    function getHierarchyRank(kategori) {
+      const kat = (kategori || '').trim();
+      if (kat === 'Guru Besar') return 1;
+      if (kat === 'GPK Pentadbiran') return 2;
+      if (kat === 'GPK Hal Ehwal Murid') return 3;
+      if (kat === 'GPK Ko Kurikulum') return 4;
+      if (kat === 'Guru Akademik') return 5;
+      if (kat === 'Guru Praktikal') return 6;
+      if (kat === 'AKP') return 7;
+      return 8;
+    }
+
+    function sortStafList(stafArray) {
+      return [...stafArray].sort((a, b) => {
+        const rankA = getHierarchyRank(a.Kategori_Staf);
+        const rankB = getHierarchyRank(b.Kategori_Staf);
+        if (rankA !== rankB) return rankA - rankB;
+        const namaA = (a.Nama_Penuh || '').toLowerCase();
+        const namaB = (b.Nama_Penuh || '').toLowerCase();
+        return namaA.localeCompare(namaB, 'ms');
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Splash sudah kelihatan sejak awal; setiap semakan kekal di belakangnya.
+      try { await fiManualEnsureAccess(); } catch (error) { fiManualDeny(error); return; }
+      populateDropdownTahunAuto();
+      renderSidebarMenu('main');
+      fetchMasterStafData();
+    });
+
+    function showLoader(txt = "Memuatkan...") {
+      document.getElementById('loader-text').innerText = txt;
+      document.getElementById('global-loader').classList.remove('hidden');
+    }
+
+    function hideLoader() {
+      document.getElementById('global-loader').classList.add('hidden');
+    }
+
+    async function postToBackend(payload) {
+      return fiManualRequest(payload);
+    }
+
+    // ======================== V3: PUSAT SEMAKAN INTELLIGENT ========================
+    const MANUAL_V3_SCOPE_MAP={
+      kelas:['Pengurusan Kelas','Pengurusan Aliran'],
+      bilik:['Pengurusan Bilik Khas'],
+      bertugas:['Kumpulan Bertugas Mingguan'],
+      rph:['Penghantaran e-RPH'],
+      pencerapan:['Pencerapan PdP'],
+      semakan:['Semakan Buku Tulis']
+    };
+    const MANUAL_V3_ALL_SCHOOL_SCOPES=Object.values(MANUAL_V3_SCOPE_MAP).flat();
+    function manualV3Escape(v){return String(v===undefined||v===null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+    function manualV3Year(){return document.getElementById('selTahunAktif')?.value || '2027';}
+    function manualV3ScopeIds(scopes){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year() && String(p.Status||'Aktif').toLowerCase()==='aktif' && scopes.includes(String(p.Nama_Jawatankuasa||''))).map(p=>String(p.ID_Peranan||'')).sort();}
+    function manualV3CurrentRoles(){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year()&&String(p.Status||'Aktif').toLowerCase()==='aktif');}
+    function manualV3ActiveStaff(){return ALL_STAF.filter(s=>String(s.Status||'').toLowerCase()==='aktif');}
+    function manualV3StaffName(id){ const g=ALL_STAF.find(s=>s.ID_Staf===id);return g?g.Nama_Penuh:id; }
+    function manualV3Audit(roles=manualV3CurrentRoles()){
+      const issues=[]; const byStaf=new Map(ALL_STAF.map(s=>[s.ID_Staf,s]));
+      const live=new Set(manualV3ActiveStaff().map(s=>s.ID_Staf));
+      const byClass=new Map(), classForTeacher=new Map(), byGroup=new Map(), duplicate=new Set();
+      const classes=ALL_LOKASI.filter(l=>String(l.Kategori||'').toLowerCase()==='kelas');
+      const reviewers=new Map(); const observers=new Map();
+      for(const p of roles){
+        const id=String(p.ID_Staf||p.id_staf||'');
+        const jk=String(p.Nama_Jawatankuasa||p.nama_jawatankuasa||'');
+        const role=String(p.Peranan||p.peranan||'');
+        const skop=String(p.Skop_Tugas_Kelas||p.skop_tugas_kelas||'');
+        if(!byStaf.has(id)&&!/^GRP00[1-6]$/.test(id))issues.push({level:'error',topic:'Rujukan staf',message:`ID ${id} tidak ditemui dalam Master_Staf (${jk}).`});
+        else if(byStaf.has(id)&&!live.has(id))issues.push({level:'error',topic:'Staf tidak aktif',message:`${manualV3StaffName(id)} masih memegang tugas ${role} — ${jk}.`});
+        const key=[id,jk,role,skop].join('|').toLowerCase();
+        if(duplicate.has(key))issues.push({level:'warning',topic:'Rekod berganda',message:`${manualV3StaffName(id)} mempunyai rekod berulang dalam ${jk} / ${role}.`});
+        duplicate.add(key);
+        if(jk==='Pengurusan Kelas'&&role==='Guru Kelas'){
+          if(!byClass.has(skop))byClass.set(skop,[]);
+          byClass.get(skop).push(id);
+          if(!classForTeacher.has(id))classForTeacher.set(id,[]);
+          classForTeacher.get(id).push(skop);
+        }
+        if(jk==='Kumpulan Bertugas Mingguan'){
+          if(!byGroup.has(id))byGroup.set(id,new Set());byGroup.get(id).add(skop);
+        }
+        if(jk==='Penghantaran e-RPH')reviewers.set(id,skop);
+        if(jk==='Pencerapan PdP'){
+          if(!observers.has(id))observers.set(id,{});
+          observers.get(id)[role]=skop;
+        }
+      }
+      for(const l of classes){
+        const name=String(l.Nama_Lokasi||''); const assigned=byClass.get(name)||[];
+        if(!assigned.length)issues.push({level:'warning',topic:'Guru kelas belum diisi',message:`Kelas ${name} belum mempunyai Guru Kelas.`});
+        else if(assigned.length>1)issues.push({level:'error',topic:'Guru kelas bertindih',message:`Kelas ${name} mempunyai ${assigned.length} rekod Guru Kelas.`});
+      }
+      for(const [id,arr] of classForTeacher)if(arr.length>1)issues.push({level:'warning',topic:'Beban guru kelas',message:`${manualV3StaffName(id)} ditugaskan sebagai Guru Kelas bagi ${arr.join(', ')}.`});
+      for(const [id,groups] of byGroup)if(groups.size>1)issues.push({level:'error',topic:'Kumpulan bertugas bertindih',message:`${manualV3StaffName(id)} berada dalam ${[...groups].join(', ')}.`});
+      const checkGuru=manualV3ActiveStaff().filter(s=>!['AKP','Guru Praktikal','Guru Besar'].includes(String(s.Kategori_Staf||'')));
+      for(const g of checkGuru){
+        if(!reviewers.get(g.ID_Staf))issues.push({level:'warning',topic:'Penyemak RPH belum diisi',message:`${g.Nama_Penuh} belum ditetapkan pegawai penyemak e-RPH.`});
+        if(reviewers.get(g.ID_Staf)===g.ID_Staf)issues.push({level:'error',topic:'Semak diri sendiri',message:`${g.Nama_Penuh} ditetapkan menyemak e-RPH sendiri.`});
+      }
+      for(const [id,p] of observers)if(p['Pencerapan 1']&&p['Pencerapan 1']===p['Pencerapan 2'])
+        issues.push({level:'warning',topic:'Pencerap sama',message:`${manualV3StaffName(id)} mempunyai pencerap PdP 1 dan 2 yang sama.`});
+      return {issues,activeStaff:manualV3ActiveStaff().length,assignedClasses:classes.filter(c=>(byClass.get(c.Nama_Lokasi)||[]).length>0).length,totalClasses:classes.length,roles:roles.length,reviewers:reviewers.size};
+    }
+    function manualV3KpiCard(label,value,detail,icon,color='rose'){
+      const iconColors={rose:'text-rose-600 bg-rose-50',emerald:'text-emerald-700 bg-emerald-50',amber:'text-amber-600 bg-amber-50',blue:'text-blue-700 bg-blue-50'};
+      return `<div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex gap-3 items-center"><div class="rounded-xl p-2 ${iconColors[color]||iconColors.rose}"><i class="fa-solid ${icon} text-lg"></i></div><div><p class="text-[10px] font-semibold text-slate-500 uppercase">${manualV3Escape(label)}</p><p class="text-xl font-extrabold text-slate-900">${manualV3Escape(value)}</p><p class="text-[10px] text-slate-500">${manualV3Escape(detail)}</p></div></div>`;
+    }
+    function refreshManualV3CommandCenter(){
+      const a=manualV3Audit();
+      const cards=[manualV3KpiCard('Staf aktif',a.activeStaff,'Master_Staf','fa-users','blue'),
+        manualV3KpiCard('Rekod tugasan',a.roles,`Sesi ${manualV3Year()}`,'fa-list-check','emerald'),
+        manualV3KpiCard('Guru kelas',`${a.assignedClasses}/${a.totalClasses}`,'Kelas berpenyelaras','fa-chalkboard','amber'),
+        manualV3KpiCard('Perkara perlu semak',a.issues.length,'Amaran & ralat','fa-triangle-exclamation','rose')].join('');
+      for(const id of ['dashboardSmartMetrics','auditKpiCards']){
+        const el=document.getElementById(id);if(el)el.innerHTML=cards;
+      }
+      return a;
+    }
+    function renderAuditPerananV3(){
+      const a=refreshManualV3CommandCenter();
+      const issueBox=document.getElementById('auditIssues');
+      if(issueBox)issueBox.innerHTML=a.issues.length?a.issues.map(v=>`<div class="flex gap-3 p-3 border rounded-xl ${v.level==='error'?'bg-rose-50 border-rose-200':'bg-amber-50 border-amber-200'}"><i class="fa-solid ${v.level==='error'?'fa-circle-exclamation text-rose-600':'fa-triangle-exclamation text-amber-600'} mt-0.5"></i><div><p class="font-bold">${manualV3Escape(v.topic)}</p><p class="text-slate-600 mt-0.5">${manualV3Escape(v.message)}</p></div></div>`).join(''):'<div class="text-emerald-700 bg-emerald-50 p-4 rounded-xl font-bold">Tiada isu dalam semakan asas untuk tahun ini.</div>';
+      const search=String(document.getElementById('auditSearchInput')?.value||'').trim().toLowerCase();
+      const cat=String(document.getElementById('auditCategoryFilter')?.value||'');
+      const rows=manualV3CurrentRoles().filter(p=>(!cat||p.Kategori_Pengurusan===cat) &&
+        [manualV3StaffName(p.ID_Staf),p.Nama_Jawatankuasa,p.Peranan,p.Skop_Tugas_Kelas].some(x=>String(x||'').toLowerCase().includes(search)));
+      const tbody=document.getElementById('auditPerananRows');
+      if(tbody)tbody.innerHTML=rows.length?rows.map(p=>`<tr class="border-b border-slate-100 hover:bg-slate-50"><td class="p-3 font-semibold">${manualV3Escape(manualV3StaffName(p.ID_Staf))}</td><td class="p-3">${manualV3Escape(p.Nama_Jawatankuasa)}</td><td class="p-3">${manualV3Escape(p.Peranan)}</td><td class="p-3">${manualV3Escape(p.Skop_Tugas_Kelas)}</td><td class="p-3">${manualV3Escape(p.Status)}</td></tr>`).join(''):'<tr><td colspan="5" class="p-5 text-center text-slate-400">Tiada padanan.</td></tr>';
+      const cnt=document.getElementById('auditResultCount');if(cnt)cnt.innerText=`${rows.length} rekod dipaparkan daripada ${a.roles} tugasan aktif sesi ${manualV3Year()}.`;
+      const map=new Map();
+      manualV3CurrentRoles().forEach(p=>{
+        if(!ALL_STAF.some(st=>st.ID_Staf===p.ID_Staf))return;
+        if(!map.has(p.ID_Staf))map.set(p.ID_Staf,[]);
+        map.get(p.ID_Staf).push(p.Nama_Jawatankuasa);
+      });
+      const loadRows=[...map].sort((a,b)=>b[1].length-a[1].length).slice(0,15);
+      const work=document.getElementById('auditWorkloadRows');
+      if(work)work.innerHTML=loadRows.length?loadRows.map(([id,jks])=>`<tr class="border-b border-slate-100"><td class="p-3 font-semibold">${manualV3Escape(manualV3StaffName(id))}</td><td class="p-3 font-bold">${jks.length}</td><td class="p-3 text-slate-600">${manualV3Escape([...new Set(jks)].join(', '))}</td></tr>`).join(''):'<tr><td colspan="3" class="p-4 text-center text-slate-400">Tiada tugasan diisi lagi.</td></tr>';
+    }
+    function exportPerananCsvV3(){
+      const all=manualV3CurrentRoles();
+      const headers=['ID_Staf','Nama_Staf','Nama_Jawatankuasa','Peranan','Skop_Tugas_Kelas','Tahun','Status'];
+      const protect=v=>{let s=String(v===undefined||v===null?'':v);if(/^[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+      const csv='\uFEFF'+[headers.join(','),...all.map(p=>[p.ID_Staf,manualV3StaffName(p.ID_Staf),p.Nama_Jawatankuasa,p.Peranan,p.Skop_Tugas_Kelas,p.Tahun,p.Status].map(protect).join(','))].join('\r\n');
+      const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+      const a=document.createElement('a');a.href=url;a.download=`SeMAKMUR_Peranan_${manualV3Year()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);
+    }
+    async function loadManualV3History(){
+      const box=document.getElementById('auditHistoryList');if(box)box.innerText='Membaca sejarah simpanan…';
+      try{
+        const res=await postToBackend({action:'getManualV3History',data:{tahun:manualV3Year()}});
+        if(!res?.success)throw new Error(res?.error||'Gagal membaca sejarah.');
+        if(box)box.innerHTML=res.data.length?res.data.map(v=>`<div class="border-b p-2 flex justify-between gap-3"><span><strong>${manualV3Escape(v.tarikh)}</strong><br>${manualV3Escape(v.skop)}</span><span class="text-slate-400">${manualV3Escape(v.tahun)}</span></div>`).join(''):'Tiada sejarah untuk tahun ini.';
+      }catch(err){if(box)box.innerText='Tidak dapat membaca sejarah. Pastikan case getManualV3History telah ditambah dalam Code.gs. '+err.message;}
+    }
+    // Semakan dan kebenaran sebelum menulis semula satu skop tertentu.
+    async function manualV3ConfirmSave(scopes, items, context){
+      const year=manualV3Year();
+      const kept=manualV3CurrentRoles().filter(p=>!scopes.includes(String(p.Nama_Jawatankuasa||'')));
+      const fresh=items.map(p=>({ID_Staf:p.id_staf, Nama_Jawatankuasa:p.nama_jawatankuasa,Peranan:p.peranan,Skop_Tugas_Kelas:p.skop_tugas_kelas,Tahun:year,Status:'Aktif'}));
+      const audit=manualV3Audit(kept.concat(fresh));
+      const before=manualV3CurrentRoles().filter(p=>scopes.includes(String(p.Nama_Jawatankuasa||''))).length;
+      const issues=audit.issues.filter(x=>x.level==='error');
+      const warning=(items.length===0)?'<p class="text-rose-600 font-extrabold mt-3">Semua rekod dalam skop ini akan dikosongkan.</p>':'';
+      const response=await Swal.fire({icon:items.length?'question':'warning',title:'Semak Sebelum Simpan',
+        html:`<div class="text-left text-xs space-y-1"><p><strong>Bahagian:</strong> ${manualV3Escape(context)}</p><p><strong>Tahun:</strong> ${manualV3Escape(year)}</p><p><strong>Rekod lama dalam skop:</strong> ${before}</p><p><strong>Rekod baharu:</strong> ${items.length}</p><p><strong>Isu keseluruhan yang perlu semak:</strong> ${audit.issues.length} (${issues.length} kritikal)</p>${warning}<div class="mt-3 border-t pt-3 space-y-2"><label class="block font-bold">Tarikh kuat kuasa</label><input id="v4Effective" type="date" value="${Number(year)>new Date().getFullYear()?year+'-01-01':new Date().toISOString().slice(0,10)}" class="w-full p-2 border rounded-lg" required/><label class="block font-bold">Sebab perubahan</label><input id="v4Reason" type="text" value="Kemaskini pengagihan" class="w-full p-2 border rounded-lg" maxlength="180" /></div><p class="text-slate-500 mt-3">Rekod asal tidak dipadam; pelantikan terdahulu ditamatkan jika bertukar.</p></div>`,
+        showCancelButton:true,confirmButtonText:items.length?'Sahkan & Simpan':'Ya, Kosongkan Skop',cancelButtonText:'Semak Semula',confirmButtonColor:items.length?'#047857':'#be123c',
+        preConfirm:()=>{
+          const date=document.getElementById('v4Effective')?.value||'';
+          const reason=document.getElementById('v4Reason')?.value.trim()||'Kemaskini pengagihan';
+          if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){Swal.showValidationMessage('Sila isi tarikh kuat kuasa.');return false;}
+          return {effective_date:date,change_reason:reason};
+        }});
+      if(response.isConfirmed){
+        MANUAL_V4_EFFECTIVE_DATE=response.value?.effective_date||'';
+        MANUAL_V4_REASON=response.value?.change_reason||'Kemaskini pengagihan';
+        if(!/^\d{4}-\d{2}-\d{2}$/.test(MANUAL_V4_EFFECTIVE_DATE)){
+          await Swal.fire('Tarikh diperlukan','Sila nyatakan tarikh kuat kuasa yang sah.','warning');return false;
+        }
+      }
+      return response.isConfirmed;
+    }
+
+    function checkVacanciesReport() {
+      const box = document.getElementById('boxVacancyAlerts');
+      const badge = document.getElementById('badgeCountVacancies');
+      if (!box || !badge) return;
+
+      const inactiveStafIds = ALL_STAF.filter(s => String(s.Status || 'Aktif').trim().toLowerCase() !== 'aktif').map(s => s.ID_Staf);
+      const currentYear = document.getElementById('selTahunAktif')?.value || '2027';
+
+      const vacancies = [];
+
+      ALL_PERANAN.forEach(p => {
+        if (String(p.Tahun || '2027') !== currentYear) return;
+
+        const idS = p.ID_Staf || p.id_staf;
+        const roleName = p.Peranan || p.peranan;
+        const unitName = p.Nama_Jawatankuasa || p.nama_jawatankuasa;
+
+        if (inactiveStafIds.includes(idS)) {
+          const stafObj = ALL_STAF.find(s => s.ID_Staf === idS);
+          vacancies.push({
+            unit: unitName,
+            peranan: roleName,
+            sebab: `Guru Tidak Aktif (${stafObj ? stafObj.Nama_Penuh : idS})`
+          });
+        }
+      });
+
+      badge.innerText = `${vacancies.length} Kekosongan`;
+
+      if (vacancies.length === 0) {
+        box.innerHTML = `
+          <div class="p-3 bg-emerald-50 text-emerald-700 font-bold rounded-xl border border-emerald-200 flex items-center gap-2">
+            <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+            <span>Semua jawatan berdaftar diisi dengan guru aktif. Tiada kekosongan dikesan.</span>
+          </div>
+        `;
+        return;
+      }
+
+      box.innerHTML = '';
+      vacancies.forEach((v, i) => {
+        box.innerHTML += `
+          <div class="flex items-center justify-between p-3 bg-rose-50 rounded-xl border border-rose-200">
+            <div class="space-y-0.5">
+              <p class="font-extrabold text-slate-800">${v.unit} &bull; <span class="text-rose-600">${v.peranan}</span></p>
+              <p class="text-[10px] text-rose-500 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Punca: ${v.sebab}</p>
+            </div>
+            <span class="px-2.5 py-1 text-[10px] bg-rose-600 text-white font-extrabold rounded-lg">Perlu Diisi</span>
+          </div>
+        `;
+      });
+    }
+
+    function renderSidebarMenu(mode, katName = '') {
+      const container = document.getElementById('sidebarMenuContainer');
+      if (!container) return;
+
+      if (mode === 'main') {
+        container.innerHTML = `
+          <button onclick="showView('viewDashboard', event)" id="sideDashboard" class="nav-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition">
+            <i class="fa-solid fa-chart-pie w-4 text-center"></i>
+            <span>Dashboard Utama</span>
+          </button>
+
+          <button onclick="showView('viewAuditPeranan', event)" id="sideAuditPeranan" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-shield-halved w-4 text-center text-emerald-400"></i><span>Pusat Semakan & Analitik</span>
+          </button>
+          <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data Induk</div>
+          
+          <button onclick="showView('viewProfilStaf', event)" id="sideProfilStaf" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-id-card-clip w-4 text-center text-rose-400"></i>
+            <span>Profil Guru & AKP</span>
+          </button>
+
+          <button onclick="showView('viewPengurusanJawatankuasa', event)" id="sidePengurusanJawatankuasa" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-list-check w-4 text-center text-cyan-400"></i>
+            <span>Pengurusan Master Jawatankuasa</span>
+          </button>
+
+          <button onclick="v4OpenCatalog('lokasi')" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-sliders w-4 text-center text-cyan-400"></i><span>Tetapan Data Induk</span></button>
+          <button onclick="v4OpenOrder()" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-arrow-down-wide-short w-4 text-center text-amber-400"></i><span>Susunan JK & Seksyen</span></button>
+          <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pengurusan Operasi</div>
+
+          <button onclick="showView('viewPengurusanSekolah', event)" id="sidePengurusanSekolah" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-briefcase w-4 text-center text-amber-400"></i>
+            <span>Pengurusan Sekolah</span>
+          </button>
+
+          <button onclick="v4OpenCalendar()" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-calendar-days w-4 text-center text-violet-400"></i><span>Takwim & Program</span></button>
+          <button onclick="showView('viewV4Print')" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-book-open w-4 text-center text-emerald-400"></i><span>Cetak Buku Manual</span></button>
+          <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-rose-400 uppercase tracking-wider">Jawatankuasa Induk</div>
+
+          <button onclick="openCategoryMenu('Pentadbiran')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-sitemap w-4 text-center text-amber-400"></i>
+            <span>JK Induk Pentadbiran</span>
+          </button>
+
+          <button onclick="openCategoryMenu('Kurikulum')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-book-bookmark w-4 text-center text-emerald-400"></i>
+            <span>JK Induk Kurikulum</span>
+          </button>
+
+          <button onclick="openCategoryMenu('Hal Ehwal Murid')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-user-graduate w-4 text-center text-blue-400"></i>
+            <span>JK Induk Hal Ehwal Murid</span>
+          </button>
+
+          <button onclick="openCategoryMenu('Kokurikulum')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-trophy w-4 text-center text-purple-400"></i>
+            <span>JK Induk Kokurikulum</span>
+          </button>
+        `;
+      } else if (mode === 'category') {
+        activeCategoryInduk = katName;
+
+        const subList = v4SortedJK(katName);
+        const groups = new Map();
+        subList.forEach(item=>{
+          const sec=String(item.Seksyen||katName).trim();
+          if(!groups.has(sec))groups.set(sec,[]);
+          groups.get(sec).push(item);
+        });
+        const sectionOrder=Array.from(groups.keys()).sort((a,b)=>v4SectionOrder(katName,a)-v4SectionOrder(katName,b)||a.localeCompare(b,'ms'));
+        let subHtml='';
+        sectionOrder.forEach(sec=>{
+          subHtml+=`<div class="px-3 pt-3 pb-1 text-[10px] font-black uppercase text-rose-300 tracking-wide border-b border-white/10">${manualV3Escape(sec)}</div>`;
+          groups.get(sec).forEach(item=>{
+            const id=String(item.ID_Tugasan||item.id_tugasan||'');
+            subHtml+=`<button data-jk-id="${manualV3Escape(id)}" onclick="v4OpenSubJkById(this.dataset.jkId)" class="sub-jk-btn w-full text-left px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition flex gap-2"><i class="fa-solid fa-angle-right mt-0.5 text-[10px] text-rose-400"></i><span>${manualV3Escape(item.Nama_Jawatankuasa||'')}</span></button>`;
+          });
+        });
+
+        container.innerHTML = `
+          <button onclick="renderSidebarMenu('main'); showView('viewDashboard');" class="w-full text-left px-3 py-2 rounded-xl bg-slate-800 text-rose-400 font-extrabold flex items-center gap-2 mb-3 hover:bg-slate-700 transition">
+            <i class="fa-solid fa-arrow-left"></i> Menu Utama
+          </button>
+
+          <div class="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Unit Pengurusan</div>
+
+          <button onclick="openIndukOverview('${katName}')" class="nav-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-bold mb-2">
+            <i class="fa-solid fa-sitemap w-4 text-center"></i>
+            <span>JK Induk ${katName}</span>
+          </button>
+
+          <div class="pt-2 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sub-Jawatankuasa</div>
+          <div class="space-y-1 pl-1">
+            ${subHtml || '<p class="text-[11px] text-slate-500 italic px-3 py-1">Tiada sub-jawatankuasa</p>'}
+          </div>
+        `;
+      }
+    }
+
+    function openCategoryMenu(katName) {
+      renderSidebarMenu('category', katName);
+      openIndukOverview(katName);
+    }
+
+    // ================= 5. OVERVIEW MAP: JK INDUK =================
+    function openIndukOverview(katName) {
+      activeCategoryInduk = katName;
+      showView('viewIndukOverview');
+
+      document.getElementById('txtIndukCategoryTitle').innerText = `JK Induk ${katName}`;
+      
+      const gb = ALL_STAF.find(s => s.Kategori_Staf === 'Guru Besar');
+      const gpk1 = ALL_STAF.find(s => s.Kategori_Staf === 'GPK Pentadbiran');
+      const gpkHem = ALL_STAF.find(s => s.Kategori_Staf === 'GPK Hal Ehwal Murid');
+      const gpkKoko = ALL_STAF.find(s => s.Kategori_Staf === 'GPK Ko Kurikulum');
+
+      const nameGb = gb ? `${gb.Nama_Penuh} (Guru Besar)` : 'Guru Besar';
+      const nameGpk1 = gpk1 ? `${gpk1.Nama_Penuh} (GPK Pentadbiran)` : 'GPK Pentadbiran';
+      const nameGpkHem = gpkHem ? `${gpkHem.Nama_Penuh} (GPK HEM)` : 'GPK Hal Ehwal Murid';
+      const nameGpkKoko = gpkKoko ? `${gpkKoko.Nama_Penuh} (GPK Koko)` : 'GPK Kokurikulum';
+
+      if (katName === 'Pentadbiran' || katName === 'Kurikulum') {
+        document.getElementById('mapPengerusi').innerText = nameGb;
+        document.getElementById('mapNaib1').innerText = nameGpk1;
+        document.getElementById('mapNaib2').innerText = nameGpkHem;
+        document.getElementById('mapNaib3').innerText = nameGpkKoko;
+      } else if (katName === 'Hal Ehwal Murid') {
+        document.getElementById('mapPengerusi').innerText = nameGb;
+        document.getElementById('mapNaib1').innerText = nameGpkHem;
+        document.getElementById('mapNaib2').innerText = nameGpk1;
+        document.getElementById('mapNaib3').innerText = nameGpkKoko;
+      } else if (katName === 'Kokurikulum') {
+        document.getElementById('mapPengerusi').innerText = nameGb;
+        document.getElementById('mapNaib1').innerText = nameGpkKoko;
+        document.getElementById('mapNaib2').innerText = nameGpk1;
+        document.getElementById('mapNaib3').innerText = nameGpkHem;
+      }
+
+      // Setiausaha (Tanpa Perkataan Induk)
+      const suPeranan = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
+        (String(p.Peranan || p.peranan || '').trim() === `Setiausaha ${katName}` || String(p.Peranan || p.peranan || '').trim() === `Setiausaha`) &&
+        String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim() === `JK Induk ${katName}` &&
+        String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+      );
+      document.getElementById('selSetiausahaInduk').value = suPeranan ? (suPeranan.ID_Staf || suPeranan.id_staf || '') : '';
+
+      // Tampilkan Jawatan Pegawai Khas Dinamik di JK Induk
+      const customIndukOfficers = ALL_PERANAN.filter(p => String(p.Tahun || '') === manualV3Year() && 
+        String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim() === `JK Induk ${katName}` &&
+        !['pengerusi', 'naib pengerusi', 'setiausaha'].includes(String(p.Peranan || p.peranan || '').toLowerCase()) &&
+        String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+      );
+
+      const containerPegawai = document.getElementById('containerIndukCustomOfficers');
+      containerPegawai.innerHTML = '';
+
+      if (customIndukOfficers.length > 0) {
+        customIndukOfficers.forEach(off => {
+          tambahBarisPegawaiInduk(off.Peranan || off.peranan, off.ID_Staf || off.id_staf);
+        });
+      }
+
+      renderMappingSubJkList(katName);
+      v4SetIndukEditMode(false);
+    }
+
+    function tambahBarisPegawaiInduk(namaJawatan = '', selectedId = '') {
+      const container = document.getElementById('containerIndukCustomOfficers');
+      if (!container) return;
+
+      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+      const sortedGuru = sortStafList(activeGuruOnly);
+
+      let options = '<option value="">-- Pilih Guru / Pegawai --</option>';
+      sortedGuru.forEach(g => {
+        options += `<option value="${g.ID_Staf}" ${g.ID_Staf === selectedId ? 'selected' : ''}>${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
+      });
+
+      const rowId = 'indukOfficerRow_' + new Date().getTime() + Math.floor(Math.random() * 100);
+
+      const div = document.createElement('div');
+      div.id = rowId;
+      div.className = "flex items-center gap-2 pt-1";
+      div.innerHTML = `
+        <input type="text" data-induk-officer-title="true" value="${namaJawatan}" placeholder="Gelaran Jawatan (e.g. Naib Setiausaha / Bendahari / SU Sukan)" class="w-72 p-2 border border-slate-300 rounded-xl font-bold text-xs text-slate-800 focus:outline-none">
+        <select data-induk-officer-select="true" class="select-guru-opt flex-1 p-2 bg-white border border-slate-300 rounded-xl font-bold text-xs text-slate-800 focus:outline-none">
+          ${options}
+        </select>
+        <button onclick="padamBarisAjk('${rowId}')" class="px-2.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl transition shrink-0">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      `;
+      container.appendChild(div);
+    }
+
+    async function simpanSetiausahaInduk() {
+      const suVal = document.getElementById('selSetiausahaInduk').value;
+      const tahunAktif = document.getElementById('selTahunAktif')?.value || '2027';
+
+
+      const payloadBatch = [];
+
+      if (suVal) {
+        payloadBatch.push({
+          kategori_pengurusan: activeCategoryInduk,
+          jk_induk: `JK Induk ${activeCategoryInduk}`,
+          nama_jawatankuasa: `JK Induk ${activeCategoryInduk}`,
+          peranan: `Setiausaha`,
+          skop_tugas_kelas: `JK Induk ${activeCategoryInduk}`,
+          id_staf: suVal,
+          tahun: tahunAktif,
+          status: 'Aktif'
+        });
+      }
+
+      const customOfficerRows = document.querySelectorAll('#containerIndukCustomOfficers > div');
+      customOfficerRows.forEach(row => {
+        const titleInp = row.querySelector('input[data-induk-officer-title="true"]');
+        const selInp = row.querySelector('select[data-induk-officer-select="true"]');
+        
+        if (titleInp && selInp && titleInp.value.trim() && selInp.value) {
+          payloadBatch.push({
+            kategori_pengurusan: activeCategoryInduk,
+            jk_induk: `JK Induk ${activeCategoryInduk}`,
+            nama_jawatankuasa: `JK Induk ${activeCategoryInduk}`,
+            peranan: titleInp.value.trim(),
+            skop_tugas_kelas: `JK Induk ${activeCategoryInduk}`,
+            id_staf: selInp.value,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+      });
+
+      const scopes = [`JK Induk ${activeCategoryInduk}`];
+      if (!await manualV3ConfirmSave(scopes,payloadBatch,`JK Induk ${activeCategoryInduk}`)) return;
+      const payload = {
+        action: 'savePerananStafV2',
+        target_year: tahunAktif,
+        allow_empty: payloadBatch.length === 0,
+        effective_date:MANUAL_V4_EFFECTIVE_DATE,change_reason:MANUAL_V4_REASON,
+        expected_scope_ids: manualV3ScopeIds(scopes),
+        scopes_to_clear: scopes,
+        data: payloadBatch
+      };
+      showLoader(`Menyimpan Pimpinan JK Induk ${activeCategoryInduk}...`);
+
+      try {
+        const res = await postToBackend(payload);
+        hideLoader();
+        if (res && res.success) {
+          Swal.fire('Berjaya', `Pimpinan JK Induk ${activeCategoryInduk} berjaya dikemaskini!`, 'success');
+          await v5RefreshIndukAfterSave(activeCategoryInduk);
+        } else {
+          Swal.fire('Ralat', res.error || 'Gagal menyimpan.', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+      }
+    }
+
+    function renderMappingSubJkList(katName) {
+      const box = document.getElementById('boxMappingSubJk');
+      if (!box) return;
+
+      const subList = ALL_JAWATANKUASA.filter(j => 
+        String(j.Kategori_Pengurusan || j.kategori_pengurusan || '').toLowerCase() === katName.toLowerCase()
+      );
+
+      if (subList.length === 0) {
+        box.innerHTML = `<p class="text-slate-400 italic">Tiada sub-jawatankuasa didaftarkan untuk ${katName}.</p>`;
+        return;
+      }
+
+      box.innerHTML = '';
+      subList.forEach(item => {
+        const namaJk = item.Nama_Jawatankuasa || item.nama_jawatankuasa || '';
+        const roleType = item.Peranan || item.peranan || 'Penyelaras';
+        const titleLabel = `${roleType} ${namaJk}`;
+
+        const penyelarasRec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
+          String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
+          (String(p.Peranan || p.peranan || '').toLowerCase().includes('penyelaras') || String(p.Peranan || p.peranan || '').toLowerCase().includes('ketua panitia')) &&
+          String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+        );
+
+        let namaPenyelaras = '<span class="text-slate-400 italic">Belum Diisi</span>';
+        if (penyelarasRec) {
+          const idS = penyelarasRec.ID_Staf || penyelarasRec.id_staf;
+          const grpObj = SPECIAL_GROUPS.find(g => g.ID_Staf === idS);
+          const stObj = ALL_STAF.find(s => s.ID_Staf === idS);
+          const tugasKhasTxt = penyelarasRec.Skop_Tugas_Kelas ? ` <span class="text-xs text-rose-600 font-bold">(${penyelarasRec.Skop_Tugas_Kelas})</span>` : '';
+          
+          if (grpObj) namaPenyelaras = `<span class="font-extrabold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-lg border border-purple-200">${grpObj.Nama_Penuh}${tugasKhasTxt}</span>`;
+          else if (stObj) namaPenyelaras = `<span class="font-bold text-slate-800">${stObj.Nama_Penuh}${tugasKhasTxt}</span>`;
+        }
+
+        box.innerHTML += `
+          <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <span class="font-bold text-slate-700">${titleLabel}:</span>
+            ${namaPenyelaras}
+          </div>
+        `;
+      });
+    }
+
+    // ================= 6. DETAIL SUB-JAWATANKUASA =================
+    function populatePentadbiranNaibDropdowns(selectedVal1 = '', selectedVal2 = '', selectedVal3 = '') {
+      const el1 = document.getElementById('selSubNaib1');
+      const el2 = document.getElementById('selSubNaib2');
+      const el3 = document.getElementById('selSubNaib3');
+      if (!el1 || !el2 || !el3) return;
+
+      const currentVal1 = selectedVal1 || el1.value;
+      const currentVal2 = selectedVal2 || el2.value;
+      const currentVal3 = selectedVal3 || el3.value;
+
+      const pentadbirList = ALL_STAF.filter(s => 
+        ['GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum', 'Guru Besar'].includes(s.Kategori_Staf) &&
+        (s.Status || 'Aktif').trim().toLowerCase() === 'aktif'
+      );
+      const sorted = sortStafList(pentadbirList);
+
+      function generateOptions(curVal, otherValA, otherValB) {
+        let opt = '<option value="">-- Pilih Naib Pengerusi --</option>';
+        sorted.forEach(p => {
+          if (p.ID_Staf !== otherValA && p.ID_Staf !== otherValB) {
+            opt += `<option value="${p.ID_Staf}" ${p.ID_Staf === curVal ? 'selected' : ''}>${p.Nama_Penuh} (${p.Kategori_Staf})</option>`;
+          }
+        });
+        return opt;
+      }
+
+      el1.innerHTML = generateOptions(currentVal1, currentVal2, currentVal3);
+      el2.innerHTML = generateOptions(currentVal2, currentVal1, currentVal3);
+      el3.innerHTML = generateOptions(currentVal3, currentVal1, currentVal2);
+
+      el1.value = currentVal1;
+      el2.value = currentVal2;
+      el3.value = currentVal3;
+    }
+
+    function filterPentadbiranNaibDropdowns() {
+      populatePentadbiranNaibDropdowns();
+    }
+
+    function openSubJkDetail(katName, namaJk) {
+      activeCategoryInduk = katName;
+      activeSubJkName = namaJk;
+      showView('viewSubJkDetail');
+
+      document.getElementById('txtSubJkDetailTitle').innerText = `${namaJk}`;
+
+      const jkMaster = ALL_JAWATANKUASA.find(j => String(j.Nama_Jawatankuasa || j.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase());
+      const roleText = jkMaster ? (jkMaster.Peranan || jkMaster.peranan || 'Penyelaras') : 'Penyelaras';
+
+      document.getElementById('lblSubPenyelarasTitle').innerText = `${roleText}:`;
+      document.getElementById('lblSubSetiausahaTitle').innerText = (roleText === 'Ketua Panitia') ? 'Setiausaha Panitia:' : 'Setiausaha:';
+      document.getElementById('lblSubAjkTitle').innerText = (roleText === 'Ketua Panitia') ? 'Senarai AJK Panitia & Portfolio Tugas Khas' : 'Senarai Ahli Jawatankuasa (AJK) & Portfolio Tugas Khas';
+
+      const gb = ALL_STAF.find(s => s.Kategori_Staf === 'Guru Besar');
+      const gpk1 = ALL_STAF.find(s => s.Kategori_Staf === 'GPK Pentadbiran');
+      const gpkHem = ALL_STAF.find(s => s.Kategori_Staf === 'GPK Hal Ehwal Murid');
+      const gpkKoko = ALL_STAF.find(s => s.Kategori_Staf === 'GPK Ko Kurikulum');
+
+      document.getElementById('subMapPengerusi').innerText = gb ? `${gb.Nama_Penuh} (Guru Besar)` : 'Guru Besar';
+
+      const wrapper1 = document.getElementById('wrapperNaib1');
+      const wrapper2 = document.getElementById('wrapperNaib2');
+      const wrapper3 = document.getElementById('wrapperNaib3');
+
+      if (katName === 'Pentadbiran') {
+        wrapper1.innerHTML = `<select id="selSubNaib1" onchange="filterPentadbiranNaibDropdowns()" class="w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>`;
+        wrapper2.innerHTML = `<select id="selSubNaib2" onchange="filterPentadbiranNaibDropdowns()" class="w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>`;
+        wrapper3.innerHTML = `<select id="selSubNaib3" onchange="filterPentadbiranNaibDropdowns()" class="w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>`;
+
+        const np1Rec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
+          String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
+          (String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi 1' || String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi') &&
+          String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+        );
+        const np2Rec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
+          String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
+          String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi 2' &&
+          String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+        );
+        const np3Rec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
+          String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
+          String(p.Peranan || p.peranan || '').toLowerCase() === 'naib pengerusi 3' &&
+          String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+        );
+
+        const v1 = np1Rec ? (np1Rec.ID_Staf || np1Rec.id_staf) : '';
+        const v2 = np2Rec ? (np2Rec.ID_Staf || np2Rec.id_staf) : '';
+        const v3 = np3Rec ? (np3Rec.ID_Staf || np3Rec.id_staf) : '';
+
+        const supervisor=String(jkMaster?.Unit_Penyelia||'Pentadbiran');
+        const recommended=v4FindSupervisor(supervisor);
+        populatePentadbiranNaibDropdowns(v1||recommended, v2, v3);
+      } else {
+        let nameN1 = '', nameN2 = '', nameN3 = '';
+        if (katName === 'Kurikulum') {
+          nameN1 = gpk1 ? `${gpk1.Nama_Penuh} (GPK Pentadbiran)` : 'GPK Pentadbiran';
+          nameN2 = gpkHem ? `${gpkHem.Nama_Penuh} (GPK HEM)` : 'GPK Hal Ehwal Murid';
+          nameN3 = gpkKoko ? `${gpkKoko.Nama_Penuh} (GPK Koko)` : 'GPK Kokurikulum';
+        } else if (katName === 'Hal Ehwal Murid') {
+          nameN1 = gpkHem ? `${gpkHem.Nama_Penuh} (GPK HEM)` : 'GPK Hal Ehwal Murid';
+          nameN2 = gpk1 ? `${gpk1.Nama_Penuh} (GPK Pentadbiran)` : 'GPK Pentadbiran';
+          nameN3 = gpkKoko ? `${gpkKoko.Nama_Penuh} (GPK Koko)` : 'GPK Kokurikulum';
+        } else if (katName === 'Kokurikulum') {
+          nameN1 = gpkKoko ? `${gpkKoko.Nama_Penuh} (GPK Koko)` : 'GPK Kokurikulum';
+          nameN2 = gpk1 ? `${gpk1.Nama_Penuh} (GPK Pentadbiran)` : 'GPK Pentadbiran';
+          nameN3 = gpkHem ? `${gpkHem.Nama_Penuh} (GPK HEM)` : 'GPK Hal Ehwal Murid';
+        }
+
+        wrapper1.innerHTML = `<span class="font-extrabold text-slate-800 flex-1">${nameN1}</span>`;
+        wrapper2.innerHTML = `<span class="font-extrabold text-slate-800 flex-1">${nameN2}</span>`;
+        wrapper3.innerHTML = `<span class="font-extrabold text-slate-800 flex-1">${nameN3}</span>`;
+      }
+
+      // Penyelaras + Tugas Khas
+      const penyelarasRec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
+        String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
+        (String(p.Peranan || p.peranan || '').toLowerCase().includes('penyelaras') || String(p.Peranan || p.peranan || '').toLowerCase().includes('ketua panitia')) &&
+        String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+      );
+
+      document.getElementById('selSubPenyelaras').value = penyelarasRec ? (penyelarasRec.ID_Staf || penyelarasRec.id_staf) : '';
+      document.getElementById('inpSubPenyelarasTugasKhas').value = penyelarasRec ? (penyelarasRec.Skop_Tugas_Kelas || penyelarasRec.skop_tugas_kelas || '') : '';
+
+      // Setiausaha + Tugas Khas
+      const suRec = ALL_PERANAN.find(p => String(p.Tahun || '') === manualV3Year() && 
+        String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
+        String(p.Peranan || p.peranan || '').toLowerCase().includes('setiausaha') &&
+        !String(p.Peranan || p.peranan || '').toLowerCase().includes('naib') &&
+        String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+      );
+
+      document.getElementById('selSubSetiausaha').value = suRec ? (suRec.ID_Staf || suRec.id_staf) : '';
+      document.getElementById('inpSubSetiausahaTugasKhas').value = suRec ? (suRec.Skop_Tugas_Kelas || suRec.skop_tugas_kelas || '') : '';
+
+      // Tampilkan Pegawai Khas Dinamik
+      const customOfficers = ALL_PERANAN.filter(p => String(p.Tahun || '') === manualV3Year() && 
+        String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
+        !['penyelaras', 'ketua panitia', 'setiausaha', 'setiausaha panitia', 'ajk', 'ajk panitia', 'naib pengerusi', 'naib pengerusi 1', 'naib pengerusi 2', 'naib pengerusi 3'].includes(String(p.Peranan || p.peranan || '').toLowerCase()) &&
+        String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+      );
+
+      const containerPegawai = document.getElementById('containerCustomOfficers');
+      containerPegawai.innerHTML = '';
+
+      if (customOfficers.length > 0) {
+        customOfficers.forEach(off => {
+          tambahBarisPegawaiKhas(off.Peranan || off.peranan, off.ID_Staf || off.id_staf);
+        });
+      }
+
+      // Senarai AJK + Tugas Khas
+      const ajkList = ALL_PERANAN.filter(p => String(p.Tahun || '') === manualV3Year() && 
+        String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim().toLowerCase() === namaJk.toLowerCase() &&
+        String(p.Peranan || p.peranan || '').toLowerCase().includes('ajk') &&
+        String(p.Status || 'Aktif').toLowerCase() === 'aktif'
+      );
+
+      const containerAjk = document.getElementById('containerAjkRows');
+      containerAjk.innerHTML = '';
+
+      if (ajkList.length > 0) {
+        ajkList.forEach(ajk => {
+          tambahBarisAjk(ajk.ID_Staf || ajk.id_staf, ajk.Skop_Tugas_Kelas || ajk.skop_tugas_kelas || '');
+        });
+      } else {
+        tambahBarisAjk();
+      }
+    }
+
+    function tambahBarisPegawaiKhas(namaJawatan = '', selectedId = '') {
+      const container = document.getElementById('containerCustomOfficers');
+      if (!container) return;
+
+      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+      const sortedGuru = sortStafList(activeGuruOnly);
+
+      let options = '<option value="">-- Pilih Guru / Kumpulan --</option>';
+      sortedGuru.forEach(g => {
+        options += `<option value="${g.ID_Staf}" ${g.ID_Staf === selectedId ? 'selected' : ''}>${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
+      });
+
+      const rowId = 'officerRow_' + new Date().getTime() + Math.floor(Math.random() * 100);
+
+      const div = document.createElement('div');
+      div.id = rowId;
+      div.className = "flex items-center gap-2 pt-1";
+      div.innerHTML = `
+        <input type="text" data-officer-title="true" value="${namaJawatan}" placeholder="Gelaran Jawatan (e.g. Naib SU / Bendahari)" class="w-40 p-2 border border-slate-300 rounded-xl font-bold text-xs text-slate-800 focus:outline-none">
+        <select data-officer-select="true" class="select-guru-opt flex-1 p-2 bg-white border border-slate-300 rounded-xl font-bold text-xs text-slate-800 focus:outline-none">
+          ${options}
+        </select>
+        <button onclick="padamBarisAjk('${rowId}')" class="px-2.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl transition shrink-0">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      `;
+      container.appendChild(div);
+    }
+
+    function tambahBarisAjk(selectedId = '', tugasKhasVal = '') {
+      const container = document.getElementById('containerAjkRows');
+      if (!container) return;
+
+      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+      const sortedGuru = sortStafList(activeGuruOnly);
+
+      let options = '<option value="">-- Pilih Guru / Kumpulan Khas AJK --</option>';
+      
+      options += '<optgroup label="-- KUMPULAN KHAS --">';
+      SPECIAL_GROUPS.forEach(g => {
+        options += `<option value="${g.ID_Staf}" ${g.ID_Staf === selectedId ? 'selected' : ''}>${g.Nama_Penuh}</option>`;
+      });
+      options += '</optgroup>';
+
+      options += '<optgroup label="-- SENARAI GURU INDIVIDU --">';
+      sortedGuru.forEach(g => {
+        options += `<option value="${g.ID_Staf}" ${g.ID_Staf === selectedId ? 'selected' : ''}>${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
+      });
+      options += '</optgroup>';
+
+      const rowId = 'ajkRow_' + new Date().getTime() + Math.floor(Math.random() * 100);
+
+      const div = document.createElement('div');
+      div.id = rowId;
+      div.className = "flex items-center gap-2";
+      div.innerHTML = `
+        <select data-ajk-select="true" class="select-guru-opt w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-xs text-slate-800 focus:outline-none focus:border-rose-600">
+          ${options}
+        </select>
+        <input type="text" data-ajk-tugas-khas="true" value="${tugasKhasVal}" placeholder="Tugas Khas (Optional e.g. Digital Tool)" class="w-1/2 p-2 border border-slate-300 rounded-xl bg-white text-xs font-semibold focus:outline-none">
+        <button onclick="padamBarisAjk('${rowId}')" class="px-2.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl transition shrink-0">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      `;
+      container.appendChild(div);
+    }
+
+    function padamBarisAjk(rowId) {
+      const el = document.getElementById(rowId);
+      if (el) el.remove();
+    }
+
+    async function simpanDetailSubJk() {
+      const penyelarasVal = document.getElementById('selSubPenyelaras').value;
+      const penyelarasTugasKhas = document.getElementById('inpSubPenyelarasTugasKhas').value.trim();
+
+      const suVal = document.getElementById('selSubSetiausaha').value;
+      const suTugasKhas = document.getElementById('inpSubSetiausahaTugasKhas').value.trim();
+
+      const tahunAktif = document.getElementById('selTahunAktif')?.value || '2027';
+
+      const jkMaster = ALL_JAWATANKUASA.find(j => String(j.Nama_Jawatankuasa || j.nama_jawatankuasa || '').trim().toLowerCase() === activeSubJkName.toLowerCase());
+      const roleText = jkMaster ? (jkMaster.Peranan || jkMaster.peranan || 'Penyelaras') : 'Penyelaras';
+      const roleSuText = (roleText === 'Ketua Panitia') ? 'Setiausaha Panitia' : 'Setiausaha';
+      const roleAjkText = (roleText === 'Ketua Panitia') ? 'AJK Panitia' : 'AJK';
+
+      let payloadBatch = [];
+
+      // Simpan Naib Pengerusi 1, 2, 3 jika Kategori Pentadbiran
+      if (activeCategoryInduk === 'Pentadbiran') {
+        const np1 = document.getElementById('selSubNaib1')?.value;
+        const np2 = document.getElementById('selSubNaib2')?.value;
+        const np3 = document.getElementById('selSubNaib3')?.value;
+
+        if (np1) {
+          payloadBatch.push({
+            kategori_pengurusan: activeCategoryInduk,
+            jk_induk: `JK Induk ${activeCategoryInduk}`,
+            nama_jawatankuasa: activeSubJkName,
+            peranan: 'Naib Pengerusi 1',
+            skop_tugas_kelas: activeSubJkName,
+            id_staf: np1,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+        if (np2) {
+          payloadBatch.push({
+            kategori_pengurusan: activeCategoryInduk,
+            jk_induk: `JK Induk ${activeCategoryInduk}`,
+            nama_jawatankuasa: activeSubJkName,
+            peranan: 'Naib Pengerusi 2',
+            skop_tugas_kelas: activeSubJkName,
+            id_staf: np2,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+        if (np3) {
+          payloadBatch.push({
+            kategori_pengurusan: activeCategoryInduk,
+            jk_induk: `JK Induk ${activeCategoryInduk}`,
+            nama_jawatankuasa: activeSubJkName,
+            peranan: 'Naib Pengerusi 3',
+            skop_tugas_kelas: activeSubJkName,
+            id_staf: np3,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+      }
+
+      // Simpan Penyelaras / KP
+      if (penyelarasVal) {
+        payloadBatch.push({
+          kategori_pengurusan: activeCategoryInduk,
+          jk_induk: `JK Induk ${activeCategoryInduk}`,
+          nama_jawatankuasa: activeSubJkName,
+          peranan: roleText,
+          skop_tugas_kelas: penyelarasTugasKhas,
+          id_staf: penyelarasVal,
+          tahun: tahunAktif,
+          status: 'Aktif'
+        });
+      }
+
+      // Simpan Setiausaha
+      if (suVal) {
+        payloadBatch.push({
+          kategori_pengurusan: activeCategoryInduk,
+          jk_induk: `JK Induk ${activeCategoryInduk}`,
+          nama_jawatankuasa: activeSubJkName,
+          peranan: roleSuText,
+          skop_tugas_kelas: suTugasKhas,
+          id_staf: suVal,
+          tahun: tahunAktif,
+          status: 'Aktif'
+        });
+      }
+
+      // Simpan Pegawai Khas Dinamik
+      const customOfficerRows = document.querySelectorAll('#containerCustomOfficers > div');
+      customOfficerRows.forEach(row => {
+        const titleInp = row.querySelector('input[data-officer-title="true"]');
+        const selInp = row.querySelector('select[data-officer-select="true"]');
+        
+        if (titleInp && selInp && titleInp.value.trim() && selInp.value) {
+          payloadBatch.push({
+            kategori_pengurusan: activeCategoryInduk,
+            jk_induk: `JK Induk ${activeCategoryInduk}`,
+            nama_jawatankuasa: activeSubJkName,
+            peranan: titleInp.value.trim(),
+            skop_tugas_kelas: '',
+            id_staf: selInp.value,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+      });
+
+      // Simpan AJK & Tugas Khas masing-masing
+      const ajkRows = document.querySelectorAll('#containerAjkRows > div');
+      ajkRows.forEach(row => {
+        const selInp = row.querySelector('select[data-ajk-select="true"]');
+        const tugasInp = row.querySelector('input[data-ajk-tugas-khas="true"]');
+        
+        if (selInp && selInp.value) {
+          payloadBatch.push({
+            kategori_pengurusan: activeCategoryInduk,
+            jk_induk: `JK Induk ${activeCategoryInduk}`,
+            nama_jawatankuasa: activeSubJkName,
+            peranan: roleAjkText,
+            skop_tugas_kelas: (tugasInp ? tugasInp.value.trim() : ''),
+            id_staf: selInp.value,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+      });
+
+      const scopes = [activeSubJkName];
+      if (!await manualV3ConfirmSave(scopes,payloadBatch,activeSubJkName)) return;
+      const payload = {
+        action: 'savePerananStafV2',
+        target_year: tahunAktif,
+        allow_empty: payloadBatch.length === 0,
+        effective_date:MANUAL_V4_EFFECTIVE_DATE,change_reason:MANUAL_V4_REASON,
+        expected_scope_ids: manualV3ScopeIds(scopes),
+        scopes_to_clear: scopes,
+        data: payloadBatch
+      };
+      showLoader(`Menyimpan jawatankuasa ${activeSubJkName}...`);
+
+      try {
+        const res = await postToBackend(payload);
+        hideLoader();
+        if (res && res.success) {
+          Swal.fire('Berjaya Saved', `Jawatankuasa ${activeSubJkName} berjaya dikemaskini!`, 'success');
+          await v5RefreshSubAfterSave(activeCategoryInduk,activeSubJkName);
+        } else {
+          Swal.fire('Ralat', res.error || 'Gagal menyimpan.', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+      }
+    }
+
+    function hydrateStateFromPerananData() {
+      statePengurusanKelas = {};
+      stateBilikKhas = {};
+      kumpulanBertugasState = Object.fromEntries(v4ActiveGroups().map(g=>[Number(g.Nombor_Kumpulan),[]]));
+      statePenghantaranRph = {};
+      statePencerapanPdp = {};
+      stateSemakanBuku = {};
+
+      if (!ALL_PERANAN || ALL_PERANAN.length === 0) return;
+
+      const currentYear = document.getElementById('selTahunAktif')?.value || '2027';
+
+      ALL_PERANAN.forEach(p => {
+        const jk = String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim();
+        const peranan = String(p.Peranan || p.peranan || '').trim();
+        const skop = String(p.Skop_Tugas_Kelas || p.skop_tugas_kelas || '').trim();
+        const idStaf = String(p.ID_Staf || p.id_staf || '').trim();
+        const status = String(p.Status || p.status || 'Aktif').trim().toLowerCase();
+        const thn = String(p.Tahun || p.tahun || '2027').trim();
+
+        if (status !== 'aktif' || !idStaf || thn !== currentYear) return;
+
+        if (jk === 'Pengurusan Kelas') {
+          if (!statePengurusanKelas[skop]) statePengurusanKelas[skop] = { gk: '', gpk: '' };
+          if (peranan === 'Guru Kelas') statePengurusanKelas[skop].gk = idStaf;
+          if (peranan === 'Guru Pembantu') statePengurusanKelas[skop].gpk = idStaf;
+        }
+
+        if (jk === 'Pengurusan Bilik Khas') {
+          stateBilikKhas[skop] = idStaf;
+        }
+
+        if (jk === 'Kumpulan Bertugas Mingguan') {
+          const match = skop.match(/\d+/);
+          if (match) {
+            const grpNum = parseInt(match[0], 10);
+            if (kumpulanBertugasState[grpNum] && !kumpulanBertugasState[grpNum].includes(idStaf)) {
+              kumpulanBertugasState[grpNum].push(idStaf);
+            }
+          }
+        }
+
+        if (jk === 'Penghantaran e-RPH') {
+          statePenghantaranRph[idStaf] = skop;
+        }
+
+        if (jk === 'Pencerapan PdP') {
+          if (!statePencerapanPdp[idStaf]) statePencerapanPdp[idStaf] = { p1: '', p2: '' };
+          if (peranan === 'Pencerapan 1') statePencerapanPdp[idStaf].p1 = skop;
+          if (peranan === 'Pencerapan 2') statePencerapanPdp[idStaf].p2 = skop;
+        }
+
+        if (jk === 'Semakan Buku Tulis') {
+          stateSemakanBuku[skop] = idStaf;
+        }
+      });
+    }
+
+    async function fetchMasterStafData() {
+      showLoader('Menyediakan maklumat pengurusan terkini…');
+      try {
+        const res = await postToBackend({ action: 'getManualV2Data' });
+        hideLoader();
+
+        if (res && res.success) {
+          ALL_STAF = res.staf || [];
+          ALL_LOKASI = res.lokasi || [];
+          ALL_PERANAN = res.peranan || [];
+          ALL_JAWATANKUASA = res.jawatankuasa || [];
+          ALL_SUBJEK = res.subjek || [];
+          ALL_SEKSYEN = res.seksyen || [];
+          ALL_KUMPULAN = res.kumpulan || [];
+          ALL_TAKWIM = res.takwim || [];
+          ALL_MINGGU = res.mingguSekolah || [];
+          ALL_BUKU = res.kandunganBuku || [];
+          v4RenderCatalog();v4RenderCalendar();
+
+        } else { throw new Error(res?.error || 'Backend tidak memulangkan data lengkap.'); }
+      } catch (err) {
+        hideLoader();
+        await Swal.fire('Gagal Muat Data',String(err.message||err),'error');
+        return;
+      }
+
+      clearManualV3Dirty();
+      refreshManualV3CommandCenter();
+      renderAuditPerananV3();
+      checkVacanciesReport();
+      renderMasterStafTable();
+      renderMasterJawatankuasaTable();
+      populateDropdownGuru();
+      
+      hydrateStateFromPerananData();
+      renderPengurusanSekolahTables();
+    }
+
+    function toggleMobileSidebar() {
+      document.getElementById('sidebar').classList.toggle('hidden');
+    }
+
+    function showView(viewId, evt = null) {
+      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print', 'viewV5BookEditor'];
+      views.forEach(v => {
+        const el = document.getElementById(v);
+        if (el) el.classList.add('hidden');
+      });
+
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+      if (evt && evt.currentTarget) {
+        evt.currentTarget.classList.add('active');
+      }
+
+      const activeView = document.getElementById(viewId);
+      if (activeView) {
+        activeView.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      const bTxt = document.getElementById('txtBreadcrumb');
+      if (viewId === 'viewDashboard') bTxt.innerText = 'Dashboard Utama';
+      else if (viewId === 'viewAuditPeranan') {bTxt.innerText = 'Pusat Semakan & Analitik'; renderAuditPerananV3();}
+      else if (viewId === 'viewProfilStaf') bTxt.innerText = 'Profil Guru & AKP';
+      else if (viewId === 'viewPengurusanJawatankuasa') bTxt.innerText = 'Pengurusan Master Jawatankuasa';
+      else if (viewId === 'viewPengurusanSekolah') bTxt.innerText = 'Pengurusan Sekolah';
+      else if (viewId === 'viewIndukOverview') bTxt.innerText = `JK Induk ${activeCategoryInduk}`;
+      else if (viewId === 'viewSubJkDetail') bTxt.innerText = activeSubJkName;
+      else if (viewId === 'viewV4Catalog') bTxt.innerText='Tetapan Data Induk';
+      else if (viewId === 'viewV4Order') bTxt.innerText='Susunan Jawatankuasa';
+      else if (viewId === 'viewV4Calendar') bTxt.innerText='Takwim';
+      else if (viewId === 'viewV4Print') bTxt.innerText='Cetak Buku Manual';
+      else if (viewId === 'viewV5BookEditor') bTxt.innerText='Editor Kandungan Buku';
+    }
+
+    function switchSubPengurusan(type, evt = null) {
+      MANUAL_V3_ACTIVE_MODULE=type;
+      ['subSecKelas', 'subSecBilik', 'subSecBertugas', 'subSecRph', 'subSecPencerapan', 'subSecSemakan'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+      });
+
+      document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-rose-600', 'text-white');
+        btn.classList.add('bg-slate-100', 'text-slate-700');
+      });
+
+      let targetBtn = evt ? evt.currentTarget : document.getElementById('subTab' + type.charAt(0).toUpperCase() + type.slice(1));
+      if (targetBtn) {
+        targetBtn.classList.add('active', 'bg-rose-600', 'text-white');
+        targetBtn.classList.remove('bg-slate-100', 'text-slate-700');
+      }
+
+      const viewMap = {
+        'kelas': 'subSecKelas',
+        'bilik': 'subSecBilik',
+        'bertugas': 'subSecBertugas',
+        'rph': 'subSecRph',
+        'pencerapan': 'subSecPencerapan',
+        'semakan': 'subSecSemakan'
+      };
+
+      if (viewMap[type]) {
+        document.getElementById(viewMap[type]).classList.remove('hidden');
+      }
+    }
+
+    function renderPengurusanSekolahTables() {
+      renderTableKelas();
+      renderTableBilikKhas();
+      renderKumpulanBertugasUI();
+      renderTablePenghantaranRph();
+      renderTablePencerapanPdp();
+      renderTableSemakanBuku();
+    }
+
+    function getPentadbirList() {
+      return ALL_STAF.filter(s => 
+        ['Guru Besar', 'GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf) && 
+        (s.Status || 'Aktif').trim().toLowerCase() === 'aktif'
+      );
+    }
+
+    function getGuruTanpaPraktikalAKP() {
+      const guru = ALL_STAF.filter(s => 
+        s.Kategori_Staf !== 'AKP' && 
+        s.Kategori_Staf !== 'Guru Praktikal' && 
+        (s.Status || 'Aktif').trim().toLowerCase() === 'aktif'
+      );
+      return sortStafList(guru);
+    }
+
+    function renderTablePenghantaranRph() {
+      const tbody = document.getElementById('tbodyPenghantaranRph');
+      if (!tbody) return;
+
+      const senaraiGuru = getGuruTanpaPraktikalAKP();
+      const senaraiPentadbir = getPentadbirList();
+
+      if (senaraiGuru.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="table-cell-std text-center text-slate-400 italic">Tiada rekod guru dijumpai.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      senaraiGuru.forEach((g, idx) => {
+        const isGuruBesar = g.Kategori_Staf === 'Guru Besar';
+        const currentPenyemak = statePenghantaranRph[g.ID_Staf] || '';
+
+        let selectHtml = '';
+        if (isGuruBesar) {
+          selectHtml = `<input type="text" value="PPD (Pejabat Pendidikan Daerah)" disabled class="w-full p-2 bg-slate-200 border border-slate-300 rounded-xl font-bold text-slate-700 text-xs">`;
+        } else {
+          selectHtml = `<select onchange="updateStateRph('${g.ID_Staf}', this.value)" class="w-full p-2 border border-slate-200 rounded-xl bg-white font-semibold focus:border-purple-600 text-xs">`;
+          selectHtml += `<option value="">-- Pilih Pentadbir Penyemak --</option>`;
+          senaraiPentadbir.forEach(p => {
+            selectHtml += `<option value="${p.ID_Staf}" ${p.ID_Staf === currentPenyemak ? 'selected' : ''}>${p.Nama_Penuh} (${p.Kategori_Staf})</option>`;
+          });
+          selectHtml += `</select>`;
+        }
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="table-cell-std font-extrabold text-slate-800">${g.Nama_Penuh} <span class="text-[10px] text-rose-500 font-semibold">(${g.Kategori_Staf})</span></td>
+            <td class="p-2">${selectHtml}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function updateStateRph(idGuru, idPenyemak) {
+      markManualV3Dirty();
+      statePenghantaranRph[idGuru] = idPenyemak;
+    }
+
+    function renderTablePencerapanPdp() {
+      const tbody = document.getElementById('tbodyPencerapanPdp');
+      if (!tbody) return;
+
+      const senaraiGuru = getGuruTanpaPraktikalAKP();
+      const senaraiPentadbir = getPentadbirList();
+
+      if (senaraiGuru.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="table-cell-std text-center text-slate-400 italic">Tiada rekod guru dijumpai.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      senaraiGuru.forEach((g, idx) => {
+        const st = statePencerapanPdp[g.ID_Staf] || { p1: '', p2: '' };
+
+        let opt1 = `<option value="">-- Pilih Pencerap 1 --</option>`;
+        let opt2 = `<option value="">-- Pilih Pencerap 2 --</option>`;
+
+        senaraiPentadbir.forEach(p => {
+          opt1 += `<option value="${p.ID_Staf}" ${p.ID_Staf === st.p1 ? 'selected' : ''}>${p.Nama_Penuh} (${p.Kategori_Staf})</option>`;
+          opt2 += `<option value="${p.ID_Staf}" ${p.ID_Staf === st.p2 ? 'selected' : ''}>${p.Nama_Penuh} (${p.Kategori_Staf})</option>`;
+        });
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="table-cell-std font-extrabold text-slate-800">${g.Nama_Penuh} <span class="text-[10px] text-rose-500 font-semibold">(${g.Kategori_Staf})</span></td>
+            <td class="p-2">
+              <select onchange="updateStatePencerapan('${g.ID_Staf}', 'p1', this.value)" class="w-full p-2 border border-slate-200 rounded-xl bg-white font-semibold text-xs">
+                ${opt1}
+              </select>
+            </td>
+            <td class="p-2">
+              <select onchange="updateStatePencerapan('${g.ID_Staf}', 'p2', this.value)" class="w-full p-2 border border-slate-200 rounded-xl bg-white font-semibold text-xs">
+                ${opt2}
+              </select>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function updateStatePencerapan(idGuru, field, idPencerap) {
+      markManualV3Dirty();
+      if (!statePencerapanPdp[idGuru]) statePencerapanPdp[idGuru] = { p1: '', p2: '' };
+      statePencerapanPdp[idGuru][field] = idPencerap;
+    }
+
+    function v4EligibleYears(category){
+      const t=String(category||'').toLowerCase().replace(/\s+/g,' ').trim();
+      const years=[...t.matchAll(/tahun\s*([1-6])/g)].map(m=>Number(m[1]));
+      if(years.length)return [...new Set(years)];
+      if(t.includes('tahap 1')&&t.includes('tahap 2'))return [1,2,3,4,5,6];
+      if(t.includes('tahap 1'))return [1,2,3];
+      if(t.includes('tahap 2'))return [4,5,6];
+      return [1,2,3,4,5,6];
+    }
+    function renderTableSemakanBuku(){
+      const tbody=document.getElementById('tbodySemakanBuku');if(!tbody)return;
+      const admins=getPentadbirList(),map=new Map();
+      ALL_SUBJEK.filter(s=>String(s.Status||'Aktif').toLowerCase()==='aktif').forEach(s=>{
+        const key=String(s.Subjek_Induk||s['Nama_Subjek / Komponen']||'').trim();if(!key)return;
+        const code=String(s.Kod_Subjek||'').trim(),category=String(s.Kategori_Tahap||'').trim();
+        if(!map.has(key))map.set(key,{name:key,code:code,years:new Set()});
+        const entry=map.get(key);v4EligibleYears(category).forEach(y=>entry.years.add(y));
+        if(entry.code.includes('-')&&!code.includes('-'))entry.code=code;
+      });
+      tbody.innerHTML=[...map.values()].map((sub,i)=>{
+        const cells=Array.from({length:6},(_,x)=>{
+          const year=x+1;if(!sub.years.has(year))return '<td class="p-1 text-center bg-slate-50"><span class="text-slate-400 text-[10px] font-bold">N/A</span></td>';
+          const key=`${sub.code||sub.name}_Tahun${year}`,value=stateSemakanBuku[key]||'';
+          const options=admins.map(a=>`<option value="${manualV3Escape(a.ID_Staf)}" ${a.ID_Staf===value?'selected':''}>${manualV3Escape(a.Nama_Samaran||a.Nama_Penuh)}</option>`).join('');
+          return `<td class="p-1"><select data-key="${manualV3Escape(key)}" onchange="updateStateSemakanBuku(this.dataset.key,this.value)" class="w-full p-1.5 border rounded-lg text-[11px]"><option value="">-- Pilih --</option>${options}</select></td>`;
+        }).join('');
+        return `<tr class="border-b"><td class="table-cell-std text-center">${i+1}</td><td class="table-cell-std font-bold">${manualV3Escape(sub.name)} <span class="text-rose-600">(${manualV3Escape(sub.code)})</span></td>${cells}</tr>`;
+      }).join('')||'<tr><td colspan="8" class="p-5 text-center text-slate-400">Tiada subjek aktif.</td></tr>';
+    }
+
+    function updateStateSemakanBuku(keySkop, idPenyemak) {
+      markManualV3Dirty();
+      stateSemakanBuku[keySkop] = idPenyemak;
+    }
+
+    let CURRENT_STAF_VIEW = 'aktif';
+    function v51PrettyDate(value){
+      if(!value)return '';
+      const str=String(value);
+      if(/^\d{4}-\d{2}-\d{2}/.test(str))return str.slice(8,10)+'/'+str.slice(5,7)+'/'+str.slice(0,4);
+      return str;
+    }
+    function v51SwitchStafView(view){
+      CURRENT_STAF_VIEW=view==='arkib'?'arkib':'aktif';
+      ['aktif','arkib'].forEach(v=>{
+        const btn=document.getElementById(v==='aktif'?'v51StaffTabActive':'v51StaffTabArchive');
+        if(!btn)return;
+        const selected=CURRENT_STAF_VIEW===v;
+        btn.setAttribute('aria-selected',selected?'true':'false');
+        btn.className='px-4 py-2 rounded-lg font-extrabold text-xs '+(selected?'bg-rose-600 text-white shadow-sm':'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100');
+      });
+      const hint=document.getElementById('v51StaffViewHint');
+      if(hint)hint.textContent=CURRENT_STAF_VIEW==='arkib'?'Arkib hanya mengasingkan paparan. Rekod sejarah staf tetap disimpan.':'Hanya staf aktif ditunjukkan. Rekod arkib tidak dipadam.';
+      CURRENT_STAF_FILTER='Semua';
+      document.querySelectorAll('.btn-filter-staf').forEach((b,i)=>{
+        b.className='btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs '+(i===0?'bg-rose-600 text-white':'bg-slate-100 hover:bg-slate-200 text-slate-700');
+      });
+      renderMasterStafTable();
+    }
+
+    function renderMasterStafTable(filterKat = CURRENT_STAF_FILTER) {
+      CURRENT_STAF_FILTER = filterKat;
+      const tbody = document.getElementById('tbodyMasterStaf');
+      if (!tbody) return;
+
+      const sortedStaf = sortStafList(ALL_STAF);
+      const activeStaf=sortedStaf.filter(s=>String(s.Status||'').trim().toLowerCase()==='aktif');
+      const archiveStaf=sortedStaf.filter(s=>String(s.Status||'').trim().toLowerCase()!=='aktif');
+      const countActive=document.getElementById('v51ActiveCount');if(countActive)countActive.textContent='('+activeStaf.length+')';
+      const countArchive=document.getElementById('v51ArchiveCount');if(countArchive)countArchive.textContent='('+archiveStaf.length+')';
+      const heading=document.getElementById('v51StaffListHeading');if(heading)heading.innerHTML='<i class="fa-solid '+(CURRENT_STAF_VIEW==='aktif'?'fa-users text-rose-600':'fa-box-archive text-slate-600')+' mr-2"></i> Senarai Staf '+(CURRENT_STAF_VIEW==='aktif'?'Aktif':'Arkib');
+      let filteredData = CURRENT_STAF_VIEW==='aktif'?activeStaf:archiveStaf;
+
+      if (filterKat === 'Pentadbir') {
+        filteredData = filteredData.filter(s => ['Guru Besar', 'GPK Pentadbiran', 'GPK Hal Ehwal Murid', 'GPK Ko Kurikulum'].includes(s.Kategori_Staf));
+      } else if (filterKat === 'Guru Akademik') {
+        filteredData = filteredData.filter(s => s.Kategori_Staf === 'Guru Akademik');
+      } else if (filterKat === 'Guru Praktikal') {
+        filteredData = filteredData.filter(s => s.Kategori_Staf === 'Guru Praktikal');
+      } else if (filterKat === 'AKP') {
+        filteredData = filteredData.filter(s => s.Kategori_Staf === 'AKP');
+      }
+
+      const term=String(document.getElementById('stafSearchV3')?.value||'').trim().toLowerCase();
+      if(term)filteredData=filteredData.filter(s=>[s.Nama_Penuh,s.Nama_Samaran,s.ID_Staf,s.Email_Delima].some(x=>String(x||'').toLowerCase().includes(term)));
+      document.getElementById('txtCountStaf').innerText = `${filteredData.length} Staf`;
+
+      if (filteredData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-cell-std text-center text-slate-400 italic">Tiada data staf dijumpai.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      filteredData.forEach((staf, idx) => {
+        let badgeClass = 'bg-slate-100 text-slate-700';
+        const kat = staf.Kategori_Staf || 'Guru Akademik';
+        const isAktif = String(staf.Status || 'Aktif').trim().toLowerCase() === 'aktif';
+
+        if (kat === 'Guru Besar') badgeClass = 'bg-rose-100 text-rose-800 font-extrabold';
+        else if (kat.includes('GPK')) badgeClass = 'bg-amber-100 text-amber-800 font-extrabold';
+        else if (kat === 'Guru Akademik') badgeClass = 'bg-emerald-100 text-emerald-800 font-bold';
+        else if (kat === 'Guru Praktikal') badgeClass = 'bg-cyan-100 text-cyan-800 font-bold';
+        else if (kat === 'AKP') badgeClass = 'bg-blue-100 text-blue-800 font-bold';
+
+        const statusBadge = isAktif 
+          ? `<span class="px-2 py-0.5 text-[10px] rounded-full font-bold bg-emerald-50 text-emerald-600 border border-emerald-200">Aktif</span>`
+          : `<span class="px-2 py-0.5 text-[10px] rounded-full font-bold bg-rose-50 text-rose-600 border border-rose-200">Tidak Aktif</span>`;
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="table-cell-std">
+              <button onclick="openDetailGuruModal('${staf.ID_Staf}')" class="text-left font-extrabold text-slate-800 hover:text-rose-600 focus:outline-none underline decoration-rose-300 decoration-2 underline-offset-2 transition">
+                ${staf.Nama_Penuh || '-'}
+              </button>
+              <p class="text-[10px] text-rose-600 font-semibold">"${staf.Nama_Samaran || '-'}"</p>
+              ${CURRENT_STAF_VIEW==='arkib'?`<p class="text-[10px] text-slate-500 mt-1"><i class="fa-regular fa-calendar-xmark mr-1"></i> Tarikh keluar: ${manualV3Escape(v51PrettyDate(staf.Tarikh_Keluar)||'Tidak direkodkan')}</p>`:''}
+            </td>
+            <td class="table-cell-std"><span class="px-2 py-0.5 text-[10px] rounded-full ${badgeClass}">${kat}</span></td>
+            <td class="table-cell-std font-bold text-slate-700">${staf.Gred_Jawatan || '-'}</td>
+            <td class="table-cell-std text-slate-600">${staf.Opsyen_Utama || '-'}</td>
+            <td class="table-cell-std text-center">${statusBadge}</td>
+            <td class="table-cell-std text-center">
+              <button onclick="openEditGuruModal('${staf.ID_Staf}')" title="Edit Profil & Status" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg transition border border-amber-200">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function filterStafTable(kat, evt = null) {
+      document.querySelectorAll('.btn-filter-staf').forEach(btn => {
+        btn.className = 'btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700';
+      });
+      if (evt && evt.currentTarget) {
+        evt.currentTarget.className = 'btn-filter-staf active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs';
+      }
+      renderMasterStafTable(kat);
+    }
+
+    function openDetailGuruModal(idStaf) {
+      currentDetailStafId = idStaf;
+      const staf = ALL_STAF.find(s => s.ID_Staf === idStaf);
+      if (!staf) return;
+
+      document.getElementById('dtlNamaGuru').innerText = staf.Nama_Penuh;
+      document.getElementById('dtlSubTitle').innerText = `${staf.ID_Staf} • ${staf.Kategori_Staf || '-'}`;
+      document.getElementById('dtlGred').innerText = staf.Gred_Jawatan || '-';
+      document.getElementById('dtlOpsyen').innerText = staf.Opsyen_Utama || '-';
+      document.getElementById('dtlTelefon').innerText = staf.No_Telefon || '-';
+
+      const isAktif = String(staf.Status || 'Aktif').trim().toLowerCase() === 'aktif';
+      const badgeEl = document.getElementById('dtlStatusBadge');
+      if (isAktif) {
+        badgeEl.className = "font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200";
+        badgeEl.innerText = "Aktif";
+      } else {
+        badgeEl.className = "font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200";
+        badgeEl.innerText = "Tidak Aktif";
+      }
+
+      const currentYear = document.getElementById('selTahunAktif')?.value || '2027';
+      const listPerananStaf = ALL_PERANAN.filter(p => 
+        (p.ID_Staf || p.id_staf) === idStaf && 
+        String(p.Status || 'Aktif').toLowerCase() === 'aktif' &&
+        String(p.Tahun || '2027') === currentYear
+      );
+
+      const isKetuaPanitia = listPerananStaf.some(p => String(p.Peranan || '').toLowerCase().includes('ketua panitia'));
+
+      const specialGroupIds = ['GRP001'];
+      if (isKetuaPanitia) specialGroupIds.push('GRP002');
+
+      const groupPerananList = ALL_PERANAN.filter(p => 
+        specialGroupIds.includes(p.ID_Staf || p.id_staf) && 
+        String(p.Status || 'Aktif').toLowerCase() === 'aktif' &&
+        String(p.Tahun || '2027') === currentYear
+      );
+
+      const tbody = document.getElementById('tbodyDetailPeranan');
+      tbody.innerHTML = '';
+      let count = 0;
+
+      listPerananStaf.forEach(p => {
+        count++;
+        const tugasKhasTxt = (p.Skop_Tugas_Kelas && p.Skop_Tugas_Kelas !== p.Nama_Jawatankuasa) 
+          ? `<br><span class="text-[10px] font-bold text-rose-600"><i class="fa-solid fa-tag mr-1"></i>Tugas Khas: ${p.Skop_Tugas_Kelas}</span>` 
+          : '';
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="table-cell-std text-center font-bold text-slate-400">${count}</td>
+            <td class="table-cell-std font-extrabold text-slate-800">${p.Nama_Jawatankuasa || p.nama_jawatankuasa || '-'}</td>
+            <td class="table-cell-std font-bold text-rose-600">${p.Peranan || p.peranan || '-'}${tugasKhasTxt}</td>
+            <td class="table-cell-std"><span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Individu / Direct</span></td>
+          </tr>
+        `;
+      });
+
+      groupPerananList.forEach(p => {
+        count++;
+        const grpObj = SPECIAL_GROUPS.find(g => g.ID_Staf === (p.ID_Staf || p.id_staf));
+        const grpLabel = grpObj ? grpObj.Nama_Penuh : 'Kumpulan Khas';
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="table-cell-std text-center font-bold text-slate-400">${count}</td>
+            <td class="table-cell-std font-extrabold text-slate-800">${p.Nama_Jawatankuasa || p.nama_jawatankuasa || '-'}</td>
+            <td class="table-cell-std font-bold text-purple-700">${p.Peranan || p.peranan || '-'}</td>
+            <td class="table-cell-std"><span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-purple-50 text-purple-700 border border-purple-200">Sebab (${grpLabel})</span></td>
+          </tr>
+        `;
+      });
+
+      if (count === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="table-cell-std text-center text-slate-400 italic">Tiada peranan jawatankuasa dijumpai untuk sesi ${currentYear}.</td></tr>`;
+      }
+
+      document.getElementById('modal-detail-guru').classList.remove('hidden');
+    }
+
+    function closeDetailGuruModal() {
+      document.getElementById('modal-detail-guru').classList.add('hidden');
+    }
+
+    function openEditGuruModalFromDetail() {
+      closeDetailGuruModal();
+      if (currentDetailStafId) {
+        openEditGuruModal(currentDetailStafId);
+      }
+    }
+
+    function openEditGuruModal(idStaf) {
+      const staf = ALL_STAF.find(s => s.ID_Staf === idStaf);
+      if (!staf) return;
+
+      document.getElementById('modalStafTitle').innerHTML = '<i class="fa-solid fa-user-pen mr-2"></i>Kemaskini Profil Staf & Status';
+      document.getElementById('inp_ID_Staf').value = staf.ID_Staf || '';
+      document.getElementById('inp_Nama_Penuh').value = staf.Nama_Penuh || '';
+      document.getElementById('inp_Nama_Samaran').value = staf.Nama_Samaran || '';
+      document.getElementById('inp_No_KP').value = staf.No_KP || '';
+      document.getElementById('inp_Kategori_Staf').value = staf.Kategori_Staf || 'Guru Akademik';
+      document.getElementById('inp_Gred_Jawatan').value = staf.Gred_Jawatan || '';
+      document.getElementById('inp_Opsyen_Utama').value = staf.Opsyen_Utama || '';
+      document.getElementById('inp_Email_Delima').value = staf.Email_Delima || '';
+      document.getElementById('inp_No_Telefon').value = staf.No_Telefon || '';
+      document.getElementById('inp_Status').value = staf.Status || 'Aktif';
+      document.getElementById('inp_Tarikh_Masuk').value = staf.Tarikh_Masuk || '';
+
+      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+      const sortedGuru = sortStafList(activeGuruOnly);
+
+      let optMentor = '<option value="">-- Tiada Mentor / Pilih Mentor --</option>';
+      sortedGuru.forEach(g => {
+        optMentor += `<option value="${g.ID_Staf}" ${g.ID_Staf === staf.ID_Mentor ? 'selected' : ''}>${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
+      });
+
+      const selMentor = document.getElementById('inp_ID_Mentor');
+      if (selMentor) selMentor.innerHTML = optMentor;
+
+      document.getElementById('modal-tambah-staf').classList.remove('hidden');
+    }
+
+    function openTambahGuruModal() {
+      document.getElementById('modalStafTitle').innerHTML = '<i class="fa-solid fa-user-plus mr-2"></i>Tambah Rekod Staf Baharu';
+      
+      const nextId = getNextStafID();
+      document.getElementById('inp_ID_Staf').value = nextId;
+      document.getElementById('inp_ID_Staf').dataset.isNew='true';
+      document.getElementById('inp_Nama_Penuh').value = '';
+      document.getElementById('inp_Nama_Samaran').value = '';
+      document.getElementById('inp_No_KP').value = '';
+      document.getElementById('inp_Kategori_Staf').value = 'Guru Akademik';
+      document.getElementById('inp_Gred_Jawatan').value = '';
+      document.getElementById('inp_Opsyen_Utama').value = '';
+      document.getElementById('inp_Email_Delima').value = '';
+      document.getElementById('inp_No_Telefon').value = '';
+      document.getElementById('inp_Status').value = 'Aktif';
+      document.getElementById('inp_Tarikh_Masuk').value = '';
+
+      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+      const sortedGuru = sortStafList(activeGuruOnly);
+
+      let optMentor = '<option value="">-- Tiada Mentor / Pilih Mentor --</option>';
+      sortedGuru.forEach(g => {
+        optMentor += `<option value="${g.ID_Staf}">${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
+      });
+
+      const selMentor = document.getElementById('inp_ID_Mentor');
+      if (selMentor) selMentor.innerHTML = optMentor;
+
+      document.getElementById('modal-tambah-staf').classList.remove('hidden');
+    }
+
+    function closeTambahGuruModal() {
+      document.getElementById('modal-tambah-staf').classList.add('hidden');
+    }
+
+    async function simpanStafBaharu(e) {
+      e.preventDefault();
+      const newStaf = {
+        ID_Staf: document.getElementById('inp_ID_Staf').value.trim(),
+        Email_Delima: document.getElementById('inp_Email_Delima').value.trim(),
+        Nama_Penuh: document.getElementById('inp_Nama_Penuh').value.trim(),
+        No_KP: document.getElementById('inp_No_KP').value.trim(),
+        Nama_Samaran: document.getElementById('inp_Nama_Samaran').value.trim(),
+        Kategori_Staf: document.getElementById('inp_Kategori_Staf').value,
+        Gred_Jawatan: document.getElementById('inp_Gred_Jawatan').value.trim(),
+        Opsyen_Utama: document.getElementById('inp_Opsyen_Utama').value.trim(),
+        No_Telefon: document.getElementById('inp_No_Telefon').value.trim(),
+        Tarikh_Masuk: document.getElementById('inp_Tarikh_Masuk').value,
+        Tarikh_Keluar: document.getElementById('inp_Status').value==='Tidak Aktif' ? document.getElementById('inp_Tarikh_Keluar').value : '',
+        Status: document.getElementById('inp_Status').value,
+        ID_Mentor: document.getElementById('inp_ID_Mentor').value,
+        is_new: document.getElementById('inp_ID_Staf').dataset.isNew==='true'
+      };
+
+      const previously=ALL_STAF.find(x=>x.ID_Staf===newStaf.ID_Staf);
+      const isLeaving=previously && String(previously.Status||'Aktif').toLowerCase()==='aktif' && String(newStaf.Status||'').toLowerCase()!=='aktif';
+      if(isLeaving){
+        const roles=ALL_PERANAN.filter(x=>x.ID_Staf===newStaf.ID_Staf && String(x.Status||'Aktif').toLowerCase()==='aktif');
+        if(roles.length){
+          const year=manualV3Year();
+          const defaultDate=newStaf.Tarikh_Keluar||v5Today();
+          const names=roles.map(x=>`<li>${manualV3Escape(x.Tahun)} · ${manualV3Escape(x.Nama_Jawatankuasa)} — ${manualV3Escape(x.Peranan)}</li>`).join('');
+          const ans=await Swal.fire({title:'Staf masih mempunyai pelantikan aktif',icon:'warning',width:620,
+            html:`<p class="text-xs text-slate-600">Menukar staf kepada Tidak Aktif akan menamatkan <strong>${roles.length}</strong> pelantikan ini tanpa memadam sejarah.</p><ul class="text-left text-xs list-disc pl-6 my-3 max-h-40 overflow-auto">${names}</ul><label class="block text-left text-xs font-bold">Tarikh kuat kuasa</label><input id="v4-staff-end" type="date" value="${defaultDate}" class="w-full p-2 border rounded-lg"/><label class="block text-left text-xs font-bold mt-2">Sebab</label><input id="v4-staff-reason" value="Berpindah / tamat perkhidmatan" class="w-full p-2 border rounded-lg"/>`,
+            showCancelButton:true,confirmButtonText:'Tamatkan semua tugasan & simpan',cancelButtonText:'Batal',
+            preConfirm:()=>{const date=document.getElementById('v4-staff-end')?.value,reason=document.getElementById('v4-staff-reason')?.value||'';if(!date){Swal.showValidationMessage('Tarikh diperlukan.');return false;}return {date,reason};}});
+          if(!ans.isConfirmed)return;
+          newStaf.close_active_roles=true;newStaf.Tarikh_Keluar=ans.value.date;newStaf.effective_date=ans.value.date;newStaf.change_reason=ans.value.reason;
+        }
+      }
+      if(String(newStaf.Status).toLowerCase()!=='aktif'&&!newStaf.Tarikh_Keluar){Swal.fire('Tarikh Keluar wajib','Pilih Tarikh Keluar sebelum simpan.','warning');return;}
+      closeTambahGuruModal();
+      showLoader('Menyimpan rekod Staf...');
+
+      try {
+        const res = await postToBackend({
+          action: 'saveMasterStafV2',
+          data: newStaf
+        });
+        hideLoader();
+
+        if (res && res.success) {
+          Swal.fire('Berjaya Saved!', res.message, 'success');
+          fetchMasterStafData();
+        } else {
+          Swal.fire('Ralat', res.error || 'Gagal menyimpan staf.', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+      }
+    }
+
+    function onCategoryChangeInModal() {
+      const kat = document.getElementById('jk_Kategori_Pengurusan').value;
+      document.getElementById('jk_JK_Induk').value = `JK Induk ${kat}`;
+
+      const box = document.getElementById('boxPerananCheckboxes');
+      if (kat === 'Kurikulum') {
+        box.innerHTML = `
+          <select id="jk_Peranan_Select" class="w-full p-2 border border-slate-300 rounded-xl bg-white font-bold text-slate-800 focus:outline-none text-xs">
+            <option value="Penyelaras">Penyelaras</option>
+            <option value="Ketua Panitia">Ketua Panitia</option>
+          </select>
+          <p class="text-[10px] text-slate-400 mt-1 italic">* Setiausaha & AJK akan diwujudkan secara automatik dalam jawatankuasa ini.</p>
+        `;
+      } else {
+        box.innerHTML = `
+          <input type="text" id="jk_Peranan_Select" value="Penyelaras" readonly class="w-full p-2 border border-slate-300 rounded-xl bg-slate-200 font-bold text-slate-700 text-xs focus:outline-none">
+          <p class="text-[10px] text-slate-400 mt-1 italic">* Jawatan pimpinan dikunci kepada Penyelaras untuk unit ini.</p>
+        `;
+      }
+    }
+
+    function openModalJawatankuasa() {
+      document.getElementById('modalJkTitle').innerHTML = '<i class="fa-solid fa-list-check mr-2"></i>Tambah Jawatankuasa Baharu';
+      document.getElementById('jk_ID_Tugasan').value = getNextJkID();
+      document.getElementById('jk_Kategori_Pengurusan').value = 'Pentadbiran';
+      document.getElementById('jk_Nama_Jawatankuasa').value = '';
+      document.getElementById('jk_Seksyen_Baharu').value = '';
+      document.getElementById('jk_ID_Tugasan').dataset.isNew='true';
+      
+      onCategoryChangeInModal();v4FillSeksyen();
+      document.getElementById('jk_Susunan').value=ALL_JAWATANKUASA.length+1;document.getElementById('jk_Unit_Penyelia').value='Pentadbiran';
+      document.getElementById('modal-jawatankuasa').classList.remove('hidden');
+    }
+
+    function closeModalJawatankuasa() {
+      document.getElementById('modal-jawatankuasa').classList.add('hidden');
+    }
+
+    function editMasterJawatankuasa(idTugasan) {
+      const item = ALL_JAWATANKUASA.find(j => (j.ID_Tugasan || j.id_tugasan || j.ID_Jawatankuasa) === idTugasan);
+      if (!item) return;
+
+      document.getElementById('modalJkTitle').innerHTML = '<i class="fa-solid fa-pen-to-square mr-2"></i>Kemaskini Jawatankuasa';
+      document.getElementById('jk_ID_Tugasan').value = idTugasan;
+      document.getElementById('jk_ID_Tugasan').dataset.isNew='false';
+      document.getElementById('jk_Seksyen_Baharu').value='';
+      const kat = item.Kategori_Pengurusan || item.kategori_pengurusan || 'Pentadbiran';
+      document.getElementById('jk_Kategori_Pengurusan').value = kat;
+      document.getElementById('jk_Nama_Jawatankuasa').value = item.Nama_Jawatankuasa || item.nama_jawatankuasa || '';
+
+      onCategoryChangeInModal();v4FillSeksyen(item.Seksyen||kat);
+      document.getElementById('jk_Susunan').value=item.Susunan||1;
+      document.getElementById('jk_Unit_Penyelia').value=item.Unit_Penyelia||kat;
+
+      const el = document.getElementById('jk_Peranan_Select');
+      if (el) el.value = item.Peranan || item.peranan || 'Penyelaras';
+
+      document.getElementById('modal-jawatankuasa').classList.remove('hidden');
+    }
+
+    async function simpanMasterJawatankuasa(e) {
+      e.preventDefault();
+      const selectedRole = document.getElementById('jk_Peranan_Select').value;
+
+      const payload = {
+        id_tugasan: document.getElementById('jk_ID_Tugasan').value,
+        kategori_pengurusan: document.getElementById('jk_Kategori_Pengurusan').value,
+        jk_induk: document.getElementById('jk_JK_Induk').value,
+        nama_jawatankuasa: document.getElementById('jk_Nama_Jawatankuasa').value.trim(),
+        peranan: selectedRole,
+        seksyen: document.getElementById('jk_Seksyen').value,
+        susunan: Number(document.getElementById('jk_Susunan').value)||1,
+        unit_penyelia: document.getElementById('jk_Unit_Penyelia').value,
+        is_new: document.getElementById('jk_ID_Tugasan').dataset.isNew==='true'
+      };
+
+      const newSection=document.getElementById('jk_Seksyen_Baharu').value.trim();
+      if(newSection)payload.seksyen=newSection;
+      closeModalJawatankuasa();
+      showLoader('Menyimpan Master Jawatankuasa...');
+
+      try {
+        if(newSection&&!ALL_SEKSYEN.some(x=>x.Kategori_Pengurusan===payload.kategori_pengurusan&&x.Nama_Seksyen.toLowerCase()===newSection.toLowerCase())){
+          const savedSection=await postToBackend({action:'saveManualV4Section',data:{Kategori_Pengurusan:payload.kategori_pengurusan,Nama_Seksyen:newSection,Status:'Aktif',Susunan:ALL_SEKSYEN.length+1}});
+          if(!savedSection.success)throw Error(savedSection.error||'Tidak dapat mencipta seksyen baharu.');
+        }
+        const res = await postToBackend({ action: 'saveMasterJawatankuasaV2', data: payload });
+        hideLoader();
+        if (res && res.success) {
+          Swal.fire('Berjaya!', res.message, 'success');
+          fetchMasterStafData();
+        } else {
+          Swal.fire('Ralat', res.error || 'Gagal menyimpan.', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+      }
+    }
+
+    async function deleteMasterJawatankuasa(idTugasan) {
+      const confirm = await Swal.fire({
+        title: 'Pengesahan Padam',
+        text: `Adakah anda pasti mahu menghapus Jawatankuasa ${idTugasan}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e11d48',
+        confirmButtonText: 'Ya, Padam',
+        cancelButtonText: 'Batal'
+      });
+
+      if (!confirm.isConfirmed) return;
+
+      showLoader('Menghapus Jawatankuasa...');
+      try {
+        const res = await postToBackend({ action: 'deleteMasterJawatankuasaV2', data: { id_tugasan: idTugasan } });
+        hideLoader();
+        if (res && res.success) {
+          Swal.fire('Dihapuskan!', res.message, 'success');
+          fetchMasterStafData();
+        } else {
+          Swal.fire('Ralat', res.error || 'Gagal menghapus.', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+      }
+    }
+
+    function filterJkTableBySearch() {
+      const txt = (document.getElementById('searchJkInput').value || '').toLowerCase().trim();
+      const tbody = document.getElementById('tbodyMasterJawatankuasa');
+      if (!tbody) return;
+
+      const filtered = ALL_JAWATANKUASA.filter(j => {
+        const idT = (j.ID_Tugasan || j.id_tugasan || '').toLowerCase();
+        const namaJk = (j.Nama_Jawatankuasa || j.nama_jawatankuasa || '').toLowerCase();
+        const peranan = (j.Peranan || j.peranan || '').toLowerCase();
+        const jkInduk = (j.JK_Induk || j.jk_induk || '').toLowerCase();
+        return idT.includes(txt) || namaJk.includes(txt) || peranan.includes(txt) || jkInduk.includes(txt);
+      });
+
+      document.getElementById('txtCountJk').innerText = `${filtered.length} Jawatankuasa`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-cell-std text-center text-slate-400 italic">Tiada carian yang sepadan.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      filtered.forEach((jk, idx) => {
+        const idTugasan = jk.ID_Tugasan || jk.id_tugasan || jk.ID_Jawatankuasa || '-';
+        const kat = jk.Kategori_Pengurusan || jk.kategori_pengurusan || '-';
+        const jkInduk = jk.JK_Induk || jk.jk_induk || '-';
+        const namaJk = jk.Nama_Jawatankuasa || jk.nama_jawatankuasa || '-';
+        const peranan = jk.Peranan || jk.peranan || '-';
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="table-cell-std font-extrabold text-cyan-700">${idTugasan}</td>
+            <td class="table-cell-std"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 font-bold">${kat}</span></td>
+            <td class="table-cell-std font-semibold text-slate-700">${jkInduk}</td>
+            <td class="table-cell-std font-extrabold text-slate-800">${namaJk}</td>
+            <td class="table-cell-std font-bold text-rose-600">${peranan}</td>
+            <td class="table-cell-std text-center space-x-1">
+              <button onclick="editMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg transition"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button onclick="deleteMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderMasterJawatankuasaTable(filterKat = CURRENT_JK_FILTER) {
+      CURRENT_JK_FILTER = filterKat;
+      const tbody = document.getElementById('tbodyMasterJawatankuasa');
+      if (!tbody) return;
+
+      let filtered = ALL_JAWATANKUASA;
+      if (filterKat !== 'Semua') {
+        filtered = ALL_JAWATANKUASA.filter(j => String(j.Kategori_Pengurusan || j.kategori_pengurusan || '').toLowerCase() === filterKat.toLowerCase());
+      }
+
+      document.getElementById('txtCountJk').innerText = `${filtered.length} Jawatankuasa`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="table-cell-std text-center text-slate-400 italic">Tiada rekod jawatankuasa untuk kategori ini.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      filtered.forEach((jk, idx) => {
+        const idTugasan = jk.ID_Tugasan || jk.id_tugasan || jk.ID_Jawatankuasa || '-';
+        const kat = jk.Kategori_Pengurusan || jk.kategori_pengurusan || '-';
+        const jkInduk = jk.JK_Induk || jk.jk_induk || '-';
+        const namaJk = jk.Nama_Jawatankuasa || jk.nama_jawatankuasa || '-';
+        const peranan = jk.Peranan || jk.peranan || '-';
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="table-cell-std font-extrabold text-cyan-700">${idTugasan}</td>
+            <td class="table-cell-std"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 font-bold">${kat}</span></td>
+            <td class="table-cell-std font-semibold text-slate-700">${jkInduk}</td>
+            <td class="table-cell-std font-extrabold text-slate-800">${namaJk}</td>
+            <td class="table-cell-std font-bold text-rose-600">${peranan}</td>
+            <td class="table-cell-std text-center space-x-1">
+              <button onclick="editMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold rounded-lg transition"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button onclick="deleteMasterJawatankuasa('${idTugasan}')" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg transition"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function filterJkTable(kat, evt = null) {
+      document.querySelectorAll('.btn-filter-jk').forEach(btn => {
+        btn.className = 'btn-filter-jk px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700';
+      });
+      if (evt && evt.currentTarget) {
+        evt.currentTarget.className = 'btn-filter-jk active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-cyan-600 text-white shadow-xs';
+      }
+      renderMasterJawatankuasaTable(kat);
+    }
+
+    function populateDropdownGuru() {
+      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
+      const sortedGuru = sortStafList(activeGuruOnly);
+
+      let optionsHtml = '<option value="">-- Tiada / Pilih Guru --</option>';
+
+      optionsHtml += '<optgroup label="-- KUMPULAN KHAS --">';
+      SPECIAL_GROUPS.forEach(g => {
+        optionsHtml += `<option value="${g.ID_Staf}">${g.Nama_Penuh}</option>`;
+      });
+      optionsHtml += '</optgroup>';
+
+      optionsHtml += '<optgroup label="-- SENARAI GURU INDIVIDU --">';
+      sortedGuru.forEach(g => {
+        optionsHtml += `<option value="${g.ID_Staf}">${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
+      });
+      optionsHtml += '</optgroup>';
+
+      document.querySelectorAll('.select-guru-opt').forEach(sel => {
+        sel.innerHTML = optionsHtml;
+      });
+    }
+
+    function getStreamKey(namaKelas) {
+      const match = String(namaKelas).trim().match(/^(\d+|\w+)/);
+      return match ? match[1] : namaKelas;
+    }
+
+    /** V5.1: guru layak untuk Pengurusan Kelas dan Bilik Khas sahaja. */
+    function v51AssignableTeachers(){
+      const adminCats=new Set(['guru besar','gpk pentadbiran','gpk hal ehwal murid','gpk ko kurikulum','gpk kokurikulum']);
+      return sortStafList(ALL_STAF.filter(s=>
+        String(s.Status||'').trim().toLowerCase()==='aktif' &&
+        !adminCats.has(String(s.Kategori_Staf||'').trim().toLowerCase()) &&
+        !/^gpk\b/i.test(String(s.Kategori_Staf||'').trim()) &&
+        String(s.Kategori_Staf||'').trim().toLowerCase()!=='akp'
+      ));
+    }
+
+    function v51ValidateAssignments(module){
+      const allowed=new Set(v51AssignableTeachers().map(s=>s.ID_Staf));
+      const problems=[];
+      if(module==='semua'||module==='kelas'){
+        const owners=new Map();
+        ALL_LOKASI.filter(l=>String(l.Kategori||'').toLowerCase()==='kelas'&&String(l.Status||'Aktif').toLowerCase()==='aktif').forEach(l=>{
+          const name=l.Nama_Lokasi,st=statePengurusanKelas[name]||{};
+          if(st.gk && !allowed.has(st.gk))problems.push(name+': Guru Kelas bukan staf aktif yang layak.');
+          if(st.gpk && !allowed.has(st.gpk))problems.push(name+': Guru Pembantu bukan staf aktif yang layak.');
+          if(st.gk && st.gk===st.gpk)problems.push(name+': Guru Kelas dan Guru Pembantu tidak boleh sama.');
+          if(st.gk){if(owners.has(st.gk))problems.push(name+': Guru Kelas sama seperti '+owners.get(st.gk)+'.');else owners.set(st.gk,name);}
+        });
+      }
+      if(module==='semua'||module==='bilik'){
+        ALL_LOKASI.filter(l=>String(l.Kategori||'').toLowerCase()==='bilik khas'&&String(l.Status||'Aktif').toLowerCase()==='aktif').forEach(l=>{
+          const id=stateBilikKhas[l.Nama_Lokasi];
+          if(id&&!allowed.has(id))problems.push(l.Nama_Lokasi+': Penyelaras bukan staf aktif yang layak.');
+        });
+      }
+      return problems;
+    }
+
+    function renderTableKelas() {
+      const tbody = document.getElementById('tbodyPengurusanKelas');
+      if (!tbody) return;
+
+      const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'kelas' && String(l.Status||'Aktif').toLowerCase()==='aktif');
+      const activeGuruOnly = v51AssignableTeachers();
+      const sortedGuru = sortStafList(activeGuruOnly);
+
+      if (senaraiKelas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="table-cell-std text-center text-slate-400 italic">Tiada senarai kelas dalam Master_Kelas_Bilik.</td></tr>`;
+        return;
+      }
+
+      const streamMap = {};
+      senaraiKelas.forEach(k => {
+        const streamKey = getStreamKey(k.Nama_Lokasi);
+        if (!streamMap[streamKey]) streamMap[streamKey] = [];
+        streamMap[streamKey].push(k.Nama_Lokasi);
+      });
+
+      tbody.innerHTML = '';
+      senaraiKelas.forEach((k, idx) => {
+        const namaKelas = k.Nama_Lokasi;
+        const streamKey = getStreamKey(namaKelas);
+        const kelasPertamaAliran = streamMap[streamKey][0];
+
+        const idGuruKelasPertama = (statePengurusanKelas[kelasPertamaAliran] || {}).gk || '';
+        const objGuruPenyelaras = sortedGuru.find(g => g.ID_Staf === idGuruKelasPertama);
+        const namaPenyelarasAliran = objGuruPenyelaras ? `${objGuruPenyelaras.Nama_Penuh}` : '<span class="text-slate-400 italic">Auto: Guru Kelas ' + kelasPertamaAliran + '</span>';
+
+        const currentGk = (statePengurusanKelas[namaKelas] || {}).gk || '';
+        const currentGpk = (statePengurusanKelas[namaKelas] || {}).gpk || '';
+
+        let optGk = `<option value="">-- Pilih Guru Kelas --</option>`;
+        let optGpk = `<option value="">-- Pilih Guru Pembantu --</option>`;
+
+        const selectedElsewhere=new Set(Object.entries(statePengurusanKelas)
+          .filter(([nama,st])=>nama!==namaKelas && st && st.gk).map(([nama,st])=>st.gk));
+        sortedGuru.forEach(g => {
+          if (!selectedElsewhere.has(g.ID_Staf)) {
+            optGk += `<option value="${g.ID_Staf}" ${g.ID_Staf === currentGk ? 'selected' : ''}>${manualV3Escape(g.Nama_Penuh)}</option>`;
+          }
+          if (g.ID_Staf !== currentGk) {
+            optGpk += `<option value="${g.ID_Staf}" ${g.ID_Staf === currentGpk ? 'selected' : ''}>${manualV3Escape(g.Nama_Penuh)}</option>`;
+          }
+        });
+        // Rekod lama tidak dibuang secara senyap jika pelantikan asal tidak lagi layak.
+        if(currentGk && !sortedGuru.some(g=>g.ID_Staf===currentGk && !selectedElsewhere.has(g.ID_Staf))) {
+          optGk += `<option selected value="${manualV3Escape(currentGk)}">⚠ Perlu semak / ganti Guru Kelas</option>`;
+        }
+        if(currentGpk && !sortedGuru.some(g=>g.ID_Staf===currentGpk && g.ID_Staf!==currentGk)) {
+          optGpk += `<option selected value="${manualV3Escape(currentGpk)}">⚠ Perlu semak / ganti Guru Pembantu</option>`;
+        }
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="table-cell-std font-extrabold text-slate-800">${namaKelas}</td>
+            <td class="p-2">
+              <select onchange="updateStateKelas('${namaKelas}', 'gk', this.value)" class="w-full p-2 border border-slate-200 rounded-xl bg-white font-semibold text-xs">
+                ${optGk}
+              </select>
+            </td>
+            <td class="p-2">
+              <select onchange="updateStateKelas('${namaKelas}', 'gpk', this.value)" class="w-full p-2 border border-slate-200 rounded-xl bg-white font-semibold text-xs">
+                ${optGpk}
+              </select>
+            </td>
+            <td class="table-cell-std font-extrabold text-rose-700 bg-rose-50/40">
+              ${namaKelas === kelasPertamaAliran ? namaPenyelarasAliran : '<span class="text-slate-300">—</span>'}
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function updateStateKelas(namaKelas, field, val) {
+      if (!statePengurusanKelas[namaKelas]) statePengurusanKelas[namaKelas] = { gk: '', gpk: '' };
+      const st=statePengurusanKelas[namaKelas];
+      if(val && !v51AssignableTeachers().some(g=>g.ID_Staf===val)) {
+        Swal.fire('Guru tidak layak','Sila pilih guru aktif yang bukan pentadbir sekolah.','warning');
+        renderTableKelas();return;
+      }
+      if (val && field==='gk' && Object.entries(statePengurusanKelas).some(([name,other])=>name!==namaKelas && other.gk===val)) {
+        Swal.fire('Guru Kelas bertindih','Guru ini telah menjadi Guru Kelas bagi kelas lain.','warning');
+        renderTableKelas();return;
+      }
+      if (val && ((field==='gk' && st.gpk===val) || (field==='gpk' && st.gk===val))) {
+        Swal.fire('Guru berganda','Guru Kelas dan Guru Pembantu bagi kelas yang sama mesti berlainan orang.','warning');
+        renderTableKelas();return;
+      }
+      if(st[field]!==val){st[field]=val;markManualV3Dirty();}
+      renderTableKelas();
+    }
+
+    function renderTableBilikKhas() {
+      const tbody = document.getElementById('tbodyBilikKhas');
+      if (!tbody) return;
+
+      const senaraiBilik = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'bilik khas' && String(l.Status||'Aktif').toLowerCase()==='aktif');
+      const activeGuruOnly = v51AssignableTeachers();
+      const sortedGuru = sortStafList(activeGuruOnly);
+
+      if (senaraiBilik.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="table-cell-std text-center text-slate-400 italic">Tiada senarai bilik khas dalam Master_Kelas_Bilik.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = '';
+      senaraiBilik.forEach((b, idx) => {
+        const namaBilik = b.Nama_Lokasi;
+        const currentPenyelaras = stateBilikKhas[namaBilik] || '';
+
+        let optP = `<option value="">-- Pilih Guru Penyelaras --</option>`;
+        sortedGuru.forEach(g => {
+          optP += `<option value="${g.ID_Staf}" ${g.ID_Staf === currentPenyelaras ? 'selected' : ''}>${manualV3Escape(g.Nama_Penuh)}</option>`;
+        });
+        if(currentPenyelaras && !sortedGuru.some(g=>g.ID_Staf===currentPenyelaras)) {
+          optP += `<option selected value="${manualV3Escape(currentPenyelaras)}">⚠ Penyelaras tidak layak — sila ganti</option>`;
+        }
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="table-cell-std text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="table-cell-std font-extrabold text-slate-800">${namaBilik}</td>
+            <td class="p-2">
+              <select onchange="updateStateBilik('${namaBilik}', this.value)" class="w-full p-2 border border-slate-200 rounded-xl bg-white font-semibold text-xs">
+                ${optP}
+              </select>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function updateStateBilik(namaBilik, val) {
+      markManualV3Dirty();
+      stateBilikKhas[namaBilik] = val;
+    }
+
+    function renderKumpulanBertugasUI() {
+      const grid=document.getElementById('v4GroupGrid');if(!grid)return;
+      const staf=sortStafList(ALL_STAF.filter(s=>s.Kategori_Staf!=='AKP'&&String(s.Status||'Aktif').toLowerCase()==='aktif'));
+      const used=new Set(Object.values(kumpulanBertugasState).flat());
+      grid.innerHTML=v4ActiveGroups().map(g=>{
+        const n=Number(g.Nombor_Kumpulan),ids=kumpulanBertugasState[n]||[];
+        const members=ids.map(id=>`<div class="p-2 border rounded-lg bg-slate-50 flex items-center justify-between"><span>${manualV3Escape(manualV3StaffName(id))}</span><button onclick="buangDariKumpulan(${n},'${id}')" class="text-rose-600" title="Buang"><i class="fa-solid fa-xmark"></i></button></div>`).join('');
+        const opts=staf.filter(s=>!used.has(s.ID_Staf)).map(s=>`<option value="${manualV3Escape(s.ID_Staf)}">${manualV3Escape(s.Nama_Penuh)}</option>`).join('');
+        return `<div class="bg-white p-4 rounded-xl border shadow-sm space-y-3 text-xs"><div class="flex justify-between font-bold border-b pb-2"><span>${manualV3Escape(g.Nama_Kumpulan||'Kumpulan '+n)}</span><span>${ids.length} guru</span></div><div class="space-y-1 min-h-16">${members||'<p class="text-slate-400 italic">Belum ada ahli</p>'}</div><div class="flex gap-2"><select id="selK${n}" class="border rounded-lg p-2 flex-1 min-w-0"><option value="">-- Pilih guru --</option>${opts}</select><button onclick="tambahKeKumpulan(${n})" class="bg-rose-600 text-white px-3 rounded-lg font-bold">Tambah</button></div></div>`;
+      }).join('');
+    }
+
+    function tambahKeKumpulan(grp) {
+      markManualV3Dirty();
+      const sel = document.getElementById(`selK${grp}`);
+      if (!sel || !sel.value) return;
+
+      kumpulanBertugasState[grp].push(sel.value);
+      renderKumpulanBertugasUI();
+    }
+
+    function buangDariKumpulan(grp, idStaf) {
+      markManualV3Dirty();
+      kumpulanBertugasState[grp] = kumpulanBertugasState[grp].filter(id => id !== idStaf);
+      renderKumpulanBertugasUI();
+    }
+
+    async function simpanSemuaPengurusanSekolah(modulDipilih = 'semua') {
+      let payloadBatch = [];
+      const tahunAktif = document.getElementById('selTahunAktif')?.value || '2027';
+
+      const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'kelas' && String(l.Status||'Aktif').toLowerCase()==='aktif');
+      const streamMap = {};
+      senaraiKelas.forEach(k => {
+        const key = getStreamKey(k.Nama_Lokasi);
+        if (!streamMap[key]) streamMap[key] = [];
+        streamMap[key].push(k.Nama_Lokasi);
+      });
+
+      senaraiKelas.forEach(k => {
+        const namaKelas = k.Nama_Lokasi;
+        const st = statePengurusanKelas[namaKelas] || {};
+
+        if (st.gk) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Pengurusan Kelas',
+            peranan: 'Guru Kelas',
+            skop_tugas_kelas: namaKelas,
+            id_staf: st.gk,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+
+        if (st.gpk) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Pengurusan Kelas',
+            peranan: 'Guru Pembantu',
+            skop_tugas_kelas: namaKelas,
+            id_staf: st.gpk,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+      });
+
+      Object.keys(streamMap).forEach(stKey => {
+        const kelasPertama = streamMap[stKey][0];
+        const idGuruKelasPertama = (statePengurusanKelas[kelasPertama] || {}).gk;
+        if (idGuruKelasPertama) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Pengurusan Aliran',
+            peranan: 'Penyelaras Aliran',
+            skop_tugas_kelas: `Aliran ${stKey}`,
+            id_staf: idGuruKelasPertama,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+      });
+
+      Object.keys(stateBilikKhas).forEach(namaBilik => {
+        const idG = stateBilikKhas[namaBilik];
+        if (idG) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Pengurusan Bilik Khas',
+            peranan: 'Guru Penyelaras',
+            skop_tugas_kelas: namaBilik,
+            id_staf: idG,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+      });
+
+      v4ActiveGroups().map(g=>Number(g.Nombor_Kumpulan)).forEach(grp => {
+        kumpulanBertugasState[grp].forEach(idG => {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Kumpulan Bertugas Mingguan',
+            peranan: 'Ahli Bertugas',
+            skop_tugas_kelas: `Kumpulan ${grp}`,
+            id_staf: idG,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        });
+      });
+
+      Object.keys(statePenghantaranRph).forEach(idGuru => {
+        const idPenyemak = statePenghantaranRph[idGuru];
+        if (idPenyemak) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Penghantaran e-RPH',
+            peranan: 'Penyemak RPH',
+            skop_tugas_kelas: idPenyemak,
+            id_staf: idGuru,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+      });
+
+      Object.keys(statePencerapanPdp).forEach(idGuru => {
+        const st = statePencerapanPdp[idGuru];
+        if (st.p1) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Pencerapan PdP',
+            peranan: 'Pencerapan 1',
+            skop_tugas_kelas: st.p1,
+            id_staf: idGuru,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+        if (st.p2) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Pencerapan PdP',
+            peranan: 'Pencerapan 2',
+            skop_tugas_kelas: st.p2,
+            id_staf: idGuru,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+      });
+
+      const allowedBookScopes=new Set();
+      ALL_SUBJEK.filter(x=>String(x.Status||'Aktif').toLowerCase()==='aktif').forEach(sub=>{
+        const code=String(sub.Kod_Subjek||'');
+        v4EligibleYears(sub.Kategori_Tahap||'').forEach(y=>allowedBookScopes.add(code+'_Tahun'+y));
+      });
+      Object.keys(stateSemakanBuku).filter(key=>allowedBookScopes.has(key)).forEach(keySkop => {
+        const idPenyemak = stateSemakanBuku[keySkop];
+        if (idPenyemak) {
+          payloadBatch.push({
+            kategori_pengurusan: 'Pentadbiran',
+            jk_induk: 'Pengurusan Sekolah',
+            nama_jawatankuasa: 'Semakan Buku Tulis',
+            peranan: 'Penyemak Buku',
+            skop_tugas_kelas: keySkop,
+            id_staf: idPenyemak,
+            tahun: tahunAktif,
+            status: 'Aktif'
+          });
+        }
+      });
+
+      const scopes = modulDipilih === 'semua' ? MANUAL_V3_ALL_SCHOOL_SCOPES : MANUAL_V3_SCOPE_MAP[modulDipilih];
+      if (!scopes) { await Swal.fire('Modul Tidak Dikenali','Sila pilih tab pengurusan yang sah.','error');return; }
+      payloadBatch = payloadBatch.filter(x=>scopes.includes(x.nama_jawatankuasa));
+      if(['semua','kelas','bilik'].includes(modulDipilih)){
+        const issues=v51ValidateAssignments(modulDipilih);
+        if(issues.length){
+          await Swal.fire({title:'Semakan Pengagihan Diperlukan',icon:'warning',html:'<div class="text-left text-xs max-h-72 overflow-y-auto"><p class="mb-2">Betulkan maklumat berikut sebelum menyimpan:</p><ul class="list-disc pl-4 space-y-1">'+issues.slice(0,12).map(x=>'<li>'+manualV3Escape(x)+'</li>').join('')+'</ul></div>',confirmButtonText:'Semak Pengagihan'});
+          return;
+        }
+      }
+      if(!await manualV3ConfirmSave(scopes,payloadBatch,modulDipilih==='semua'?'Semua Pengurusan Sekolah':modulDipilih.toUpperCase()))return;
+      const payload = {
+        action: 'savePerananStafV2', target_year: tahunAktif,
+        allow_empty: payloadBatch.length === 0,
+        effective_date:MANUAL_V4_EFFECTIVE_DATE,change_reason:MANUAL_V4_REASON,
+        expected_scope_ids: manualV3ScopeIds(scopes),
+        scopes_to_clear: scopes,
+        data: payloadBatch
+      };
+      showLoader('Menyimpan pengagihan tugas…');
+
+      try {
+        const res = await postToBackend(payload);
+        hideLoader();
+
+        if (res && res.success) {
+          Swal.fire('Berjaya Saved', `Rekod Pengurusan Sekolah Sesi ${tahunAktif} telah dikemas kini!`, 'success');
+          fetchMasterStafData(); 
+        } else {
+          Swal.fire('Ralat', res.error || 'Gagal menyimpan rekod.', 'error');
+        }
+      } catch (err) {
+        hideLoader();
+        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+      }
+    }
+
+    /* ========================================================================
+       SeMAKMUR Manual Pengurusan V4 - UI dinamik, seksyen, takwim, cetakan
+       ======================================================================== */
+    function v4ActiveGroups(){
+      return (ALL_KUMPULAN||[]).filter(g=>String(g.Status||'Aktif').toLowerCase()==='aktif')
+        .sort((a,b)=>(Number(a.Susunan)||99)-(Number(b.Susunan)||99)||Number(a.Nombor_Kumpulan)-Number(b.Nombor_Kumpulan));
+    }
+    function v4SectionOrder(cat,sec){
+      if(String(sec)===String(cat))return -1;
+      const hit=ALL_SEKSYEN.find(s=>s.Kategori_Pengurusan===cat&&s.Nama_Seksyen===sec);
+      return hit?Number(hit.Susunan)||999:999;
+    }
+    function v4SortedJK(cat){
+      return ALL_JAWATANKUASA.filter(j=>String(j.Kategori_Pengurusan||'')===cat)
+        .sort((a,b)=>v4SectionOrder(cat,a.Seksyen||cat)-v4SectionOrder(cat,b.Seksyen||cat)
+          ||(Number(a.Susunan)||9999)-(Number(b.Susunan)||9999)
+          ||String(a.Nama_Jawatankuasa||'').localeCompare(String(b.Nama_Jawatankuasa||''),'ms'));
+    }
+    function v4OpenSubJkById(id){
+      const j=ALL_JAWATANKUASA.find(x=>String(x.ID_Tugasan)===String(id));
+      if(j)openSubJkDetail(j.Kategori_Pengurusan,j.Nama_Jawatankuasa);
+    }
+    function v4FindSupervisor(unit){
+      const names={'Pentadbiran':'GPK Pentadbiran','Kurikulum':'GPK Pentadbiran','Hal Ehwal Murid':'GPK Hal Ehwal Murid','Kokurikulum':'GPK Ko Kurikulum'};
+      const category=names[unit]||'GPK Pentadbiran';
+      return ALL_STAF.find(s=>s.Kategori_Staf===category&&String(s.Status||'Aktif').toLowerCase()==='aktif')?.ID_Staf||'';
+    }
+    function v4FillSeksyen(selected){
+      const kat=document.getElementById('jk_Kategori_Pengurusan')?.value||'Pentadbiran',sel=document.getElementById('jk_Seksyen');if(!sel)return;
+      const options=[kat,...ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===kat&&String(s.Status||'Aktif').toLowerCase()==='aktif').map(s=>s.Nama_Seksyen)];
+      if(selected&&!options.includes(selected))options.push(selected);
+      sel.innerHTML=options.map(s=>`<option value="${manualV3Escape(s)}">${manualV3Escape(s)}</option>`).join('');
+      sel.value=selected||kat;
+      if(!selected){const u=document.getElementById('jk_Unit_Penyelia');if(u)u.value=kat;}
+    }
+    const V4_KINDS=[['lokasi','Kelas & Bilik'],['subjek','Mata Pelajaran'],['kumpulan','Kumpulan Bertugas'],['seksyen','Seksyen JK']];
+    let V4_CATALOG_KIND='lokasi';
+    function v4OpenCatalog(kind='lokasi'){V4_CATALOG_KIND=kind;showView('viewV4Catalog');v4RenderCatalog();}
+    function v4RenderCatalog(){
+      const tabs=document.getElementById('v4CatalogTabs'),box=document.getElementById('v4CatalogItems');if(!tabs||!box)return;
+      tabs.innerHTML=V4_KINDS.map(([k,n])=>`<button onclick="v4OpenCatalog('${k}')" class="rounded-xl px-4 py-2 text-xs font-bold ${V4_CATALOG_KIND===k?'bg-rose-600 text-white':'bg-slate-100 text-slate-700 hover:bg-slate-200'}">${n}</button>`).join('');
+      const list=V4_CATALOG_KIND==='lokasi'?ALL_LOKASI:V4_CATALOG_KIND==='subjek'?ALL_SUBJEK:V4_CATALOG_KIND==='kumpulan'?ALL_KUMPULAN:ALL_SEKSYEN;
+      box.innerHTML=list.map(o=>{
+        const key=V4_CATALOG_KIND==='lokasi'?'ID_Lokasi':V4_CATALOG_KIND==='subjek'?'ID_Subjek':V4_CATALOG_KIND==='kumpulan'?'Nombor_Kumpulan':'ID_Seksyen';
+        const id=String(o[key]||''),name=V4_CATALOG_KIND==='lokasi'?o.Nama_Lokasi:V4_CATALOG_KIND==='subjek'?o['Nama_Subjek / Komponen']:V4_CATALOG_KIND==='kumpulan'?o.Nama_Kumpulan:o.Nama_Seksyen;
+        const desc=V4_CATALOG_KIND==='lokasi'?`${o.Kategori||''} ${o.Tahap_Blok||''}`:V4_CATALOG_KIND==='subjek'?`${o.Kod_Subjek||''} · ${o.Kategori_Tahap||''}`:V4_CATALOG_KIND==='kumpulan'?'Kumpulan '+id:`${o.Kategori_Pengurusan||''} · Susunan ${o.Susunan||''}`;
+        const active=String(o.Status||'Aktif').toLowerCase()==='aktif';
+        return `<div class="flex items-center gap-3 justify-between p-3 border rounded-xl ${active?'bg-white':'bg-slate-50 opacity-65'}"><div><p class="font-bold text-xs">${manualV3Escape(name)} <span class="font-normal text-slate-400">(${manualV3Escape(id)})</span></p><p class="text-[11px] text-slate-500 mt-1">${manualV3Escape(desc)} · ${active?'AKTIF':'TIDAK AKTIF'}</p></div><button data-id="${manualV3Escape(id)}" onclick="v4OpenCatalogEditor(this.dataset.id)" class="shrink-0 bg-slate-100 hover:bg-rose-50 border rounded-lg px-3 py-2 text-xs font-bold"><i class="fa-solid fa-pen"></i> Edit</button></div>`;
+      }).join('')||'<div class="p-6 text-center text-slate-400 text-xs">Belum ada rekod. Klik Tambah Rekod.</div>';
+    }
+    async function v4OpenCatalogEditor(id=''){
+      const kind=V4_CATALOG_KIND,source=kind==='lokasi'?ALL_LOKASI:kind==='subjek'?ALL_SUBJEK:kind==='kumpulan'?ALL_KUMPULAN:ALL_SEKSYEN;
+      const key=kind==='lokasi'?'ID_Lokasi':kind==='subjek'?'ID_Subjek':kind==='kumpulan'?'Nombor_Kumpulan':'ID_Seksyen';
+      const item=source.find(x=>String(x[key])===String(id))||{};
+      const input=(key,label,defaultValue='',type='text')=>`<label class="block text-left text-xs font-bold mb-1 mt-3">${label}</label><input id="v4-${key}" type="${type}" value="${manualV3Escape(defaultValue)}" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm"/>`;
+      const select=(key,label,choices,selected)=>`<label class="block text-left text-xs font-bold mb-1 mt-3">${label}</label><select id="v4-${key}" class="w-full p-2.5 border border-slate-300 rounded-xl text-sm">${choices.map(v=>`<option ${String(v)===String(selected)?'selected':''}>${manualV3Escape(v)}</option>`).join('')}</select>`;
+      let fields='';
+      if(kind==='lokasi')fields=input('Nama_Lokasi','Nama kelas / bilik',item.Nama_Lokasi||'')+select('Kategori','Kategori',['Kelas','Bilik Khas'],item.Kategori||'Kelas')+input('Tahap_Blok','Tahap / Blok (pilihan)',item.Tahap_Blok||'');
+      if(kind==='subjek')fields=input('Kod_Subjek','Kod subjek',item.Kod_Subjek||'')+input('Nama_Subjek','Nama subjek / komponen',item['Nama_Subjek / Komponen']||'')+input('Subjek_Induk','Subjek induk',item.Subjek_Induk||'')+select('Kategori_Tahap','Kategori / tahun',['Tahap 1 & 2','Tahap 1','Tahap 2','Tahun 1','Tahun 2','Tahun 3','Tahun 4','Tahun 5','Tahun 6'],item.Kategori_Tahap||'Tahap 1 & 2');
+      if(kind==='kumpulan')fields=input('Nama_Kumpulan','Nama kumpulan',item.Nama_Kumpulan||'')+input('Susunan','Susunan',item.Susunan||id||1,'number');
+      if(kind==='seksyen')fields=select('Kategori_Pengurusan','JK Induk',['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'],item.Kategori_Pengurusan||'Pentadbiran')+input('Nama_Seksyen','Nama seksyen',item.Nama_Seksyen||'')+input('Susunan','Susunan',item.Susunan||1,'number');
+      fields+=select('Status','Status',['Aktif','Tidak Aktif'],item.Status||'Aktif');
+      const ans=await Swal.fire({title:id?'Kemaskini Data Induk':'Tambah Rekod Baharu',width:510,html:`<div class="text-left max-h-[65vh] overflow-auto p-1">${fields}</div>`,showCancelButton:true,confirmButtonText:'Simpan',cancelButtonText:'Batal',preConfirm:()=>{
+        const values={};['Nama_Lokasi','Kategori','Tahap_Blok','Kod_Subjek','Nama_Subjek','Subjek_Induk','Kategori_Tahap','Nama_Kumpulan','Susunan','Kategori_Pengurusan','Nama_Seksyen','Status'].forEach(k=>{const el=document.getElementById('v4-'+k);if(el)values[k]=el.value.trim();});
+        if(kind==='lokasi'&&!values.Nama_Lokasi||kind==='subjek'&&(!values.Kod_Subjek||!values.Nama_Subjek)||kind==='seksyen'&&!values.Nama_Seksyen){Swal.showValidationMessage('Sila isi maklumat wajib.');return false;}
+        return values;
+      }});
+      if(!ans.isConfirmed||!ans.value)return;
+      const val=ans.value;let action='',payload={};
+      if(kind==='lokasi'){action='saveManualV4Catalog';payload={kind:'lokasi',item:{ID_Lokasi:id,Nama_Lokasi:val.Nama_Lokasi,Kategori:val.Kategori,Tahap_Blok:val.Tahap_Blok,Status:val.Status}};}
+      if(kind==='subjek'){action='saveManualV4Catalog';payload={kind:'subjek',item:{ID_Subjek:id,Kod_Subjek:val.Kod_Subjek,'Nama_Subjek / Komponen':val.Nama_Subjek,Subjek_Induk:val.Subjek_Induk,Kategori_Tahap:val.Kategori_Tahap,Status:val.Status}};}
+      if(kind==='kumpulan'){action='saveManualV4Group';payload={Nombor_Kumpulan:id?Number(id):0,Nama_Kumpulan:val.Nama_Kumpulan,Susunan:val.Susunan,Status:val.Status};}
+      if(kind==='seksyen'){action='saveManualV4Section';payload={ID_Seksyen:id,Kategori_Pengurusan:val.Kategori_Pengurusan,Nama_Seksyen:val.Nama_Seksyen,Susunan:val.Susunan,Status:val.Status};}
+      showLoader('Menyimpan tetapan…');try{
+        const res=await postToBackend({action:action,data:payload});hideLoader();if(!res.success)throw Error(res.error||'Gagal menyimpan');
+        await Swal.fire('Berjaya',res.message||'Data disimpan.','success');await fetchMasterStafData();v4OpenCatalog(kind);
+      }catch(e){hideLoader();await Swal.fire('Tidak berjaya',e.message,'error');}
+    }
+    let V4_ORDER_DRAFT=[],V4_ORDER_CATEGORY='';
+    function v4OpenOrder(){showView('viewV4Order');V4_ORDER_CATEGORY='';v4DrawOrder();}
+    function v4DrawOrder(){
+      const kat=document.getElementById('v4OrderCategory')?.value||'Pentadbiran';
+      if(kat!==V4_ORDER_CATEGORY){V4_ORDER_CATEGORY=kat;V4_ORDER_DRAFT=v4SortedJK(kat).map(j=>({...j}));}
+      const box=document.getElementById('v4OrderList');if(!box)return;
+      const secs=[kat,...ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===kat&&String(s.Status||'Aktif').toLowerCase()==='aktif').map(s=>s.Nama_Seksyen)];
+      box.innerHTML=V4_ORDER_DRAFT.map((j,i)=>{
+        const options=[...new Set([...secs,j.Seksyen||kat])].map(s=>`<option value="${manualV3Escape(s)}" ${s===(j.Seksyen||kat)?'selected':''}>${manualV3Escape(s)}</option>`).join('');
+        return `<div class="bg-white border rounded-xl p-3 flex gap-3 flex-wrap items-center"><span class="text-slate-400 font-bold text-xs w-7">${i+1}.</span><div class="flex-1 min-w-[180px]"><p class="font-bold text-xs">${manualV3Escape(j.Nama_Jawatankuasa)}</p><p class="text-[11px] text-slate-500">${manualV3Escape(j.ID_Tugasan)}</p></div><select onchange="v4ChangeJkSection(${i},this.value)" class="p-2 text-xs rounded-lg border">${options}</select><div class="flex gap-1"><button onclick="v4MoveJk(${i},-1)" class="border rounded-lg px-3 py-2 hover:bg-rose-50" title="Ke atas">↑</button><button onclick="v4MoveJk(${i},1)" class="border rounded-lg px-3 py-2 hover:bg-rose-50" title="Ke bawah">↓</button></div></div>`;
+      }).join('')||'<p class="text-slate-500 p-5">Tiada jawatankuasa dalam induk ini.</p>';
+    }
+    function v4MoveJk(index,delta){const other=index+delta;if(other<0||other>=V4_ORDER_DRAFT.length)return;[V4_ORDER_DRAFT[index],V4_ORDER_DRAFT[other]]=[V4_ORDER_DRAFT[other],V4_ORDER_DRAFT[index]];v4DrawOrder();}
+    function v4ChangeJkSection(index,sec){V4_ORDER_DRAFT[index].Seksyen=sec;v4DrawOrder();}
+    async function v4SaveOrder(){
+      if(!V4_ORDER_DRAFT.length)return;
+      const items=V4_ORDER_DRAFT.map((j,i)=>({ID_Tugasan:j.ID_Tugasan,Seksyen:j.Seksyen||j.Kategori_Pengurusan,Susunan:i+1,Unit_Penyelia:j.Unit_Penyelia||j.Kategori_Pengurusan}));
+      const ok=await Swal.fire({title:'Simpan susunan?',text:'Seksyen dan kedudukan jawatankuasa akan dikemas kini. Tugasan guru kekal.',icon:'question',showCancelButton:true,confirmButtonText:'Simpan'});if(!ok.isConfirmed)return;
+      showLoader('Menyimpan susunan…');try{const r=await postToBackend({action:'saveManualV4JkOrder',data:{items}});hideLoader();if(!r.success)throw Error(r.error||'Gagal');await Swal.fire('Berjaya','Susunan disimpan.','success');await fetchMasterStafData();v4OpenOrder();}catch(e){hideLoader();Swal.fire('Ralat',e.message,'error');}
+    }
+    function v4OpenCalendar(){showView('viewV4Calendar');v4RenderCalendar();}
+    function v4RenderCalendar(){
+      const box=document.getElementById('v4CalendarItems');if(!box)return;
+      const q=String(document.getElementById('v4CalendarSearch')?.value||'').toLowerCase(),type=document.getElementById('v4CalendarTypeFilter')?.value||'';
+      const list=[...ALL_TAKWIM].filter(e=>!type||e.Jenis===type).filter(e=>[e.Tajuk,e.Maklumat,e.Unit,e.Minggu].some(x=>String(x||'').toLowerCase().includes(q)))
+        .sort((a,b)=>String(a.Tarikh_Mula||'').localeCompare(String(b.Tarikh_Mula||'')));
+      box.innerHTML=list.map(e=>`<div class="bg-white border rounded-xl p-4 flex gap-3 flex-wrap items-center justify-between"><div class="flex-1 min-w-[210px]"><div class="text-[10px] font-bold text-rose-700 uppercase">${manualV3Escape(e.Jenis)} ${e.Minggu?' · Minggu '+manualV3Escape(e.Minggu):''}</div><p class="text-xs font-extrabold mt-1">${manualV3Escape(e.Tajuk)}</p><p class="text-xs text-slate-500 mt-1">${manualV3Escape(e.Tarikh_Mula)}${e.Tarikh_Tamat&&e.Tarikh_Tamat!==e.Tarikh_Mula?' — '+manualV3Escape(e.Tarikh_Tamat):''} · ${manualV3Escape(e.Unit||'Semua unit')} · ${manualV3Escape(e.Status||'Aktif')}</p></div><button data-id="${manualV3Escape(e.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id)" class="border bg-slate-50 rounded-lg px-3 py-2 text-xs font-bold">Edit</button></div>`).join('')||'<div class="bg-white border rounded-xl text-center p-8 text-xs text-slate-500">Tiada aktiviti. Klik Tambah Aktiviti untuk membina takwim.</div>';
+    }
+    async function v4OpenCalendarEditor(id=''){
+      const o=ALL_TAKWIM.find(e=>String(e.ID_Acara)===String(id))||{};
+      const input=(k,label,value='',type='text')=>`<label class="block text-left text-xs font-bold mt-3 mb-1">${label}</label><input id="v4cal-${k}" type="${type}" value="${manualV3Escape(value)}" class="w-full p-2.5 border rounded-xl text-xs"/>`;
+      const select=(k,label,values,selected)=>`<label class="block text-left text-xs font-bold mt-3 mb-1">${label}</label><select id="v4cal-${k}" class="w-full p-2.5 border rounded-xl text-xs">${values.map(v=>`<option value="${manualV3Escape(v.value||v)}" ${String(v.value||v)===String(selected)?'selected':''}>${manualV3Escape(v.text||v)}</option>`).join('')}</select>`;
+      const weeks=[''].concat(Array.from({length:52},(_,i)=>i+1));
+      const groups=[''].concat(v4ActiveGroups().map(g=>({value:g.Nombor_Kumpulan,text:g.Nama_Kumpulan})));
+      const committees=[''].concat(ALL_JAWATANKUASA.map(j=>j.Nama_Jawatankuasa));
+      const html=`<div class="text-left max-h-[65vh] overflow-y-auto px-1">${input('Tajuk','Tajuk acara / aktiviti',o.Tajuk||'')}
+        ${select('Jenis','Jenis takwim',['SEKOLAH','CUTI','MINGGU_RPH','MINGGU_BERTUGAS','PROGRAM','MESYUARAT'],o.Jenis||'PROGRAM')}
+        <div class="grid grid-cols-2 gap-3">${input('Tarikh_Mula','Tarikh mula',o.Tarikh_Mula||'','date')}${input('Tarikh_Tamat','Tarikh tamat',o.Tarikh_Tamat||'','date')}</div>
+        <div class="grid grid-cols-2 gap-3">${select('Minggu','Minggu (jika berkaitan)',weeks,o.Minggu||'')}${select('Kumpulan_Bertugas','Kumpulan Bertugas',groups,o.Kumpulan_Bertugas||'')}</div>
+        ${select('ID_Jawatankuasa','Khusus JK (kosong = semua)',committees,o.ID_Jawatankuasa||'')}
+        ${input('Unit','Unit / sasaran',o.Unit||'')}${input('Lokasi','Tempat',o.Lokasi||'')}${input('Maklumat','Ringkasan / agenda',o.Maklumat||'')}
+        <div class="grid grid-cols-2 gap-3">${input('Notifikasi_Hari','Ingatkan berapa hari awal',o.Notifikasi_Hari||7,'number')}${select('Status','Status',['Aktif','Tidak Aktif'],o.Status||'Aktif')}</div></div>`;
+      const ans=await Swal.fire({title:id?'Edit Aktiviti':'Tambah Aktiviti',html,width:700,showCancelButton:true,confirmButtonText:'Simpan',preConfirm:()=>{
+        const result={ID_Acara:id};['Tajuk','Jenis','Tarikh_Mula','Tarikh_Tamat','Minggu','Kumpulan_Bertugas','ID_Jawatankuasa','Unit','Lokasi','Maklumat','Notifikasi_Hari','Status'].forEach(k=>result[k]=document.getElementById('v4cal-'+k)?.value||'');
+        if(!result.Tajuk||!result.Tarikh_Mula){Swal.showValidationMessage('Tajuk dan Tarikh Mula diperlukan.');return false;}return result;
+      }});if(!ans.isConfirmed||!ans.value)return;
+      showLoader('Menyimpan takwim…');try{
+        const r=await postToBackend({action:'saveManualV4Calendar',data:ans.value});hideLoader();if(!r.success)throw Error(r.error||'Gagal menyimpan');await Swal.fire('Berjaya',r.message||'Takwim disimpan','success');await fetchMasterStafData();v4OpenCalendar();
+      }catch(e){hideLoader();Swal.fire('Ralat',e.message,'error');}
+    }
+    function v4SetIndukEditMode(edit){
+      const select=document.getElementById('selSetiausahaInduk'),off=document.getElementById('containerIndukCustomOfficers'),add=document.getElementById('v4AddIndukOfficer'),save=document.getElementById('v4SaveIndukBtn'),editBtn=document.getElementById('v4EditIndukBtn'),read=document.getElementById('v4IndukReadOnly');
+      if(!select||!read)return;
+      select.classList.toggle('hidden',!edit);if(off)off.classList.toggle('hidden',!edit);if(add)add.classList.toggle('hidden',!edit);
+      if(save)save.classList.toggle('hidden',!edit);if(editBtn)editBtn.classList.toggle('hidden',edit);read.classList.toggle('hidden',edit);
+      if(!edit){
+        const records=manualV3CurrentRoles().filter(p=>p.Nama_Jawatankuasa==='JK Induk '+activeCategoryInduk);
+        read.innerHTML=records.length?records.map(p=>`<div class="flex justify-between gap-3 border-b py-2"><strong>${manualV3Escape(p.Peranan)}</strong><span class="text-right text-slate-700">${manualV3Escape(manualV3StaffName(p.ID_Staf))}</span></div>`).join(''):'<p class="text-slate-400 italic">Belum ada pelantikan JK Induk. Klik Edit Jawatan untuk mengisi.</p>';
+      }
+    }
+    function v4PrintManualBook(){
+      const year=manualV3Year();
+      const active=manualV3CurrentRoles(),staff=sortStafList(ALL_STAF.filter(s=>String(s.Status||'Aktif').toLowerCase()==='aktif'));
+      const esc=manualV3Escape;
+      const pages=[];
+      const add=(title,chapter,content)=>pages.push({title,chapter,content});
+      add('Manual Pengurusan Sekolah','Muka Depan',`<div class="cover"><div class="cover-emblem">SeMAKMUR</div><h1>BUKU MANUAL<br>PENGURUSAN SEKOLAH</h1><div class="cover-year">SESI ${esc(year)}</div><h2>SEKOLAH KEBANGSAAN SEGAMBUT MAKMUR</h2><p>Dokumen Pengagihan Jawatankuasa, Pengurusan Staf, Operasi & Takwim</p></div>`);
+      add('Isi Kandungan','Isi Kandungan','__TOC__');
+      const bookSections=(ALL_BUKU||[]).filter(r=>String(r.Tahun)===year&&r.Status==='Lengkap').sort((a,b)=>Number(a.Susunan||99)-Number(b.Susunan||99));
+      const textToHtml=(content)=>String(content||'').split('\n').map(line=>{const trimmed=line.trim();if(/^https:\/\/[^\s]+\.(png|jpg|jpeg|webp)(\?[^\s]*)?$/i.test(trimmed))return `<p style="text-align:center"><img src="${esc(trimmed)}" style="max-width:100%;max-height:150mm;object-fit:contain"></p>`;return `<p style="white-space:pre-wrap;font-size:10pt;line-height:1.6">${esc(line)||'&nbsp;'}</p>`;}).join('');
+      for(const r of bookSections){if(r.Slug==='muka_depan'){pages[0].content=pages[0].content.replace(/<\/div>\s*$/,`<p>${esc(r.Kandungan||'')}</p></div>`);}else add(r.Tajuk,r.Tajuk,textToHtml(r.Kandungan));}
+
+      const table=(columns,rows)=>`<table><thead><tr>${columns.map(x=>'<th>'+esc(x)+'</th>').join('')}</tr></thead><tbody>${rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(x)+'</td>').join('')+'</tr>').join('')}</tbody></table>`;
+      const chunks=(arr,n)=>arr.length?Array.from({length:Math.ceil(arr.length/n)},(_,i)=>arr.slice(i*n,(i+1)*n)):[[]];
+      chunks(staff,19).forEach((chunk,i)=>add('Direktori Staf'+(i?' (sambungan)':''),'Direktori Staf',table(['Bil','Nama Staf','Jawatan'],chunk.map((g,j)=>[String(i*19+j+1),g.Nama_Penuh,g.Kategori_Staf]))));
+      ['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'].forEach(cat=>{
+        const jks=v4SortedJK(cat);const sections=[...new Set(jks.map(j=>j.Seksyen||cat))];
+        sections.forEach(sec=>{
+          const selected=jks.filter(j=>(j.Seksyen||cat)===sec);
+          selected.forEach(j=>{
+            const ass=active.filter(p=>p.Nama_Jawatankuasa===j.Nama_Jawatankuasa);
+            chunks(ass,17).forEach((chunk,i)=>add(j.Nama_Jawatankuasa+(i?' (sambungan)':''),`JK ${cat} · ${sec}`,
+              `<p class="section-meta">${esc(cat)} / ${esc(sec)} · ${esc(j.Nama_Jawatankuasa)}</p>`+table(['Bil','Peranan','Penyandang','Skop / Tugas'],chunk.map((r,k)=>[String(i*17+k+1),r.Peranan,manualV3StaffName(r.ID_Staf),r.Skop_Tugas_Kelas]))));
+          });
+        });
+      });
+      const cl=ALL_LOKASI.filter(l=>String(l.Kategori||'').toLowerCase()==='kelas'&&String(l.Status||'Aktif').toLowerCase()==='aktif');
+      chunks(cl,18).forEach((c,i)=>add('Pengurusan Kelas'+(i?' (sambungan)':''),'Pengurusan Kelas',table(['Kelas','Guru Kelas','Guru Pembantu'],c.map(x=>{const r=statePengurusanKelas[x.Nama_Lokasi]||{};return [x.Nama_Lokasi,r.gk?manualV3StaffName(r.gk):'BELUM DIISI',r.gpk?manualV3StaffName(r.gpk):'—'];}))));
+      const events=ALL_TAKWIM.filter(e=>String(e.Status||'Aktif').toLowerCase()==='aktif'&&String(e.Tarikh_Mula||'').startsWith(year)).sort((a,b)=>String(a.Tarikh_Mula).localeCompare(String(b.Tarikh_Mula)));
+      chunks(events,17).forEach((c,i)=>add('Takwim Persekolahan'+(i?' (sambungan)':''),'Takwim',table(['Tarikh','Jenis','Aktiviti','Unit'],c.map(e=>[e.Tarikh_Mula,e.Jenis,e.Tajuk,e.Unit]))));
+      const toc=[];let previous='';pages.forEach((p,i)=>{if(p.chapter!==previous){toc.push([p.chapter,i+1]);previous=p.chapter;}});
+      pages[1].content=`<div class="toc">${toc.map(x=>`<div><span>${esc(x[0])}</span><span>${x[1]}</span></div>`).join('')}</div>`;
+      const html=`<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Buku Manual Pengurusan ${esc(year)}</title><style>
+        @page{size:A4 portrait;margin:0}*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:#18243a;background:#eef2f7}
+        .toolbar{position:sticky;top:0;background:#101a2c;padding:12px;color:white;text-align:center;z-index:100}button{border:0;border-radius:7px;padding:9px 18px;background:#d91e4e;color:white;font-weight:bold;cursor:pointer}
+        .page{width:210mm;height:297mm;background:white;margin:12px auto;position:relative;overflow:hidden;padding:21mm 17mm 21mm;box-shadow:0 4px 20px #0002;break-after:page;page-break-after:always}
+        .page header{height:18mm;border-bottom:2px solid #173963;margin-bottom:8mm;display:flex;justify-content:space-between;align-items:center;font-size:9pt;color:#21466d}
+        .page h2{font-size:16pt;margin:0 0 10mm}.page h3{font-size:12pt;margin:0 0 7mm}
+        .page footer{position:absolute;bottom:13mm;left:17mm;right:17mm;border-top:1px solid #cbd5e1;padding-top:3mm;display:flex;justify-content:space-between;font-size:8pt;color:#64748b}
+        table{width:100%;border-collapse:collapse;font-size:8pt;line-height:1.3}th{background:#e9f0f8;text-align:left;color:#173963;padding:7px 5px;border:1px solid #dce4ef}td{vertical-align:top;padding:5px;border:1px solid #e2e8f0;word-break:break-word}
+        .section-meta{font-size:8pt;color:#64748b}.cover{text-align:center;padding-top:30mm}.cover-emblem{border:4px solid #173963;display:inline-block;padding:18px;font-size:22pt;font-weight:900;color:#173963;border-radius:20px}
+        .cover h1{font-size:27pt;line-height:1.25;margin-top:30mm}.cover-year{background:#173963;color:white;border-radius:9px;padding:12px;margin:16mm auto;width:60%;font-weight:bold}.cover h2{font-size:16pt}.cover p{font-size:9pt;color:#64748b}
+        .toc>div{display:flex;justify-content:space-between;border-bottom:1px dotted #94a3b8;padding:10px 0;font-size:11pt}
+        .page:last-child{break-after:auto;page-break-after:auto}
+        @media print{body{background:white}.toolbar{display:none}.page{margin:0;box-shadow:none} }
+        </style></head><body><div class="toolbar"><strong>Pratonton Buku Manual Pengurusan Sesi ${esc(year)}</strong> <button onclick="window.print()">Cetak / Simpan PDF</button></div>${pages.map((p,i)=>`<section class="page"><header><strong>SK SEGAMBUT MAKMUR</strong><span>Manual Pengurusan ${esc(year)}</span></header>${i===0?p.content:`<h2>${esc(p.title)}</h2>${p.content}`}<footer><span>Portal Digital SeMAKMUR · ${esc(p.chapter)}</span><span>Halaman ${i+1} / ${pages.length}</span></footer></section>`).join('')}</body></html>`;
+      const w=window.open('','_blank');if(!w){Swal.fire('Popup disekat','Benarkan popup untuk memaparkan buku.','warning');return;}w.document.open();w.document.write(html);w.document.close();
+    }
+
+/* ===== LEGACY V5 preserved ===== */
+
+/* SeMAKMUR Manual Pengurusan V5 — pembaikan UI berdasarkan sembilan isu. */
+const V5_UNITS=['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'];
+const V5_MONTHS=['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+const V5_WEEKDAYS=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+let ALL_MINGGU=[],ALL_BUKU=[],V5_BOOK_SLUG='muka_depan',V5_CAL_TAB='penuh',V5_DRAG_ID='',V5_SECT_CAT='',V5_SECT_DRAFT=[],V5_SECT_DIRTY=false,V5_ORDER_DIRTY=false;
+const v5E=x=>manualV3Escape(x);
+const v5Active=x=>String(x.Status||'Aktif').toLowerCase()==='aktif';
+const v5Pad=x=>String(x).padStart(2,'0');
+function v5ISO(d){return `${d.getFullYear()}-${v5Pad(d.getMonth()+1)}-${v5Pad(d.getDate())}`;}
+function v5Date(s){const t=String(s||'').slice(0,10);if(/^\d{4}-\d\d-\d\d$/.test(t))return t;const d=new Date(s);return isNaN(d)?'':v5ISO(d);}
+function v5Today(){return v5ISO(new Date());}
+function v5SupervisorOrder(unit){const map={'Kurikulum':['GPK Pentadbiran','GPK Hal Ehwal Murid','GPK Ko Kurikulum'],'Hal Ehwal Murid':['GPK Hal Ehwal Murid','GPK Pentadbiran','GPK Ko Kurikulum'],'Kokurikulum':['GPK Ko Kurikulum','GPK Pentadbiran','GPK Hal Ehwal Murid']};return map[unit]||map.Kurikulum;}
+function v5AdminByCategory(cat){return ALL_STAF.find(s=>s.Kategori_Staf===cat&&v5Active(s));}
+function v5SupervisorNames(unit){return v5SupervisorOrder(unit).map(c=>v5AdminByCategory(c)?.Nama_Penuh||'Belum dilantik');}
+function v5SupervisorLabels(unit){return v5SupervisorOrder(unit).map(c=>({id:v5AdminByCategory(c)?.ID_Staf||'',name:v5AdminByCategory(c)?.Nama_Penuh||'Belum dilantik',cat:c}));}
+function v5CurrentJk(){return ALL_JAWATANKUASA.find(j=>j.Nama_Jawatankuasa===activeSubJkName);}
+function v5RowsForJk(name){return manualV3CurrentRoles().filter(r=>r.Nama_Jawatankuasa===name);}
+function v5RoleLabel(r){return String(r.Peranan||'').trim();}
+function v5PlainRole(label,name,color=''){return `<div class="flex flex-wrap items-start gap-2 border-b border-slate-200 py-2 text-xs"><strong class="w-40 shrink-0 ${color}">${v5E(label)}:</strong><span class="flex-1 font-semibold text-slate-800">${v5E(name||'Belum Diisi')}</span></div>`;}
+// Isu #1 — 'Tahap 1 & 2' bukan Tahap 1 sahaja.
+window.v4EligibleYears=function(cat){const raw=String(cat||'').toLowerCase().replace(/\s+/g,' ').trim();if(/tahap\s*1\s*(&|dan|dan\s*juga|\+)\s*(tahap\s*)?2|tahap\s*1\s*\/\s*2/.test(raw))return [1,2,3,4,5,6];const yy=[...raw.matchAll(/tahun\s*([1-6])/g)].map(m=>Number(m[1]));if(yy.length)return [...new Set(yy)];if(raw.includes('tahap 1')&&raw.includes('tahap 2'))return [1,2,3,4,5,6];if(raw.includes('tahap 1'))return [1,2,3];if(raw.includes('tahap 2'))return [4,5,6];return [1,2,3,4,5,6];};
+// Isu #2 — guru besar dan semua GPK bukan ahli bertugas mingguan.
+const v5OldRenderGroups=window.renderKumpulanBertugasUI;
+window.renderKumpulanBertugasUI=function(){v5OldRenderGroups();document.querySelectorAll('#v4GroupGrid select[id^="selK"]').forEach(sel=>{[...sel.options].forEach(o=>{const s=ALL_STAF.find(x=>x.ID_Staf===o.value);if(s&&(/guru besar|^gpk\b/i.test(String(s.Kategori_Staf||''))||!v5Active(s)))o.remove();});});};
+// Isu #3 — status tidak aktif, tarikh keluar dipilih; tarikh masuk kekal.
+function v5ToggleStaffDate(){const inactive=document.getElementById('inp_Status')?.value==='Tidak Aktif';const start=document.getElementById('v5EnterDateWrap'),exit=document.getElementById('v5ExitDateWrap');if(start)start.classList.toggle('hidden',inactive);if(exit)exit.classList.toggle('hidden',!inactive);const el=document.getElementById('inp_Tarikh_Keluar');if(el&&inactive&&!el.value)el.value=v5Today();}
+const v5OldOpenEditStaff=window.openEditGuruModal;
+window.openEditGuruModal=function(id){v5OldOpenEditStaff(id);document.getElementById('inp_ID_Staf').dataset.isNew='false';const s=ALL_STAF.find(x=>x.ID_Staf===id);const el=document.getElementById('inp_Tarikh_Keluar');if(el)el.value=v5Date(s?.Tarikh_Keluar||'');const x=document.getElementById('inp_Tarikh_Masuk');if(x)x.value=v5Date(s?.Tarikh_Masuk||'');v5ToggleStaffDate();};
+const v5OldOpenNewStaff=window.openTambahGuruModal;
+window.openTambahGuruModal=function(){v5OldOpenNewStaff();const e=document.getElementById('inp_Tarikh_Keluar');if(e)e.value='';v5ToggleStaffDate();};
+// Isu #4 — hanya seksyen berdaftar, tambah terus dari popup.
+window.v4FillSeksyen=function(selected=''){const cat=document.getElementById('jk_Kategori_Pengurusan')?.value||'Pentadbiran',sel=document.getElementById('jk_Seksyen');if(!sel)return;const arr=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat&&v5Active(s)).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));sel.innerHTML='<option value="">-- Pilih Seksyen (wajib) --</option>'+arr.map(s=>`<option value="${v5E(s.Nama_Seksyen)}">${v5E(s.Nama_Seksyen)}</option>`).join('');sel.value=arr.some(s=>s.Nama_Seksyen===selected)?selected:'';};
+window.v5AddSectionInline=async function(){const inp=document.getElementById('jk_Seksyen_Baharu'),cat=document.getElementById('jk_Kategori_Pengurusan')?.value;const name=inp?.value.trim();if(!name){Swal.fire('Nama seksyen diperlukan','Taip nama seksyen sebelum klik + Seksyen.','warning');return;}if(ALL_SEKSYEN.some(s=>s.Kategori_Pengurusan===cat&&s.Nama_Seksyen.toLowerCase()===name.toLowerCase()&&v5Active(s))){v4FillSeksyen(name);inp.value='';return;}showLoader('Mendaftarkan seksyen…');try{const r=await postToBackend({action:'saveManualV4Section',data:{Kategori_Pengurusan:cat,Nama_Seksyen:name,Status:'Aktif',Susunan:ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat).length+1}});if(!r.success)throw Error(r.error||'Gagal');ALL_SEKSYEN.push({Kategori_Pengurusan:cat,Nama_Seksyen:name,Status:'Aktif',Susunan:ALL_SEKSYEN.length+1});v4FillSeksyen(name);inp.value='';}catch(e){Swal.fire('Seksyen tidak disimpan',e.message,'error');}finally{hideLoader();}};
+const v5OldSaveJk=window.simpanMasterJawatankuasa;
+window.simpanMasterJawatankuasa=async function(e){const sec=document.getElementById('jk_Seksyen')?.value,inp=document.getElementById('jk_Seksyen_Baharu');if(inp?.value.trim()){e.preventDefault();await Swal.fire('Tambah Seksyen dahulu','Klik butang + Seksyen untuk mendaftar dan memilih seksyen baharu sebelum menyimpan JK.','info');return;}if(!sec){e.preventDefault();Swal.fire('Seksyen wajib','Sila pilih seksyen yang telah berdaftar.','warning');return;}return v5OldSaveJk(e);};
+const v5OldEditJk=window.editMasterJawatankuasa;
+window.editMasterJawatankuasa=function(id){v5OldEditJk(id);const j=ALL_JAWATANKUASA.find(x=>String(x.ID_Tugasan)===String(id));v4FillSeksyen(j?.Seksyen||'');const u=document.getElementById('jk_Unit_Penyelia');if(u)u.value=['Kurikulum','Hal Ehwal Murid','Kokurikulum'].includes(j?.Unit_Penyelia)?j.Unit_Penyelia:'Kurikulum';};
+const v5OldNewJk=window.openModalJawatankuasa;
+window.openModalJawatankuasa=function(){v5OldNewJk();const u=document.getElementById('jk_Unit_Penyelia');if(u)u.value='Kurikulum';};
+// Isu #4: pengurusan seksyen dipisahkan mengikut JK Induk, pemegang seret 6 titik.
+const v5OldRenderCatalog=window.v4RenderCatalog;
+window.v4RenderCatalog=function(){v5OldRenderCatalog();if(V4_CATALOG_KIND!=='seksyen')return;const box=document.getElementById('v4CatalogItems');if(!box)return;box.innerHTML=V5_UNITS.map(cat=>{const list=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));return `<div class="bg-white border rounded-2xl p-4 mb-4"><div class="flex justify-between items-center border-b pb-3 mb-3 gap-3"><h3 class="font-extrabold text-sm">JK Induk ${v5E(cat)}</h3><button onclick="v5SaveSectionOrder('${cat}')" data-v5-secsave="${cat}" disabled class="px-3 py-2 bg-emerald-700 text-white disabled:bg-slate-200 disabled:text-slate-500 rounded-lg text-xs font-bold">Simpan Susunan</button></div><div id="v5-sec-${V5_UNITS.indexOf(cat)}" class="space-y-2">${list.map((s,i)=>`<div draggable="true" data-sec-id="${v5E(s.ID_Seksyen)}" ondragstart="v5SectionDrag(event)" ondragover="event.preventDefault()" ondrop="v5SectionDrop(event,'${v5E(cat)}')" class="flex items-center gap-3 border rounded-xl p-3 ${v5Active(s)?'':'opacity-50'}"><span class="cursor-grab text-slate-500 text-lg" title="Seret untuk susun"><i class="fa-solid fa-grip-vertical"></i></span><span class="flex-1 font-bold text-xs">${v5E(s.Nama_Seksyen)}</span><button data-id="${v5E(s.ID_Seksyen)}" onclick="v4OpenCatalogEditor(this.dataset.id)" class="border rounded-lg px-3 py-2 text-xs">Edit</button></div>`).join('')||'<p class="text-xs text-slate-400 italic">Belum ada seksyen. Klik Tambah Rekod.</p>'}</div></div>`;}).join('');};
+const v5OldCatalogEditor=window.v4OpenCatalogEditor;
+window.v4OpenCatalogEditor=async function(id=''){if(V4_CATALOG_KIND!=='seksyen')return v5OldCatalogEditor(id);const old=ALL_SEKSYEN.find(s=>String(s.ID_Seksyen)===String(id))||{};const cats=V5_UNITS.map(c=>`<option ${c===(old.Kategori_Pengurusan||'Pentadbiran')?'selected':''}>${v5E(c)}</option>`).join('');const ans=await Swal.fire({title:id?'Edit Seksyen':'Tambah Seksyen',html:`<div class="text-left"><label class="text-xs font-bold">JK Induk</label><select id="v5-cat" class="w-full border rounded-xl p-3 mt-1 mb-4">${cats}</select><label class="text-xs font-bold">Nama Seksyen</label><input id="v5-secname" value="${v5E(old.Nama_Seksyen||'')}" class="w-full border rounded-xl p-3 mt-1 mb-4"/><label class="text-xs font-bold">Status</label><select id="v5-secstatus" class="w-full border rounded-xl p-3 mt-1"><option ${old.Status==='Aktif'?'selected':''}>Aktif</option><option ${old.Status==='Tidak Aktif'?'selected':''}>Tidak Aktif</option></select><p class="text-xs text-slate-500 mt-3">Susunan dikawal menggunakan ikon enam titik dalam senarai, bukan nombor manual.</p></div>`,showCancelButton:true,confirmButtonText:'Simpan',preConfirm:()=>{const n=document.getElementById('v5-secname')?.value.trim();if(!n){Swal.showValidationMessage('Nama Seksyen wajib.');return false;}return {ID_Seksyen:id,Kategori_Pengurusan:document.getElementById('v5-cat').value,Nama_Seksyen:n,Status:document.getElementById('v5-secstatus').value,Susunan:old.Susunan||ALL_SEKSYEN.length+1};}});if(!ans.isConfirmed||!ans.value)return;showLoader('Menyimpan seksyen…');try{const r=await postToBackend({action:'saveManualV4Section',data:ans.value});if(!r.success)throw Error(r.error||'Gagal');await fetchMasterStafData();v4OpenCatalog('seksyen');}catch(e){Swal.fire('Ralat',e.message,'error');}finally{hideLoader();}};
+window.v5SectionDrag=function(ev){V5_DRAG_ID=ev.currentTarget.dataset.secId;ev.dataTransfer.effectAllowed='move';};
+window.v5SectionDrop=function(ev,cat){ev.preventDefault();const container=ev.currentTarget.parentElement,source=container.querySelector(`[data-sec-id="${V5_DRAG_ID}"]`);if(!source||source===ev.currentTarget)return;const nodes=[...container.children],before=nodes.indexOf(source)>nodes.indexOf(ev.currentTarget);container.insertBefore(source,before?ev.currentTarget:ev.currentTarget.nextSibling);const button=document.querySelector(`[data-v5-secsave="${cat}"]`);if(button)button.disabled=false;};
+window.v5SaveSectionOrder=async function(cat){const container=document.getElementById('v5-sec-'+V5_UNITS.indexOf(cat));const ids=[...container.querySelectorAll('[data-sec-id]')].map(x=>x.dataset.secId);if(!ids.length)return;showLoader('Menyimpan susunan seksyen…');try{const r=await postToBackend({action:'saveManualV5SectionOrder',data:{kategori:cat,ids}});if(!r.success)throw Error(r.error||'Gagal');ALL_SEKSYEN.filter(x=>x.Kategori_Pengurusan===cat).forEach(s=>{s.Susunan=ids.indexOf(String(s.ID_Seksyen))+1;});v4RenderCatalog();}catch(e){Swal.fire('Gagal Simpan',e.message,'error');}finally{hideLoader();}};
+// Isu #5 — JK induk: setiausaha dan pegawai tambahan di dalam kotak pimpinan.
+const v5OldOpenInduk=window.openIndukOverview;
+window.openIndukOverview=function(cat){v5OldOpenInduk(cat);v5SetIndukEditMode(false);};
+window.v4SetIndukEditMode=function(edit){const ids=['selSetiausahaInduk','containerIndukCustomOfficers','v4AddIndukOfficer','v4SaveIndukBtn','v5CancelIndukBtn'];ids.forEach(id=>document.getElementById(id)?.classList.toggle('hidden',!edit));document.getElementById('v4EditIndukBtn')?.classList.toggle('hidden',edit);const su=document.getElementById('v5IndukSuRead'),off=document.getElementById('v5IndukOfficersRead');if(su)su.classList.toggle('hidden',edit);if(off)off.classList.toggle('hidden',edit);document.getElementById('v4IndukReadOnly')?.classList.add('hidden');if(!edit){const records=v5RowsForJk('JK Induk '+activeCategoryInduk);const suRow=records.find(r=>v5RoleLabel(r)==='Setiausaha');if(su)su.textContent=suRow?manualV3StaffName(suRow.ID_Staf):'Belum Diisi';const extra=records.filter(r=>r.Peranan!=='Setiausaha');if(off)off.innerHTML=extra.map(r=>v5PlainRole(r.Peranan,manualV3StaffName(r.ID_Staf))).join('');}};
+window.v5CancelInduk=function(){openIndukOverview(activeCategoryInduk);};
+// Isu #6 — naib JK kecil diambil secara automatik dan mod view bersih.
+const v5OldOpenSub=window.openSubJkDetail;
+window.openSubJkDetail=function(cat,name){v5OldOpenSub(cat,name);const j=v5CurrentJk(),unit=['Kurikulum','Hal Ehwal Murid','Kokurikulum'].includes(j?.Unit_Penyelia)?j.Unit_Penyelia:(cat==='Pentadbiran'?'Kurikulum':cat);const labels=v5SupervisorLabels(unit);[1,2,3].forEach((n,i)=>{const wrap=document.getElementById('wrapperNaib'+n);if(wrap)wrap.innerHTML=`<span class="font-bold text-xs text-slate-800">${v5E(labels[i].name)} (${v5E(labels[i].cat)})</span>`;});v5SetSubEditMode(false);};
+window.v5SetSubEditMode=function(edit){const root=document.querySelector('#viewSubJkDetail > div');if(!root)return;const parts=[...root.children].slice(1);parts.forEach(el=>{if(el.id!=='v5SubSummary')el.classList.toggle('hidden',!edit);});let summary=document.getElementById('v5SubSummary');if(!summary){summary=document.createElement('div');summary.id='v5SubSummary';root.insertBefore(summary,root.children[1]);}summary.classList.toggle('hidden',edit);const save=root.querySelector('button[onclick="simpanDetailSubJk()"]');if(save)save.classList.toggle('hidden',!edit);const editbtn=document.getElementById('v5SubEditBtn'),cancel=document.getElementById('v5SubCancelBtn');if(editbtn)editbtn.classList.toggle('hidden',edit);if(cancel)cancel.classList.toggle('hidden',!edit);if(!edit){const j=v5CurrentJk(),unit=j?.Unit_Penyelia||'Kurikulum',rows=v5RowsForJk(activeSubJkName),role=j?.Peranan||'Penyelaras',lead=v5AdminByCategory('Guru Besar');const seen=new Set();let html=v5PlainRole('Pengerusi',lead?.Nama_Penuh||'Belum Diisi');v5SupervisorNames(unit).forEach((name,i)=>html+=v5PlainRole('Naib Pengerusi '+(i+1),name));const ordered=rows.filter(r=>!/^naib pengerusi/i.test(r.Peranan)).sort((a,b)=>{const rank=x=>x.Peranan===role?0:/^setiausaha/i.test(x.Peranan)?1:/^ajk/i.test(x.Peranan)?3:2;return rank(a)-rank(b);});ordered.forEach(r=>{const k=r.Peranan+'|'+r.ID_Staf;if(seen.has(k))return;seen.add(k);html+=v5PlainRole(r.Peranan,manualV3StaffName(r.ID_Staf));});summary.innerHTML=`<div class="bg-slate-50 rounded-xl border p-4">${html}</div>`;}};
+window.v5CancelSub=function(){openSubJkDetail(activeCategoryInduk,activeSubJkName);};
+const v5OldSaveSub=window.simpanDetailSubJk;
+window.simpanDetailSubJk=async function(){const lead=document.getElementById('selSubPenyelaras')?.value,ajk=[...document.querySelectorAll('#containerAjkRows select[data-ajk-select="true"]')].map(s=>s.value).filter(Boolean);if(lead&&ajk.includes(lead)){Swal.fire('Pengagihan bertindih','Penyelaras tidak boleh menjadi AJK dalam jawatankuasa yang sama.','warning');return;}if(new Set(ajk).size!==ajk.length){Swal.fire('AJK berulang','Seorang guru hanya boleh dimasukkan sekali sebagai AJK bagi jawatankuasa yang sama.','warning');return;}await v5OldSaveSub();};
+// Isu #6.5 #6.6 — senarai penyelaras grouped by sections, tanpa skop kurungan.
+window.renderMappingSubJkList=function(cat){const box=document.getElementById('boxMappingSubJk');if(!box)return;const sections=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat&&v5Active(s)).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));const jks=v4SortedJK(cat);const names=[...new Set([...sections.map(s=>s.Nama_Seksyen),...jks.map(j=>j.Seksyen||'Belum Dikelaskan')])];box.innerHTML=names.map(sec=>{const rows=jks.filter(j=>(j.Seksyen||'Belum Dikelaskan')===sec);if(!rows.length)return '';return `<div class="rounded-xl border overflow-hidden"><h4 class="bg-slate-200 text-slate-700 font-extrabold text-xs px-4 py-3">${v5E(sec)}</h4>${rows.map(j=>{const role=v5RowsForJk(j.Nama_Jawatankuasa).find(r=>/penyelaras|ketua panitia/i.test(r.Peranan));return `<div class="px-4 py-3 flex justify-between gap-4 border-t bg-white"><span class="font-bold">${v5E(j.Peranan||'Penyelaras')} ${v5E(j.Nama_Jawatankuasa)}</span><span class="font-semibold text-right ${role?'':'italic text-slate-400'}">${role?v5E(manualV3StaffName(role.ID_Staf)):'Belum Diisi'}</span></div>`;}).join('')}</div>`;}).join('')||'<p class="text-slate-400 italic">Tiada jawatankuasa didaftarkan.</p>';};
+// Isu #7 — susun JK di bawah seksyen yang jelas, drag/drop, dirty state.
+window.v4DrawOrder=function(){const cat=document.getElementById('v4OrderCategory')?.value||'Pentadbiran';if(cat!==V4_ORDER_CATEGORY){V4_ORDER_CATEGORY=cat;V4_ORDER_DRAFT=v4SortedJK(cat).map(x=>({...x}));V5_ORDER_DIRTY=false;}const box=document.getElementById('v4OrderList');if(!box)return;const secs=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat&&v5Active(s)).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));const names=[...new Set([...secs.map(s=>s.Nama_Seksyen),...V4_ORDER_DRAFT.map(j=>j.Seksyen||'Belum Dikelaskan')])];box.innerHTML=names.map(sec=>{const rows=V4_ORDER_DRAFT.filter(j=>(j.Seksyen||'Belum Dikelaskan')===sec);return `<div class="bg-white border rounded-xl mb-4 overflow-hidden"><div class="bg-slate-100 p-3 font-extrabold text-xs">${v5E(sec)} <span class="text-slate-400 font-normal">(${rows.length})</span></div><div class="p-2 space-y-2" data-v5-group="${v5E(sec)}">${rows.map(j=>`<div draggable="true" data-v5-jkid="${v5E(j.ID_Tugasan)}" ondragstart="v5JkDrag(event)" ondragover="event.preventDefault()" ondrop="v5JkDrop(event)" class="flex flex-wrap items-center gap-3 p-3 border rounded-lg"><span class="cursor-grab text-slate-500" title="Seret untuk ubah kedudukan"><i class="fa-solid fa-grip-vertical"></i></span><span class="font-bold text-xs flex-1 min-w-32">${v5E(j.Nama_Jawatankuasa)}</span><select onchange="v5MoveJkToSection(this.dataset.id,this.value)" data-id="${v5E(j.ID_Tugasan)}" class="text-xs border rounded-lg p-2"><option value="">-- Pilih seksyen --</option>${secs.map(s=>`<option value="${v5E(s.Nama_Seksyen)}" ${s.Nama_Seksyen===sec?'selected':''}>${v5E(s.Nama_Seksyen)}</option>`).join('')}</select></div>`).join('')}</div></div>`;}).join('');v5OrderState();};
+window.v5OrderState=function(){const status=document.getElementById('v5OrderStatus'),btn=document.getElementById('v5OrderSaveBtn');if(status){status.innerText=V5_ORDER_DIRTY?'● Belum disimpan':'✓ Tiada perubahan';status.className='text-xs '+(V5_ORDER_DIRTY?'text-amber-700 font-bold':'text-slate-400');}if(btn)btn.disabled=!V5_ORDER_DIRTY;};
+window.v5JkDrag=ev=>{V5_DRAG_ID=ev.currentTarget.dataset.v5Jkid;ev.dataTransfer.effectAllowed='move';};
+window.v5JkDrop=function(ev){ev.preventDefault();const dest=ev.currentTarget,source=document.querySelector(`[data-v5-jkid="${V5_DRAG_ID}"]`);if(!source||source===dest)return;const parent=dest.parentElement,sec=parent.dataset.v5Group;const idx=V4_ORDER_DRAFT.findIndex(j=>String(j.ID_Tugasan)===V5_DRAG_ID);if(idx<0)return;const item=V4_ORDER_DRAFT.splice(idx,1)[0];item.Seksyen=sec;const target=V4_ORDER_DRAFT.findIndex(j=>String(j.ID_Tugasan)===dest.dataset.v5Jkid);V4_ORDER_DRAFT.splice(Math.max(target,0),0,item);V5_ORDER_DIRTY=true;v4DrawOrder();};
+window.v5MoveJkToSection=function(id,sec){const i=V4_ORDER_DRAFT.findIndex(j=>String(j.ID_Tugasan)===String(id));if(i<0||!sec)return;const j=V4_ORDER_DRAFT.splice(i,1)[0];j.Seksyen=sec;let insert=V4_ORDER_DRAFT.map(x=>x.Seksyen).lastIndexOf(sec);V4_ORDER_DRAFT.splice(insert+1,0,j);V5_ORDER_DIRTY=true;v4DrawOrder();};
+const v5OldSaveOrder=window.v4SaveOrder;
+window.v4SaveOrder=async function(){if(!V5_ORDER_DIRTY)return;await v5OldSaveOrder();};
+// Isu #9 — Takwim penuh: satu acara boleh merentasi tarikh serta unit; minggu berasingan daripada acara.
+function v5WeekForDate(date){return ALL_MINGGU.find(w=>String(w.Sesi)===manualV3Year()&&v5Active(w)&&String(w.Tarikh_Mula)<=date&&String(w.Tarikh_Tamat)>=date)||null;}
+function v5WeekCaption(w){if(!w)return 'Minggu belum ditetapkan';if(w.Jenis_Minggu==='KESEDIAAN')return 'Minggu Kesediaan';if(String(w.Jenis_Minggu).startsWith('CUTI'))return 'Cuti: '+String(w.Nama_Cuti||'');return 'Minggu '+String(w.Label_Minggu||'')+(w.Kumpulan_Bertugas?' · Kumpulan '+String(w.Kumpulan_Bertugas).replace(/\D/g,''):'');}
+function v5EventUnits(e){const x=String(e.Unit||'').toLowerCase();if(!x||/semua/.test(x))return V5_UNITS;return V5_UNITS.filter(u=>x.includes(u.toLowerCase())||(u==='Hal Ehwal Murid'&&/\bhem\b/.test(x))||(u==='Kokurikulum'&&/ko\s*kurikulum/.test(x)));}
+function v5EventsAt(date,unit){return ALL_TAKWIM.filter(e=>v5Active(e)&&e.Tarikh_Mula<=date&&e.Tarikh_Tamat>=date&&v5EventUnits(e).includes(unit));}
+function v5DatesInMonth(year,month){const result=[];for(let i=1;i<=new Date(year,month+1,0).getDate();i++)result.push(v5ISO(new Date(year,month,i)));return result;}
+function v5ReadinessMonths(){const y=Number(manualV3Year());const prev=ALL_MINGGU.filter(w=>String(w.Sesi)===String(y)&&w.Jenis_Minggu==='KESEDIAAN'&&String(w.Tarikh_Mula).startsWith(String(y-1)));return prev.length?[{year:y-1,month:11,readiness:true}]:[];}
+window.v4OpenCalendar=function(){showView('viewV4Calendar');v5RenderCalendar();};
+window.v4RenderCalendar=function(){if(!document.getElementById('viewV4Calendar')?.classList.contains('hidden'))v5RenderCalendar();};
+window.v5SwitchCalendarTab=function(tab){V5_CAL_TAB=tab;v5RenderCalendar();};
+function v5RenderCalendar(){const box=document.getElementById('v4CalendarItems');if(!box)return;const types=document.getElementById('v5CalendarTabs');if(types)types.querySelectorAll('button').forEach(b=>b.classList.toggle('bg-rose-600',b.dataset.tab===V5_CAL_TAB));if(V5_CAL_TAB==='ringkasan'){v5RenderCalendarSummary();return;}const year=Number(manualV3Year()),months=[...v5ReadinessMonths(),...Array.from({length:12},(_,month)=>({year,month}))],q=String(document.getElementById('v4CalendarSearch')?.value||'').trim().toLowerCase(),filter=document.getElementById('v4CalendarTypeFilter')?.value||'';let count=0;
+box.innerHTML=months.map(({year:y,month,readiness})=>{const dates=readiness?v5DatesInMonth(y,month).filter(d=>ALL_MINGGU.some(w=>String(w.Sesi)===String(year)&&w.Jenis_Minggu==='KESEDIAAN'&&d>=w.Tarikh_Mula&&d<=w.Tarikh_Tamat)):v5DatesInMonth(y,month);if(!dates.length)return '';const reserved=new Set();const rows=dates.map((date,di)=>{const w=v5WeekForDate(date),prev=di? v5WeekForDate(dates[di-1]):null;const key=w?.ID_Minggu||'',prevKey=prev?.ID_Minggu||'';let out='<tr class="border-b align-top">';if(di===0||key!==prevKey){let span=1;while(di+span<dates.length&&(v5WeekForDate(dates[di+span])?.ID_Minggu||'')===key)span++;out+=`<td rowspan="${span}" class="bg-slate-100 border p-2 text-[11px] w-36"><button onclick="v5EditWeek('${date}')" class="font-extrabold text-left text-rose-700 hover:underline">${v5E(v5WeekCaption(w))} <i class="fa-solid fa-pen text-[9px]"></i></button><div class="text-slate-500 text-[10px] mt-1">${w? v5E(w.Tarikh_Mula+' – '+w.Tarikh_Tamat):'Klik untuk tetapkan minggu'}</div></td>`;}const day=new Date(date+'T12:00:00').getDay();out+=`<td class="border p-2 w-28 text-xs whitespace-nowrap"><b>${v5E(V5_WEEKDAYS[day])}</b><br/><span class="text-slate-500">${date.slice(8)}</span></td>`;
+for(let ui=0;ui<4;ui++){const pos=date+'_'+ui;if(reserved.has(pos))continue;const unit=V5_UNITS[ui];let evs=v5EventsAt(date,unit).filter(e=>(!q||[e.Tajuk,e.Maklumat,e.Unit].some(t=>String(t||'').toLowerCase().includes(q)))&&(!filter||e.Jenis===filter));if(!evs.length){out+=`<td onclick="v5OpenCalendarCell('${date}','${unit}')" class="border p-2 text-xs cursor-pointer hover:bg-sky-50 min-w-36" title="Klik tambah aktiviti"><span class="text-slate-300">+</span></td>`;continue;}
+const ev=evs[0];let colspan=1;while(ui+colspan<4&&!reserved.has(date+'_'+(ui+colspan))&&v5EventsAt(date,V5_UNITS[ui+colspan]).length===1&&v5EventsAt(date,V5_UNITS[ui+colspan])[0].ID_Acara===ev.ID_Acara)colspan++;
+let rowspan=1;const curWeek=w?.ID_Minggu||'';while(di+rowspan<dates.length&&dates[di+rowspan]<=ev.Tarikh_Tamat&&(v5WeekForDate(dates[di+rowspan])?.ID_Minggu||'')===curWeek){const next=dates[di+rowspan];if(V5_UNITS.slice(ui,ui+colspan).some(u=>v5EventsAt(next,u).length!==1||v5EventsAt(next,u)[0].ID_Acara!==ev.ID_Acara))break;rowspan++;}for(let rr=0;rr<rowspan;rr++)for(let cc=0;cc<colspan;cc++)reserved.add(dates[di+rr]+'_'+(ui+cc));
+const others=evs.slice(1).map(e=>`<div class="mt-1 border-t pt-1">${v5E(e.Tajuk)} <button data-id="${v5E(e.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id);event.stopPropagation()" class="text-rose-600">✎</button></div>`).join('');out+=`<td rowspan="${rowspan}" colspan="${colspan}" class="border p-2 bg-rose-50/60 text-xs text-center min-w-36"><strong class="block">${v5E(ev.Tajuk)}</strong><span class="text-[10px] text-slate-500">${v5E(ev.Jenis)}</span><button data-id="${v5E(ev.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id)" class="ml-2 text-rose-600" title="Edit aktiviti"><i class="fa-solid fa-pen"></i></button>${others}</td>`;ui+=colspan-1;}
+return out+'</tr>';}).join('');count++;return `<div class="bg-white rounded-2xl border mb-5 overflow-x-auto"><div class="sticky left-0 bg-slate-900 text-white px-4 py-3 font-extrabold text-sm">${V5_MONTHS[month]} ${y}${readiness?' · Minggu Kesediaan':''}</div><table class="w-full border-collapse min-w-[1000px]"><thead><tr class="bg-slate-100 text-[11px]"><th class="border p-2">Minggu / Cuti</th><th class="border p-2">Tarikh & Hari</th>${V5_UNITS.map(u=>`<th class="border p-2">${v5E(u)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;}).join('')||'<p>Tiada bulan untuk dipaparkan.</p>';}
+function v5RenderCalendarSummary(){const box=document.getElementById('v4CalendarItems');if(!box)return;const year=manualV3Year(),q=String(document.getElementById('v4CalendarSearch')?.value||'').toLowerCase();box.innerHTML=V5_UNITS.map(unit=>{const events=ALL_TAKWIM.filter(e=>!['MINGGU_RPH','MINGGU_BERTUGAS'].includes(String(e.Jenis||'').trim().toUpperCase())&&!String(e.Jenis||'').trim().toUpperCase().startsWith('CUTI')&&v5Active(e)&&v5EventUnits(e).includes(unit)&&String(e.Tarikh_Mula||'').slice(0,4)===year&&String(e.Tajuk||'').toLowerCase().includes(q)).sort((a,b)=>a.Tarikh_Mula.localeCompare(b.Tarikh_Mula));return `<div class="bg-white border rounded-2xl p-4 mb-4"><h3 class="font-extrabold text-base mb-3">${v5E(unit)}</h3><div class="overflow-x-auto"><table class="w-full min-w-[480px] text-xs"><thead class="bg-slate-100"><tr><th class="p-3">Bil.</th><th class="p-3 text-left">Perkara</th><th class="p-3">Tarikh</th><th class="p-3">Pindaan</th></tr></thead><tbody>${events.map((e,i)=>`<tr class="border-b"><td class="p-3 text-center">${i+1}</td><td class="p-3 font-semibold">${v5E(e.Tajuk)}</td><td class="p-3 text-center">${v5E(e.Tarikh_Mula)}${e.Tarikh_Tamat!==e.Tarikh_Mula?' – '+v5E(e.Tarikh_Tamat):''}</td><td class="p-3 text-center"><button data-id="${v5E(e.ID_Acara)}" onclick="v5ReviseEventDate(this.dataset.id)" class="bg-slate-100 px-3 py-2 rounded-lg">Pinda Tarikh</button></td></tr>`).join('')||'<tr><td colspan="4" class="p-4 text-center text-slate-400">Tiada aktiviti</td></tr>'}</tbody></table></div></div>`;}).join('');}
+window.v5OpenCalendarCell=async function(date,unit){await v4OpenCalendarEditor('',{date,unit});};
+const v5OldCalendarEditor=window.v4OpenCalendarEditor;
+window.v4OpenCalendarEditor=async function(id='',preset={}){const wanted=ALL_TAKWIM.find(e=>String(e.ID_Acara)===String(id));if(!id&&preset?.date){const defaults={Tarikh_Mula:preset.date,Tarikh_Tamat:preset.date,Unit:preset.unit};const sentinel='V5_TMP_'+Date.now();ALL_TAKWIM.push({ID_Acara:sentinel,...defaults,Status:'Aktif',Jenis:'PROGRAM',Tajuk:''});try{await v5CalendarEditorExtended(sentinel,true);}finally{ALL_TAKWIM=ALL_TAKWIM.filter(e=>e.ID_Acara!==sentinel);}return;}return v5CalendarEditorExtended(id,false);};
+async function v5CalendarEditorExtended(id='',isTemp=false){const o=ALL_TAKWIM.find(e=>String(e.ID_Acara)===String(id))||{},selUnits=v5EventUnits(o),inp=(k,label,type='text',value=o[k]||'')=>`<label class="block text-left text-xs font-bold mt-3 mb-1">${label}</label><input id="v5evt-${k}" type="${type}" value="${v5E(value)}" class="w-full p-2 border rounded-lg text-xs"/>`;const checks=V5_UNITS.map(u=>`<label class="flex gap-2 items-center text-xs"><input type="checkbox" data-v5evtunit="${v5E(u)}" ${selUnits.includes(u)?'checked':''}/> ${v5E(u)}</label>`).join('');const ans=await Swal.fire({title:isTemp||!id?'Tambah Aktiviti':'Edit Aktiviti',width:680,html:`<div class="text-left max-h-[65vh] overflow-y-auto">${inp('Tajuk','Tajuk aktiviti')}${inp('Tarikh_Mula','Tarikh mula','date',o.Tarikh_Mula||v5Today())}${inp('Tarikh_Tamat','Tarikh tamat','date',o.Tarikh_Tamat||o.Tarikh_Mula||v5Today())}<label class="block text-xs font-bold mt-3 mb-1">Unit terlibat (boleh pilih beberapa)</label><div class="grid grid-cols-2 gap-2 border rounded-lg p-3">${checks}</div><label class="block text-xs font-bold mt-3 mb-1">Jenis</label><select id="v5evt-Jenis" class="w-full border rounded-lg p-2 text-xs">${['PROGRAM','MESYUARAT','SEKOLAH','CUTI','MINGGU_RPH','MINGGU_BERTUGAS'].map(s=>`<option ${s===(o.Jenis||'PROGRAM')?'selected':''}>${s}</option>`).join('')}</select>${inp('Lokasi','Lokasi')}${inp('Maklumat','Catatan / agenda')}<label class="block text-xs font-bold mt-3 mb-1">Status</label><select id="v5evt-Status" class="w-full border rounded-lg p-2 text-xs"><option ${o.Status!=='Tidak Aktif'?'selected':''}>Aktif</option><option ${o.Status==='Tidak Aktif'?'selected':''}>Tidak Aktif</option></select></div>`,showCancelButton:true,confirmButtonText:'Simpan Aktiviti',preConfirm:()=>{const g=k=>document.getElementById('v5evt-'+k)?.value||'',units=[...document.querySelectorAll('[data-v5evtunit]:checked')].map(x=>x.dataset.v5evtunit);if(!g('Tajuk').trim()||!g('Tarikh_Mula')||g('Tarikh_Tamat')<g('Tarikh_Mula')||!units.length){Swal.showValidationMessage('Tajuk, tarikh yang betul dan sekurang-kurangnya satu unit diperlukan.');return false;}return {ID_Acara:isTemp?'':id,Tajuk:g('Tajuk'),Jenis:g('Jenis'),Tarikh_Mula:g('Tarikh_Mula'),Tarikh_Tamat:g('Tarikh_Tamat'),Unit:units.join(' | '),Lokasi:g('Lokasi'),Maklumat:g('Maklumat'),Status:g('Status'),Minggu:'',Kumpulan_Bertugas:'',Notifikasi_Hari:7};}});if(!ans.isConfirmed||!ans.value)return;showLoader('Menyimpan aktiviti…');try{const r=await postToBackend({action:'saveManualV4Calendar',data:ans.value});if(!r.success)throw Error(r.error||'Gagal simpan aktiviti');await fetchMasterStafData();v5RenderCalendar();}catch(e){Swal.fire('Gagal menyimpan aktiviti',e.message,'error');}finally{hideLoader();}}
+window.v5ReviseEventDate=async function(id){const e=ALL_TAKWIM.find(x=>String(x.ID_Acara)===String(id));if(!e)return;const ans=await Swal.fire({title:'Pindaan Tarikh Aktiviti',html:`<p class="text-xs text-left font-bold">${v5E(e.Tajuk)}</p><label class="block text-xs text-left mt-3">Tarikh Mula</label><input id="v5-revise-start" type="date" value="${v5E(e.Tarikh_Mula)}" class="w-full border rounded-lg p-3"/><label class="block text-xs text-left mt-3">Tarikh Tamat</label><input id="v5-revise-end" type="date" value="${v5E(e.Tarikh_Tamat||e.Tarikh_Mula)}" class="w-full border rounded-lg p-3"/>`,showCancelButton:true,confirmButtonText:'Simpan Pindaan',preConfirm:()=>{const a=document.getElementById('v5-revise-start').value,b=document.getElementById('v5-revise-end').value;if(!a||b<a){Swal.showValidationMessage('Tarikh tidak sah');return false;}return {...e,Tarikh_Mula:a,Tarikh_Tamat:b};}});if(!ans.isConfirmed||!ans.value)return;showLoader('Menyimpan pindaan…');try{const r=await postToBackend({action:'saveManualV4Calendar',data:ans.value});if(!r.success)throw Error(r.error||'Gagal');await fetchMasterStafData();v5RenderCalendar();}catch(err){Swal.fire('Pindaan gagal',err.message,'error');}finally{hideLoader();}};
+window.v5EditWeek=async function(date){const old=v5WeekForDate(date),startDate=new Date(date+'T12:00:00');const day=startDate.getDay();startDate.setDate(startDate.getDate()-((day+6)%7));const start=v5ISO(startDate),endDate=new Date(startDate);endDate.setDate(endDate.getDate()+6);const end=v5ISO(endDate),used=new Set(ALL_MINGGU.filter(w=>String(w.Sesi)===manualV3Year()&&w.Jenis_Minggu==='PERSEKOLAHAN'&&v5Active(w)&&w.ID_Minggu!==old?.ID_Minggu).map(w=>Number(w.Label_Minggu)));const weekOpts=['<option value="">—</option>',...Array.from({length:53},(_,i)=>i+1).filter(n=>!used.has(n)).map(n=>`<option value="${n}" ${String(old?.Label_Minggu)===String(n)?'selected':''}>Minggu ${n}</option>`)].join('');const groupOpts=['<option value="">-- Belum ditetapkan --</option>',...v4ActiveGroups().map(g=>`<option value="${v5E(g.Nombor_Kumpulan)}" ${String(old?.Kumpulan_Bertugas)===String(g.Nombor_Kumpulan)?'selected':''}>${v5E(g.Nama_Kumpulan)}</option>`)].join('');const types=['PERSEKOLAHAN','KESEDIAAN','CUTI_PENGGAL','CUTI_PERAYAAN','CUTI_UMUM','CUTI_LAIN'];const ans=await Swal.fire({title:'Tetapan Minggu Rasmi',width:610,html:`<div class="text-left text-xs"><label class="block font-bold mb-1">Jenis Minggu</label><select id="v5wk-type" class="w-full p-2 border rounded-lg">${types.map(x=>`<option ${x===(old?.Jenis_Minggu||'PERSEKOLAHAN')?'selected':''}>${x}</option>`).join('')}</select><div class="grid grid-cols-2 gap-3"><div><label class="block font-bold mt-3 mb-1">Tarikh Mula</label><input id="v5wk-start" type="date" value="${old?.Tarikh_Mula||start}" class="w-full border p-2 rounded-lg"/></div><div><label class="block font-bold mt-3 mb-1">Tarikh Tamat</label><input id="v5wk-end" type="date" value="${old?.Tarikh_Tamat||end}" class="w-full border p-2 rounded-lg"/></div></div><label class="block font-bold mt-3 mb-1">Minggu Persekolahan</label><select id="v5wk-num" class="w-full p-2 border rounded-lg">${weekOpts}</select><label class="block font-bold mt-3 mb-1">Nama Cuti (jika bercuti)</label><input id="v5wk-holiday" class="w-full p-2 border rounded-lg" value="${v5E(old?.Nama_Cuti||'')}"/><label class="block font-bold mt-3 mb-1">Kumpulan Bertugas</label><select id="v5wk-group" class="w-full p-2 border rounded-lg">${groupOpts}</select><p class="text-slate-500 mt-3">Nombor minggu tidak bergerak semasa cuti penggal. Minggu Kesediaan boleh ditetapkan pada Disember tahun sebelumnya.</p></div>`,showCancelButton:true,confirmButtonText:'Simpan Minggu',preConfirm:()=>{const get=k=>document.getElementById('v5wk-'+k)?.value||'';let type=get('type'),week=type==='KESEDIAAN'?'Kesediaan':type==='PERSEKOLAHAN'?get('num'):'';if(type==='PERSEKOLAHAN'&&!week||type.startsWith('CUTI')&&!get('holiday')||get('end')<get('start')){Swal.showValidationMessage('Lengkapkan nombor minggu atau nama cuti serta tarikh.');return false;}return {ID_Minggu:old?.ID_Minggu||'',Sesi:manualV3Year(),Tarikh_Mula:get('start'),Tarikh_Tamat:get('end'),Label_Minggu:week,Jenis_Minggu:type,Nama_Cuti:get('holiday'),Kumpulan_Bertugas:type==='PERSEKOLAHAN'?get('group'):'',Status:'Aktif'};}});if(!ans.isConfirmed||!ans.value)return;showLoader('Menyimpan minggu…');try{const r=await postToBackend({action:'saveManualV5Week',data:ans.value});if(!r.success)throw Error(r.error||'Gagal');await fetchMasterStafData();v5RenderCalendar();}catch(e){Swal.fire('Minggu tidak disimpan',e.message,'error');}finally{hideLoader();}};
+// Isu #8 — Dashboard bukan lagi salinan analitik: pusat penyediaan kandungan Buku Manual.
+const V5_BOOK_SECTIONS=[
+ ['muka_depan','Muka Depan','fa-book-open',1],
+ ['kata_aluan','Kata Aluan','fa-quote-left',2],
+ ['profil_sekolah','Profil Sekolah','fa-school',3],
+ ['pelan_lokasi','Pelan Lokasi Sekolah','fa-map-location-dot',4],
+ ['falsafah_program','Falsafah & Hala Tuju','fa-lightbulb',5],
+ ['lencana_sekolah','Lencana & Identiti','fa-image',6],
+ ['enrolmen_murid','Enrolmen Murid','fa-users',7],
+ ['pekeliling','Pekeliling & Dokumen','fa-file-lines',8],
+ ['visi_misi','Visi, Misi & Moto','fa-bullseye',9],
+ ['lain_lain','Maklumat Tambahan','fa-folder-plus',10]
+];
+function v5BookRecord(slug){return ALL_BUKU.find(x=>String(x.Tahun)===manualV3Year()&&x.Slug===slug);}
+function v5RenderDashboard(){const box=document.getElementById('v5BookCards');if(!box)return;box.innerHTML=V5_BOOK_SECTIONS.map(([slug,title,ico])=>{const r=v5BookRecord(slug),status=r?.Status||'Belum Diisi';return `<button onclick="v5OpenBookSection('${slug}')" class="text-left bg-white hover:border-rose-400 hover:shadow-md transition border rounded-2xl p-5 flex flex-col gap-3 min-h-36"><span class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 grid place-items-center text-lg"><i class="fa-solid ${ico}"></i></span><strong class="text-sm text-slate-900">${v5E(title)}</strong><span class="text-xs ${status==='Lengkap'?'text-emerald-700':status==='Draf'?'text-amber-700':'text-slate-400'}"><i class="fa-solid fa-circle text-[7px] mr-1"></i> ${v5E(status)}</span></button>`;}).join('');}
+window.v5OpenBookSection=function(slug){V5_BOOK_SLUG=slug;const spec=V5_BOOK_SECTIONS.find(x=>x[0]===slug)||[slug,slug],record=v5BookRecord(slug)||{};showView('viewV5BookEditor');document.getElementById('v5BookTitle').innerText=spec[1];document.getElementById('v5BookText').value=record.Kandungan||'';document.getElementById('v5BookStatus').value=record.Status||'Draf';document.getElementById('v5BookYear').innerText=manualV3Year();};
+window.v5SaveBookSection=async function(){const spec=V5_BOOK_SECTIONS.find(x=>x[0]===V5_BOOK_SLUG);if(!spec)return;const payload={Tahun:manualV3Year(),Slug:spec[0],Tajuk:spec[1],Kandungan:document.getElementById('v5BookText').value,Status:document.getElementById('v5BookStatus').value,Susunan:spec[3]};showLoader('Menyimpan kandungan buku…');try{const r=await postToBackend({action:'saveManualV5Book',data:payload});if(!r.success)throw Error(r.error||'Gagal');const idx=ALL_BUKU.findIndex(x=>String(x.Tahun)===payload.Tahun&&x.Slug===payload.Slug);if(idx>=0)ALL_BUKU[idx]={...ALL_BUKU[idx],...payload};else ALL_BUKU.push(payload);v5RenderDashboard();showView('viewDashboard');Swal.fire('Berjaya','Kandungan ini digunakan terus untuk cetakan buku Manual Pengurusan.','success');}catch(e){Swal.fire('Gagal',e.message,'error');}finally{hideLoader();}};
+const v5OldYearChange=window.onChangeTahunAktif;
+window.onChangeTahunAktif=async function(){await v5OldYearChange();v5RenderDashboard();v4RenderCalendar();};
+// Sync frontend globals from consolidated API response without a separate network call.
+const v5OldFetch=window.fetchMasterStafData;
+window.fetchMasterStafData=async function(){await v5OldFetch();v5RenderDashboard();v4RenderCalendar();};
+// Refresh JK after save and ensure read-only mode reloads the latest roles.
+const v5OldSaveInduk=window.simpanSetiausahaInduk;
+window.simpanSetiausahaInduk=async function(){if(!document.getElementById('selSetiausahaInduk')?.value){Swal.fire('Setiausaha wajib','Pilih Setiausaha sebelum simpan.','warning');return;}await v5OldSaveInduk();};
+window.v5RefreshSubAfterSave=async function(cat,name){await fetchMasterStafData();openSubJkDetail(cat,name);};
+window.v5RefreshIndukAfterSave=async function(cat){await fetchMasterStafData();openIndukOverview(cat);};
+// Dropdown JK kecil: Penyelaras dan AJK tidak boleh dipilih berulang dalam JK sama.
+window.v5FilterAjkChoices=function(){const lead=document.getElementById('selSubPenyelaras')?.value||'',selected=new Set();document.querySelectorAll('#containerAjkRows select[data-ajk-select="true"]').forEach(sel=>{if(lead&&sel.value===lead)sel.value='';if(sel.value&&selected.has(sel.value))sel.value='';if(sel.value)selected.add(sel.value);});document.querySelectorAll('#containerAjkRows select[data-ajk-select="true"]').forEach(sel=>{[...sel.options].forEach(o=>{o.disabled=!!o.value&&(o.value===lead||(o.value!==sel.value&&selected.has(o.value)));});});};
+const v5OldAddAjk=window.tambahBarisAjk;
+window.tambahBarisAjk=function(...args){const r=v5OldAddAjk(...args);v5FilterAjkChoices();return r;};
+document.addEventListener('change',e=>{if(e.target?.id==='selSubPenyelaras'||e.target?.matches('select[data-ajk-select="true"]'))v5FilterAjkChoices();});
+
+
+/* ===== V5.2: Kemasan Takwim (berasaskan V5.1, semua modul lain kekal) ===== */
+// V5.1: Takwim bulan berbentuk accordion (satu bulan terbuka pada setiap masa).
+let V51_MONTH_OPEN = '';
+function v51MonthKey(y,m,readiness=false){ return `${y}-${m}${readiness?'-kesediaan':''}`; }
+window.v51OpenMonth = function(key){
+  const y=Number(manualV3Year());
+  const months=[...v5ReadinessMonths(),...Array.from({length:12},(_,m)=>({year:y,month:m}))];
+  const keys=months.map(m=>v51MonthKey(m.year,m.month,!!m.readiness));
+  if(V51_MONTH_OPEN===key){
+    // Menutup bulan semasa membuka bulan seterusnya (berpusing ke awal pada Disember).
+    const i=keys.indexOf(key);
+    V51_MONTH_OPEN=keys[(i+1)%keys.length]||key;
+  }else{
+    V51_MONTH_OPEN=key;
+  }
+  v5RenderCalendar();
+};
+function v52FormatWeekDate(value){
+  const str=String(value||'').slice(0,10);
+  const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(str);
+  return m?`${m[3]}-${m[2]}-${m[1]}`:str;
+}
+// Font aktiviti: biasa = 14px (satu tahap lebih besar daripada V5 asal),
+// aktiviti bergabung = 16px/18px (maksimum saiz V5.1 sekarang).
+function v52EventFontClass(rowspan,colspan){
+  return rowspan>1||colspan>1?'text-base md:text-lg':'text-sm';
+}
+function v51WeekGroupKey(date,w){
+  if(w) return 'w:'+String(w.ID_Minggu||w.Tarikh_Mula);
+  const d=new Date(date+'T12:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));
+  return 'kosong:'+v5ISO(d);
+}
+function v51WeekIsHoliday(w){return !!w && String(w.Jenis_Minggu||'').startsWith('CUTI');}
+function v51WeekTitle(w){
+  if(!w)return 'Minggu Belum Ditetapkan';
+  if(v51WeekIsHoliday(w))return 'CUTI';
+  if(w.Jenis_Minggu==='KESEDIAAN')return 'Minggu Kesediaan';
+  return 'Minggu '+String(w.Label_Minggu||'');
+}
+function v51WeekGroupName(w){
+  if(!w || v51WeekIsHoliday(w) || !w.Kumpulan_Bertugas)return '';
+  const number=String(w.Kumpulan_Bertugas).replace(/\D/g,'');
+  const group=v4ActiveGroups().find(g=>String(g.Nombor_Kumpulan)===number);
+  return group?.Nama_Kumpulan || (number?'Kumpulan '+number:String(w.Kumpulan_Bertugas));
+}
+function v51EventTheme(type){
+  const t=String(type||'').trim().toUpperCase();
+  if(t==='CUTI')return 'bg-rose-100 text-rose-900 border-rose-300';
+  if(t==='MESYUARAT')return 'bg-sky-100 text-sky-950 border-sky-300';
+  if(['BENGKEL','AKTIVITI','LADAP','PROGRAM','SEKOLAH'].includes(t))return 'bg-emerald-100 text-emerald-950 border-emerald-300';
+  return 'bg-slate-100 text-slate-800 border-slate-300';
+}
+function v51CalendarMatch(e, search, kind){
+  if(['MINGGU_RPH','MINGGU_BERTUGAS'].includes(String(e.Jenis||'')))return false; // rekod warisan kekal dalam DB, tidak muncul sebagai aktiviti
+  return (!search || [e.Tajuk,e.Maklumat,e.Unit].some(x=>String(x||'').toLowerCase().includes(search))) &&
+    (!kind || String(e.Jenis||'')===kind || (kind==='AKTIVITI'&&String(e.Jenis)==='SEKOLAH'));
+}
+function v51CellEventList(date,unit,search,kind){
+  return v5EventsAt(date,unit).filter(e=>v51CalendarMatch(e,search,kind));
+}
+function v51EventInline(e){
+  return `<div data-id="${v5E(e.ID_Acara)}" role="button" tabindex="0" onclick="event.stopPropagation();v4OpenCalendarEditor(this.dataset.id)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();v4OpenCalendarEditor(this.dataset.id)}" class="text-xs mt-1 border-t border-current/20 pt-1 whitespace-normal break-words cursor-pointer" title="Klik untuk edit aktiviti tambahan">${v5E(e.Tajuk)} <i class="fa-solid fa-pen ml-1 text-[9px] opacity-60" aria-hidden="true"></i></div>`;
+}
+// Fungsi asal V5 masih wujud untuk keserasian API; paparan sahaja dinaik taraf.
+window.v5RenderCalendar=function(){
+  const box=document.getElementById('v4CalendarItems');if(!box)return;
+  const tabs=document.getElementById('v5CalendarTabs');
+  if(tabs)tabs.querySelectorAll('[data-tab]').forEach(b=>{
+    const selected=b.dataset.tab===V5_CAL_TAB;
+    b.classList.toggle('bg-rose-600',selected);
+    b.classList.toggle('text-white',selected);
+    b.classList.toggle('bg-slate-100',!selected);
+    b.classList.toggle('text-slate-700',!selected);
+  });
+  if(V5_CAL_TAB==='ringkasan'){v5RenderCalendarSummary();return;}
+  const year=Number(manualV3Year());
+  const months=[...v5ReadinessMonths(),...Array.from({length:12},(_,m)=>({year,month:m}))];
+  const monthKeys=months.map(x=>v51MonthKey(x.year,x.month,!!x.readiness));
+  if(!monthKeys.includes(V51_MONTH_OPEN)){
+    const today=new Date();
+    const currentKey=v51MonthKey(year,today.getMonth());
+    V51_MONTH_OPEN=monthKeys.includes(currentKey)&&today.getFullYear()===year?currentKey:v51MonthKey(year,0);
+  }
+  const search=String(document.getElementById('v4CalendarSearch')?.value||'').trim().toLowerCase();
+  const kind=String(document.getElementById('v4CalendarTypeFilter')?.value||'');
+  box.innerHTML=months.map(({year:y,month,readiness})=>{
+    const key=v51MonthKey(y,month,!!readiness),open=key===V51_MONTH_OPEN;
+    const heading=`${V5_MONTHS[month]} ${y}${readiness?' · Minggu Kesediaan':''}`;
+    let calendar='';
+    if(open){
+      const dates=readiness?v5DatesInMonth(y,month).filter(date=>ALL_MINGGU.some(w=>
+        String(w.Sesi)===String(year)&&w.Jenis_Minggu==='KESEDIAAN'&&v5Active(w)&&date>=w.Tarikh_Mula&&date<=w.Tarikh_Tamat
+      )):v5DatesInMonth(y,month);
+      const booked=new Set();
+      const rows=dates.map((date,i)=>{
+        const week=v5WeekForDate(date),weekKey=v51WeekGroupKey(date,week);
+        const prevKey=i?v51WeekGroupKey(dates[i-1],v5WeekForDate(dates[i-1])):'';
+        let row='<tr class="border-b border-slate-200 align-top">';
+        if(i===0||weekKey!==prevKey){
+          let span=1;
+          while(i+span<dates.length&&v51WeekGroupKey(dates[i+span],v5WeekForDate(dates[i+span]))===weekKey)span++;
+          const holiday=v51WeekIsHoliday(week);
+          const weekBackground=holiday?'bg-rose-100 border-rose-300':week?.Jenis_Minggu==='KESEDIAAN'?'bg-amber-50 border-amber-200':week?'bg-blue-50 border-blue-200':'bg-slate-50 border-slate-200';
+          const title=v51WeekTitle(week),groupName=v51WeekGroupName(week);
+          row+=`<td rowspan="${span}" class="border-2 ${weekBackground} px-1.5 py-2 align-middle text-center">
+             <button onclick="v5EditWeek('${date}')" class="block mx-auto text-center w-full group" title="Tetapkan minggu/cuti">
+               <span class="block text-base font-extrabold leading-snug ${holiday?'text-rose-900':'text-slate-900'}">${v5E(title)}</span>
+               ${holiday?`<span class="block text-sm font-bold text-rose-800 mt-2">${v5E(week.Nama_Cuti||'')}</span>`:''}
+               ${groupName?`<span class="block text-[12px] font-bold text-indigo-800 mt-2">${v5E(groupName)}</span>`:''}
+               <i class="fa-solid fa-pen text-[11px] mt-3 text-rose-600 group-hover:text-rose-900"></i>
+             </button>
+           </td>`;
+        }
+        const weekday=V5_WEEKDAYS[new Date(date+'T12:00:00').getDay()];
+        row+=`<td class="v53-date-cell border border-slate-200 bg-white px-1 py-1.5 h-[40px] align-middle text-center text-xs"><span class="font-extrabold">${v5E(weekday)} - ${date.slice(8)}</span></td>`;
+        if(v51WeekIsHoliday(week)){
+          const pos=date+'_0';
+          if(!booked.has(pos)){
+            let rowspan=1;
+            while(i+rowspan<dates.length && v51WeekGroupKey(dates[i+rowspan],v5WeekForDate(dates[i+rowspan]))===weekKey)rowspan++;
+            for(let n=0;n<rowspan;n++)for(let c=0;c<4;c++)booked.add(dates[i+n]+'_'+c);
+            const otherEvents=new Map();
+            for(let n=0;n<rowspan;n++)for(const unit of V5_UNITS)
+              for(const ev of v51CellEventList(dates[i+n],unit,search,kind))otherEvents.set(String(ev.ID_Acara),ev);
+            const extras=[...otherEvents.values()].filter(ev=>String(ev.Jenis)!=='CUTI').map(v51EventInline).join('');
+            row+=`<td rowspan="${rowspan}" colspan="4" onclick="v5EditWeek('${date}')" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();v5EditWeek('${date}')}" title="Klik untuk mengubah tetapan cuti" class="v53-event-cell relative group cursor-pointer border-2 border-rose-400 bg-rose-100 px-3 py-2 text-center align-middle">
+               <div class="text-rose-900 text-base md:text-lg font-extrabold leading-snug whitespace-normal break-words [overflow-wrap:anywhere]">${v5E(week.Nama_Cuti||'Cuti Persekolahan')}</div>${extras}
+               <span class="v53-edit-icon pointer-events-none" aria-hidden="true"><i class="fa-solid fa-pen"></i></span>
+             </td>`;
+          }
+          return row+'</tr>';
+        }
+        for(let col=0;col<V5_UNITS.length;col++){
+          const pos=date+'_'+col;if(booked.has(pos))continue;
+          const unit=V5_UNITS[col],events=v51CellEventList(date,unit,search,kind);
+          if(!events.length){
+            row+=`<td onclick="v5OpenCalendarCell('${date}','${unit}')" class="border border-slate-200 px-1 py-1 text-center cursor-pointer hover:bg-blue-50" title="Klik untuk menambah aktiviti"><span class="text-slate-300">+</span></td>`;
+            continue;
+          }
+          const ev=events[0];let colspan=1;
+          // Gabung mendatar jika acara tunggal yang sama merentasi unit bersebelahan.
+          if(events.length===1){
+            while(col+colspan<4&&!booked.has(date+'_'+(col+colspan))){
+              const match=v51CellEventList(date,V5_UNITS[col+colspan],search,kind);
+              if(match.length!==1||String(match[0].ID_Acara)!==String(ev.ID_Acara))break;
+              colspan++;
+            }
+          }
+          let rowspan=1;
+          if(events.length===1){
+            while(i+rowspan<dates.length && dates[i+rowspan]<=ev.Tarikh_Tamat){
+              const future=dates[i+rowspan];
+              if(v51WeekIsHoliday(v5WeekForDate(future)))break;
+              if(V5_UNITS.slice(col,col+colspan).some(u=>{
+                const a=v51CellEventList(future,u,search,kind);
+                return a.length!==1||String(a[0].ID_Acara)!==String(ev.ID_Acara);
+              }))break;
+              rowspan++;
+            }
+          }
+          for(let r=0;r<rowspan;r++)for(let c=0;c<colspan;c++)booked.add(dates[i+r]+'_'+(col+c));
+          const theme=v51EventTheme(ev.Jenis);
+          const extras=events.slice(1).map(v51EventInline).join('');
+          row+=`<td rowspan="${rowspan}" colspan="${colspan}" data-id="${v5E(ev.ID_Acara)}" onclick="v4OpenCalendarEditor(this.dataset.id)" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();v4OpenCalendarEditor(this.dataset.id)}" title="Klik untuk mengubah aktiviti" class="v53-event-cell relative group cursor-pointer border-2 ${theme} px-1.5 py-1.5 text-center align-middle">
+            <div class="${v52EventFontClass(rowspan,colspan)} font-extrabold leading-snug whitespace-normal break-words [overflow-wrap:anywhere]">${v5E(ev.Tajuk)}</div>
+            ${extras}
+            <span class="v53-edit-icon pointer-events-none" aria-hidden="true"><i class="fa-solid fa-pen"></i></span>
+          </td>`;
+          col+=colspan-1;
+        }
+        return row+'</tr>';
+      }).join('');
+      calendar=`<div class="v53-calendar-viewport" aria-label="Takwim bulanan dipaparkan penuh tanpa tatal mendatar"><table class="v53-calendar-table w-full border-collapse table-fixed"><colgroup><col style="width:16.5%"><col style="width:12.5%">${V5_UNITS.map(()=>'<col style="width:17.75%">').join('')}</colgroup><thead><tr class="bg-slate-100 text-xs"><th class="border px-1.5 py-2">Minggu / Cuti</th><th class="border px-1.5 py-2">Tarikh & Hari</th>${V5_UNITS.map(unit=>`<th class="border px-1.5 py-2 text-center">${v5E(unit)}</th>`).join('')}</tr></thead><tbody>${rows||'<tr><td colspan="6" class="p-4 text-center">Tiada tarikh.</td></tr>'}</tbody></table></div>`;
+    }
+    return `<section class="bg-white border border-slate-200 rounded-2xl mb-4 overflow-hidden shadow-sm">
+      <button type="button" onclick="v51OpenMonth('${key}')" aria-expanded="${open?'true':'false'}" class="w-full flex justify-between items-center gap-3 text-left bg-slate-900 text-white px-5 py-4 font-extrabold text-sm hover:bg-slate-800">
+        <span><i class="fa-regular fa-calendar-days mr-2 text-rose-300"></i>${v5E(heading)}</span>
+        <span class="text-xs text-slate-300">${open?'Sedang Dipaparkan':'Buka Bulan'} <i class="fa-solid ${open?'fa-chevron-up':'fa-chevron-down'} ml-2"></i></span>
+      </button>${calendar}</section>`;
+  }).join('') || '<p class="text-center p-5">Tiada bulan untuk dipaparkan.</p>';
+};
+
+// Borang aktiviti V5.1: setiap jenis mempunyai warna automatik semasa paparan.
+window.v5CalendarEditorExtended=async function(id='',isTemp=false){
+  const old=ALL_TAKWIM.find(e=>String(e.ID_Acara)===String(id))||{};
+  const units=v5EventUnits(old);
+  const opts=['CUTI','MESYUARAT','BENGKEL','AKTIVITI','LADAP','PROGRAM'];
+  const legacy=['SEKOLAH','MINGGU_RPH','MINGGU_BERTUGAS'].includes(String(old.Jenis||''));
+  const selected=legacy?'AKTIVITI':String(old.Jenis||'PROGRAM');
+  const field=(id,label,type='text',v=old[id]||'')=>`<label class="block text-left text-xs font-bold mt-3 mb-1">${label}</label><input id="v51evt-${id}" type="${type}" value="${v5E(v)}" class="w-full p-2 border rounded-lg text-sm"/>`;
+  const checks=V5_UNITS.map(u=>`<label class="flex items-center gap-2 text-xs"><input type="checkbox" data-v51-unit="${v5E(u)}" ${units.includes(u)?'checked':''}/> ${v5E(u)}</label>`).join('');
+  const ans=await Swal.fire({
+    title:(isTemp||!id?'Tambah':'Edit')+' Aktiviti',width:670,
+    html:`<div class="text-left max-h-[65vh] overflow-y-auto">
+       ${field('Tajuk','Nama Aktiviti')}${field('Tarikh_Mula','Tarikh Mula','date',old.Tarikh_Mula||v5Today())}
+       ${field('Tarikh_Tamat','Tarikh Tamat','date',old.Tarikh_Tamat||old.Tarikh_Mula||v5Today())}
+       <label class="block font-bold text-xs mt-3 mb-1">Unit terlibat</label><div class="grid grid-cols-2 gap-2 border rounded-lg p-3">${checks}</div>
+       <label class="block font-bold text-xs mt-3 mb-1">Jenis Aktiviti</label>
+       <select id="v51evt-Jenis" class="w-full border rounded-lg p-2 text-sm">${opts.map(t=>`<option value="${t}" ${t===selected?'selected':''}>${t}</option>`).join('')}</select>
+       <p class="text-[11px] text-slate-500 mt-1">Untuk cuti penggal/perayaan seminggu, gunakan Tetapan Minggu/Cuti di lajur kiri.</p>
+       ${field('Lokasi','Lokasi')}${field('Maklumat','Catatan / Agenda')}
+       <label class="block font-bold text-xs mt-3 mb-1">Status</label>
+       <select id="v51evt-Status" class="w-full border rounded-lg p-2 text-sm"><option value="Aktif" ${old.Status!=='Tidak Aktif'?'selected':''}>Aktif</option><option value="Tidak Aktif" ${old.Status==='Tidak Aktif'?'selected':''}>Tidak Aktif</option></select>
+     </div>`,
+    showCancelButton:true,confirmButtonText:'Simpan Aktiviti',cancelButtonText:'Batal',
+    preConfirm:()=>{
+      const get=k=>document.getElementById('v51evt-'+k)?.value||'';
+      const selectedUnits=[...document.querySelectorAll('[data-v51-unit]:checked')].map(el=>el.dataset.v51Unit);
+      if(!get('Tajuk').trim()||!get('Tarikh_Mula')||get('Tarikh_Tamat')<get('Tarikh_Mula')||!selectedUnits.length){
+        Swal.showValidationMessage('Isi tajuk, tarikh yang sah dan pilih sekurang-kurangnya satu unit.');return false;
+      }
+      return {ID_Acara:isTemp?'':id,Tajuk:get('Tajuk').trim(),Tarikh_Mula:get('Tarikh_Mula'),Tarikh_Tamat:get('Tarikh_Tamat'),
+        Jenis:get('Jenis'),Unit:selectedUnits.join(' | '),Lokasi:get('Lokasi'),Maklumat:get('Maklumat'),Status:get('Status'),
+        Minggu:'',Kumpulan_Bertugas:'',Notifikasi_Hari:7};
+    }
+  });
+  if(!ans.isConfirmed||!ans.value)return;
+  showLoader('Menyimpan aktiviti…');
+  try{
+    const r=await postToBackend({action:'saveManualV4Calendar',data:ans.value});
+    if(!r?.success)throw Error(r?.error||'Gagal menyimpan aktiviti.');
+    await fetchMasterStafData();v5RenderCalendar();
+  }catch(err){await Swal.fire('Gagal menyimpan aktiviti',err.message,'error');}
+  finally{hideLoader();}
+};
+
+// Borang minggu V5.1: minggu/cuti saling mengecualikan, tidak minta nombor ketika cuti.
+window.v51ToggleWeekFields=function(){
+  const type=document.getElementById('v51wk-type')?.value||'PERSEKOLAHAN';
+  const cuti=type.startsWith('CUTI');
+  const teaching=document.getElementById('v51wk-teaching');
+  const holiday=document.getElementById('v51wk-holiday-wrap');
+  const num=document.getElementById('v51wk-num-wrap');
+  const ready=document.getElementById('v51wk-readiness-label');
+  if(teaching)teaching.classList.toggle('hidden',cuti);
+  if(holiday)holiday.classList.toggle('hidden',!cuti);
+  if(num)num.classList.toggle('hidden',type!=='PERSEKOLAHAN');
+  if(ready)ready.classList.toggle('hidden',type!=='KESEDIAAN');
+};
+window.v5EditWeek=async function(date){
+  const current=v5WeekForDate(date);
+  const dateObj=new Date(date+'T12:00:00');
+  dateObj.setDate(dateObj.getDate()-((dateObj.getDay()+6)%7));
+  const monday=v5ISO(dateObj);dateObj.setDate(dateObj.getDate()+6);
+  const sunday=v5ISO(dateObj);
+  const used=new Set(ALL_MINGGU.filter(w=>String(w.Sesi)===manualV3Year()&&v5Active(w)&&
+      String(w.Jenis_Minggu)==='PERSEKOLAHAN'&&w.ID_Minggu!==current?.ID_Minggu).map(w=>Number(w.Label_Minggu)));
+  const options=['<option value="">-- Pilih Minggu Persekolahan --</option>',
+    ...Array.from({length:53},(_,i)=>i+1).filter(n=>!used.has(n)).map(n=>
+      `<option value="${n}" ${String(current?.Label_Minggu||'')===String(n)?'selected':''}>Minggu ${n}</option>`)].join('');
+  const groupOptions=['<option value="">-- Belum ditetapkan --</option>',...
+    v4ActiveGroups().map(g=>`<option value="${v5E(g.Nombor_Kumpulan)}" ${String(current?.Kumpulan_Bertugas||'')===String(g.Nombor_Kumpulan)?'selected':''}>${v5E(g.Nama_Kumpulan)}</option>`)].join('');
+  const weekTypes=[['PERSEKOLAHAN','Minggu Persekolahan'],['KESEDIAAN','Minggu Kesediaan'],
+    ['CUTI_PENGGAL','Cuti Penggal'],['CUTI_PERAYAAN','Cuti Perayaan'],['CUTI_UMUM','Cuti Umum'],['CUTI_LAIN','Cuti Lain']];
+  const oldType=current?.Jenis_Minggu||'PERSEKOLAHAN';
+  const ans=await Swal.fire({
+    title:'Tetapan Minggu Rasmi',width:610,
+    html:`<div class="text-left text-xs">
+      <label class="block font-bold mb-1">Jenis Minggu</label>
+      <select id="v51wk-type" onchange="v51ToggleWeekFields()" class="w-full p-2 border rounded-lg">${weekTypes.map(([v,l])=>`<option value="${v}" ${oldType===v?'selected':''}>${l}</option>`).join('')}</select>
+      <div class="grid grid-cols-2 gap-3"><label class="block font-bold mt-3">Tarikh Mula<input id="v51wk-start" type="date" value="${v5E(current?.Tarikh_Mula||monday)}" class="w-full p-2 border rounded-lg mt-1 font-normal"/></label>
+      <label class="block font-bold mt-3">Tarikh Tamat<input id="v51wk-end" type="date" value="${v5E(current?.Tarikh_Tamat||sunday)}" class="w-full p-2 border rounded-lg mt-1 font-normal"/></label></div>
+      <div id="v51wk-teaching" class="mt-3 space-y-3">
+        <div id="v51wk-num-wrap"><label class="block font-bold mb-1">Minggu Persekolahan *</label><select id="v51wk-num" class="w-full p-2 border rounded-lg">${options}</select></div>
+        <div id="v51wk-readiness-label" class="hidden rounded-lg bg-amber-50 border border-amber-200 p-3 text-amber-900 font-bold">Minggu Kesediaan (sebelum Minggu 1)</div>
+        <div><label class="block font-bold mb-1">Kumpulan Bertugas</label><select id="v51wk-group" class="w-full p-2 border rounded-lg">${groupOptions}</select></div>
+      </div>
+      <div id="v51wk-holiday-wrap" class="hidden mt-3"><label class="block font-bold mb-1">Nama Cuti *</label><input id="v51wk-holiday" value="${v5E(current?.Nama_Cuti||'')}" placeholder="Contoh: Cuti Penggal 1" class="w-full p-2 border rounded-lg"/></div>
+      <p class="text-slate-500 mt-4">Cuti tidak menggunakan nombor minggu atau kumpulan. Minggu sekolah seterusnya dipilih apabila persekolahan bersambung.</p>
+    </div>`,showCancelButton:true,confirmButtonText:'Simpan Minggu',cancelButtonText:'Batal',
+    didOpen:()=>v51ToggleWeekFields(),
+    preConfirm:()=>{
+      const get=k=>document.getElementById('v51wk-'+k)?.value||'';
+      const type=get('type'),holiday=type.startsWith('CUTI');
+      if(!get('start')||!get('end')||get('end')<get('start')){
+        Swal.showValidationMessage('Tarikh mula dan tamat mesti sah.');return false;
+      }
+      if(type==='PERSEKOLAHAN'&&!get('num')){
+        Swal.showValidationMessage('Pilih nombor minggu persekolahan.');return false;
+      }
+      if(holiday&&!get('holiday').trim()){
+        Swal.showValidationMessage('Nama cuti wajib diisi.');return false;
+      }
+      return {ID_Minggu:current?.ID_Minggu||'',Sesi:manualV3Year(),Jenis_Minggu:type,
+        Tarikh_Mula:get('start'),Tarikh_Tamat:get('end'),Label_Minggu:holiday?'':type==='KESEDIAAN'?'Kesediaan':get('num'),
+        Nama_Cuti:holiday?get('holiday').trim():'',Kumpulan_Bertugas:holiday?'':get('group'),Status:'Aktif'};
+    }
+  });
+  if(!ans.isConfirmed||!ans.value)return;
+  showLoader('Menyimpan minggu/cuti…');
+  try{
+    const r=await postToBackend({action:'saveManualV5Week',data:ans.value});
+    if(!r?.success)throw Error(r?.error||'Gagal menyimpan minggu.');
+    await fetchMasterStafData();v5RenderCalendar();
+  }catch(err){await Swal.fire('Minggu/cuti tidak disimpan',err.message,'error');}
+  finally{hideLoader();}
+};

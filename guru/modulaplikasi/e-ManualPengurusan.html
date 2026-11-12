@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ms" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>e-Manual Pengurusan | SeMAKMUR I-System</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            rose: {
+              50: '#fff1f2', 100: '#ffe4e6', 500: '#f43f5e',
+              600: '#e11d48', 700: '#be123c', 800: '#9f1239', 900: '#881337'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Outfit', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  
+
+  <!-- V5.3: jadual takwim penuh tanpa tatal mendatar; komponen lain tidak disentuh -->
+  
+  <link rel="stylesheet" href="e-ManualPengurusan-Desktop.css?v=fi1">
+</head>
+<body class="min-h-screen flex text-slate-800 bg-slate-100">
+
+  <!-- SPLASH AWAL: segera muncul sebelum auth dan data dimuatkan; tiada paparan kosong -->
+  <div id="global-loader" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-all duration-200" role="status" aria-live="polite" aria-busy="true" style="background:linear-gradient(145deg,#101633 0%,#1b2a58 55%,#315e82 100%);color:white;">
+    <div style="background:rgba(255,255,255,.1);border:1px solid rgba(220,240,255,.18);border-radius:22px;padding:30px 36px;text-align:center;width:min(340px,calc(100% - 28px));box-shadow:0 20px 65px rgba(0,0,0,.2);backdrop-filter:blur(8px)">
+      <div class="loader-ring mb-3"><div></div><div></div><div></div><div></div></div>
+      <p style="font-size:16px;font-weight:800;margin:0 0 7px">Manual Pengurusan</p>
+      <p class="font-medium" style="font-size:13px;line-height:1.7;color:#d4e4f5;margin:0" id="loader-text">Menyediakan ruang kerja anda…</p>
+    </div>
+  </div>
+
+  <!-- SIDEBAR NAVIGASI KIRI -->
+  <aside id="sidebar" class="w-72 bg-slate-900 text-slate-300 flex flex-col shrink-0 min-h-screen border-r border-slate-800 hidden md:flex">
+    <div class="p-4 border-b border-slate-800 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold">
+        <i class="fa-solid fa-school text-lg"></i>
+      </div>
+      <div>
+        <h2 class="font-display font-bold text-sm text-white leading-tight">SK Segambut Makmur</h2>
+        <p class="text-[11px] text-rose-400 font-semibold">Manual Pengurusan <span id="lblTahunSidebar">2027</span></p>
+      </div>
+    </div>
+
+    <div id="sidebarMenuContainer" class="flex-1 overflow-y-auto p-3 space-y-1 text-xs"></div>
+
+    <div class="p-3 border-t border-slate-800 text-[11px] text-slate-500 text-center">
+      DB V2 Connected • SeMAKMUR
+    </div>
+  </aside>
+
+  <!-- CONTENT MAIN CONTAINER -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 px-4 lg:px-8 py-3 flex items-center justify-between shadow-xs">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleMobileSidebar()" class="md:hidden p-2 rounded-lg bg-slate-100 text-slate-700">
+          <i class="fa-solid fa-bars text-lg"></i>
+        </button>
+        <div class="flex items-center gap-2 text-xs text-slate-500">
+          <span class="font-bold text-slate-800">Manual Pengurusan</span>
+          <span>/</span>
+          <span id="txtBreadcrumb" class="text-rose-600 font-semibold">Dashboard Utama</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+        <label for="selTahunAktif" class="font-bold text-xs text-slate-600">
+          <i class="fa-solid fa-calendar-days text-rose-600 mr-1"></i>Sesi Sekolah:
+        </label>
+        <select id="selTahunAktif" onchange="onChangeTahunAktif()" class="bg-white font-extrabold text-xs text-rose-600 rounded-lg p-1 focus:outline-none border border-slate-200 cursor-pointer"></select>
+      </div>
+    </header>
+
+    <main class="p-4 lg:p-8 space-y-6">
+
+      <!-- ================= 1. DASHBOARD UTAMA & WIDGET KEKOSONGAN ================= -->
+      <div id="viewDashboard" class="space-y-5">
+        <div class="bg-slate-900 rounded-2xl p-6 text-white shadow-sm">
+          <h1 class="text-2xl font-extrabold">Penyediaan Buku Manual Pengurusan <span class="lblTahunSpan">2027</span></h1>
+          <p class="text-xs mt-2 text-rose-200">Pilih kad untuk menyediakan maklumat rasmi. Semua kandungan yang disimpan digunakan oleh cetakan buku yang sama.</p>
+          <div class="flex flex-wrap gap-2 mt-4"><button onclick="showView('viewV4Print')" class="bg-white text-slate-900 px-4 py-2.5 rounded-xl text-xs font-bold"><i class="fa-solid fa-print mr-1"></i> Pratonton Buku</button><button onclick="showView('viewAuditPeranan')" class="bg-white/10 px-4 py-2.5 rounded-xl text-xs font-bold"><i class="fa-solid fa-chart-line mr-1"></i> Pusat Analitik</button></div>
+        </div>
+        <div id="v5BookCards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"></div>
+      </div>
+      <div id="viewV5BookEditor" class="hidden space-y-4">
+        <div class="bg-white border rounded-2xl p-6 space-y-4 max-w-4xl">
+          <div class="flex justify-between flex-wrap gap-3 items-center"><div><h2 id="v5BookTitle" class="font-extrabold text-xl">Editor Kandungan</h2><p class="text-xs text-slate-500 mt-1">Sesi <span id="v5BookYear">2027</span> · kandungan yang sama akan digunakan ketika cetakan buku</p></div><button onclick="showView('viewDashboard')" class="border rounded-xl px-3 py-2 text-xs font-bold">Kembali</button></div>
+          <label class="font-bold text-xs">Kandungan, teks dan pautan gambar/dokumen (URL)</label>
+          <textarea id="v5BookText" rows="15" placeholder="Isi kandungan bahagian ini... Untuk imej, masukkan URL https:// imej pada baris tersendiri." class="w-full border rounded-xl p-4 text-sm leading-7"></textarea>
+          <div class="flex gap-3 flex-wrap items-center"><label class="font-bold text-xs">Status</label><select id="v5BookStatus" class="border rounded-lg p-2 text-xs"><option>Draf</option><option>Lengkap</option></select><button onclick="v5SaveBookSection()" class="ml-auto bg-emerald-700 text-white rounded-xl px-5 py-3 text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Kandungan</button></div>
+          <p class="text-xs text-slate-500">Imej digunakan melalui pautan HTTPS; muat naik terus ke Drive dan penghasilan PDF automatik belum termasuk dalam modul ini.</p>
+        </div>
+      </div>
+
+      <!-- SMART COMMAND CENTER -->
+      <div id="viewAuditPeranan" class="hidden space-y-5">
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div><h2 class="font-display font-extrabold text-xl">Pusat Semakan & Analitik Pengagihan</h2>
+              <p class="text-xs text-slate-500 mt-1">Semak kelengkapan, pertindihan, beban tugas dan tugasan tahun yang dipilih — tanpa mengubah data.</p></div>
+            <div class="flex gap-2 flex-wrap">
+              <button onclick="exportPerananCsvV3()" class="px-3 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold"><i class="fa-solid fa-file-csv mr-1"></i> Eksport CSV</button>
+              <button onclick="fetchMasterStafData()" class="px-3 py-2 bg-slate-100 text-slate-700 border rounded-xl text-xs font-bold"><i class="fa-solid fa-rotate mr-1"></i> Muat Semula</button>
+            </div>
+          </div>
+          <div id="auditKpiCards" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5"></div>
+        </section>
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2"><h3 class="font-bold text-sm">Amaran & tindakan disyorkan</h3><span class="text-[11px] text-slate-400">Amaran ialah semakan, bukan perubahan data</span></div>
+          <div id="auditIssues" class="space-y-2 text-xs"></div>
+        </section>
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex flex-wrap justify-between gap-3 items-center">
+            <h3 class="font-bold text-sm">Carian semua peranan staf</h3>
+            <div class="flex gap-2 flex-wrap">
+              <input id="auditSearchInput" oninput="renderAuditPerananV3()" placeholder="Cari nama guru, JK, tugas atau kelas…" class="border border-slate-300 rounded-xl p-2 text-xs w-64 max-w-full"/>
+              <select id="auditCategoryFilter" onchange="renderAuditPerananV3()" class="border border-slate-300 rounded-xl p-2 text-xs"><option value="">Semua kategori</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select>
+            </div>
+          </div>
+          <div class="overflow-x-auto"><table class="w-full text-xs text-left"><thead class="bg-slate-100 text-slate-700"><tr><th class="p-3">Staf</th><th class="p-3">Jawatankuasa</th><th class="p-3">Peranan</th><th class="p-3">Skop / Kelas</th><th class="p-3">Status</th></tr></thead><tbody id="auditPerananRows"></tbody></table></div>
+          <p id="auditResultCount" class="text-xs text-slate-500"></p>
+        </section>
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div><h3 class="font-bold text-sm">Taburan Beban Tugasan Guru</h3><p class="text-xs text-slate-500 mt-1">Bilangan pengagihan mengikut staf bagi sesi dipilih. Digunakan untuk pertimbangan pentadbir, bukan penilaian prestasi.</p></div>
+          <div class="overflow-x-auto"><table class="w-full text-xs text-left"><thead class="bg-slate-100"><tr><th class="p-3">Guru</th><th class="p-3">Jumlah peranan</th><th class="p-3">Taburan jawatankuasa</th></tr></thead><tbody id="auditWorkloadRows"></tbody></table></div>
+        </section>
+        <section class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+          <div class="flex justify-between items-center"><h3 class="font-bold text-sm">Riwayat Simpanan</h3><button onclick="loadManualV3History()" class="bg-slate-100 hover:bg-slate-200 px-3 py-2 text-xs rounded-xl font-semibold">Lihat riwayat</button></div>
+          <div id="auditHistoryList" class="text-xs text-slate-500">Klik “Lihat riwayat” untuk melihat operasi simpan terdahulu.</div>
+        </section>
+      </div>
+
+
+      <!-- V4: KATALOG DATA INDUK -->
+      <div id="viewV4Catalog" class="hidden space-y-5">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div><h2 class="font-display font-extrabold text-xl">Pusat Tetapan & Katalog Dinamik</h2><p class="text-slate-500 text-xs mt-1">Tambah atau nyahaktif kelas, bilik khas, subjek, seksyen dan kumpulan tanpa mengedit Google Sheets.</p></div>
+            <button onclick="v4OpenCatalogEditor()" class="bg-rose-600 hover:bg-rose-700 text-white rounded-xl px-4 py-2.5 font-bold text-xs"><i class="fa-solid fa-circle-plus mr-1"></i> Tambah Rekod</button>
+          </div>
+          <div class="mt-4 flex flex-wrap gap-2" id="v4CatalogTabs"></div>
+        </div>
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm overflow-x-auto"><div id="v4CatalogItems" class="space-y-2"></div></div>
+      </div>
+      <!-- V4: SUSUNAN JAWATANKUASA -->
+      <div id="viewV4Order" class="hidden space-y-5">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div><h2 class="font-display font-extrabold text-xl">Susun Jawatankuasa & Seksyen</h2><p class="text-xs text-slate-500 mt-1">Tukar seksyen, susun ke atas/bawah dan simpan. Tiada pelantikan guru diubah.</p></div>
+            <span id="v5OrderStatus" class="text-xs text-slate-400">✓ Tiada perubahan</span><button id="v5OrderSaveBtn" disabled onclick="v4SaveOrder()" class="rounded-xl bg-emerald-700 disabled:bg-slate-200 disabled:text-slate-500 px-4 py-2.5 text-white text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Susunan</button>
+          </div>
+          <div class="mt-4"><label class="font-bold text-xs">Induk</label><select id="v4OrderCategory" onchange="v4DrawOrder()" class="w-full sm:w-64 ml-2 p-2 border rounded-xl text-xs"><option>Pentadbiran</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select></div>
+        </div>
+        <div id="v4OrderList" class="space-y-2"></div>
+      </div>
+      <!-- V4: TAKWIM BERSEPADU -->
+      <div id="viewV4Calendar" class="hidden space-y-5">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="font-display font-extrabold text-xl">Takwim Persekolahan & Aktiviti</h2><p class="text-xs text-slate-500 mt-1">Tetapan minggu rasmi dan cuti dikawal dalam lajur Minggu/Cuti; program, bengkel, LADAP dan mesyuarat dalam takwim aktiviti.</p></div>
+            <button onclick="v4OpenCalendarEditor()" class="bg-rose-600 text-white font-bold text-xs rounded-xl px-4 py-2.5"><i class="fa-solid fa-plus mr-1"></i> Tambah Aktiviti</button></div>
+          <div class="mt-4 flex flex-wrap gap-2"><input type="search" id="v4CalendarSearch" oninput="v4RenderCalendar()" placeholder="Cari program atau minggu…" class="p-2 border rounded-xl text-xs flex-1 min-w-[190px]"/>
+            <select id="v4CalendarTypeFilter" onchange="v4RenderCalendar()" class="p-2 border rounded-xl text-xs"><option value="">Semua jenis</option><option value="CUTI">Cuti</option><option value="MESYUARAT">Mesyuarat</option><option value="BENGKEL">Bengkel</option><option value="AKTIVITI">Aktiviti</option><option value="LADAP">LADAP</option><option value="PROGRAM">Program</option></select></div>
+        </div>
+        <div id="v5CalendarTabs" class="flex gap-2 flex-wrap"><button data-tab="penuh" onclick="v5SwitchCalendarTab('penuh')" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Takwim Penuh</button><button data-tab="ringkasan" onclick="v5SwitchCalendarTab('ringkasan')" class="bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold">Ringkasan Mengikut Unit</button><button onclick="v5EditWeek(manualV3Year()===v5Today().slice(0,4)?v5Today():manualV3Year()+'-01-01')" class="ml-auto border px-4 py-2 rounded-xl text-xs font-bold">+ Tetapkan Minggu / Cuti</button></div>
+        <div id="v4CalendarItems" class="space-y-2"></div>
+      </div>
+      <!-- V4: CETAK BUKU -->
+      <div id="viewV4Print" class="hidden space-y-4">
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"><h2 class="font-display font-extrabold text-xl">Buku Manual Pengurusan Sekolah</h2><p class="text-xs text-slate-500 mt-2">Jana buku bercetak A4: muka depan, isi kandungan bernombor, profil staf, jawatankuasa dan pelantikan, pengurusan kelas, serta takwim. Pratonton dalam tab baharu sebelum cetak / Simpan sebagai PDF.</p>
+          <div class="mt-4 flex gap-2 items-center flex-wrap"><button onclick="v4PrintManualBook()" class="bg-slate-900 text-white font-bold rounded-xl px-5 py-3 text-xs"><i class="fa-solid fa-print mr-2"></i> Pratonton & Cetak Buku</button><span class="text-xs text-slate-500">Sesi <strong class="lblTahunSpan">2027</strong> · Hanya pelantikan aktif pada sesi dipilih</span></div>
+        </div>
+      </div>
+
+      <!-- ================= 2. PROFIL GURU & AKP ================= -->
+      <div id="viewProfilStaf" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="font-display font-extrabold text-xl text-slate-800">Pangkalan Data Profil Guru & AKP</h2>
+              <p class="text-xs text-slate-500">Klik nama guru untuk semak peranan atau ikon Edit untuk pinda maklumat & status.</p>
+            </div>
+            <button onclick="openTambahGuruModal()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2 self-start sm:self-auto">
+              <i class="fa-solid fa-user-plus"></i> + Guru / AKP
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 border border-slate-200 p-2">
+            <div class="flex flex-wrap gap-2" role="tablist" aria-label="Status staf">
+              <button id="v51StaffTabActive" role="tab" aria-selected="true" onclick="v51SwitchStafView('aktif')" class="px-4 py-2 rounded-lg bg-rose-600 text-white font-extrabold text-xs"> <i class="fa-solid fa-user-check mr-1"></i> Staf Aktif <span id="v51ActiveCount" class="ml-1 opacity-80"></span></button>
+              <button id="v51StaffTabArchive" role="tab" aria-selected="false" onclick="v51SwitchStafView('arkib')" class="px-4 py-2 rounded-lg bg-white text-slate-600 border border-slate-200 font-extrabold text-xs"> <i class="fa-solid fa-box-archive mr-1"></i> Arkib Staf <span id="v51ArchiveCount" class="ml-1 opacity-80"></span></button>
+            </div>
+            <span class="text-[11px] text-slate-500" id="v51StaffViewHint">Hanya staf aktif ditunjukkan. Rekod arkib tidak dipadam.</span>
+          </div>
+          <div class="flex flex-wrap justify-between items-center gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="filterStafTable('Semua', event)" class="btn-filter-staf active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-rose-600 text-white shadow-xs">Semua</button>
+            <button onclick="filterStafTable('Pentadbir', event)" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Pentadbir</button>
+            <button onclick="filterStafTable('Guru Akademik', event)" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Guru Akademik</button>
+            <button onclick="filterStafTable('Guru Praktikal', event)" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Guru Praktikal</button>
+            <button onclick="filterStafTable('AKP', event)" class="btn-filter-staf px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">AKP</button>
+          </div>
+          <input id="stafSearchV3" oninput="renderMasterStafTable()" placeholder="Cari nama, ID atau e-mel..." class="w-full sm:w-60 border border-slate-300 rounded-xl p-2 text-xs"/>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <span class="font-bold text-xs text-slate-700" id="v51StaffListHeading"><i class="fa-solid fa-users mr-2 text-rose-600"></i> Senarai Staf Aktif</span>
+            <span id="txtCountStaf" class="text-[11px] font-extrabold bg-rose-100 text-rose-700 px-2.5 py-1 rounded-full">0 Staf</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="table-cell-std w-12 text-center">Bil</th>
+                  <th class="table-cell-std">Nama Penuh & Samaran</th>
+                  <th class="table-cell-std">Jawatan</th>
+                  <th class="table-cell-std">Gred</th>
+                  <th class="table-cell-std">Opsyen</th>
+                  <th class="table-cell-std text-center">Status</th>
+                  <th class="table-cell-std text-center w-24">Tindakan</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyMasterStaf" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 3. MASTER JAWATANKUASA ================= -->
+      <div id="viewPengurusanJawatankuasa" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-cyan-600">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="font-display font-extrabold text-xl text-slate-800">Pengurusan Master Jawatankuasa</h2>
+              <p class="text-xs text-slate-500">Katalog rujukan jawatankuasa & peranan sekolah.</p>
+            </div>
+            <button onclick="openModalJawatankuasa()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2 self-start sm:self-auto">
+              <i class="fa-solid fa-plus"></i> + Tambah Jawatankuasa
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="filterJkTable('Semua', event)" class="btn-filter-jk active px-3.5 py-1.5 rounded-xl font-bold text-xs bg-cyan-600 text-white shadow-xs">Semua</button>
+              <button onclick="filterJkTable('Pentadbiran', event)" class="btn-filter-jk px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Pentadbiran</button>
+              <button onclick="filterJkTable('Kurikulum', event)" class="btn-filter-jk px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Kurikulum</button>
+              <button onclick="filterJkTable('Hal Ehwal Murid', event)" class="btn-filter-jk px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Hal Ehwal Murid</button>
+              <button onclick="filterJkTable('Kokurikulum', event)" class="btn-filter-jk px-3.5 py-1.5 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700">Kokurikulum</button>
+            </div>
+
+            <div class="relative w-full sm:w-64">
+              <input type="text" id="searchJkInput" onkeyup="filterJkTableBySearch()" placeholder="Cari jawatankuasa..." class="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:border-cyan-600">
+              <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <span class="font-bold text-xs text-slate-700"><i class="fa-solid fa-list-check mr-2 text-cyan-600"></i>Senarai Master Jawatankuasa</span>
+            <span id="txtCountJk" class="text-[11px] font-extrabold bg-cyan-100 text-cyan-800 px-2.5 py-1 rounded-full">0 Jawatankuasa</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="table-cell-std w-12 text-center">BIL</th>
+                  <th class="table-cell-std w-28">ID Tugasan</th>
+                  <th class="table-cell-std">Kategori Pengurusan</th>
+                  <th class="table-cell-std">JK Induk</th>
+                  <th class="table-cell-std">Nama Jawatankuasa</th>
+                  <th class="table-cell-std">Jawatan Pimpinan Utama</th>
+                  <th class="table-cell-std text-center">Tindakan</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyMasterJawatankuasa" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 4. PENGURUSAN SEKOLAH (STANDALONE) ================= -->
+      <div id="viewPengurusanSekolah" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-amber-500">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div>
+              <h2 class="font-display font-extrabold text-xl text-slate-800">Modul Pengurusan Sekolah (Stand-Alone)</h2>
+              <p class="text-xs text-slate-500">Pengurusan Guru Kelas, Bilik Khas, Kumpulan Bertugas, e-RPH, Pencerapan & Semakan Buku.</p>
+            </div>
+            <button onclick="simpanSemuaPengurusanSekolah()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2 self-start sm:self-auto">
+              <i class="fa-solid fa-floppy-disk"></i> Simpan Pengurusan Sekolah
+            </button>
+          </div>
+
+          <div class="flex items-center flex-wrap gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3">
+            <div class="flex-1"><p class="font-extrabold text-xs text-emerald-900">Simpan modul secara khusus</p><p class="text-[11px] text-emerald-700">Hanya pengagihan pada tab aktif akan dikemaskini. Tugasan lain kekal.</p></div>
+            <span id="manualUnsavedBadge" class="hidden text-[11px] font-bold text-amber-700 bg-amber-100 px-2 py-1 rounded-lg">Perubahan belum disimpan</span>
+            <button onclick="simpanSemuaPengurusanSekolah(MANUAL_V3_ACTIVE_MODULE)" class="bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl px-4 py-2.5"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Tab Ini</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="switchSubPengurusan('kelas', event)" id="subTabKelas" class="sub-tab-btn active px-3.5 py-2 rounded-xl font-bold text-xs bg-rose-600 text-white transition">Guru Kelas & Aliran</button>
+            <button onclick="switchSubPengurusan('bilik', event)" id="subTabBilik" class="sub-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Penyelaras Bilik Khas</button>
+            <button onclick="switchSubPengurusan('bertugas', event)" id="subTabBertugas" class="sub-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Kumpulan Bertugas Mingguan</button>
+            <button onclick="switchSubPengurusan('rph', event)" id="subTabRph" class="sub-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Penghantaran e-RPH</button>
+            <button onclick="switchSubPengurusan('pencerapan', event)" id="subTabPencerapan" class="sub-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Pencerapan PdP</button>
+            <button onclick="switchSubPengurusan('semakan', event)" id="subTabSemakan" class="sub-tab-btn px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Semakan Hasil Kerja Murid</button>
+          </div>
+        </div>
+
+        <div id="subSecKelas" class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700">
+            <i class="fa-solid fa-chalkboard-user text-rose-600 mr-2"></i>Senarai Kelas, Guru Kelas, Guru Pembantu & Penyelaras Aliran
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="table-cell-std w-12 text-center">BIL</th>
+                  <th class="table-cell-std w-44">Senarai Kelas</th>
+                  <th class="table-cell-std">Guru Kelas</th>
+                  <th class="table-cell-std">Guru Pembantu</th>
+                  <th class="table-cell-std w-56">Penyelaras Aliran (Auto)</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyPengurusanKelas" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="subSecBilik" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700">
+            <i class="fa-solid fa-door-open text-blue-600 mr-2"></i>Senarai Bilik Khas & Guru Penyelaras
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="table-cell-std w-12 text-center">BIL</th>
+                  <th class="table-cell-std w-64">Senarai Bilik Khas</th>
+                  <th class="table-cell-std">Guru Penyelaras</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyBilikKhas" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="subSecBertugas" class="hidden space-y-4"><div class="bg-slate-900 text-white p-4 rounded-xl text-xs font-bold flex flex-wrap gap-2 items-center justify-between"><span><i class="fa-solid fa-users mr-2 text-amber-400"></i>Kumpulan Bertugas Mingguan — fleksibel</span><button onclick="v4OpenCatalog('kumpulan')" class="bg-white/10 px-3 py-1.5 rounded-lg">+ Urus Kumpulan</button></div><div id="v4GroupGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div></div>
+
+        <div id="subSecRph" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700">
+            <i class="fa-solid fa-file-signature text-purple-600 mr-2"></i>Penetapan Pegawai Penyemak e-RPH
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="table-cell-std w-12 text-center">BIL</th>
+                  <th class="table-cell-std">Nama Guru</th>
+                  <th class="table-cell-std w-80">Pegawai Penyemak / Tindakan</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyPenghantaranRph" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="subSecPencerapan" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700">
+            <i class="fa-solid fa-clipboard-check text-cyan-600 mr-2"></i>Jadual Pegawai Pencerapan Pengajaran & Pembelajaran (PdP)
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="table-cell-std w-12 text-center">BIL</th>
+                  <th class="table-cell-std">Nama Guru</th>
+                  <th class="table-cell-std w-64">Pencerapan 1</th>
+                  <th class="table-cell-std w-64">Pencerapan 2</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyPencerapanPdp" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="subSecSemakan" class="hidden bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700 flex items-center justify-between">
+            <span><i class="fa-solid fa-book-open-reader text-emerald-600 mr-2"></i>Semakan Hasil Kerja Murid (Mengikut Master Subjek)</span>
+            <span class="text-[10px] text-slate-400 font-normal italic">* Petak N/A dikunci bagi subjek khusus Tahap 2 sahaja.</span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="table-cell-std w-12 text-center">BIL</th>
+                  <th class="table-cell-std w-56">Mata Pelajaran Induk</th>
+                  <th class="table-cell-std">Tahun 1</th>
+                  <th class="table-cell-std">Tahun 2</th>
+                  <th class="table-cell-std">Tahun 3</th>
+                  <th class="table-cell-std">Tahun 4</th>
+                  <th class="table-cell-std">Tahun 5</th>
+                  <th class="table-cell-std">Tahun 6</th>
+                </tr>
+              </thead>
+              <tbody id="tbodySemakanBuku" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 5. OVERVIEW MAP: JK INDUK ================= -->
+      <div id="viewIndukOverview" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
+          <div class="flex items-center justify-between border-b pb-4">
+            <div>
+              <h2 id="txtIndukCategoryTitle" class="font-display font-extrabold text-xl text-slate-800">JK Induk</h2>
+              <p class="text-xs text-slate-500">Pemetaan Penuh Barisan Kepimpinan & Penyelaras Sub-Unit</p>
+            </div>
+            <div class="ml-auto flex flex-wrap gap-2 items-center justify-end shrink-0">
+              <button id="v4EditIndukBtn" onclick="v4SetIndukEditMode(true)" class="px-4 py-2 bg-slate-200 text-slate-800 font-bold rounded-xl text-xs"><i class="fa-solid fa-pen mr-1"></i> Edit Jawatan</button>
+              <button id="v5CancelIndukBtn" onclick="v5CancelInduk()" class="hidden border border-slate-200 bg-slate-100 rounded-xl px-4 py-2 text-xs font-bold">Batal</button>
+              <button id="v4SaveIndukBtn" onclick="simpanSetiausahaInduk()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex gap-2 items-center">
+                <i class="fa-solid fa-floppy-disk"></i> Simpan Pimpinan JK Induk
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-600 w-40">Pengerusi:</span>
+              <span id="mapPengerusi" class="font-extrabold text-slate-800 flex-1"></span>
+            </div>
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-600 w-40">Naib Pengerusi 1:</span>
+              <span id="mapNaib1" class="font-extrabold text-slate-800 flex-1"></span>
+            </div>
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-600 w-40">Naib Pengerusi 2:</span>
+              <span id="mapNaib2" class="font-extrabold text-slate-800 flex-1"></span>
+            </div>
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-600 w-40">Naib Pengerusi 3:</span>
+              <span id="mapNaib3" class="font-extrabold text-slate-800 flex-1"></span>
+            </div>
+
+            <!-- SETIAUSAHA (BEBAS DARI PERKATAAN INDUK) -->
+            <div class="flex items-center justify-between pt-1">
+              <span class="font-bold text-rose-600 w-40">Setiausaha:</span>
+              <div class="flex-1">
+                <span id="v5IndukSuRead" class="font-extrabold text-slate-800 text-xs"></span><select id="selSetiausahaInduk" class="select-guru-opt w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>
+              </div>
+            </div>
+
+            <!-- CONTAINER JAWATAN TAMBAHAN KHAS UNTUK JK INDUK -->
+            <div id="v5IndukOfficersRead" class="pt-1"></div><div id="containerIndukCustomOfficers" class="space-y-2 pt-2 border-t border-slate-200/80"></div>
+
+            <div class="pt-2 flex justify-end">
+              <button id="v4AddIndukOfficer" onclick="tambahBarisPegawaiInduk()" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5">
+                <i class="fa-solid fa-plus text-xs"></i> Tambah Jawatan (e.g. Naib Setiausaha / Bendahari / SU Sukan)
+              </button>
+            </div>
+          </div>
+
+          <div id="v4IndukReadOnly" class="hidden bg-white border border-slate-200 rounded-xl p-4 text-sm"></div>
+          <div class="space-y-3">
+            <h3 class="font-bold text-xs text-slate-500 uppercase tracking-wider">Senarai Penyelaras Jawatankuasa (Master Jawatankuasa)</h3>
+            <div id="boxMappingSubJk" class="space-y-2 text-xs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 6. DETAIL SUB-JAWATANKUASA (MENGANDUNGI BORDER ROW PADA SETIAP NAIB PENGERUSI 1, 2, 3) ================= -->
+      <div id="viewSubJkDetail" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm space-y-6">
+          <div class="flex items-center justify-between border-b pb-4">
+            <div>
+              <h2 id="txtSubJkDetailTitle" class="font-display font-extrabold text-xl text-slate-800">Detail Jawatankuasa</h2>
+              <p class="text-xs text-slate-500">Agihan Penyelaras / Ketua Panitia, Setiausaha, Pegawai Khas & Ahli Jawatankuasa (AJK) serta Portfolio Tugas Khas</p>
+            </div>
+            <button id="v5SubEditBtn" onclick="v5SetSubEditMode(true)" class="px-4 py-2 bg-slate-200 rounded-xl font-bold text-xs">✎ Edit Jawatan</button><button id="v5SubCancelBtn" onclick="v5CancelSub()" class="hidden px-4 py-2 border rounded-xl font-bold text-xs">Batal</button>
+              <button onclick="simpanDetailSubJk()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> Simpan Jawatankuasa
+            </button>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs">
+            <!-- PENGERUSI ROW -->
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-600 w-40">Pengerusi:</span>
+              <span id="subMapPengerusi" class="font-extrabold text-slate-800 flex-1"></span>
+            </div>
+
+            <!-- NAIB PENGERUSI 1 ROW (WITH SEPARATOR LINE) -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-600 w-40">Naib Pengerusi 1:</span>
+              <div id="wrapperNaib1" class="flex-1"></div>
+            </div>
+
+            <!-- NAIB PENGERUSI 2 ROW (WITH SEPARATOR LINE) -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-600 w-40">Naib Pengerusi 2:</span>
+              <div id="wrapperNaib2" class="flex-1"></div>
+            </div>
+
+            <!-- NAIB PENGERUSI 3 ROW (WITH SEPARATOR LINE) -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-600 w-40">Naib Pengerusi 3:</span>
+              <div id="wrapperNaib3" class="flex-1"></div>
+            </div>
+
+            <!-- DROPDOWN PENYELARAS / KP + TUGAS KHAS -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-b border-slate-200 pb-2">
+              <span id="lblSubPenyelarasTitle" class="font-bold text-slate-700 w-40">Penyelaras:</span>
+              <div class="flex-1 flex gap-2">
+                <select id="selSubPenyelaras" class="select-guru-opt w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>
+                <input type="text" id="inpSubPenyelarasTugasKhas" placeholder="Tugas Khas (Optional e.g. Program Digital)" class="w-1/2 p-2 border border-slate-300 rounded-xl bg-white text-xs font-semibold focus:outline-none">
+              </div>
+            </div>
+
+            <!-- DROPDOWN SETIAUSAHA + TUGAS KHAS -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
+              <span id="lblSubSetiausahaTitle" class="font-bold text-slate-700 w-40">Setiausaha:</span>
+              <div class="flex-1 flex gap-2">
+                <select id="selSubSetiausaha" class="select-guru-opt w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>
+                <input type="text" id="inpSubSetiausahaTugasKhas" placeholder="Tugas Khas (Optional)" class="w-1/2 p-2 border border-slate-300 rounded-xl bg-white text-xs font-semibold focus:outline-none">
+              </div>
+            </div>
+
+            <!-- CONTAINER JAWATAN PEGAWAI KHAS DINAMIK -->
+            <div id="containerCustomOfficers" class="space-y-2 pt-1 border-t border-slate-200/60"></div>
+
+            <div class="pt-2 flex justify-end">
+              <button onclick="tambahBarisPegawaiKhas()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1">
+                <i class="fa-solid fa-plus text-xs"></i> Tambah Jawatan Pegawai (e.g. Naib SU / Bendahari)
+              </button>
+            </div>
+          </div>
+
+          <!-- SENARAI AJK DINAMIK + TUGAS KHAS -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 id="lblSubAjkTitle" class="font-extrabold text-xs text-slate-700 uppercase tracking-wider">Senarai Ahli Jawatankuasa (AJK) & Portfolio Tugas Khas</h3>
+              <button onclick="tambahBarisAjk()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1">
+                <i class="fa-solid fa-plus text-xs"></i> AJK
+              </button>
+            </div>
+
+            <div id="containerAjkRows" class="space-y-2"></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- POPUP MODAL PROFIL GURU -->
+  <div id="modal-detail-guru" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col my-8">
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-600/30 border border-rose-500/30 flex items-center justify-center text-rose-400 font-bold">
+            <i class="fa-solid fa-id-card text-lg"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-base" id="dtlNamaGuru">Profil Guru</h3>
+            <p class="text-[11px] text-rose-400 font-semibold" id="dtlSubTitle">ID Staf & Jawatan</p>
+          </div>
+        </div>
+        <button onclick="closeDetailGuruModal()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+      </div>
+
+      <div class="p-6 space-y-5 text-xs">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Gred Jawatan</span>
+            <span class="font-extrabold text-slate-800" id="dtlGred">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Opsyen Utama</span>
+            <span class="font-extrabold text-slate-800" id="dtlOpsyen">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">No. Telefon</span>
+            <span class="font-bold text-slate-700" id="dtlTelefon">-</span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Status Aktif</span>
+            <span id="dtlStatusBadge" class="font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Aktif</span>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <h4 class="font-extrabold text-xs text-slate-700 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-rose-600"></i>
+            Senarai Peranan & Agihan Tugas (<span class="lblTahunSpan">2027</span>)
+          </h4>
+          
+          <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="table-cell-std w-10 text-center">Bil</th>
+                  <th class="table-cell-std">Jawatankuasa / Sub-Unit</th>
+                  <th class="table-cell-std">Peranan & Tugas Khas</th>
+                  <th class="table-cell-std">Jenis Penyertaan</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyDetailPeranan" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <button type="button" onclick="openEditGuruModalFromDetail()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square"></i> Edit Maklumat / Status
+        </button>
+        <button type="button" onclick="closeDetailGuruModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs rounded-xl transition">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL MASTER JAWATANKUASA -->
+  <div id="modal-jawatankuasa" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col my-8">
+      <div class="px-6 py-4 bg-cyan-600 text-white flex items-center justify-between">
+        <h3 class="font-extrabold text-base" id="modalJkTitle"><i class="fa-solid fa-list-check mr-2"></i>Tambah Jawatankuasa Baharu</h3>
+        <button onclick="closeModalJawatankuasa()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <form onsubmit="simpanMasterJawatankuasa(event)" class="p-6 space-y-4 text-xs">
+        <div>
+          <label class="block font-bold mb-1 text-slate-700">ID Tugasan (Auto)</label>
+          <input type="text" id="jk_ID_Tugasan" readonly class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-200 font-extrabold text-slate-600 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1 text-slate-700">Kategori Pengurusan <span class="text-rose-500">*</span></label>
+          <select id="jk_Kategori_Pengurusan" onchange="onCategoryChangeInModal();v4FillSeksyen()" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-cyan-600">
+            <option value="Pentadbiran">Pentadbiran</option>
+            <option value="Kurikulum">Kurikulum</option>
+            <option value="Hal Ehwal Murid">Hal Ehwal Murid</option>
+            <option value="Kokurikulum">Kokurikulum</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1 text-slate-700">JK Induk (Auto)</label>
+          <input type="text" id="jk_JK_Induk" readonly class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-200 font-extrabold text-slate-700 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1 text-slate-700">Nama Jawatankuasa / Sub-Unit <span class="text-rose-500">*</span></label>
+          <input type="text" id="jk_Nama_Jawatankuasa" placeholder="Contoh: JK Strategik / Panitia Bahasa Melayu" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-cyan-600">
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1 text-slate-700">Seksyen / Bahagian Dalam JK Induk <span class="text-rose-600">*</span></label>
+          <div class="flex gap-2"><select id="jk_Seksyen" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-white font-bold text-xs"></select><button type="button" onclick="v5AddSectionInline()" class="bg-slate-100 px-3 rounded-xl font-bold text-xs" title="Urus seksyen">+ Seksyen</button></div>
+          <input id="jk_Seksyen_Baharu" placeholder="Atau taip nama seksyen baharu di sini..." class="w-full mt-2 p-2.5 border border-slate-300 rounded-xl text-xs"/>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="hidden"><input id="jk_Susunan" type="number" value="1"/></div>
+          <div><label class="block font-bold mb-1 text-slate-700">Unit Penyelia</label><select id="jk_Unit_Penyelia" class="w-full p-2.5 border rounded-xl text-xs"><option>Pentadbiran</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select></div>
+        </div>
+        <div>
+          <label class="block font-bold mb-1 text-slate-700">Jawatan Pimpinan Utama <span class="text-rose-500">*</span></label>
+          <div id="boxPerananCheckboxes" class="p-3 bg-slate-50 rounded-xl border border-slate-200"></div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeModalJawatankuasa()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">Batal</button>
+          <button type="submit" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white font-extrabold rounded-xl transition shadow-xs">Simpan Jawatankuasa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL STAF -->
+  <div id="modal-tambah-staf" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center hidden p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col my-8">
+      <div class="px-6 py-4 bg-rose-600 text-white flex items-center justify-between">
+        <h3 class="font-extrabold text-base" id="modalStafTitle"><i class="fa-solid fa-user-plus mr-2"></i>Tambah Rekod Staf Baharu</h3>
+        <button onclick="closeTambahGuruModal()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+
+      <form onsubmit="simpanStafBaharu(event)" class="p-6 space-y-4 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">ID Staf (Automatik)</label>
+            <input type="text" id="inp_ID_Staf" readonly class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-200 font-extrabold text-slate-600 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Nama Penuh <span class="text-rose-500">*</span></label>
+            <input type="text" id="inp_Nama_Penuh" placeholder="Nama mengikut KP" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Nama Samaran / Panggilan</label>
+            <input type="text" id="inp_Nama_Samaran" placeholder="Contoh: Cikgu Aini" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">No. Kad Pengenalan</label>
+            <input type="text" id="inp_No_KP" placeholder="880101-14-1234" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Kategori / Jawatan <span class="text-rose-500">*</span></label>
+            <select id="inp_Kategori_Staf" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600">
+              <option value="Guru Besar">Guru Besar</option>
+              <option value="GPK Pentadbiran">GPK Pentadbiran</option>
+              <option value="GPK Hal Ehwal Murid">GPK Hal Ehwal Murid</option>
+              <option value="GPK Ko Kurikulum">GPK Ko Kurikulum</option>
+              <option value="Guru Akademik" selected>Guru Akademik</option>
+              <option value="Guru BNK">Guru BNK</option>
+              <option value="Guru Pemulihan">Guru Pemulihan</option>
+              <option value="Guru Pra Sekolah">Guru Pra Sekolah</option>
+              <option value="Guru Praktikal">Guru Praktikal</option>
+              <option value="AKP">AKP</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Gred Jawatan</label>
+            <input type="text" id="inp_Gred_Jawatan" placeholder="Contoh: DG44 / N22" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Opsyen Utama</label>
+            <input type="text" id="inp_Opsyen_Utama" placeholder="Contoh: Bahasa Melayu / Sains" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Email DELIMa</label>
+            <input type="email" id="inp_Email_Delima" placeholder="g-1234567@moe-dl.edu.my" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">No. Telefon</label>
+            <input type="text" id="inp_No_Telefon" placeholder="012-3456789" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Status Staf <span class="text-rose-500">*</span></label>
+            <select id="inp_Status" onchange="v5ToggleStaffDate()" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600">
+              <option value="Aktif" selected>Aktif</option>
+              <option value="Tidak Aktif">Tidak Aktif</option>
+            </select>
+          </div>
+
+          <div id="v5EnterDateWrap">
+            <label class="block font-bold mb-1 text-slate-700">Tarikh Masuk</label>
+            <input type="date" id="inp_Tarikh_Masuk" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 focus:outline-none focus:border-rose-600">
+          </div>
+
+          <div id="v5ExitDateWrap" class="hidden">
+            <label class="block font-bold mb-1 text-rose-700">Tarikh Keluar <span class="text-rose-600">*</span></label>
+            <input type="date" id="inp_Tarikh_Keluar" class="w-full p-2.5 border border-rose-300 rounded-xl bg-rose-50 focus:outline-none" />
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1 text-slate-700">Mentor / Pembimbing</label>
+            <select id="inp_ID_Mentor" class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-rose-600"></select>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeTambahGuruModal()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">Batal</button>
+          <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-xl transition shadow-xs">Simpan Staf</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../../Fi-APIConfig.js"></script>
+  <script src="../../firebase-pilot-config.js"></script>
+
+  
+
+  <script src="e-ManualPengurusan.js?v=fi1"></script>
+</body>
+</html>
