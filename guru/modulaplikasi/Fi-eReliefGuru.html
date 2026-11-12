@@ -3,24 +3,30 @@
 <title>Smart e-Relief | SeMAKMUR Digital</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="Fi-eReliefGuru-Desktop.css?v=6.0.0"><link rel="stylesheet" href="Fi-eReliefGuru-Mobile.css?v=5.1.1">
+<link rel="stylesheet" href="Fi-eReliefGuru-Desktop.css?v=6.0.0"><link rel="stylesheet" href="Fi-eReliefGuru-Mobile.css?v=5.1.1"><link rel="stylesheet" href="Fi-eReliefGuru-PWA-V66.css?v=6.6.0">
 <script src="../../firebase-pilot-config.js"></script><script src="Fi-APIConfig.js?v=5.1.3"></script></head>
 <body><main class="relief-app" id="app">
 <header class="app-head"><div><small>SeMAKMUR Digital · Kurikulum</small><h1>Smart e-Relief</h1><p>Jadual harian, tugasan sendiri dan analitik sekolah.</p></div><div class="account" id="account">Menyemak akaun MOE…</div></header>
+<div id="fi-v66-datebar" class="fi-v66-datebar fi-v66-mobile-only">
+  <label for="fi-v66-date">Pilih tarikh</label><input type="date" id="fi-v66-date" aria-label="Pilih tarikh relief">
+</div>
 <nav class="tabs" aria-label="Bahagian e-Relief">
-<button data-tab="jadual" class="active" type="button">Jadual Harian</button>
+<button data-tab="jadual" class="active" type="button">Jadual Relief</button>
 <button data-tab="saya" type="button">Relief Saya</button>
 <button data-tab="statistik" id="tab-statistik" type="button" hidden>Statistik</button>
 <button data-tab="makmal" id="tab-makmal" type="button" hidden>Makmal Admin</button>
 </nav>
 <div id="message" role="status" class="notice" hidden></div>
 <section data-panel="jadual"><div class="card">
-<div class="section-head"><h2>Jadual Relief Sekolah</h2><span class="sub" id="published">Belum diterbitkan</span></div>
+<div class="section-head"><h2 id="fi-v66-day-title">Jadual Relief Hari Ini</h2><span class="sub" id="published">Belum diterbitkan</span></div>
 <div class="filters"><label>Pilih tarikh <input type="date" id="view-date"></label><button class="btn muted" type="button" id="refresh">Muat Semula</button><button class="btn muted" type="button" id="relief55-backup-now" hidden>Kira semula sekarang (Admin)</button><button class="btn muted" type="button" id="relief55-check-ops" hidden>Semak operasi</button></div><p class="muted-note" id="relief55-ops-health"></p><div id="fi55-inapp-alert" role="status" class="fi-v55-inapp-alert" hidden></div>
-<div id="daily-summary" class="metrics"></div><div id="daily-list" class="table-holder"><p class="empty">Memuatkan jadual…</p></div>
+<div id="daily-summary" class="metrics"></div><div id="fi-v66-mobile-list" class="fi-v66-mobile-list fi-v66-mobile-only" aria-live="polite"><p class="empty">Memuatkan jadual…</p></div><div id="daily-list" class="table-holder"><p class="empty">Memuatkan jadual…</p></div>
 <p class="muted-note">Nama guru ialah Nama_Samaran. Jadual ini tidak memaparkan jenis cuti atau dokumen peribadi.</p></div></section>
+<section data-panel="audit" id="fi-v66-audit-panel" hidden aria-label="Audit agihan relief"><div class="card fi-v66-detail-card">
+<div id="fi-v66-detail" aria-live="polite"></div>
+</div></section>
 <section data-panel="saya" hidden><div class="card"><div class="section-head"><h2>Relief Saya</h2><span class="sub" id="my-count">0 tugasan</span></div>
-<div id="my-list"><p class="empty">Semak tugasan untuk tarikh yang dipilih di Jadual Harian.</p></div>
+<div id="my-list"><p class="empty">Semak tugasan untuk tarikh yang dipilih di Jadual Relief.</p></div>
 <p class="muted-note">Pengesahan pelaksanaan selepas tamat waktu ialah pengakuan guru; ia tidak menggantikan semakan pemantauan sekolah.</p></div></section>
 <section data-panel="statistik" hidden><div class="card">
 <div class="section-head"><h2>Analitik & Statistik Relief</h2><span class="sub">GPK / GB / Admin</span></div>
@@ -105,4 +111,4 @@
 <div class="fi-v53-warning" role="note">Makmal V5.7 menyimpan ujian mengikut Admin + tarikh. Paparan agihan utama 7.25 pagi tidak ditimpa oleh kejadian susulan. Status PERLU SERAH TUGAS memerlukan keputusan manusia sebelum dianggap dilaksanakan.</div>
 </div>
 <p class="muted-note">Makmal menguji dasar V5.7 Smart Reshuffle; agihan rasmi hanya menggunakan dasar baharu selepas pengaktifan; hasilnya disimpan dalam koleksi ujian dengan ID Admin.</p></div></section>
-</main><script defer src="Fi-eReliefGuru.js?v=5.5.4"></script><script defer src="Fi-eReliefGuru-V53.js?v=6.1.0"></script><script defer src="Fi-eReliefGuru-Manual56.js?v=6.0.0"></script></body></html>
+</main><script defer src="Fi-eReliefGuru.js?v=5.5.4"></script><script defer src="Fi-eReliefGuru-V53.js?v=6.0.0"></script><script defer src="Fi-eReliefGuru-Manual56.js?v=6.0.0"></script><script defer src="Fi-eReliefGuru-PWA-V66.js?v=6.6.0"></script></body></html>
