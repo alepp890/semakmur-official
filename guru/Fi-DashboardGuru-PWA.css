@@ -2247,3 +2247,8 @@ html body.dashboard-v6{color:var(--v6-ink)!important;background:#e7f2ff!importan
  .dashboard-v6 .fi-v65-gpk-review{color:#185b89;background:#eaf5ff;border-color:#c6e5fa}
  .dashboard-v6 .fi-v65-gpk-supported{color:#18734b;background:#e6f7ee;border-color:#bfe9cf}
 }
+
+/* Loading screen e-Relief: sama seperti Kehadiran dan Keberadaan. */
+#fi-relief-loading[hidden],#fi-relief-retry[hidden]{display:none!important}
+#relief-workspace>.fi-keberadaan-frame-wrap{position:relative!important}
+#fi-relief-loading{position:absolute;inset:0;z-index:5}

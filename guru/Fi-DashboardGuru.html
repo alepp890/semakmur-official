@@ -18,7 +18,7 @@
 <!-- FontAwesome Icons -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 <!-- Styles dashboard dimuatkan selepas gaya asas untuk keutamaan CSS V3. -->
-<link href="Fi-DashboardGuru-PWA.css?v=gpkstatus1" rel="stylesheet">
+<link href="Fi-DashboardGuru-PWA.css?v=gpkgb2" rel="stylesheet">
 
 
 
@@ -129,7 +129,13 @@
 <!-- Smart e-Relief V5.1: ruang kerja khas, tanpa menggantikan e-Keberadaan. -->
 <section aria-label="Ruang kerja e-Relief" class="erph-workspace" hidden id="relief-workspace">
 <div class="erph-workspace-toolbar"><button type="button" onclick="closeReliefWorkspace()">← Kembali</button><strong>Smart e-Relief</strong><span class="erph-workspace-subtitle">SeMAKMUR</span></div>
-<div class="fi-keberadaan-frame-wrap"><iframe id="relief-workspace-frame" loading="eager" referrerpolicy="same-origin" title="Modul Smart e-Relief"></iframe></div>
+<div class="fi-keberadaan-frame-wrap"><iframe id="relief-workspace-frame" loading="eager" referrerpolicy="same-origin" title="Modul Smart e-Relief"></iframe>
+<div aria-live="polite" class="fi-kehadiran-loading" hidden id="fi-relief-loading" role="status">
+<div aria-hidden="true" class="fi-kehadiran-spinner"></div>
+<strong id="fi-relief-loading-title">Membuka Smart e-Relief…</strong>
+<p id="fi-relief-loading-message">Menyemak akaun dan memuatkan jadual relief.</p>
+<div class="fi-kehadiran-controls"><button type="button" id="fi-relief-retry" hidden onclick="retryReliefWorkspace()">Cuba Lagi</button><button type="button" onclick="closeReliefWorkspace()">Kembali ke Dashboard</button></div>
+</div></div>
 </section>
 <!-- V6.5: e-Keberadaan dalam ruang Dashboard Fi, tanpa halaman baharu. -->
 <section aria-label="Ruang kerja e-Keberadaan" class="erph-workspace" hidden="" id="keberadaan-workspace">
@@ -309,7 +315,7 @@
 
 
 
-<script defer src="Fi-DashboardGuru.js?v=gpkstatus1"></script>
+<script defer src="Fi-DashboardGuru.js?v=gpkgb2"></script>
 
 <!-- Tema dan susun atur admin desktop dikendalikan berasingan. -->
 

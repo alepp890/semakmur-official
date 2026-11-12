@@ -275,6 +275,20 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       if(location.hash==='#keberadaan'&&history.replaceState)history.replaceState(null,'',location.pathname+location.search);}
     fiV6Header();
   }
+  function reliefWorkspaceStatus(title,message,error=false){
+    const overlay=$('fi-relief-loading');if(!overlay)return;
+    overlay.hidden=false;overlay.classList.toggle('is-error',error);
+    $('fi-relief-loading-title').textContent=title;
+    $('fi-relief-loading-message').textContent=message;
+    $('fi-relief-retry').hidden=!error;
+  }
+  function retryReliefWorkspace(){
+    const frame=$('relief-workspace-frame');if(!frame)return;
+    frame.dataset.fiReady='0';
+    reliefWorkspaceStatus('Memuat semula e-Relief…','Menyemak semula sesi dan jadual.');
+    frame.src='modulaplikasi/Fi-eReliefGuru.html?embed=1&retry='+Date.now();
+  }
+  window.retryReliefWorkspace=retryReliefWorkspace;
   function openReliefWorkspace(){
     if(!dashboardAuthenticated||!window.FiAuthenticatedUser){showInfo('Akses Dashboard belum disahkan.');return;}
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
@@ -283,6 +297,8 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
     rememberWorkspace('relief');
     if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#relief');
+    if(frame.dataset.fiReady==='1')$('fi-relief-loading').hidden=true;
+    else reliefWorkspaceStatus('Membuka Smart e-Relief…','Menyemak akaun dan memuatkan jadual relief.');
     if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-eReliefGuru.html?embed=1&v=5.1.1';
     fiV6Header();
   }
@@ -771,6 +787,15 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       const day=e.target.closest('[data-day]');if(day){activeDay=day.dataset.day;renderTimetable();}
     });
     $('kehadiran-workspace-frame').addEventListener('load',fiKehadiranFrameReady);
+    window.addEventListener('message',e=>{
+      if(e.origin!==location.origin||e.source!==$('relief-workspace-frame')?.contentWindow)return;
+      if(e.data?.type==='semakmur-fi-relief-ready'){
+        $('relief-workspace-frame').dataset.fiReady='1';
+        $('fi-relief-loading').hidden=true;
+      }else if(e.data?.type==='semakmur-fi-relief-error'){
+        reliefWorkspaceStatus('e-Relief belum dapat dibuka',String(e.data.message||'Semak sambungan Firebase.'),true);
+      }
+    });
     $('keberadaan-workspace-frame').addEventListener('load',()=>{
       // DOM loaded does not equal auth/data ready; child sends verified module state.
       $('keberadaan-workspace-frame').contentWindow?.postMessage({type:'semakmur-fi-kb-request-state'},location.origin);
@@ -1560,7 +1585,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     return 'Keberadaan';
   }
   // Paparan status GPK sahaja. Rujukan: dokumen peranan yang diselaraskan oleh FiAutoSync.
-  let isGpk=false, lastAbsence=null, stopGpkRole=null;
+  let isGpk=false, isGb=false, lastAbsence=null, stopGpkRole=null;
   const validGpkStatus=x=>{
     // Status tindakan mesti dihantar oleh backend; jangan simpulkan daripada kategori cuti/relief.
     const raw=normalize(x.gpkActionStatus||x.statusTindakanGpk||x.gpkStatus||'');
@@ -1582,14 +1607,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const auth=getAuth(app),db=fs.getFirestore(app);
       onAuthStateChanged(auth,u=>{
         if(stopGpkRole){stopGpkRole();stopGpkRole=null;}
-        isGpk=false;
+        isGpk=false;isGb=false;
         if(lastAbsence)renderAbsence(lastAbsence);
         if(!u)return;
         stopGpkRole=fs.onSnapshot(fs.doc(db,'semakmur_fi_keberadaan_roles',u.uid),snap=>{
           const d=snap.exists()?snap.data():null;
-          isGpk=Boolean(d?.active===true && String(d.ownerEmail||'').toLowerCase()===String(u.email||'').toLowerCase() && Array.isArray(d.roles) && d.roles.includes('GPK'));
+          const trusted=Boolean(d?.active===true && String(d.ownerEmail||'').trim().toLowerCase()===String(u.email||'').trim().toLowerCase());
+          const rs=trusted&&Array.isArray(d.roles)?d.roles:[];
+          isGpk=rs.includes('GPK');
+          isGb=rs.includes('GB');
           if(lastAbsence)renderAbsence(lastAbsence);
-        },()=>{isGpk=false;if(lastAbsence)renderAbsence(lastAbsence);});
+        },err=>{isGpk=false;isGb=false;console.warn('Peranan GPK/GB tidak dapat dibaca',err?.code||err?.message);if(lastAbsence)renderAbsence(lastAbsence);});
       });
     }catch(err){console.warn('Status GPK tidak dapat disahkan:',err?.message||err);}
   }
@@ -1607,8 +1635,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     host.innerHTML=GROUPS.filter(g=>grouped[g.id].length).map(g=>{
       const rows=grouped[g.id].slice().sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'ms'))
         .map(x=>{
-          const state=isGpk?validGpkStatus(x):null;
-          const badge=state?'<span class="fi-v65-gpk-badge fi-v65-gpk-'+state[1]+'" aria-label="Status tindakan GPK: '+esc(state[0])+'">'+esc(state[0])+'</span>':'';
+          const state=(isGpk||isGb)?validGpkStatus(x):null;
+          const badge=state?'<span class="fi-v65-gpk-badge fi-v65-gpk-'+state[1]+'" aria-label="Status e-Keberadaan: '+esc(state[0])+'">'+esc(state[0])+'</span>':'';
           return '<div class="fi-v65-absence-person"><span class="fi-v65-person-mark" aria-hidden="true"><i class="fa-solid fa-user"></i></span><span class="fi-v65-person-meta"><strong>'+esc(x.name||'Guru')+'</strong><small>'+esc(categoryText(x))+(x.period?' · '+esc(x.period):'')+'</small></span>'+badge+'</div>';
         }).join('');
       return '<section class="fi-v65-absence-group" aria-label="'+esc(g.label)+'"><div class="fi-v65-group-title"><span><i class="fa-solid '+esc(g.icon)+'" aria-hidden="true"></i> '+esc(g.label)+'</span><span class="fi-v65-group-count">'+grouped[g.id].length+'</span></div><div class="fi-v65-person-list">'+rows+'</div></section>';
