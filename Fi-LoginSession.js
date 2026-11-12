@@ -7,36 +7,46 @@ const $=id=>document.getElementById(id), norm=s=>String(s||'').trim().toLowerCas
 // Tetapkan URL /exec daripada projek Apps Script FiAutoSync (Web App yang baharu).
 // Ganti placeholder dengan URL Web App semasa pemasangan; login sedia ada tidak berubah.
 const FI_PROVISION_WEBAPP_URL = String(window.SeMAKMURFiAPIConfig?.webAppExecUrl || '').trim();
+function fiTrustedWebAppOrigin(origin){
+  try{
+    const url=new URL(origin), host=url.hostname.toLowerCase();
+    return url.protocol==='https:' && !url.port &&
+      (host==='script.google.com' || host==='script.googleusercontent.com' ||
+       host.endsWith('.script.googleusercontent.com') ||
+       host.endsWith('-script.googleusercontent.com'));
+  }catch(_){return false;}
+}
 async function fiProvisionFirstLogin(u){
   if(!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec$/.test(FI_PROVISION_WEBAPP_URL))
     throw new Error('URL Fi Login Provision belum ditetapkan oleh pentadbir.');
-  const nonce=Array.from(crypto.getRandomValues(new Uint8Array(24)),v=>v.toString(16).padStart(2,'0')).join('');
-  const token=await u.getIdToken();
+  const nonce=crypto.randomUUID?.() || Array.from(crypto.getRandomValues(new Uint8Array(16)),v=>v.toString(16).padStart(2,'0')).join('');
+  const token=await u.getIdToken(true);
   return new Promise((resolve,reject)=>{
-    let frame=null, finished=false;
-    const timer=setTimeout(()=>finish(new Error('Pendaftaran automatik tamat masa. Semak Web App Apps Script.')),30000);
-    function finish(error,result){
-      if(finished)return; finished=true;
-      clearTimeout(timer); window.removeEventListener('message',onMessage);
-      if(frame)frame.remove();
-      if(error)reject(error);else resolve(result);
+    const frame=document.createElement('iframe');
+    frame.hidden=true;frame.name='fi-login-'+nonce;frame.title='Fi Login Provision';
+    frame.setAttribute('sandbox','allow-forms allow-scripts allow-same-origin');
+    const form=document.createElement('form');
+    form.hidden=true;form.method='POST';form.target=frame.name;form.action=FI_PROVISION_WEBAPP_URL;
+    const field=document.createElement('input');field.type='hidden';field.name='payload';
+    field.value=JSON.stringify({action:'fiLoginProvision',idToken:token,nonce});
+    form.appendChild(field);
+    let finished=false;
+    function finish(error,data){
+      if(finished)return;finished=true;
+      clearTimeout(timer);window.removeEventListener('message',onMessage);
+      form.remove();frame.remove();
+      if(error)reject(error);else resolve(data);
     }
     function onMessage(event){
-      const d=event.data;
-      if(!d||d.source!=='SEMAKMUR_FI_BRIDGE'||d.nonce!==nonce)return;
-      // Apps Script HTMLService uses a script.googleusercontent.com iframe.
-      if(!/^https:\/\/[a-z0-9.-]+\.googleusercontent\.com$/i.test(event.origin))return;
-      if(d.type==='READY'){
-        event.source.postMessage({source:'SEMAKMUR_FI_PARENT',type:'PROVISION',nonce,token},event.origin);
-      }else if(d.type==='RESULT'){
-        if(d.result?.ok===true)finish(null,d.result);
-        else finish(new Error('Pendaftaran automatik tidak disahkan.'));
-      }else if(d.type==='ERROR')finish(new Error(d.message||'Pendaftaran gagal.'));
+      if(!fiTrustedWebAppOrigin(event.origin))return;
+      const data=event.data;
+      if(!data || data.channel!=='semakmur-fi-doc-v1' || data.nonce!==nonce)return;
+      if(data.ok && data.provisioned===true)finish(null,data);
+      else finish(new Error(data.error||'Pendaftaran staf tidak disahkan.'));
     }
+    const timer=setTimeout(()=>finish(new Error('Tiada respons daripada Web App. Semak URL /exec dan deployment Apps Script.')),60000);
     window.addEventListener('message',onMessage);
-    frame=document.createElement('iframe');frame.hidden=true;frame.title='Fi Login Provision';
-    frame.src=FI_PROVISION_WEBAPP_URL+'?bridge=1&nonce='+encodeURIComponent(nonce);
-    document.body.appendChild(frame);
+    document.body.append(frame,form);form.submit();
   });
 }
 
