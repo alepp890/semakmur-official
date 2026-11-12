@@ -14,6 +14,7 @@ const docRequired=r=>['CRK','CTR'].includes(r.finalType||r.type)||(r.type==='RAS
 const reliefLabel=r=>(r.type==='RASMI'&&r.scope==='LUAR'&&r.docPath&&r.relief==='belum'?'Menunggu Semakan Surat':r.type==='RASMI'&&r.scope==='DALAM'&&r.task==='SEKAT_CALON'?'Tidak Boleh Diberi Relief':({belum:'Belum Relief',sah:'Relief Dengan Pengesahan',tanpa:'Relief Tanpa Sokongan',sementara:'Relief Direkod (legacy)',tiada:'Tiada Relief',dikecualikan:'Tidak Boleh Diberi Relief'}[r.relief]||'Belum Relief'));
 const reliefTone=r=>r.relief==='sah'||r.relief==='dikecualikan'?'success':r.relief==='tanpa'||r.relief==='sementara'?'warning':'neutral';
 function status(r){
+ if(r.lifecycle==='TAMAT_AWAL')return ['Kembali Awal · Jadual Dikemas Kini','success'];
  if(r.lifecycle==='DIBATALKAN')return [r.gbCancelled?'Dibatalkan GB · Tidak Sah':'Dibatalkan',r.gbCancelled?'danger':'neutral'];
  if(r.gpkStatus==='ditolak')return ['Tidak Disokong','danger'];
  if(r.registeredByAdmin&&!r.finalType)return [r.teacherExplanation?'Menunggu Kategori':'Menunggu Penjelasan','warning'];
@@ -24,7 +25,7 @@ function status(r){
  if(r.docReviewed===true)return ['Bukti Disemak','success'];
  return ['Direkodkan','success'];
 }
-function completed(r){if(r.lifecycle==='DIBATALKAN')return true;
+function completed(r){ if(r.lifecycle==='DIBATALKAN'||r.lifecycle==='TAMAT_AWAL')return true;
  return !(r.registeredByAdmin&&!r.finalType||docRequired(r)&&!r.docPath || requireGpk(r)&&r.gpkStatus==='menunggu' || docRequired(r)&&r.docPath&&!r.docReviewed);
 }
 function needAttention(r){return r.lifecycle!=='DIBATALKAN'&&(!completed(r)||r.gpkStatus==='ditolak');}
@@ -130,6 +131,7 @@ function requestExplanation(r){
  const label=cardStatus(r)[0];
  if(r.lifecycle==='DIBATALKAN')return ['Permohonan dibatalkan','Rekod ini telah dibatalkan. Relief bagi waktu yang belum bermula akan dibatalkan secara automatik.'];
  if(r.gpkStatus==='ditolak')return ['Permohonan tidak disokong','Sila rujuk catatan pentadbir. Status pematuhan tidak membatalkan keperluan relief selagi ketidakhadiran masih aktif.'];
+ if(r.lifecycle==='TAMAT_AWAL')return ['Kembali awal telah direkod','Slot yang belum bermula akan dipulihkan. Jadual yang sudah berlangsung kekal sebagai sejarah.'];
  if(r.registeredByAdmin&&!r.finalType)return ['Rekod ketidakhadiran oleh pentadbir','Ini rekod pemerhatian, bukan keputusan tatatertib. Guru perlu memberi penjelasan; GPK/GB menentukan kategori. Relief diproses berasingan.'];
  if(docRequired(r)&&!r.docPath&&!r.docName)return ['Dokumen sokongan diperlukan','Permohonan ini belum mempunyai dokumen kelulusan atau surat sokongan yang direkodkan. Sila kemukakan dokumen melalui saluran rasmi sekolah. Gunakan butang Muat Naik Dokumen untuk melengkapkan bukti melalui storan Google Drive sekolah.'];
  if(requireGpk(r)&&r.gpkStatus==='menunggu')return ['Menunggu tindakan GPK','Permohonan ini sedang menunggu semakan atau sokongan Guru Penolong Kanan. Status belum bermaksud kelulusan cuti rasmi.'];
@@ -161,12 +163,12 @@ function openRecord(r,context){
 }
 function actionButtons(r,context){
  let buttons=[];const b=(action,label,cls='secondary')=>`<button class="${cls} mini" data-do="${action}" data-id="${esc(r.id)}" type="button">${label}</button>`;
- if(r.lifecycle!=='DIBATALKAN'){
+ if(!['DIBATALKAN','TAMAT_AWAL'].includes(r.lifecycle)){
   if(r.ownerUid===user?.uid){
     if(r.registeredByAdmin)buttons.push(b('kb61Explain','Beri Penjelasan'));
     if(docRequired(r)&&!r.docPath)buttons.push(b('upload','Muat Naik Dokumen'));
     if(!r.registeredByAdmin){buttons.push(b('cancelRequest','Batalkan Permohonan','danger'));
-    if(!r.reliefStopAt)buttons.push(b('cancelMyRelief','Saya Boleh Mengajar · Henti Relief','success'));}
+    if(!r.reliefStopAt)buttons.push(b('kb64ReturnEarly','Kembali Awal · Pulihkan Jadual','success'));}
   }
   if(context==='action'&&r.registeredByAdmin&&(has('GPK')||has('GB'))){
     if(has('GPK'))buttons.push(b('kb61Cancel','Betulkan MIA','danger'));
@@ -241,13 +243,14 @@ let lastPopupFocus=null;
 function closeDialog(){$('dialog').hidden=true;$('dialog-content').innerHTML='';if(lastPopupFocus?.isConnected)lastPopupFocus.focus();lastPopupFocus=null;}
 function openDialog(title,html){lastPopupFocus=document.activeElement;$('dialog-title').textContent=title;$('dialog-content').innerHTML=html;$('dialog').hidden=false;$('dialog-close').focus();}
 function confirmAction(r,action){
- const titles={cancelRequest:'Batalkan Permohonan Keberadaan',cancelMyRelief:'Saya Boleh Mengajar — Batalkan Relief',reviewProof:'Semak Dokumen',support:'Sokong Keberadaan',reject:'Tidak Sokong',final:'Tentukan Jenis Cuti',upload:'Muat Naik Dokumen',remind:'Rekod Peringatan',kb61Explain:'Penjelasan Guru',kb61Classify:'Tentukan Kategori',kb61Cancel:'Batalkan Rekod Pentadbir',kb61Support:'Sahkan Rekod',kb61Reject:'Tidak Sokong',kb62GbCancel:'Guru Besar · Batalkan Keberadaan'};
+ const titles={kb64ReturnEarly:'Saya Kembali Bertugas · Pulihkan Jadual',cancelRequest:'Batalkan Permohonan Keberadaan',cancelMyRelief:'Saya Boleh Mengajar — Batalkan Relief',reviewProof:'Semak Dokumen',support:'Sokong Keberadaan',reject:'Tidak Sokong',final:'Tentukan Jenis Cuti',upload:'Muat Naik Dokumen',remind:'Rekod Peringatan',kb61Explain:'Penjelasan Guru',kb61Classify:'Tentukan Kategori',kb61Cancel:'Batalkan Rekod Pentadbir',kb61Support:'Sahkan Rekod',kb61Reject:'Tidak Sokong',kb62GbCancel:'Guru Besar · Batalkan Keberadaan'};
  let body=`<p><strong>${esc(r.ownerName||'Guru')}</strong> · ${esc(TYPE[r.type]||r.type)} · ${esc(niceDay(r.start))}</p>`;
  if(action==='upload')body+='<div class="fieldrow"><label for="add-file">Pilih PDF/JPG/PNG</label><input id="add-file" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>';
  if(action==='final'||action==='kb61Classify')body+='<div class="fieldrow"><label for="final-type">Jenis cuti akhir</label><select id="final-type"><option value="CRK">CRK</option><option value="CTR">CTR</option><option value="MC">MC</option><option value="KECEMASAN">Kekal Kecemasan</option></select></div>';
  if(action!=='upload'&&action!=='final')body+='<div class="fieldrow"><label for="admin-note">'+(['cancelRequest','cancelMyRelief','reviewProof'].includes(action)?'Sebab tindakan (wajib)':'Catatan ringkas')+'</label><textarea id="admin-note" rows="2" maxlength="200"></textarea></div>';
  if(action==='cancelRequest')body+='<p>Relief yang belum bermula akan dibatalkan secara automatik. Ini tidak membatalkan cuti dalam HRMIS atau saluran rasmi.</p>';
  if(action==='kb62GbCancel')body+='<p><strong>Pembatalan oleh GB:</strong> jika relief hari ini sudah diterbitkan, jadual sedia ada akan kekal; rekod keberadaan ditandakan tidak sah. Relief hari berikutnya tidak akan dijana daripada rekod ini.</p>';
+ if(action==='kb64ReturnEarly')body+='<p>Waktu sudah bermula kekal dalam sejarah. Jadual hakiki bagi kelas yang belum bermula dipulihkan. Kelas sedang berlangsung perlu serah tugas.</p>';
  if(action==='cancelMyRelief')body+='<p>Rekod Keberadaan kekal. Relief yang belum bermula akan dihentikan, manakala waktu berlangsung memerlukan serah tugas.</p>';
  body+=`<div class="actions" style="margin-top:15px;justify-content:flex-end"><button class="secondary mini" id="cancel-action" type="button">Kembali</button><button class="primary mini" id="confirm-action" data-action="${esc(action)}" data-id="${esc(r.id)}" type="button">Sahkan</button></div>`;
  openDialog(titles[action]||'Tindakan',body);
@@ -257,7 +260,7 @@ async function applyAction(id,act){
  if(!r)throw Error('Rekod tidak ditemui.');if(r.testMode===true)throw Error('Rekod ujian lama tidak boleh diubah.');
  if(busy)return;
  const note=str($('admin-note')?.value),fType=$('final-type')?.value;
- if(act.startsWith('kb61')||act==='kb62GbCancel'){const kinds={kb61Explain:'PENJELASAN',kb61Classify:'KATEGORI',kb61Cancel:'BATAL',kb61Support:'SOKONG',kb61Reject:'TOLAK',kb62GbCancel:'GB_BATAL'};busy=true;try{await transportDoc('kb61OfficialAction',id,null,{kind:kinds[act],note,finalType:fType});closeDialog();toast('Tindakan rasmi direkodkan.');}finally{busy=false;}return;}
+ if(act.startsWith('kb61')||act==='kb62GbCancel'||act==='kb64ReturnEarly'){const kinds={kb64ReturnEarly:'PULANG_AWAL',kb61Explain:'PENJELASAN',kb61Classify:'KATEGORI',kb61Cancel:'BATAL',kb61Support:'SOKONG',kb61Reject:'TOLAK',kb62GbCancel:'GB_BATAL'};busy=true;try{await transportDoc('kb61OfficialAction',id,null,{kind:kinds[act],note,finalType:fType});closeDialog();toast(act==='kb64ReturnEarly'?'Kembali awal direkod. Semak jadual relief yang dikemas kini.':'Tindakan rasmi direkodkan.');}finally{busy=false;}return;}
  if(['cancelRequest','cancelMyRelief','reviewProof'].includes(act)){
   if(note.length<6)throw Error('Sila masukkan sebab sekurang-kurangnya 6 aksara.');
   busy=true;try{const result=await transportDoc(act,id,null,{reason:note});closeDialog();toast('Tindakan berjaya direkodkan. '+(result.sync||''));}
