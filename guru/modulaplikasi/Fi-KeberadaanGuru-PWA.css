@@ -240,3 +240,38 @@ html.fi-embedded body{height:100%;min-height:0;overflow-y:auto;overflow-x:hidden
   html body #apply-form .primary{min-height:44px;border-radius:10px;font-size:13px;}
   html body #apply-form :is(input,select,textarea):disabled{opacity:.6;}
 }
+
+
+/* SeMAKMUR UI V6.10 — penapis atas PWA: rujukan .date e-Kehadiran.
+   Hanya penampilan; ID, pilihan, disabled state dan event handler kekal. */
+@media (max-width:767px){
+  html body .kb-filter-top:not([hidden]){
+    box-sizing:border-box!important;
+    display:flex!important;flex-direction:row!important;
+    align-items:center!important;justify-content:space-between!important;
+    gap:10px!important;min-height:0!important;
+    margin:0 0 10px!important;padding:8px 10px!important;
+    width:100%!important;
+    background:linear-gradient(105deg,#e4f2ff,#dbe9ff)!important;
+    border:1px solid #ccdcfb!important;border-radius:14px!important;
+    box-shadow:0 4px 13px #164e8b0d!important;
+  }
+  html body .kb-filter-top > label{
+    flex:0 0 auto!important;margin:0!important;
+    color:#123e7d!important;font-family:'Plus Jakarta Sans',system-ui,sans-serif!important;
+    font-size:11px!important;font-weight:800!important;line-height:1.4!important;
+    white-space:nowrap!important;
+  }
+  html body .kb-filter-top > select{
+    box-sizing:border-box!important;flex:0 1 154px!important;
+    display:block!important;width:154px!important;max-width:65%!important;
+    min-width:0!important;min-height:36px!important;height:36px!important;
+    margin:0 0 0 auto!important;padding:7px 9px!important;
+    background:#fff!important;border:1px solid #b6d4f2!important;
+    border-radius:10px!important;color:#145da5!important;
+    box-shadow:none!important;font-family:'Plus Jakarta Sans',system-ui,sans-serif!important;
+    font-size:11px!important;font-weight:750!important;line-height:1.3!important;
+    appearance:auto!important;-webkit-appearance:menulist!important;
+  }
+  html body .kb-filter-top[hidden]{display:none!important;}
+}
