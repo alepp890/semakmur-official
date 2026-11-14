@@ -116,9 +116,9 @@ async function fiManualRequest(request) {
     let activeSubJkName = '';
     let MANUAL_V3_ACTIVE_MODULE = 'kelas';
     let MANUAL_V3_DIRTY = false;
-    let MANUAL_V3_CLEAN_YEAR = '2027';
+    let MANUAL_V3_CLEAN_YEAR = '2026';
     function markManualV3Dirty(){ MANUAL_V3_DIRTY=true; const el=document.getElementById('manualUnsavedBadge'); if(el)el.classList.remove('hidden'); }
-    function clearManualV3Dirty(){ MANUAL_V3_DIRTY=false; MANUAL_V3_CLEAN_YEAR=document.getElementById('selTahunAktif')?.value||'2027'; const el=document.getElementById('manualUnsavedBadge'); if(el)el.classList.add('hidden'); }
+    function clearManualV3Dirty(){ MANUAL_V3_DIRTY=false; MANUAL_V3_CLEAN_YEAR=document.getElementById('selTahunAktif')?.value||'2026'; const el=document.getElementById('manualUnsavedBadge'); if(el)el.classList.add('hidden'); }
     window.addEventListener('beforeunload',e=>{if(MANUAL_V3_DIRTY){e.preventDefault();e.returnValue='';}});
 
 
@@ -135,14 +135,14 @@ async function fiManualRequest(request) {
 
       let html = '';
       for (let y = baseYear; y <= targetMaxYear; y++) {
-        html += `<option value="${y}" ${y === 2027 ? 'selected' : ''}>${y}</option>`;
+        html += `<option value="${y}" ${y === 2026 ? 'selected' : ''}>${y}</option>`;
       }
       sel.innerHTML = html;
       updateYearLabelsUI();
     }
 
     function updateYearLabelsUI() {
-      const activeYear = document.getElementById('selTahunAktif')?.value || '2027';
+      const activeYear = document.getElementById('selTahunAktif')?.value || '2026';
       const lblSidebar = document.getElementById('lblTahunSidebar');
       if (lblSidebar) lblSidebar.innerText = activeYear;
 
@@ -255,7 +255,7 @@ async function fiManualRequest(request) {
       const d=new Date(),p=n=>String(n).padStart(2,'0');
       return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
     }
-    function manualV3Year(){return document.getElementById('selTahunAktif')?.value || '2027';}
+    function manualV3Year(){return document.getElementById('selTahunAktif')?.value || '2026';}
     function manualV3ScopeIds(scopes){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year() && String(p.Status||'Aktif').toLowerCase()==='aktif' && scopes.includes(String(p.Nama_Jawatankuasa||''))).map(p=>String(p.ID_Peranan||'')).sort();}
     function manualV3CurrentRoles(){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year()&&String(p.Status||'Aktif').toLowerCase()==='aktif');}
     function manualV3ActiveStaff(){return ALL_STAF.filter(s=>String(s.Status||'').toLowerCase()==='aktif');}
@@ -393,7 +393,7 @@ async function fiManualRequest(request) {
       if (!box || !badge) return;
 
       const inactiveStafIds = ALL_STAF.filter(s => String(s.Status || 'Aktif').trim().toLowerCase() !== 'aktif').map(s => s.ID_Staf);
-      const currentYear = document.getElementById('selTahunAktif')?.value || '2027';
+      const currentYear = document.getElementById('selTahunAktif')?.value || '2026';
 
       const vacancies = [];
 
@@ -641,7 +641,7 @@ async function fiManualRequest(request) {
 
     async function simpanSetiausahaInduk() {
       const suVal = document.getElementById('selSetiausahaInduk').value;
-      const tahunAktif = document.getElementById('selTahunAktif')?.value || '2027';
+      const tahunAktif = document.getElementById('selTahunAktif')?.value || '2026';
 
 
       const payloadBatch = [];
@@ -1000,7 +1000,7 @@ async function fiManualRequest(request) {
       const suVal = document.getElementById('selSubSetiausaha').value;
       const suTugasKhas = document.getElementById('inpSubSetiausahaTugasKhas').value.trim();
 
-      const tahunAktif = document.getElementById('selTahunAktif')?.value || '2027';
+      const tahunAktif = document.getElementById('selTahunAktif')?.value || '2026';
 
       const jkMaster = ALL_JAWATANKUASA.find(j => String(j.Nama_Jawatankuasa || j.nama_jawatankuasa || '').trim().toLowerCase() === activeSubJkName.toLowerCase());
       const roleText = jkMaster ? (jkMaster.Peranan || jkMaster.peranan || 'Penyelaras') : 'Penyelaras';
@@ -1159,7 +1159,7 @@ async function fiManualRequest(request) {
 
       if (!ALL_PERANAN || ALL_PERANAN.length === 0) return;
 
-      const currentYear = document.getElementById('selTahunAktif')?.value || '2027';
+      const currentYear = document.getElementById('selTahunAktif')?.value || '2026';
 
       ALL_PERANAN.forEach(p => {
         const jk = String(p.Nama_Jawatankuasa || p.nama_jawatankuasa || '').trim();
@@ -1716,7 +1716,7 @@ async function fiManualRequest(request) {
         badgeEl.innerText = "Tidak Aktif";
       }
 
-      const currentYear = document.getElementById('selTahunAktif')?.value || '2027';
+      const currentYear = document.getElementById('selTahunAktif')?.value || '2026';
       const listPerananStaf = ALL_PERANAN.filter(p => 
         (p.ID_Staf || p.id_staf) === idStaf && 
         String(p.Status || 'Aktif').toLowerCase() === 'aktif' &&
@@ -2367,7 +2367,7 @@ async function fiManualRequest(request) {
 
     async function simpanSemuaPengurusanSekolah(modulDipilih = 'semua') {
       let payloadBatch = [];
-      const tahunAktif = document.getElementById('selTahunAktif')?.value || '2027';
+      const tahunAktif = document.getElementById('selTahunAktif')?.value || '2026';
 
       const senaraiKelas = ALL_LOKASI.filter(l => String(l.Kategori || '').toLowerCase() === 'kelas' && String(l.Status||'Aktif').toLowerCase()==='aktif');
       const streamMap = {};
