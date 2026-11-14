@@ -78,7 +78,7 @@ async function fiManualRequest(request) {
       if(data.ok!==true)return settle(new Error(data.error||'Backend Fi menolak permintaan.'));
       settle(null,data);
     }
-    const watchdog=setTimeout(()=>settle(new Error('Apps Script Fi tidak memberi respons. Semak deployment dan Executions.')),90000);
+    const watchdog=setTimeout(()=>settle(new Error('Tiada respons daripada Apps Script Fi dalam 90 saat. Semak Executions, versi deployment dan status kebenaran. Rujukan permintaan: '+nonce.slice(-14))),90000);
     window.addEventListener('message',onMessage);
     document.body.append(iframe,form);form.submit();
   });
@@ -232,6 +232,14 @@ async function fiManualRequest(request) {
       return fiManualRequest(payload);
     }
 
+    // Papar punca sebenar (backend/auth/timeout), bukannya semua dilabel 'sambungan'.
+    function manualV3ShowSaveError(err) {
+      const reason=String(err?.message||err||'Ralat tidak diketahui.').slice(0,500);
+      console.error('[e-Manual Pengurusan] Simpan gagal:',reason);
+      return Swal.fire({title:'Gagal Menyimpan Data',text:reason,icon:'error',
+        footer:'Jika masalah berulang, semak Apps Script → Executions pada masa simpanan.'});
+    }
+
     // ======================== V3: PUSAT SEMAKAN INTELLIGENT ========================
     const MANUAL_V3_SCOPE_MAP={
       kelas:['Pengurusan Kelas','Pengurusan Aliran'],
@@ -243,6 +251,10 @@ async function fiManualRequest(request) {
     };
     const MANUAL_V3_ALL_SCHOOL_SCOPES=Object.values(MANUAL_V3_SCOPE_MAP).flat();
     function manualV3Escape(v){return String(v===undefined||v===null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+    function manualV3LocalToday_(){
+      const d=new Date(),p=n=>String(n).padStart(2,'0');
+      return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+    }
     function manualV3Year(){return document.getElementById('selTahunAktif')?.value || '2027';}
     function manualV3ScopeIds(scopes){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year() && String(p.Status||'Aktif').toLowerCase()==='aktif' && scopes.includes(String(p.Nama_Jawatankuasa||''))).map(p=>String(p.ID_Peranan||'')).sort();}
     function manualV3CurrentRoles(){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year()&&String(p.Status||'Aktif').toLowerCase()==='aktif');}
@@ -357,7 +369,7 @@ async function fiManualRequest(request) {
       const issues=audit.issues.filter(x=>x.level==='error');
       const warning=(items.length===0)?'<p class="text-rose-600 font-extrabold mt-3">Semua rekod dalam skop ini akan dikosongkan.</p>':'';
       const response=await Swal.fire({icon:items.length?'question':'warning',title:'Semak Sebelum Simpan',
-        html:`<div class="text-left text-xs space-y-1"><p><strong>Bahagian:</strong> ${manualV3Escape(context)}</p><p><strong>Tahun:</strong> ${manualV3Escape(year)}</p><p><strong>Rekod lama dalam skop:</strong> ${before}</p><p><strong>Rekod baharu:</strong> ${items.length}</p><p><strong>Isu keseluruhan yang perlu semak:</strong> ${audit.issues.length} (${issues.length} kritikal)</p>${warning}<div class="mt-3 border-t pt-3 space-y-2"><label class="block font-bold">Tarikh kuat kuasa</label><input id="v4Effective" type="date" value="${Number(year)>new Date().getFullYear()?year+'-01-01':new Date().toISOString().slice(0,10)}" class="w-full p-2 border rounded-lg" required/><label class="block font-bold">Sebab perubahan</label><input id="v4Reason" type="text" value="Kemaskini pengagihan" class="w-full p-2 border rounded-lg" maxlength="180" /></div><p class="text-slate-500 mt-3">Rekod asal tidak dipadam; pelantikan terdahulu ditamatkan jika bertukar.</p></div>`,
+        html:`<div class="text-left text-xs space-y-1"><p><strong>Bahagian:</strong> ${manualV3Escape(context)}</p><p><strong>Tahun:</strong> ${manualV3Escape(year)}</p><p><strong>Rekod lama dalam skop:</strong> ${before}</p><p><strong>Rekod baharu:</strong> ${items.length}</p><p><strong>Isu keseluruhan yang perlu semak:</strong> ${audit.issues.length} (${issues.length} kritikal)</p>${warning}<div class="mt-3 border-t pt-3 space-y-2"><label class="block font-bold">Tarikh kuat kuasa</label><input id="v4Effective" type="date" value="${Number(year)>new Date().getFullYear()?year+'-01-01':manualV3LocalToday_()}" class="w-full p-2 border rounded-lg" required/><label class="block font-bold">Sebab perubahan</label><input id="v4Reason" type="text" value="Kemaskini pengagihan" class="w-full p-2 border rounded-lg" maxlength="180" /></div><p class="text-slate-500 mt-3">Rekod asal tidak dipadam; pelantikan terdahulu ditamatkan jika bertukar.</p></div>`,
         showCancelButton:true,confirmButtonText:items.length?'Sahkan & Simpan':'Ya, Kosongkan Skop',cancelButtonText:'Semak Semula',confirmButtonColor:items.length?'#047857':'#be123c',
         preConfirm:()=>{
           const date=document.getElementById('v4Effective')?.value||'';
@@ -687,7 +699,7 @@ async function fiManualRequest(request) {
         }
       } catch (err) {
         hideLoader();
-        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+        manualV3ShowSaveError(err);
       }
     }
 
@@ -1130,7 +1142,7 @@ async function fiManualRequest(request) {
         }
       } catch (err) {
         hideLoader();
-        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+        manualV3ShowSaveError(err);
       }
     }
 
@@ -1891,7 +1903,7 @@ async function fiManualRequest(request) {
         }
       } catch (err) {
         hideLoader();
-        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+        manualV3ShowSaveError(err);
       }
     }
 
@@ -1991,7 +2003,7 @@ async function fiManualRequest(request) {
         }
       } catch (err) {
         hideLoader();
-        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+        manualV3ShowSaveError(err);
       }
     }
 
@@ -2020,7 +2032,7 @@ async function fiManualRequest(request) {
         }
       } catch (err) {
         hideLoader();
-        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+        manualV3ShowSaveError(err);
       }
     }
 
@@ -2538,7 +2550,7 @@ async function fiManualRequest(request) {
         }
       } catch (err) {
         hideLoader();
-        Swal.fire('Ralat Sambungan', 'Gagal berhubung dengan backend.', 'error');
+        manualV3ShowSaveError(err);
       }
     }
 
