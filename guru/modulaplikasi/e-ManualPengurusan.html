@@ -104,10 +104,18 @@
       <div id="viewV5BookEditor" class="hidden space-y-4">
         <div class="bg-white border rounded-2xl p-6 space-y-4 max-w-4xl">
           <div class="flex justify-between flex-wrap gap-3 items-center"><div><h2 id="v5BookTitle" class="font-extrabold text-xl">Editor Kandungan</h2><p class="text-xs text-slate-500 mt-1">Sesi <span id="v5BookYear">2027</span> · kandungan yang sama akan digunakan ketika cetakan buku</p></div><button onclick="showView('viewDashboard')" class="border rounded-xl px-3 py-2 text-xs font-bold">Kembali</button></div>
-          <label class="font-bold text-xs">Kandungan, teks dan pautan gambar/dokumen (URL)</label>
-          <textarea id="v5BookText" rows="15" placeholder="Isi kandungan bahagian ini... Untuk imej, masukkan URL https:// imej pada baris tersendiri." class="w-full border rounded-xl p-4 text-sm leading-7"></textarea>
+          <div class="v6-editor-tip"><i class="fa-solid fa-layer-group"></i> Pilih jenis kandungan. Susun blok mengikut urutan yang hendak dicetak. Teks lama akan dikekalkan dan dibuka sebagai blok teks.</div>
+          <div class="v6-block-bar">
+            <button type="button" onclick="v6AddBlock('teks')"><i class="fa-solid fa-align-left"></i> Teks</button>
+            <button type="button" onclick="v6AddBlock('tajuk')"><i class="fa-solid fa-heading"></i> Tajuk</button>
+            <button type="button" onclick="v6AddBlock('senarai')"><i class="fa-solid fa-list-ul"></i> Senarai</button>
+            <button type="button" onclick="v6AddBlock('gambar')"><i class="fa-solid fa-image"></i> Gambar</button>
+            <button type="button" onclick="v6AddBlock('pemisah')"><i class="fa-solid fa-minus"></i> Garis</button>
+          </div>
+          <div id="v6BookBlocks" class="space-y-3"></div>
+          <textarea id="v5BookText" class="hidden" aria-hidden="true"></textarea>
           <div class="flex gap-3 flex-wrap items-center"><label class="font-bold text-xs">Status</label><select id="v5BookStatus" class="border rounded-lg p-2 text-xs"><option>Draf</option><option>Lengkap</option></select><button onclick="v5SaveBookSection()" class="ml-auto bg-emerald-700 text-white rounded-xl px-5 py-3 text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Kandungan</button></div>
-          <p class="text-xs text-slate-500">Imej digunakan melalui pautan HTTPS; muat naik terus ke Drive dan penghasilan PDF automatik belum termasuk dalam modul ini.</p>
+          <p class="text-xs text-slate-500">Gambar yang dimuat naik disimpan secara peribadi dalam Google Drive sekolah dan dimasukkan ke pratonton cetakan. Kandungan yang berstatus <b>Lengkap</b> sahaja dicetak.</p>
         </div>
       </div>
 
@@ -183,9 +191,38 @@
         <div id="v5CalendarTabs" class="flex gap-2 flex-wrap"><button data-tab="penuh" onclick="v5SwitchCalendarTab('penuh')" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Takwim Penuh</button><button data-tab="ringkasan" onclick="v5SwitchCalendarTab('ringkasan')" class="bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold">Ringkasan Mengikut Unit</button><button onclick="v5EditWeek(manualV3Year()===v5Today().slice(0,4)?v5Today():manualV3Year()+'-01-01')" class="ml-auto border px-4 py-2 rounded-xl text-xs font-bold">+ Tetapkan Minggu / Cuti</button></div>
         <div id="v4CalendarItems" class="space-y-2"></div>
       </div>
+      <!-- V6: MATA MERIT PELANTIKAN -->
+      <div id="viewMeritPelantikan" class="hidden space-y-5">
+        <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
+          <div class="flex items-center justify-between gap-3 flex-wrap"><div><h2 class="font-display text-xl font-extrabold">Mata Merit & Keadilan Pelantikan</h2><p class="text-xs text-slate-500 mt-1">Tetapan markah beban tugas untuk membantu pentadbir mengagihkan pelantikan secara lebih seimbang. <b>Bukan markah prestasi guru.</b></p></div><button type="button" onclick="v6MeritLoad()" class="v6-button-alt"><i class="fa-solid fa-rotate"></i> Muat Semula Tetapan</button></div>
+          <div id="v6MeritDraftWarning" class="v6-alert">Mata yang dipaparkan ialah <b>cadangan awal sahaja</b>. Klik <b>Sediakan Tetapan</b> selepas sekolah bersetuju untuk menggunakannya.</div>
+          <div class="flex flex-wrap gap-2"><button onclick="v6MeritInit()" type="button" class="v6-button-main"><i class="fa-solid fa-database"></i> Sediakan Tetapan Merit dalam Sheets</button><button type="button" onclick="v6MeritNew()" class="v6-button-alt"><i class="fa-solid fa-plus"></i> Tetapan Baharu</button></div>
+          <div id="v6MeritRules" class="mt-3"></div>
+        </section>
+        <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+          <h3 class="font-extrabold text-base">Tambah / Pinda Mata bagi Jawatan</h3>
+          <input type="hidden" id="v6MeritId" />
+          <div class="v6-form-grid">
+            <label>Nama Peranan<input id="v6MeritRole" class="v6-input" placeholder="Contoh: Setiausaha, Guru Kelas, Ketua Panitia" /></label>
+            <label>Jawatankuasa<input id="v6MeritJk" class="v6-input" value="*" placeholder="* (semua jawatankuasa) atau nama tepat" /></label>
+            <label>Sesi<select id="v6MeritYear" class="v6-input"><option value="SEMUA">Semua sesi</option><option value="2026">2026</option><option value="2027">2027</option></select></label>
+            <label>Kaedah Padanan<select id="v6MeritMode" class="v6-input"><option value="TEPAT">Nama peranan tepat</option><option value="AWALAN">Bermula dengan teks ini</option></select></label>
+            <label>Mata Merit<input id="v6MeritPoints" class="v6-input" type="number" min="0" max="20" step="0.5" value="3" /></label>
+            <label>Status<select id="v6MeritStatus" class="v6-input"><option>Aktif</option><option>Tidak Aktif</option></select></label>
+          </div>
+          <p class="v6-note">Contoh: Peranan “Setiausaha” dengan padanan AWALAN meliputi “Setiausaha Panitia”. Untuk mata khas satu jawatankuasa, isi nama Jawatankuasa yang sama tepat seperti Master_Jawatankuasa.</p>
+          <div><button type="button" onclick="v6MeritSave()" class="v6-button-main"><i class="fa-solid fa-floppy-disk"></i> Simpan Mata Merit</button></div>
+        </section>
+        <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
+          <h3 class="font-extrabold text-base">Analisis Keadilan Pelantikan — Sesi <span class="lblTahunSpan">2027</span></h3>
+          <div class="flex items-end flex-wrap gap-3"><label class="text-xs font-bold">Tarikh Rujukan<input id="v6MeritDate" type="date" class="v6-input block mt-2" /></label><button type="button" onclick="v6MeritPreview()" class="v6-button-main"><i class="fa-solid fa-calculator"></i> Kira & Semak Mata</button></div>
+          <div id="v6MeritReport"><p class="v6-note">Pilih tarikh dan klik Kira & Semak Mata untuk melihat kedudukan guru mengikut beban pelantikan.</p></div>
+        </section>
+      </div>
+
       <!-- V4: CETAK BUKU -->
       <div id="viewV4Print" class="hidden space-y-4">
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"><h2 class="font-display font-extrabold text-xl">Buku Manual Pengurusan Sekolah</h2><p class="text-xs text-slate-500 mt-2">Jana buku bercetak A4: muka depan, isi kandungan bernombor, profil staf, jawatankuasa dan pelantikan, pengurusan kelas, serta takwim. Pratonton dalam tab baharu sebelum cetak / Simpan sebagai PDF.</p>
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"><h2 class="font-display font-extrabold text-xl">Buku Manual Pengurusan Sekolah</h2><p class="text-xs text-slate-500 mt-2">Jana Buku Manual A4: kandungan Dashboard, profil, jawatankuasa, merit pelantikan, kelas dan takwim. Halaman panjang akan bersambung secara automatik; tiada teks dipotong oleh had tinggi halaman.</p>
           <div class="mt-4 flex gap-2 items-center flex-wrap"><button onclick="v4PrintManualBook()" class="bg-slate-900 text-white font-bold rounded-xl px-5 py-3 text-xs"><i class="fa-solid fa-print mr-2"></i> Pratonton & Cetak Buku</button><span class="text-xs text-slate-500">Sesi <strong class="lblTahunSpan">2027</strong> · Hanya pelantikan aktif pada sesi dipilih</span></div>
         </div>
       </div>
@@ -879,6 +916,6 @@
 
   
 
-  <script src="e-ManualPengurusan.js?v=dg1"></script>
+  <script src="e-ManualPengurusan.js?v=merit-book-v6"></script>
 </body>
 </html>

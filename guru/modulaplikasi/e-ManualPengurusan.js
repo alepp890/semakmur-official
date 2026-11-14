@@ -454,6 +454,9 @@ async function fiManualRequest(request) {
           <button onclick="showView('viewAuditPeranan', event)" id="sideAuditPeranan" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 transition">
             <i class="fa-solid fa-shield-halved w-4 text-center text-emerald-400"></i><span>Pusat Semakan & Analitik</span>
           </button>
+          <button onclick="v6OpenMerit()" id="sideMeritPelantikan" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-scale-balanced w-4 text-center text-amber-400"></i><span>Mata Merit Pelantikan</span>
+          </button>
           <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data Induk</div>
           
           <button onclick="showView('viewProfilStaf', event)" id="sideProfilStaf" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
@@ -1365,7 +1368,7 @@ async function fiManualRequest(request) {
     }
 
     function showView(viewId, evt = null) {
-      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print', 'viewV5BookEditor', 'viewDynamicGroups'];
+      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print', 'viewV5BookEditor', 'viewDynamicGroups', 'viewMeritPelantikan'];
       views.forEach(v => {
         const el = document.getElementById(v);
         if (el) el.classList.add('hidden');
@@ -1388,6 +1391,7 @@ async function fiManualRequest(request) {
       else if (viewId === 'viewAuditPeranan') {bTxt.innerText = 'Pusat Semakan & Analitik'; renderAuditPerananV3();}
       else if (viewId === 'viewProfilStaf') bTxt.innerText = 'Profil Guru & AKP';
       else if (viewId === 'viewDynamicGroups') {bTxt.innerText='Tetapan Kumpulan Dinamik'; dgRender();}
+      else if (viewId === 'viewMeritPelantikan') bTxt.innerText='Mata Merit Pelantikan';
       else if (viewId === 'viewPengurusanJawatankuasa') bTxt.innerText = 'Pengurusan Master Jawatankuasa';
       else if (viewId === 'viewPengurusanSekolah') bTxt.innerText = 'Pengurusan Sekolah';
       else if (viewId === 'viewIndukOverview') bTxt.innerText = `JK Induk ${activeCategoryInduk}`;
@@ -3166,4 +3170,264 @@ window.v5EditWeek=async function(date){
     await fetchMasterStafData();v5RenderCalendar();
   }catch(err){await Swal.fire('Minggu/cuti tidak disimpan',err.message,'error');}
   finally{hideLoader();}
+};
+
+
+/* ==========================================================================
+   V6 — Merit pelantikan + Editor Blok Buku Manual + Cetakan A4 selamat.
+   Tiada perubahan pada Smart Kehadiran, e-Relief, login dan penghala Fi.
+   Semua tulisan pangkalan data melalui fiManualHandle_ yang sudah berautoriti.
+   ========================================================================== */
+let V6_MERIT_RULES=[],V6_MERIT_SETUP=false,V6_MERIT_PREVIEW=null;
+let V6_BOOK_BLOCKS=[],V6_IMAGE_CACHE={};
+const v6Esc=x=>manualV3Escape(String(x??''));
+function v6BookLegacy(text){
+  const value=String(text||'');if(!value.trim())return [{jenis:'teks',teks:'',url:'',assetId:'',kapsyen:''}];
+  return value.split(/\n(?=https:\/\/\S+\.(?:png|jpg|jpeg|webp)(?:\?\S*)?$)/i).map(part=>{
+    const s=part.trim();return /^https:\/\/\S+\.(?:png|jpg|jpeg|webp)(?:\?\S*)?$/i.test(s)?
+    {jenis:'gambar',teks:'',url:s,assetId:'',kapsyen:''}:
+    {jenis:'teks',teks:part,url:'',assetId:'',kapsyen:''};
+  });
+}
+function v6BookBlocks(record){
+  try{const parsed=JSON.parse(String(record?.Blok_JSON||''));if(Array.isArray(parsed)&&parsed.every(b=>['teks','tajuk','senarai','gambar','pemisah'].includes(b?.jenis)))return parsed;}
+  catch(_e){}return v6BookLegacy(record?.Kandungan||'');
+}
+function v6SafeImage(src){
+  const u=String(src||'');return /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(u)||/^https:\/\/[^\s<>"']+$/i.test(u)?u:'';
+}
+function v6EditorImages(){
+  const target=new Set(V6_BOOK_BLOCKS.filter(b=>b.jenis==='gambar'&&b.assetId&&!V6_IMAGE_CACHE[b.assetId]).map(b=>b.assetId));
+  if(!target.size)return Promise.resolve();return v6FetchImages([...target]).then(()=>v6RenderBlocks());
+}
+async function v6FetchImages(ids){
+  const unique=[...new Set(ids.filter(x=>x&&!V6_IMAGE_CACHE[x]))];
+  for(let i=0;i<unique.length;i+=8){
+    const res=await postToBackend({action:'manualV6ImagesBatch',data:{Tahun:manualV3Year(),ID_Aset:unique.slice(i,i+8)}});
+    if(!res.success)throw Error(res.error||'Imej tidak dapat dibaca.');
+    Object.assign(V6_IMAGE_CACHE,res.images||{});
+  }
+}
+function v6RenderBlocks(){
+  const box=document.getElementById('v6BookBlocks');if(!box)return;
+  const types={teks:'Perenggan Teks',tajuk:'Tajuk / Subtajuk',senarai:'Senarai (satu item setiap baris)',gambar:'Gambar / Logo',pemisah:'Garis Pemisah'};
+  box.innerHTML=V6_BOOK_BLOCKS.map((b,i)=>{
+    const shared=`<div class="v6-block-top"><strong>${i+1}. ${types[b.jenis]||'Kandungan'}</strong><div class="v6-block-actions"><button type="button" onclick="v6MoveBlock(${i},-1)" title="Naik" ${i?'':'disabled'}>↑</button><button type="button" onclick="v6MoveBlock(${i},1)" title="Turun" ${i===V6_BOOK_BLOCKS.length-1?'disabled':''}>↓</button><button type="button" onclick="v6DeleteBlock(${i})" title="Padam blok">×</button></div></div>`;
+    let body='';
+    if(['teks','senarai','tajuk'].includes(b.jenis))body=`<textarea class="v6-input ${b.jenis==='tajuk'?'v6-heading':''}" rows="${b.jenis==='tajuk'?2:5}" maxlength="8000" placeholder="${b.jenis==='senarai'?'Satu item setiap baris':'Masukkan kandungan...'}" oninput="v6BlockField(${i},'teks',this.value)">${v6Esc(b.teks||'')}</textarea>`;
+    if(b.jenis==='gambar'){
+      const src=v6SafeImage(V6_IMAGE_CACHE[b.assetId]||b.url);body=`
+        <div class="v6-image-tools"><button type="button" onclick="document.getElementById('v6ImgFile${i}').click()" class="v6-button-alt">Pilih Gambar (JPG / PNG)</button><input id="v6ImgFile${i}" type="file" accept="image/png,image/jpeg" hidden onchange="v6FileSelected(event,${i})"/><span class="v6-file-note">Gambar dikurangkan ke maksimum 1MB dan disimpan dalam Drive rasmi secara peribadi.</span></div>
+        <label class="v6-label">Atau URL HTTPS gambar</label><input class="v6-input" placeholder="https://.../imej.jpg" value="${v6Esc(b.url||'')}" oninput="v6BlockField(${i},'url',this.value)" />
+        <label class="v6-label">Kapsyen gambar</label><input class="v6-input" maxlength="300" placeholder="Keterangan ringkas" value="${v6Esc(b.kapsyen||'')}" oninput="v6BlockField(${i},'kapsyen',this.value)" />
+        ${b.assetId?`<p class="v6-small-ok">Fail tersimpan: ${v6Esc(b.assetId)}</p>`:''}
+        ${src?`<img class="v6-image-preview" src="${v6Esc(src)}" alt="Pratonton imej" />`:'<p class="v6-file-note">Pilih fail atau masukkan URL untuk pratonton.</p>'}`;
+    }
+    if(b.jenis==='pemisah')body='<hr class="v6-rule"/>';
+    return `<section class="v6-block">${shared}${body}</section>`;
+  }).join('');
+}
+window.v6BlockField=function(i,k,value){if(V6_BOOK_BLOCKS[i])V6_BOOK_BLOCKS[i][k]=value;};
+window.v6AddBlock=function(kind){
+  if(V6_BOOK_BLOCKS.length>=40)return Swal.fire('Had blok','Maksimum 40 blok bagi satu bahagian.','warning');
+  if(!['teks','tajuk','senarai','gambar','pemisah'].includes(kind))return;
+  V6_BOOK_BLOCKS.push({jenis:kind,teks:'',url:'',assetId:'',kapsyen:''});v6RenderBlocks();
+};
+window.v6DeleteBlock=async function(i){
+  const ans=await Swal.fire({title:'Padam blok ini?',text:'Perubahan hanya berlaku selepas cikgu menekan Simpan Kandungan.',icon:'warning',showCancelButton:true,confirmButtonText:'Padam',cancelButtonText:'Batal'});
+  if(!ans.isConfirmed)return;V6_BOOK_BLOCKS.splice(i,1);v6RenderBlocks();
+};
+window.v6MoveBlock=function(i,d){const j=i+d;if(j<0||j>=V6_BOOK_BLOCKS.length)return;
+  [V6_BOOK_BLOCKS[i],V6_BOOK_BLOCKS[j]]=[V6_BOOK_BLOCKS[j],V6_BOOK_BLOCKS[i]];v6RenderBlocks();
+};
+function v6CanvasBase64(file){return new Promise((resolve,reject)=>{
+  const img=new Image(),src=URL.createObjectURL(file);img.onload=()=>{
+    try{
+      const scale=Math.min(1,1400/Math.max(img.width,img.height));let w=Math.max(1,Math.round(img.width*scale)),h=Math.max(1,Math.round(img.height*scale));
+      const can=document.createElement('canvas');can.width=w;can.height=h;const ctx=can.getContext('2d');
+      ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+      let quality=.85,data=can.toDataURL('image/jpeg',quality);
+      while(data.length>1250000&&quality>.42){quality-=.1;data=can.toDataURL('image/jpeg',quality);}
+      if(data.length>1250000)throw Error('Imej masih terlalu besar. Sila kecilkan imej atau pilih fail lain.');
+      resolve(data);
+    }catch(ex){reject(ex);}finally{URL.revokeObjectURL(src);}
+  };img.onerror=()=>{URL.revokeObjectURL(src);reject(new Error('Fail gambar tidak dapat dibuka.'));};img.src=src;
+});}
+window.v6FileSelected=async function(event,i){
+  const file=event.target?.files?.[0];if(!file||!V6_BOOK_BLOCKS[i])return;
+  if(!['image/png','image/jpeg'].includes(file.type))return Swal.fire('Jenis fail salah','Hanya JPG dan PNG dibenarkan.','warning');
+  if(file.size>12*1024*1024)return Swal.fire('Terlalu besar','Sila pilih imej asal bawah 12MB.','warning');
+  showLoader('Memproses dan menyimpan gambar…');
+  try{
+    // Kekalkan fail PNG/JPG asal tanpa re-encode jika <=1MB (terutama logo rasmi).
+    // Foto lebih besar dikompres, tetapi PNG rasmi melebihi had perlu dikecilkan secara lossless di luar sistem.
+    if(file.type==='image/png'&&file.size>1048576)throw Error('PNG melebihi 1MB. Untuk menjaga ketulenan logo rasmi, gunakan fail PNG asal yang lebih kecil secara lossless.');
+    const dataURL=file.size<=1048576?await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('Fail tidak dapat dibaca.'));reader.readAsDataURL(file);}):await v6CanvasBase64(file);
+    const mime=file.size<=1048576?file.type:'image/jpeg';
+    const filename=file.size<=1048576?file.name:file.name.replace(/\.[^.]+$/,'')+'.jpg';
+    const result=await postToBackend({action:'manualV6ImageUpload',data:{Tahun:manualV3Year(),Slug:V5_BOOK_SLUG,Nama_Fail:filename,MimeType:mime,Base64:dataURL.split(',')[1]}});
+    if(!result.success)throw Error(result.error||'Gambar gagal disimpan.');
+    V6_BOOK_BLOCKS[i].assetId=result.id;V6_BOOK_BLOCKS[i].url='';V6_IMAGE_CACHE[result.id]=dataURL;
+    v6RenderBlocks();Swal.fire('Gambar disimpan','Tekan Simpan Kandungan untuk memasukkan gambar dalam bahagian Buku Manual.','success');
+  }catch(ex){Swal.fire('Gagal muat naik',String(ex.message||ex),'error');}finally{hideLoader();}
+};
+window.v5OpenBookSection=function(slug){
+  V5_BOOK_SLUG=slug;const spec=V5_BOOK_SECTIONS.find(x=>x[0]===slug)||[slug,slug],rec=v5BookRecord(slug)||{};
+  showView('viewV5BookEditor');document.getElementById('v5BookTitle').innerText=spec[1];
+  document.getElementById('v5BookYear').innerText=manualV3Year();document.getElementById('v5BookStatus').value=rec.Status||'Draf';
+  V6_BOOK_BLOCKS=v6BookBlocks(rec);v6RenderBlocks();v6EditorImages().catch(e=>Swal.fire('Amaran Imej',e.message,'warning'));
+};
+window.v5SaveBookSection=async function(){
+  const spec=V5_BOOK_SECTIONS.find(x=>x[0]===V5_BOOK_SLUG);if(!spec)return;
+  const data={Tahun:manualV3Year(),Slug:spec[0],Tajuk:spec[1],Blok:V6_BOOK_BLOCKS,Status:document.getElementById('v5BookStatus').value,Susunan:spec[3]};
+  showLoader('Menyimpan kandungan…');
+  try{
+    const r=await postToBackend({action:'manualV6BookSave',data});if(!r.success)throw Error(r.error||'Gagal menyimpan.');
+    const obj={...data,Blok_JSON:JSON.stringify(V6_BOOK_BLOCKS),Kandungan:V6_BOOK_BLOCKS.map(b=>b.teks).filter(Boolean).join('\n\n')};
+    const idx=ALL_BUKU.findIndex(x=>String(x.Tahun)===obj.Tahun&&x.Slug===obj.Slug);
+    if(idx<0)ALL_BUKU.push(obj);else ALL_BUKU[idx]={...ALL_BUKU[idx],...obj};
+    v5RenderDashboard();showView('viewDashboard');Swal.fire('Berjaya','Kandungan Buku Manual berjaya dikemas kini.','success');
+  }catch(ex){Swal.fire('Gagal Simpan',String(ex.message||ex),'error');}finally{hideLoader();}
+};
+function v6MeritFormData(){return {
+ ID_Tetapan:document.getElementById('v6MeritId')?.value||'',
+ Sesi:document.getElementById('v6MeritYear')?.value||'SEMUA',
+ Nama_Jawatankuasa:document.getElementById('v6MeritJk')?.value?.trim()||'*',
+ Peranan:document.getElementById('v6MeritRole')?.value?.trim()||'',
+ Kaedah_Padanan:document.getElementById('v6MeritMode')?.value||'TEPAT',
+ Mata_Merit:Number(document.getElementById('v6MeritPoints')?.value||0),
+ Status:document.getElementById('v6MeritStatus')?.value||'Aktif'
+};}
+window.v6MeritNew=function(){
+  const values={v6MeritId:'',v6MeritYear:manualV3Year(),v6MeritJk:'*',v6MeritRole:'',v6MeritMode:'TEPAT',v6MeritPoints:'3',v6MeritStatus:'Aktif'};
+  for(const [id,v] of Object.entries(values)){const el=document.getElementById(id);if(el)el.value=v;}
+};
+window.v6MeritEdit=function(id){
+  const r=V6_MERIT_RULES.find(z=>String(z.ID_Tetapan)===String(id));if(!r)return;
+  const pairs={v6MeritId:r.ID_Tetapan,v6MeritYear:r.Sesi,v6MeritJk:r.Nama_Jawatankuasa,v6MeritRole:r.Peranan,v6MeritMode:r.Kaedah_Padanan,v6MeritPoints:r.Mata_Merit,v6MeritStatus:r.Status};
+  Object.entries(pairs).forEach(([k,v])=>{const el=document.getElementById(k);if(el)el.value=v;});
+  document.getElementById('v6MeritRole')?.focus();
+};
+window.v6MeritLoad=async function(){
+  const box=document.getElementById('v6MeritRules');if(box)box.innerHTML='<p class="v6-note">Memuatkan tetapan merit…</p>';
+  try{
+    const res=await postToBackend({action:'manualV6MeritRead',data:{}});
+    if(!res.success)throw Error(res.error||'Tetapan merit tidak dapat dibaca.');
+    V6_MERIT_RULES=res.data||[];V6_MERIT_SETUP=!!res.setup;v6MeritRenderRules();v6MeritNew();
+  }catch(ex){if(box)box.textContent=String(ex.message||ex);}
+};
+function v6MeritRenderRules(){
+  const box=document.getElementById('v6MeritRules');if(!box)return;
+  document.getElementById('v6MeritDraftWarning')?.classList.toggle('hidden',V6_MERIT_SETUP);
+  box.innerHTML=`<div class="overflow-x-auto"><table class="v6-table"><thead><tr><th>Peranan</th><th>Jawatankuasa</th><th>Sesi</th><th>Padanan</th><th>Mata</th><th>Status</th><th></th></tr></thead><tbody>${V6_MERIT_RULES.map(r=>`
+   <tr><td>${v6Esc(r.Peranan)}</td><td>${v6Esc(r.Nama_Jawatankuasa)}</td><td>${v6Esc(r.Sesi)}</td><td>${v6Esc(r.Kaedah_Padanan)}</td><td><strong>${v6Esc(r.Mata_Merit)}</strong></td><td>${v6Esc(r.Status)}</td><td><button type="button" onclick="v6MeritEdit('${v6Esc(r.ID_Tetapan)}')" class="v6-button-link" ${r.cadangan?'disabled':''}>Edit</button></td></tr>`).join('')}</tbody></table></div>`;
+}
+window.v6MeritInit=async function(){
+  const a=await Swal.fire({title:'Sediakan cadangan mata merit?',text:'Nilai contoh akan disimpan dalam Google Sheets dan boleh diubah. Ini bukan dasar rasmi sehingga sekolah meluluskannya.',icon:'question',showCancelButton:true,confirmButtonText:'Teruskan',cancelButtonText:'Batal'});
+  if(!a.isConfirmed)return;
+  try{const r=await postToBackend({action:'manualV6MeritInit',data:{}});if(!r.success)throw Error(r.error||'Gagal');await v6MeritLoad();Swal.fire('Berjaya',r.message,'success');}
+  catch(ex){Swal.fire('Gagal',String(ex.message||ex),'error');}
+};
+window.v6MeritSave=async function(){
+  const payload=v6MeritFormData();if(!payload.Peranan)return Swal.fire('Maklumat belum lengkap','Masukkan nama Peranan.','warning');
+  showLoader('Menyimpan peraturan merit…');
+  try{const r=await postToBackend({action:'manualV6MeritSave',data:payload});if(!r.success)throw Error(r.error||'Gagal');await v6MeritLoad();Swal.fire('Berjaya',r.message,'success');}
+  catch(ex){Swal.fire('Gagal Simpan',String(ex.message||ex),'error');}finally{hideLoader();}
+};
+window.v6MeritPreview=async function(){
+ const year=manualV3Year(),date=document.getElementById('v6MeritDate')?.value||year+'-12-31';
+ const out=document.getElementById('v6MeritReport');if(out)out.innerHTML='<p class="v6-note">Mengira beban pelantikan…</p>';
+ try{
+  const r=await postToBackend({action:'manualV6MeritPreview',data:{sesi:year,tarikh:date}});if(!r.success)throw Error(r.error||'Gagal mengira.');
+  V6_MERIT_PREVIEW=r;v6MeritRenderReport();
+ }catch(ex){if(out)out.textContent=String(ex.message||ex);}
+};
+function v6MeritRenderReport(){
+ const out=document.getElementById('v6MeritReport'),r=V6_MERIT_PREVIEW;if(!out||!r)return;
+ const ranking=r.ranking||[];
+ const banners=[...(r.berasaskanCadangan?['Mata di bawah ialah CONTOH dan belum disimpan sebagai polisi sekolah.']:[]),...(r.belumAdaMata?.length?['Peranan belum ditetapkan mata: '+r.belumAdaMata.join(', ')]:[]),...(r.catatan||[])];
+ out.innerHTML=`<div class="v6-metrics"><div><b>${v6Esc(r.jumlahGuru)}</b><span>Guru layak</span></div><div><b>${v6Esc(r.jumlahPelantikan)}</b><span>Pelantikan semasa</span></div><div><b>${ranking.filter(x=>x.jumlahPelantikan===0).length}</b><span>Belum ada pelantikan</span></div><div><b>${ranking.reduce((a,x)=>a+x.belumBermata,0)}</b><span>Peranan tanpa mata</span></div></div>
+  ${banners.map(x=>`<p class="v6-alert">${v6Esc(x)}</p>`).join('')}
+  <div class="overflow-x-auto"><table class="v6-table"><thead><tr><th>Bil</th><th>Nama Guru</th><th>Bil. Pelantikan</th><th>Jumlah Mata</th><th>Butiran / Peranan</th></tr></thead><tbody>${ranking.map((g,i)=>`<tr><td>${i+1}</td><td><b>${v6Esc(g.Nama_Penuh)}</b><br/><small>${v6Esc(g.Kategori_Staf)}</small></td><td>${g.jumlahPelantikan}</td><td><b>${g.mataMerit}</b></td><td><details><summary>Lihat ${g.peranan.length} pelantikan</summary><div class="v6-detail">${g.peranan.map(x=>`${v6Esc(x.Peranan)} · ${v6Esc(x.Nama_Jawatankuasa)} · ${x.mata===null?'Belum diberi mata':x.mata+' mata'}${x.viaKumpulan?' · '+v6Esc(x.viaKumpulan):''}`).join('<hr/>')||'Tiada pelantikan'}</div></details></td></tr>`).join('')}</tbody></table></div>
+ <p class="v6-note">Jumlah merit ialah petunjuk agihan tugas, bukan ukuran prestasi guru dan bukan arahan pelantikan automatik.</p>`;
+}
+function v6MeritDateDefault(){const y=manualV3Year();return (new Date().getFullYear().toString()===y?new Date().toLocaleDateString('sv-SE'):y+'-12-31');}
+window.v6OpenMerit=function(){showView('viewMeritPelantikan');
+  const input=document.getElementById('v6MeritDate');if(input)input.value=v6MeritDateDefault();v6MeritLoad();
+};
+// Cetakan V6: halaman fleksibel, kandungan panjang tidak dipotong,
+// tiada nombor halaman palsu bagi halaman yang mengalir ke halaman seterusnya.
+function v6HtmlBlocks(rec){
+ return v6BookBlocks(rec).map(b=>{
+  if(b.jenis==='pemisah')return '<hr class="rule"/>';
+  if(b.jenis==='tajuk')return `<h3>${v6Esc(b.teks)}</h3>`;
+  if(b.jenis==='senarai')return `<ul>${String(b.teks||'').split('\n').filter(x=>x.trim()).map(x=>`<li>${v6Esc(x.replace(/^[-•\d.)\s]+/,''))}</li>`).join('')}</ul>`;
+  if(b.jenis==='gambar'){
+   const src=v6SafeImage(V6_IMAGE_CACHE[b.assetId]||b.url);
+   return src?`<figure><img src="${v6Esc(src)}" alt="Gambar Buku Manual"/><figcaption>${v6Esc(b.kapsyen||'')}</figcaption></figure>`:
+    '<p class="warn">Gambar belum tersedia untuk cetakan.</p>';
+  }
+  return `<p class="para">${v6Esc(b.teks||'').replace(/\n/g,'<br/>')}</p>`;
+ }).join('');
+}
+function v6PtForPrint(rules,role,committee,year){
+ const name=String(role||'').trim().toLowerCase(),jk=String(committee||'').trim().toLowerCase();
+ const matches=rules.filter(t=>t.Status==='Aktif'&&(String(t.Sesi)==='SEMUA'||String(t.Sesi)===year)&&
+  (t.Nama_Jawatankuasa==='*'||String(t.Nama_Jawatankuasa).toLowerCase()===jk)&&
+  (t.Kaedah_Padanan==='AWALAN'?name.startsWith(String(t.Peranan).toLowerCase()):name===String(t.Peranan).toLowerCase()));
+ matches.sort((a,b)=>{const s=x=>(x.Sesi==='SEMUA'?0:10)+(x.Nama_Jawatankuasa==='*'?0:5)+(x.Kaedah_Padanan==='AWALAN'?0:3)+String(x.Peranan).length/100;return s(b)-s(a);});
+ return matches.length?String(matches[0].Mata_Merit):'—';
+}
+window.v4PrintManualBook=async function(){
+ const year=manualV3Year();const w=window.open('','_blank');
+ if(!w){Swal.fire('Popup disekat','Benarkan popup bagi laman ini untuk mencetak buku.','warning');return;}
+ w.document.write('<!doctype html><html lang="ms"><meta charset="utf-8"><title>Menyediakan cetakan...</title><body style="font-family:Arial;padding:30px">Menyediakan Buku Manual Pengurusan…</body></html>');w.document.close();
+ try{
+  const records=(ALL_BUKU||[]).filter(r=>String(r.Tahun)===year&&r.Status==='Lengkap').sort((a,b)=>Number(a.Susunan||99)-Number(b.Susunan||99));
+  const assetIds=[...new Set(records.flatMap(rec=>v6BookBlocks(rec).filter(b=>b.assetId).map(b=>b.assetId)))];
+  await v6FetchImages(assetIds);
+  const merit=await postToBackend({action:'manualV6MeritRead',data:{}});
+  const meritRules=merit.success?merit.data||[]:[];
+  const rows=manualV3CurrentRoles(),staff=sortStafList(ALL_STAF.filter(s=>String(s.Status||'Aktif').toLowerCase()==='aktif'));
+  const sections=[];const add=(title,chapter,content,klass='')=>sections.push({title,chapter,content,klass});
+  const text=(s)=>v6Esc(s);const table=(headers,data)=>`<table><thead><tr>${headers.map(x=>'<th>'+text(x)+'</th>').join('')}</tr></thead><tbody>${data.map(row=>'<tr>'+row.map(x=>'<td>'+text(x)+'</td>').join('')+'</tr>').join('')}</tbody></table>`;
+  const cover=records.find(r=>r.Slug==='muka_depan'),logo=records.find(r=>r.Slug==='lencana_sekolah');
+  const logoImg=(logo?v6BookBlocks(logo):[]).find(b=>b.jenis==='gambar'&&v6SafeImage(V6_IMAGE_CACHE[b.assetId]||b.url));
+  add('Muka Depan','Muka Depan',`<div class="cover">${logoImg?`<img class="logo" src="${text(v6SafeImage(V6_IMAGE_CACHE[logoImg.assetId]||logoImg.url))}" alt="Lencana rasmi sekolah"/>`:''}<div class="eyebrow">SEKOLAH KEBANGSAAN SEGAMBUT MAKMUR</div><h1>BUKU MANUAL<br/>PENGURUSAN SEKOLAH</h1><div class="year">SESI ${text(year)}</div>${cover?v6HtmlBlocks(cover):''}</div>`,'coverpage');
+  const chapters=[...records.filter(r=>!['muka_depan'].includes(r.Slug)).map(r=>r.Tajuk),'Direktori Staf','Jawatankuasa & Pelantikan','Pengurusan Kelas','Takwim Persekolahan'];
+  add('Isi Kandungan','Isi Kandungan',`<div class="toc">${[...new Set(chapters)].map((c,i)=>`<div><b>${i+1}.</b> ${text(c)}</div>`).join('')}</div><p class="hint">Isi kandungan disusun mengikut bahagian. Nombor halaman sebenar boleh diaktifkan dalam pilihan cetakan pelayar.</p>`,'tocpage');
+  records.filter(r=>r.Slug!=='muka_depan').forEach(r=>add(r.Tajuk,r.Tajuk,v6HtmlBlocks(r)));
+  add('Direktori Staf','Direktori Staf',table(['Bil.','Nama Staf','Kategori'],staff.map((s,i)=>[i+1,s.Nama_Penuh,s.Kategori_Staf])));
+  const v6PrintName=id=>{const group=ALL_DYNAMIC_GROUPS.find(g=>String(g.ID_Kumpulan)===String(id));return group?group.Nama_Kumpulan+' (kumpulan dinamik)':manualV3StaffName(id);};
+  ['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'].forEach(cat=>{
+    const jks=v4SortedJK(cat);
+    if(!jks.length)return;
+    jks.forEach(j=>{
+      const assigned=rows.filter(x=>x.Nama_Jawatankuasa===j.Nama_Jawatankuasa);
+      const content=`<div class="meta">${text(cat)} · ${text(j.Seksyen||cat)}</div>`+
+        table(['Bil.','Jawatan / Peranan','Nama / Kumpulan','Skop Tugas','Merit*'],assigned.map((r,i)=>[i+1,r.Peranan,v6PrintName(r.ID_Staf),r.Skop_Tugas_Kelas,v6PtForPrint(meritRules,r.Peranan,r.Nama_Jawatankuasa,year)]));
+      add(j.Nama_Jawatankuasa,'Jawatankuasa & Pelantikan',content);
+    });
+  });
+  const kelas=ALL_LOKASI.filter(l=>String(l.Kategori||'').toLowerCase()==='kelas'&&String(l.Status||'Aktif').toLowerCase()==='aktif');
+  add('Pengurusan Kelas','Pengurusan Kelas',table(['Kelas','Guru Kelas','Guru Pembantu'],kelas.map(x=>{const z=statePengurusanKelas[x.Nama_Lokasi]||{};return [x.Nama_Lokasi,z.gk?manualV3StaffName(z.gk):'BELUM DIISI',z.gpk?manualV3StaffName(z.gpk):'—'];})));
+  const events=ALL_TAKWIM.filter(x=>String(x.Status||'Aktif').toLowerCase()==='aktif'&&String(x.Tarikh_Mula||'').slice(0,4)===year).sort((a,b)=>String(a.Tarikh_Mula).localeCompare(String(b.Tarikh_Mula)));
+  add('Takwim Persekolahan','Takwim Persekolahan',table(['Tarikh','Jenis','Aktiviti','Unit'],events.map(x=>[x.Tarikh_Mula,x.Jenis,x.Tajuk,x.Unit])));
+  const html=`<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Buku Manual Pengurusan ${text(year)}</title><style>
+   *{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#1f2937;margin:0;background:#e5e7eb;font-size:10pt}
+   .tools{background:#212a36;color:#fff;padding:12px 24px;position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:10px}
+   button{border:0;border-radius:9px;padding:10px 17px;background:#be123c;color:white;font-weight:700;cursor:pointer}
+   .section{background:white;width:210mm;min-height:230mm;padding:18mm 16mm;margin:14px auto;box-shadow:0 4px 24px #0002;break-before:page;page-break-before:always}
+   .section:first-of-type{break-before:auto;page-break-before:auto}.section-head{border-bottom:2px solid #334155;padding-bottom:6mm;margin-bottom:7mm}
+   .section-head .school{font-size:8pt;color:#64748b;letter-spacing:.08em}.section-head h2{font-size:16pt;margin:6px 0 0;color:#24384b}
+   .meta{font-size:9pt;color:#64748b;margin-bottom:10px}.para{line-height:1.6;white-space:normal;margin:0 0 11px}h3{font-size:12pt;color:#1d3555;margin:18px 0 8px}
+   figure{margin:16px auto 20px;text-align:center;break-inside:avoid;page-break-inside:avoid}figure img{max-width:100%;max-height:220mm;width:auto;height:auto;object-fit:contain}figcaption{font-size:9pt;color:#64748b;margin-top:5px}
+   table{width:100%;border-collapse:collapse;font-size:8.5pt;line-height:1.4;margin:10px 0 16px}thead{display:table-header-group}tr{break-inside:avoid;page-break-inside:avoid}th,td{border:1px solid #d6dbe1;padding:6px;vertical-align:top;overflow-wrap:anywhere}th{background:#e8edf2;color:#24384b;text-align:left}p,li{overflow-wrap:anywhere}ul{padding-left:20px}li{margin:4px 0}
+   .cover{text-align:center;padding-top:23mm}.cover .logo{max-height:42mm;max-width:42mm;object-fit:contain}.cover h1{font-size:27pt;line-height:1.25;margin:22mm 0 14mm;color:#24384b}.cover .year{padding:12px;background:#24384b;color:white;font-size:15pt;border-radius:10px;max-width:110mm;margin:0 auto 15mm}.cover .eyebrow{font-size:13pt;font-weight:bold;margin-top:8mm}
+   .toc div{border-bottom:1px dotted #94a3b8;padding:8px 0}.toc b{display:inline-block;width:26px}.hint,.warn{font-size:9pt;color:#64748b}.warn{color:#9a3412}.rule{border:0;border-top:1px solid #cbd5e1;margin:16px 0}
+   @page{size:A4 portrait;margin:15mm 14mm}
+   @media print{html,body{background:white;margin:0}.tools{display:none!important}.section{width:auto;min-height:0;padding:0;margin:0;box-shadow:none}.section:first-of-type{break-before:auto}.section-head{margin-top:0}a{color:inherit;text-decoration:none}thead{display:table-header-group}tr,figure{break-inside:avoid}}
+   </style></head><body><div class="tools"><div><b>Pratonton Buku Manual ${text(year)}</b> <small>· Kandungan panjang akan bersambung ke halaman seterusnya</small></div><button onclick="window.print()">Cetak / Simpan PDF</button></div>${sections.map(p=>`<section class="section ${p.klass}"><div class="section-head"><div class="school">SK SEGAMBUT MAKMUR · BUKU MANUAL ${text(year)}</div>${p.klass==='coverpage'?'':`<h2>${text(p.title)}</h2>`}</div>${p.content}</section>`).join('')}</body></html>`;
+  w.document.open();w.document.write(html);w.document.close();
+ }catch(ex){w.document.open();w.document.write('<!doctype html><html lang="ms"><meta charset="utf-8"><body style="font-family:Arial;padding:30px"><h2>Cetakan gagal disediakan</h2><p>'+v6Esc(ex.message||ex)+'</p></body></html>');w.document.close();Swal.fire('Ralat Cetakan',String(ex.message||ex),'error');}
 };
