@@ -950,42 +950,134 @@ async function fiManualRequest(request) {
       container.appendChild(div);
     }
 
+    // V6.2: AJK — pilih sumber dahulu, bukan satu dropdown campur berpuluh-puluh item.
+    // Sumber "Penyelaras JK Lain" ialah pilihan pantas (snapshot), BUKAN hubungan
+    // dinamik: penukaran penyelaras JK sumber kelak tidak menukar rekod AJK ini.
+    function v62AjkOptions(mode) {
+      if (mode === 'kumpulan') return SPECIAL_GROUPS.map(g => ({
+        id: String(g.ID_Staf || ''),
+        label: String(g.Nama_Penuh || g.Nama_Kumpulan || ''),
+        portfolio: ''
+      })).filter(x => x.id);
+      if (mode === 'penyelaras') {
+        const seen = new Set();
+        return manualV3CurrentRoles()
+          .filter(r => /^(penyelaras|ketua panitia)(\b|\s|$)/i.test(String(r.Peranan || '')) &&
+            String(r.Nama_Jawatankuasa || '').trim().toLowerCase() !== String(activeSubJkName).trim().toLowerCase())
+          .map(r => {
+            const id = String(r.ID_Staf || '').trim();
+            const guru = ALL_STAF.find(s => String(s.ID_Staf) === id && String(s.Status || 'Aktif').toLowerCase() === 'aktif');
+            const jk = String(r.Nama_Jawatankuasa || '').trim();
+            const role = String(r.Peranan || 'Penyelaras').trim();
+            const cleanJk = jk.replace(/^Jawatankuasa\s+/i, '').replace(/^JK\s+/i, '');
+            return {
+              id: id,
+              label: `${role} ${cleanJk} — ${guru?.Nama_Penuh || ''}`,
+              portfolio: `${role} ${cleanJk}`.trim(),
+              key: id + '|' + jk + '|' + role
+            };
+          })
+          .filter(x => x.id && x.label && ALL_STAF.some(s => String(s.ID_Staf) === x.id && String(s.Status || 'Aktif').toLowerCase() === 'aktif'))
+          .filter(x => { if (seen.has(x.key)) return false; seen.add(x.key); return true; })
+          .sort((a,b)=>a.label.localeCompare(b.label,'ms'));
+      }
+      return sortStafList(ALL_STAF.filter(s =>
+        String(s.Kategori_Staf || '').toUpperCase() !== 'AKP' &&
+        String(s.Status || 'Aktif').toLowerCase() === 'aktif'
+      )).map(s=>({id:String(s.ID_Staf),label:`${s.Nama_Penuh} (${s.Kategori_Staf})`,portfolio:''}));
+    }
+
+    function v62AjkRefreshOptions(row) {
+      if (!row) return;
+      const mode = row.querySelector('[data-ajk-source]')?.value || 'guru';
+      const search = String(row.querySelector('[data-ajk-search]')?.value || '').trim().toLocaleLowerCase('ms');
+      const sel = row.querySelector('select[data-ajk-select="true"]');
+      if (!sel) return;
+      const current = String(sel.value || row.dataset.selectedId || '');
+      const data = v62AjkOptions(mode);
+      // Yang sedang dipilih kekal walaupun carian lain ditaip.
+      const matched = data.filter(o => !search || o.label.toLocaleLowerCase('ms').includes(search) || o.id.toLowerCase().includes(search) || o.id === current);
+      sel.innerHTML = '<option value="">-- Pilih daripada senarai --</option>' +
+        matched.map(o => `<option value="${manualV3Escape(o.id)}" data-portfolio="${manualV3Escape(o.portfolio)}" ${o.id === current ? 'selected' : ''}>${manualV3Escape(o.label)}</option>`).join('');
+      if (current && !matched.some(o=>o.id === current)) {
+        const opt = document.createElement('option');
+        opt.value = current;
+        opt.textContent = '⚠ Pilihan lama (' + current + ') — semak semula';
+        sel.appendChild(opt);
+        sel.value = current;
+      }
+      // Selepas render pertama, pilihan sebenar sentiasa diambil daripada select.
+      delete row.dataset.selectedId;
+      const hint = row.querySelector('[data-ajk-help]');
+      if (hint) hint.textContent = mode === 'penyelaras'
+        ? 'Mengambil penyelaras/ketua panitia yang telah dilantik untuk sesi ini. Pilihan disalin sebagai AJK, bukan hubungan automatik.'
+        : mode === 'kumpulan' ? 'Pilih satu kumpulan dinamik yang berdaftar.'
+        : 'Taip sebahagian nama untuk tapis senarai guru.';
+    }
+
+    function v62AjkSourceChanged(el) {
+      const row = el.closest('[data-ajk-row]');
+      if (!row) return;
+      row.dataset.selectedId = '';
+      const sel = row.querySelector('select[data-ajk-select="true"]');
+      if (sel) sel.value = '';
+      const task = row.querySelector('[data-ajk-tugas-khas="true"]');
+      if (task) task.value = '';
+      const search = row.querySelector('[data-ajk-search]');
+      if (search) search.value = '';
+      v62AjkRefreshOptions(row);
+      if (typeof window.v5FilterAjkChoices === 'function') window.v5FilterAjkChoices();
+    }
+
+    function v62AjkSelected(el) {
+      const row = el.closest('[data-ajk-row]');
+      if (!row) return;
+      if (row.querySelector('[data-ajk-source]')?.value === 'penyelaras' && el.value) {
+        const task = row.querySelector('[data-ajk-tugas-khas="true"]');
+        const suggested = el.selectedOptions[0]?.dataset?.portfolio || '';
+        if (task && suggested) task.value = suggested;
+      }
+      if (typeof window.v5FilterAjkChoices === 'function') window.v5FilterAjkChoices();
+    }
+
     function tambahBarisAjk(selectedId = '', tugasKhasVal = '') {
       const container = document.getElementById('containerAjkRows');
       if (!container) return;
-
-      const activeGuruOnly = ALL_STAF.filter(s => s.Kategori_Staf !== 'AKP' && (s.Status || 'Aktif').trim().toLowerCase() === 'aktif');
-      const sortedGuru = sortStafList(activeGuruOnly);
-
-      let options = '<option value="">-- Pilih Guru / Kumpulan Khas AJK --</option>';
-      
-      options += '<optgroup label="-- KUMPULAN KHAS --">';
-      SPECIAL_GROUPS.forEach(g => {
-        options += `<option value="${g.ID_Staf}" ${g.ID_Staf === selectedId ? 'selected' : ''}>${g.Nama_Penuh}</option>`;
-      });
-      options += '</optgroup>';
-
-      options += '<optgroup label="-- SENARAI GURU INDIVIDU --">';
-      sortedGuru.forEach(g => {
-        options += `<option value="${g.ID_Staf}" ${g.ID_Staf === selectedId ? 'selected' : ''}>${g.Nama_Penuh} (${g.Kategori_Staf})</option>`;
-      });
-      options += '</optgroup>';
-
-      const rowId = 'ajkRow_' + new Date().getTime() + Math.floor(Math.random() * 100);
-
+      const group = /^GRP\d+$/i.test(String(selectedId || ''));
+      const rowId = 'ajkRow_' + Date.now() + Math.floor(Math.random() * 10000);
       const div = document.createElement('div');
       div.id = rowId;
-      div.className = "flex items-center gap-2";
+      div.dataset.ajkRow = 'true';
+      div.dataset.selectedId = String(selectedId || '');
+      div.className = 'border border-slate-200 rounded-xl bg-slate-50/70 p-2.5 space-y-2';
       div.innerHTML = `
-        <select data-ajk-select="true" class="select-guru-opt w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-xs text-slate-800 focus:outline-none focus:border-rose-600">
-          ${options}
-        </select>
-        <input type="text" data-ajk-tugas-khas="true" value="${tugasKhasVal}" placeholder="Tugas Khas (Optional e.g. Digital Tool)" class="w-1/2 p-2 border border-slate-300 rounded-xl bg-white text-xs font-semibold focus:outline-none">
-        <button onclick="padamBarisAjk('${rowId}')" class="px-2.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl transition shrink-0">
-          <i class="fa-solid fa-trash"></i>
-        </button>
+        <div class="flex flex-wrap gap-2 items-center">
+          <select data-ajk-source="true" onchange="v62AjkSourceChanged(this)"
+            aria-label="Sumber pilihan AJK" class="w-[160px] max-w-full p-2 bg-white border border-slate-300 rounded-xl font-bold text-xs text-slate-800">
+            <option value="guru" ${!group?'selected':''}>Guru Individu</option>
+            <option value="kumpulan" ${group?'selected':''}>Kumpulan</option>
+            <option value="penyelaras">Penyelaras JK Lain</option>
+          </select>
+          <input data-ajk-search="true" type="search" oninput="v62AjkRefreshOptions(this.closest('[data-ajk-row]'))"
+            placeholder="Cari nama / jawatankuasa…" aria-label="Cari pilihan AJK"
+            class="min-w-[180px] flex-1 p-2 bg-white border border-slate-300 rounded-xl text-xs" />
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <select data-ajk-select="true" onchange="v62AjkSelected(this)"
+            class="select-guru-opt min-w-[200px] flex-[2] p-2 bg-white border border-slate-300 rounded-xl font-bold text-xs text-slate-800 focus:border-rose-600">
+          </select>
+          <input type="text" data-ajk-tugas-khas="true" value="${manualV3Escape(tugasKhasVal)}"
+            placeholder="Portfolio / Tugas Khas" aria-label="Portfolio atau tugas khas AJK"
+            class="min-w-[210px] flex-1 p-2 border border-slate-300 rounded-xl bg-white text-xs font-semibold" />
+          <button type="button" onclick="padamBarisAjk('${rowId}')"
+            class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 font-bold rounded-xl shrink-0" aria-label="Buang baris AJK">
+            <i class="fa-solid fa-trash" aria-hidden="true"></i>
+          </button>
+        </div>
+        <p data-ajk-help class="text-[11px] text-slate-500"></p>
       `;
       container.appendChild(div);
+      v62AjkRefreshOptions(div);
     }
 
     function padamBarisAjk(rowId) {
@@ -2768,7 +2860,7 @@ function v5RoleLabel(r){return String(r.Peranan||'').trim();}
 function v5PlainRole(label,name,color='',portfolio=''){
   const portfolioText=String(portfolio||'').trim();
   const extra=portfolioText
-    ? `<span class="block text-[11px] font-medium text-rose-700 mt-1"><i class="fa-solid fa-briefcase mr-1" aria-hidden="true"></i>Portfolio / Tugas Khas: ${v5E(portfolioText)}</span>`
+    ? ` <span class="inline text-[11px] font-medium text-rose-700">(${v5E(portfolioText)})</span>`
     : '';
   return `<div class="flex flex-wrap items-start gap-2 border-b border-slate-200 py-2 text-xs"><strong class="w-40 shrink-0 ${color}">${v5E(label)}:</strong><span class="flex-1 font-semibold text-slate-800">${v5E(name||'Belum Diisi')}${extra}</span></div>`;
 }
