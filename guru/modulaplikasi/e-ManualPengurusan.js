@@ -93,6 +93,10 @@ async function fiManualRequest(request) {
     let ALL_SEKSYEN = [];
     let ALL_KUMPULAN = [];
     let ALL_TAKWIM = [];
+    let ALL_DYNAMIC_GROUPS = [];
+    let DG_SETUP = false;
+    let DG_EDIT_ID = '';
+    let DG_EXPECTED_TS = '';
     let MANUAL_V4_EFFECTIVE_DATE = '';
     let MANUAL_V4_REASON = '';
 
@@ -118,22 +122,16 @@ async function fiManualRequest(request) {
     window.addEventListener('beforeunload',e=>{if(MANUAL_V3_DIRTY){e.preventDefault();e.returnValue='';}});
 
 
-    const SPECIAL_GROUPS = [
-      { ID_Staf: 'GRP001', Nama_Penuh: 'Semua Guru' },
-      { ID_Staf: 'GRP002', Nama_Penuh: 'Semua Ketua Panitia' },
-      { ID_Staf: 'GRP003', Nama_Penuh: 'Semua Guru Mata Pelajaran' },
-      { ID_Staf: 'GRP004', Nama_Penuh: 'Semua Guru Kelas' },
-      { ID_Staf: 'GRP005', Nama_Penuh: 'Semua Guru Bertugas Mingguan' },
-      { ID_Staf: 'GRP006', Nama_Penuh: 'Semua Guru Bilik Khas' }
-    ];
+    // Diisi daripada Tetapan_Kumpulan_Dinamik (Google Sheets), bukan hardcoded.
+    const SPECIAL_GROUPS = [];
 
     function populateDropdownTahunAuto() {
       const sel = document.getElementById('selTahunAktif');
       if (!sel) return;
 
       const currentYear = new Date().getFullYear();
-      const baseYear = 2027;
-      const targetMaxYear = Math.max(baseYear + 1, currentYear + 1);
+      const baseYear = 2026;
+      const targetMaxYear = Math.max(2027, currentYear + 1);
 
       let html = '';
       for (let y = baseYear; y <= targetMaxYear; y++) {
@@ -249,7 +247,7 @@ async function fiManualRequest(request) {
     function manualV3ScopeIds(scopes){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year() && String(p.Status||'Aktif').toLowerCase()==='aktif' && scopes.includes(String(p.Nama_Jawatankuasa||''))).map(p=>String(p.ID_Peranan||'')).sort();}
     function manualV3CurrentRoles(){return ALL_PERANAN.filter(p=>String(p.Tahun||'')===manualV3Year()&&String(p.Status||'Aktif').toLowerCase()==='aktif');}
     function manualV3ActiveStaff(){return ALL_STAF.filter(s=>String(s.Status||'').toLowerCase()==='aktif');}
-    function manualV3StaffName(id){ const g=ALL_STAF.find(s=>s.ID_Staf===id);return g?g.Nama_Penuh:id; }
+    function manualV3StaffName(id){ const g=ALL_STAF.find(s=>s.ID_Staf===id)||SPECIAL_GROUPS.find(s=>s.ID_Staf===id);const group=ALL_DYNAMIC_GROUPS.find(x=>x.ID_Kumpulan===id);return g?g.Nama_Penuh:group?group.Nama_Kumpulan:id; }
     function manualV3Audit(roles=manualV3CurrentRoles()){
       const issues=[]; const byStaf=new Map(ALL_STAF.map(s=>[s.ID_Staf,s]));
       const live=new Set(manualV3ActiveStaff().map(s=>s.ID_Staf));
@@ -261,7 +259,7 @@ async function fiManualRequest(request) {
         const jk=String(p.Nama_Jawatankuasa||p.nama_jawatankuasa||'');
         const role=String(p.Peranan||p.peranan||'');
         const skop=String(p.Skop_Tugas_Kelas||p.skop_tugas_kelas||'');
-        if(!byStaf.has(id)&&!/^GRP00[1-6]$/.test(id))issues.push({level:'error',topic:'Rujukan staf',message:`ID ${id} tidak ditemui dalam Master_Staf (${jk}).`});
+        if(!byStaf.has(id)&&!ALL_DYNAMIC_GROUPS.some(g=>g.ID_Kumpulan===id))issues.push({level:'error',topic:'Rujukan staf',message:`ID ${id} tidak ditemui dalam Master_Staf (${jk}).`});
         else if(byStaf.has(id)&&!live.has(id))issues.push({level:'error',topic:'Staf tidak aktif',message:`${manualV3StaffName(id)} masih memegang tugas ${role} — ${jk}.`});
         const key=[id,jk,role,skop].join('|').toLowerCase();
         if(duplicate.has(key))issues.push({level:'warning',topic:'Rekod berganda',message:`${manualV3StaffName(id)} mempunyai rekod berulang dalam ${jk} / ${role}.`});
@@ -456,6 +454,7 @@ async function fiManualRequest(request) {
             <span>Pengurusan Master Jawatankuasa</span>
           </button>
 
+          <button onclick="showView('viewDynamicGroups',event)" id="sideDynamicGroups" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-users-gear w-4 text-center text-emerald-400"></i><span>Tetapan Kumpulan Dinamik</span></button>
           <button onclick="v4OpenCatalog('lokasi')" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-sliders w-4 text-center text-cyan-400"></i><span>Tetapan Data Induk</span></button>
           <button onclick="v4OpenOrder()" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-arrow-down-wide-short w-4 text-center text-amber-400"></i><span>Susunan JK & Seksyen</span></button>
           <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pengurusan Operasi</div>
@@ -1193,6 +1192,120 @@ async function fiManualRequest(request) {
       });
     }
 
+
+    function dgEsc(v){return String(v===null||v===undefined?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+    function dgSyncDropdownGroups(){
+      SPECIAL_GROUPS.splice(0,SPECIAL_GROUPS.length,...ALL_DYNAMIC_GROUPS
+        .filter(g=>String(g.Status||'').toLowerCase()==='aktif' && (g.Sesi==='SEMUA'||String(g.Sesi)===manualV3Year()))
+        .map(g=>({ID_Staf:g.ID_Kumpulan,Nama_Penuh:g.Nama_Kumpulan})));
+    }
+    function dgSelected(el){return [...(el?.selectedOptions||[])].map(o=>o.value).filter(Boolean);}
+    function dgSetSelected(id,values){const el=document.getElementById(id),wanted=new Set(String(values||'').split(/[|,;\n]/).map(x=>x.trim()));if(el)[...el.options].forEach(opt=>opt.selected=wanted.has(opt.value));}
+    function dgOptions(){
+      const id=DG_EDIT_ID;
+      const groups=ALL_DYNAMIC_GROUPS.filter(g=>g.ID_Kumpulan!==id&&(g.Sesi==='SEMUA'||String(g.Sesi)===manualV3Year()));
+      for(const key of ['dgRefs','dgExcludeRefs']){
+        const el=document.getElementById(key);if(!el)continue;
+        const selected=dgSelected(el);el.innerHTML=groups.map(g=>`<option value="${dgEsc(g.ID_Kumpulan)}">${dgEsc(g.Nama_Kumpulan)} (${dgEsc(g.ID_Kumpulan)})</option>`).join('');dgSetSelected(key,selected.join('|'));
+      }
+      const staf=ALL_STAF.filter(g=>String(g.Status||'').trim().toLowerCase()==='aktif').sort((a,b)=>String(a.Nama_Penuh||'').localeCompare(String(b.Nama_Penuh||''),'ms'));
+      for(const key of ['dgManualAdd','dgManualExclude']){
+        const el=document.getElementById(key);if(!el)continue;const selected=dgSelected(el);
+        el.innerHTML=staf.map(g=>`<option value="${dgEsc(g.ID_Staf)}">${dgEsc(g.Nama_Penuh)} (${dgEsc(g.Kategori_Staf)})</option>`).join('');dgSetSelected(key,selected.join('|'));
+      }
+    }
+    function dgRender(){
+      const list=document.getElementById('dgGroupList');if(!list)return;
+      document.getElementById('dgSetupBtn')?.classList.toggle('hidden',DG_SETUP);
+      document.getElementById('dgSetupNote').textContent=DG_SETUP?
+        'Definisi kumpulan disimpan dalam Tetapan_Kumpulan_Dinamik (Google Sheets).':
+        'Sheet tetapan belum diwujudkan. Klik Sediakan Tetapan sebelum menyimpan.';
+      dgSyncDropdownGroups();
+      const all=ALL_DYNAMIC_GROUPS.filter(g=>g.Sesi==='SEMUA'||String(g.Sesi)===manualV3Year());
+      list.innerHTML=all.length?all.map(g=>`<button type="button" class="dg-list-item ${g.ID_Kumpulan===DG_EDIT_ID?'dg-selected':''}" onclick="dgEdit('${dgEsc(g.ID_Kumpulan)}')">
+        <span class="font-bold">${dgEsc(g.Nama_Kumpulan)}</span><span class="dg-itemmeta">${dgEsc(g.ID_Kumpulan)} · ${dgEsc(g.Jenis_Sumber)} · ${dgEsc(g.Status)}</span></button>`).join(''):
+        '<p class="text-xs text-slate-500">Tiada kumpulan untuk sesi ini.</p>';
+      dgOptions();
+      const date=document.getElementById('dgPreviewDate'), year=manualV3Year();
+      if(date && (!date.value || date.value.slice(0,4)!==year)){
+        const today=new Date(),local=new Date(today.getTime()+8*60*60*1000).toISOString().slice(0,10);
+        date.value=local.slice(0,4)===year?local:year+'-01-15';
+      }
+    }
+    window.dgNew=function(){
+      DG_EDIT_ID='';DG_EXPECTED_TS='';
+      for(const k of ['Name','Condition','Start','End','ExcludeCategory'])document.getElementById('dg'+k).value='';
+      document.getElementById('dgSesi').value=manualV3Year();
+      document.getElementById('dgStatus').value='Aktif';document.getElementById('dgSource').value='SEMUA_GURU';
+      for(const key of ['dgRefs','dgExcludeRefs','dgManualAdd','dgManualExclude'])dgSetSelected(key,'');
+      document.getElementById('dgFormTitle').textContent='Cipta Kumpulan Baharu';
+      document.getElementById('dgPreviewResult').textContent='Simpan kumpulan terlebih dahulu untuk pratonton.';
+      dgSourceChange();dgRender();
+    };
+    window.dgEdit=function(id){
+      const g=ALL_DYNAMIC_GROUPS.find(x=>x.ID_Kumpulan===id);if(!g)return;
+      DG_EDIT_ID=id;DG_EXPECTED_TS=String(g.Timestamp_Kemaskini||'');
+      const m={Name:g.Nama_Kumpulan,Condition:g.Nilai_Syarat,Start:g.Tarikh_Mula,End:g.Tarikh_Tamat,ExcludeCategory:g.Kecuali_Kategori,
+        Sesi:g.Sesi,Status:g.Status,Source:g.Jenis_Sumber};
+      Object.entries(m).forEach(([k,v])=>{const el=document.getElementById('dg'+k);if(el)el.value=String(v||'');});
+      dgOptions();dgSetSelected('dgRefs',g.Kumpulan_Rujukan);dgSetSelected('dgExcludeRefs',g.Kumpulan_Dikecualikan);
+      dgSetSelected('dgManualAdd',g.Tambah_ID_Staf);dgSetSelected('dgManualExclude',g.Kecuali_ID_Staf);
+      document.getElementById('dgFormTitle').textContent='Kemaskini '+g.Nama_Kumpulan+' · '+id;
+      dgSourceChange();dgRender();
+    };
+    window.dgSourceChange=function(){
+      const kind=document.getElementById('dgSource')?.value||'';
+      const condition=document.getElementById('dgCondition');const wrap=document.getElementById('dgConditionWrap');
+      if(!condition||!wrap)return;
+      wrap.classList.toggle('hidden',['SEMUA_GURU','GABUNGAN','MANUAL'].includes(kind));
+      const hints=document.getElementById('dgConditionHints');
+      let values=[];
+      if(kind==='KATEGORI_STAF')values=[...new Set(ALL_STAF.map(x=>x.Kategori_Staf).filter(Boolean))];
+      if(kind==='PERANAN')values=[...new Set(ALL_PERANAN.map(x=>x.Peranan).filter(Boolean)),'Guru Kelas','Ketua Panitia'];
+      if(kind==='JAWATANKUASA')values=[...new Set(ALL_JAWATANKUASA.map(x=>x.Nama_Jawatankuasa).filter(Boolean)),'Pengurusan Kelas'];
+      if(kind==='JADUAL_SUBJEK')values=ALL_SUBJEK.map(x=>x.Kod_Subjek).filter(Boolean);
+      hints.innerHTML=values.map(v=>`<option value="${dgEsc(v)}"></option>`).join('');
+      condition.placeholder=kind==='JADUAL_SUBJEK'?'Contoh: PMZ':kind==='PERANAN'?'Contoh: Guru Kelas':kind==='KATEGORI_STAF'?'Contoh: Guru Akademik | Guru BNK':'Contoh: Panitia Muzik';
+    };
+    window.dgSetup=async function(){
+      const confirm=await Swal.fire({title:'Sediakan helaian kumpulan?',text:'Hanya dua sheet baharu akan disediakan. Enam kumpulan sedia ada dipindahkan sebagai definisi awal.',icon:'question',showCancelButton:true,confirmButtonText:'Sediakan',cancelButtonText:'Batal'});
+      if(!confirm.isConfirmed)return;
+      showLoader('Menyediakan kumpulan dinamik…');
+      try{const r=await postToBackend({action:'fiDynamicSetup',data:{}});if(!r.success)throw Error(r.error||'Gagal');DG_SETUP=true;ALL_DYNAMIC_GROUPS=r.data||[];dgRender();dgNew();Swal.fire('Berjaya',r.message||'Kumpulan tersedia','success');}
+      catch(err){Swal.fire('Ralat',String(err.message||err),'error');}finally{hideLoader();}
+    };
+    window.dgSave=async function(){
+      if(!DG_SETUP){Swal.fire('Belum disediakan','Sila tekan Sediakan Tetapan dalam Sheets dahulu.','warning');return;}
+      const get=k=>document.getElementById('dg'+k)?.value||'';
+      const data={ID_Kumpulan:DG_EDIT_ID,Expected_Timestamp:DG_EXPECTED_TS,Nama_Kumpulan:get('Name').trim(),Sesi:get('Sesi'),Status:get('Status'),Jenis_Sumber:get('Source'),Nilai_Syarat:get('Condition').trim(),
+        Tarikh_Mula:get('Start'),Tarikh_Tamat:get('End'),Kumpulan_Rujukan:dgSelected(document.getElementById('dgRefs')).join('|'),
+        Kumpulan_Dikecualikan:dgSelected(document.getElementById('dgExcludeRefs')).join('|'),
+        Tambah_ID_Staf:dgSelected(document.getElementById('dgManualAdd')).join('|'),
+        Kecuali_ID_Staf:dgSelected(document.getElementById('dgManualExclude')).join('|'),Kecuali_Kategori:get('ExcludeCategory')};
+      if(!data.Nama_Kumpulan){Swal.fire('Nama diperlukan','Sila isi nama kumpulan.','warning');return;}
+      const confirm=await Swal.fire({title:'Simpan kumpulan dinamik?',text:'Perubahan definisi akan mempengaruhi senarai ahli semasa apabila modul lain menggunakan kumpulan ini.',showCancelButton:true,icon:'warning',confirmButtonText:'Simpan',cancelButtonText:'Batal'});
+      if(!confirm.isConfirmed)return;
+      showLoader('Menyimpan tetapan kumpulan…');
+      try{const r=await postToBackend({action:'fiDynamicSave',data});if(!r.success)throw Error(r.error||'Gagal menyimpan');
+        const list=await postToBackend({action:'fiDynamicList',data:{}});if(!list.success)throw Error(list.error||'Gagal menyegarkan senarai');
+        ALL_DYNAMIC_GROUPS=list.data||[];DG_SETUP=!!list.setup;dgEdit(r.id);dgSyncDropdownGroups();populateDropdownGuru();
+        Swal.fire('Berjaya','Kumpulan disimpan. Gunakan Pratonton Keahlian untuk menguji.','success');
+      }catch(e){Swal.fire('Gagal Simpan',String(e.message||e),'error');}finally{hideLoader();}
+    };
+    window.dgPreview=async function(){
+      if(!DG_EDIT_ID){Swal.fire('Pilih kumpulan','Simpan atau pilih kumpulan dahulu.','info');return;}
+      const yr=manualV3Year(),date=document.getElementById('dgPreviewDate')?.value;
+      if(!date||date.slice(0,4)!==yr){Swal.fire('Tarikh tidak sepadan','Tarikh pratonton mesti dalam sesi '+yr+'.','warning');return;}
+      const box=document.getElementById('dgPreviewResult');box.textContent='Mendapatkan ahli…';
+      try{
+        const r=await postToBackend({action:'fiDynamicPreview',data:{id:DG_EDIT_ID,sesi:yr,tarikh:date}});
+        if(!r.success)throw Error(r.error||'Gagal');
+        const note=(r.catatan||[]).map(x=>`<p class="dg-warning">${dgEsc(x)}</p>`).join('');
+        box.innerHTML=`<p class="font-extrabold mb-3">${r.jumlah} ahli bagi ${dgEsc(date)} ${r.rasmi===false?'· PRATONTON BELUM RASMI':''}</p>${note}`+
+          (r.members?.length?`<div class="dg-member-grid">${r.members.map(m=>`<div class="dg-member"><b>${dgEsc(m.Nama_Penuh)}</b><small>${dgEsc(m.ID_Staf)} · ${dgEsc(m.Kategori_Staf)}</small></div>`).join('')}</div>`:'<p>Tiada ahli yang memenuhi syarat pada tarikh ini.</p>');
+      }catch(e){box.textContent=String(e.message||e);}
+    };
+
     async function fetchMasterStafData() {
       showLoader('Menyediakan maklumat pengurusan terkini…');
       try {
@@ -1210,6 +1323,9 @@ async function fiManualRequest(request) {
           ALL_TAKWIM = res.takwim || [];
           ALL_MINGGU = res.mingguSekolah || [];
           ALL_BUKU = res.kandunganBuku || [];
+          ALL_DYNAMIC_GROUPS = res.kumpulanDinamik || [];
+          DG_SETUP = res.kumpulanDinamikSiap === true;
+          dgSyncDropdownGroups();
           v4RenderCatalog();v4RenderCalendar();
 
         } else { throw new Error(res?.error || 'Backend tidak memulangkan data lengkap.'); }
@@ -1229,6 +1345,7 @@ async function fiManualRequest(request) {
       
       hydrateStateFromPerananData();
       renderPengurusanSekolahTables();
+      dgRender();
     }
 
     function toggleMobileSidebar() {
@@ -1236,7 +1353,7 @@ async function fiManualRequest(request) {
     }
 
     function showView(viewId, evt = null) {
-      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print', 'viewV5BookEditor'];
+      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print', 'viewV5BookEditor', 'viewDynamicGroups'];
       views.forEach(v => {
         const el = document.getElementById(v);
         if (el) el.classList.add('hidden');
@@ -1258,6 +1375,7 @@ async function fiManualRequest(request) {
       if (viewId === 'viewDashboard') bTxt.innerText = 'Dashboard Utama';
       else if (viewId === 'viewAuditPeranan') {bTxt.innerText = 'Pusat Semakan & Analitik'; renderAuditPerananV3();}
       else if (viewId === 'viewProfilStaf') bTxt.innerText = 'Profil Guru & AKP';
+      else if (viewId === 'viewDynamicGroups') {bTxt.innerText='Tetapan Kumpulan Dinamik'; dgRender();}
       else if (viewId === 'viewPengurusanJawatankuasa') bTxt.innerText = 'Pengurusan Master Jawatankuasa';
       else if (viewId === 'viewPengurusanSekolah') bTxt.innerText = 'Pengurusan Sekolah';
       else if (viewId === 'viewIndukOverview') bTxt.innerText = `JK Induk ${activeCategoryInduk}`;
@@ -2724,7 +2842,7 @@ function v5RenderDashboard(){const box=document.getElementById('v5BookCards');if
 window.v5OpenBookSection=function(slug){V5_BOOK_SLUG=slug;const spec=V5_BOOK_SECTIONS.find(x=>x[0]===slug)||[slug,slug],record=v5BookRecord(slug)||{};showView('viewV5BookEditor');document.getElementById('v5BookTitle').innerText=spec[1];document.getElementById('v5BookText').value=record.Kandungan||'';document.getElementById('v5BookStatus').value=record.Status||'Draf';document.getElementById('v5BookYear').innerText=manualV3Year();};
 window.v5SaveBookSection=async function(){const spec=V5_BOOK_SECTIONS.find(x=>x[0]===V5_BOOK_SLUG);if(!spec)return;const payload={Tahun:manualV3Year(),Slug:spec[0],Tajuk:spec[1],Kandungan:document.getElementById('v5BookText').value,Status:document.getElementById('v5BookStatus').value,Susunan:spec[3]};showLoader('Menyimpan kandungan buku…');try{const r=await postToBackend({action:'saveManualV5Book',data:payload});if(!r.success)throw Error(r.error||'Gagal');const idx=ALL_BUKU.findIndex(x=>String(x.Tahun)===payload.Tahun&&x.Slug===payload.Slug);if(idx>=0)ALL_BUKU[idx]={...ALL_BUKU[idx],...payload};else ALL_BUKU.push(payload);v5RenderDashboard();showView('viewDashboard');Swal.fire('Berjaya','Kandungan ini digunakan terus untuk cetakan buku Manual Pengurusan.','success');}catch(e){Swal.fire('Gagal',e.message,'error');}finally{hideLoader();}};
 const v5OldYearChange=window.onChangeTahunAktif;
-window.onChangeTahunAktif=async function(){await v5OldYearChange();v5RenderDashboard();v4RenderCalendar();};
+window.onChangeTahunAktif=async function(){await v5OldYearChange();v5RenderDashboard();v4RenderCalendar();dgSyncDropdownGroups();dgRender();dgNew();};
 // Sync frontend globals from consolidated API response without a separate network call.
 const v5OldFetch=window.fetchMasterStafData;
 window.fetchMasterStafData=async function(){await v5OldFetch();v5RenderDashboard();v4RenderCalendar();};

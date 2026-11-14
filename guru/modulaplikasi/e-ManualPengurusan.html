@@ -36,7 +36,7 @@
 
   <!-- V5.3: jadual takwim penuh tanpa tatal mendatar; komponen lain tidak disentuh -->
   
-  <link rel="stylesheet" href="e-ManualPengurusan-Desktop.css?v=fi1">
+  <link rel="stylesheet" href="e-ManualPengurusan-Desktop.css?v=dg1">
 </head>
 <body class="min-h-screen flex text-slate-800 bg-slate-100">
 
@@ -245,6 +245,78 @@
             </table>
           </div>
         </div>
+      </div>
+
+
+      <!-- Tetapan Kumpulan Dinamik — desktop sahaja; definisi di Google Sheets -->
+      <div id="viewDynamicGroups" class="hidden space-y-5">
+        <div class="dg-head rounded-2xl px-6 py-5">
+          <div class="flex flex-wrap justify-between items-center gap-4">
+            <div><p class="dg-eyebrow">PENGURUSAN DATA INDUK</p><h2 class="text-xl font-extrabold">Tetapan Kumpulan Dinamik</h2>
+              <p class="text-xs mt-2 text-slate-600">Kumpulan merujuk kepada kategori staf, pelantikan, jawatankuasa, jadual waktu atau gabungan kumpulan.</p></div>
+            <button id="dgSetupBtn" onclick="dgSetup()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold">Sediakan Tetapan dalam Sheets</button>
+          </div>
+          <p id="dgSetupNote" class="text-xs mt-3 text-amber-700"></p>
+        </div>
+        <div class="dg-layout">
+          <section class="dg-panel">
+            <div class="flex items-center justify-between gap-3 mb-3">
+              <h3 class="font-bold text-sm">Senarai Kumpulan</h3>
+              <button onclick="dgNew()" class="rounded-lg bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 text-xs font-bold">+ Kumpulan</button>
+            </div>
+            <div id="dgGroupList" class="space-y-2"></div>
+          </section>
+          <section class="dg-panel">
+            <h3 id="dgFormTitle" class="font-extrabold text-sm">Cipta / Kemas Kini Kumpulan</h3>
+            <p class="text-xs text-slate-500 mt-1">Kumpulan tidak memberi akses pentadbir. Keahlian dikira daripada data rasmi pada tarikh rujukan.</p>
+            <div class="dg-form">
+              <label>Nama kumpulan <input id="dgName" maxlength="110" placeholder="Contoh: Semua Guru Kelas"/></label>
+              <div class="dg-two">
+                <label>Sesi <select id="dgSesi"><option value="SEMUA">Semua Sesi</option><option value="2026">2026</option><option value="2027">2027</option></select></label>
+                <label>Status <select id="dgStatus"><option>Aktif</option><option>Tidak Aktif</option></select></label>
+              </div>
+              <label>Sumber keahlian
+                <select id="dgSource" onchange="dgSourceChange()">
+                  <option value="SEMUA_GURU">Semua guru (kecuali GB/GPK/AKP)</option>
+                  <option value="KATEGORI_STAF">Kategori staf</option>
+                  <option value="PERANAN">Pelantikan / Peranan_Staf</option>
+                  <option value="JAWATANKUASA">Ahli jawatankuasa</option>
+                  <option value="JADUAL_SUBJEK">Guru mata pelajaran (jadual waktu)</option>
+                  <option value="GABUNGAN">Gabungan kumpulan</option>
+                  <option value="MANUAL">Pilihan ahli manual</option>
+                </select>
+              </label>
+              <label id="dgConditionWrap">Nilai syarat / kod subjek
+                <input id="dgCondition" list="dgConditionHints" placeholder="Contoh: Guru Kelas / PMZ"/>
+                <datalist id="dgConditionHints"></datalist>
+                <span class="dg-help">Untuk beberapa pilihan, pisahkan dengan tanda |. Contoh: Guru Akademik | Guru BNK.</span>
+              </label>
+              <div class="dg-two">
+                <label>Tarikh mula (pilihan) <input id="dgStart" type="date"/></label>
+                <label>Tarikh tamat (pilihan) <input id="dgEnd" type="date"/></label>
+              </div>
+              <div class="dg-two">
+                <label>Gabungkan kumpulan <select multiple id="dgRefs" size="4"></select><span class="dg-help">Ctrl + klik untuk pilih lebih daripada satu.</span></label>
+                <label>Kecualikan kumpulan <select multiple id="dgExcludeRefs" size="4"></select><span class="dg-help">Keahlian kumpulan yang dipilih akan ditolak.</span></label>
+              </div>
+              <div class="dg-two">
+                <label>Tambah staf secara khusus <select id="dgManualAdd" multiple size="5"></select></label>
+                <label>Kecualikan staf <select id="dgManualExclude" multiple size="5"></select></label>
+              </div>
+              <label>Kecualikan kategori staf <input id="dgExcludeCategory" placeholder="Contoh: Guru Besar | GPK Pentadbiran"/></label>
+              <p class="dg-help">Senarai ahli boleh berubah. Rekod kumpulan disimpan dalam Sheets; sejarah pindaan direkod berasingan.</p>
+              <div class="flex flex-wrap gap-2"><button onclick="dgSave()" class="bg-emerald-700 text-white rounded-xl px-5 py-2.5 text-xs font-bold">Simpan Kumpulan</button>
+                <button onclick="dgNew()" class="border rounded-xl px-5 py-2.5 text-xs font-bold">Kosongkan</button></div>
+            </div>
+          </section>
+        </div>
+        <section class="dg-panel">
+          <div class="flex flex-wrap justify-between gap-3 items-end"><div><h3 class="font-extrabold text-sm">Pratonton Keahlian</h3>
+            <p class="text-xs text-slate-500">Mengikut sesi dan tarikh dipilih. Tidak menyimpan pelantikan baharu.</p></div>
+            <div class="flex gap-2 items-end"><label class="dg-date-label">Tarikh rujukan <input id="dgPreviewDate" type="date"/></label>
+            <button onclick="dgPreview()" class="bg-slate-900 text-white rounded-xl px-4 py-2.5 text-xs font-bold">Semak Ahli</button></div></div>
+          <div id="dgPreviewResult" class="mt-4 text-xs text-slate-600">Pilih kumpulan dan klik Semak Ahli.</div>
+        </section>
       </div>
 
       <!-- ================= 3. MASTER JAWATANKUASA ================= -->
@@ -807,6 +879,6 @@
 
   
 
-  <script src="e-ManualPengurusan.js?v=fi1"></script>
+  <script src="e-ManualPengurusan.js?v=dg1"></script>
 </body>
 </html>

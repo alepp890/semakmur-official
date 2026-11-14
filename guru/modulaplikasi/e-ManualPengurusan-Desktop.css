@@ -54,3 +54,25 @@ body { background-color: #f1f5f9; font-family: 'Inter', sans-serif; color: #3341
 
 /* Access restriction on narrow screens: never render the management interface. */
 @media(max-width:767px){body>*:not(#global-loader){display:none!important}}
+
+
+/* Kumpulan Dinamik: desktop management only. */
+.dg-head{background:linear-gradient(120deg,#fff7f8 0%,#f9fafb 100%);border:1px solid #e2e8f0}
+.dg-eyebrow{font-size:10px;font-weight:800;letter-spacing:.08em;color:#be123c}
+.dg-layout{display:grid;grid-template-columns:minmax(230px,1fr) minmax(450px,2.1fr);gap:16px;align-items:start}
+.dg-panel{background:white;border:1px solid #e2e8f0;border-radius:16px;padding:20px;box-shadow:0 2px 7px rgba(15,23,42,.025)}
+.dg-list-item{display:flex;flex-direction:column;gap:5px;text-align:left;width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:12px;color:#334155;background:#fff;line-height:1.4}
+.dg-list-item:hover,.dg-list-item.dg-selected{border-color:#fda4af;background:#fff1f2}
+.dg-itemmeta{font-size:10px;color:#64748b}
+.dg-form{display:grid;gap:12px;margin-top:16px}
+.dg-form label,.dg-date-label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#334155}
+.dg-form input,.dg-form select,.dg-date-label input{border:1px solid #cbd5e1;border-radius:10px;background:white;color:#0f172a;min-height:38px;padding:8px 10px;font:inherit;font-weight:500;width:100%}
+.dg-form select[multiple]{height:auto;min-height:102px;padding:4px 6px}
+.dg-form select[multiple] option{padding:7px;border-radius:5px}
+.dg-two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dg-help{font-size:11px;line-height:1.5;color:#64748b;font-weight:400}
+.dg-warning{border:1px solid #fcd34d;background:#fffbeb;padding:10px;border-radius:10px;margin:9px 0;color:#92400e;line-height:1.5}
+.dg-member-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.dg-member{display:flex;flex-direction:column;border:1px solid #e2e8f0;border-radius:9px;padding:10px;gap:4px}
+.dg-member b{font-size:12px;color:#0f172a}.dg-member small{font-size:10px;color:#64748b}
+@media(max-width:1100px){.dg-layout{grid-template-columns:1fr}}
