@@ -1787,88 +1787,99 @@ async function fiManualRequest(request) {
       renderMasterStafTable(kat);
     }
 
-    function openDetailGuruModal(idStaf) {
-      currentDetailStafId = idStaf;
-      const staf = ALL_STAF.find(s => s.ID_Staf === idStaf);
-      if (!staf) return;
-
-      document.getElementById('dtlNamaGuru').innerText = staf.Nama_Penuh;
-      document.getElementById('dtlSubTitle').innerText = `${staf.ID_Staf} • ${staf.Kategori_Staf || '-'}`;
-      document.getElementById('dtlGred').innerText = staf.Gred_Jawatan || '-';
-      document.getElementById('dtlOpsyen').innerText = staf.Opsyen_Utama || '-';
-      document.getElementById('dtlTelefon').innerText = staf.No_Telefon || '-';
-
-      const isAktif = String(staf.Status || 'Aktif').trim().toLowerCase() === 'aktif';
-      const badgeEl = document.getElementById('dtlStatusBadge');
-      if (isAktif) {
-        badgeEl.className = "font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200";
-        badgeEl.innerText = "Aktif";
-      } else {
-        badgeEl.className = "font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200";
-        badgeEl.innerText = "Tidak Aktif";
-      }
-
-      const currentYear = document.getElementById('selTahunAktif')?.value || '2026';
-      const listPerananStaf = ALL_PERANAN.filter(p => 
-        (p.ID_Staf || p.id_staf) === idStaf && 
-        String(p.Status || 'Aktif').toLowerCase() === 'aktif' &&
-        String(p.Tahun || '2027') === currentYear
-      );
-
-      const isKetuaPanitia = listPerananStaf.some(p => String(p.Peranan || '').toLowerCase().includes('ketua panitia'));
-
-      const specialGroupIds = ['GRP001'];
-      if (isKetuaPanitia) specialGroupIds.push('GRP002');
-
-      const groupPerananList = ALL_PERANAN.filter(p => 
-        specialGroupIds.includes(p.ID_Staf || p.id_staf) && 
-        String(p.Status || 'Aktif').toLowerCase() === 'aktif' &&
-        String(p.Tahun || '2027') === currentYear
-      );
-
-      const tbody = document.getElementById('tbodyDetailPeranan');
-      tbody.innerHTML = '';
-      let count = 0;
-
-      listPerananStaf.forEach(p => {
-        count++;
-        const tugasKhasTxt = (p.Skop_Tugas_Kelas && p.Skop_Tugas_Kelas !== p.Nama_Jawatankuasa) 
-          ? `<br><span class="text-[10px] font-bold text-rose-600"><i class="fa-solid fa-tag mr-1"></i>Tugas Khas: ${p.Skop_Tugas_Kelas}</span>` 
-          : '';
-
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="table-cell-std text-center font-bold text-slate-400">${count}</td>
-            <td class="table-cell-std font-extrabold text-slate-800">${p.Nama_Jawatankuasa || p.nama_jawatankuasa || '-'}</td>
-            <td class="table-cell-std font-bold text-rose-600">${p.Peranan || p.peranan || '-'}${tugasKhasTxt}</td>
-            <td class="table-cell-std"><span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Individu / Direct</span></td>
-          </tr>
-        `;
-      });
-
-      groupPerananList.forEach(p => {
-        count++;
-        const grpObj = SPECIAL_GROUPS.find(g => g.ID_Staf === (p.ID_Staf || p.id_staf));
-        const grpLabel = grpObj ? grpObj.Nama_Penuh : 'Kumpulan Khas';
-
-        tbody.innerHTML += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="table-cell-std text-center font-bold text-slate-400">${count}</td>
-            <td class="table-cell-std font-extrabold text-slate-800">${p.Nama_Jawatankuasa || p.nama_jawatankuasa || '-'}</td>
-            <td class="table-cell-std font-bold text-purple-700">${p.Peranan || p.peranan || '-'}</td>
-            <td class="table-cell-std"><span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-purple-50 text-purple-700 border border-purple-200">Sebab (${grpLabel})</span></td>
-          </tr>
-        `;
-      });
-
-      if (count === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="table-cell-std text-center text-slate-400 italic">Tiada peranan jawatankuasa dijumpai untuk sesi ${currentYear}.</td></tr>`;
-      }
-
-      document.getElementById('modal-detail-guru').classList.remove('hidden');
+    // Pelantikan profil = individu + keahlian kumpulan yang DISAHKAN backend.
+    // Date defaults to today for current session, otherwise early session date.
+    let manualProfileRequestNo = 0;
+    function manualProfileDate_(year){
+      const now=new Date();
+      const parts=Object.fromEntries(new Intl.DateTimeFormat('en-GB',{
+        timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'
+      }).formatToParts(now).filter(p=>p.type!=='literal').map(p=>[p.type,p.value]));
+      const today=`${parts.year}-${parts.month}-${parts.day}`;
+      return String(year)===parts.year?today:String(year)+'-01-15';
     }
-
-    function closeDetailGuruModal() {
+    async function openDetailGuruModal(idStaf) {
+      const seq=++manualProfileRequestNo;
+      currentDetailStafId=idStaf;
+      const staf=ALL_STAF.find(s=>s.ID_Staf===idStaf);
+      if(!staf)return;
+      document.getElementById('dtlNamaGuru').innerText=staf.Nama_Penuh;
+      document.getElementById('dtlSubTitle').innerText=`${staf.ID_Staf} • ${staf.Kategori_Staf||'-'}`;
+      document.getElementById('dtlGred').innerText=staf.Gred_Jawatan||'-';
+      document.getElementById('dtlOpsyen').innerText=staf.Opsyen_Utama||'-';
+      document.getElementById('dtlTelefon').innerText=staf.No_Telefon||'-';
+      const aktif=String(staf.Status||'Aktif').trim().toLowerCase()==='aktif';
+      const badge=document.getElementById('dtlStatusBadge');
+      badge.className=aktif?
+        'font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200':
+        'font-extrabold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200';
+      badge.innerText=aktif?'Aktif':'Tidak Aktif';
+      const year=manualV3Year(),tarikh=manualProfileDate_(year);
+      const direct=ALL_PERANAN.filter(p=>
+        String(p.ID_Staf||p.id_staf||'')===idStaf&&
+        String(p.Status||'Aktif').trim().toLowerCase()==='aktif'&&
+        String(p.Tahun||'')===year);
+      const tbody=document.getElementById('tbodyDetailPeranan');
+      const esc=dgEsc;
+      const key=p=>[p.Kategori_Pengurusan||'',p.JK_Induk||'',p.Nama_Jawatankuasa||p.nama_jawatankuasa||'',p.Peranan||p.peranan||'']
+        .map(x=>String(x).trim().toLowerCase()).join('|');
+      const existing=new Set(direct.map(key));
+      let count=0;
+      tbody.innerHTML=direct.map(p=>{
+        count++;
+        const skop=String(p.Skop_Tugas_Kelas||'').trim();
+        const tugas=skop&&skop!==String(p.Nama_Jawatankuasa||'').trim()?
+          `<br><span class="text-[10px] font-bold text-rose-600"><i class="fa-solid fa-tag mr-1"></i>Tugas Khas: ${esc(skop)}</span>`:'';
+        return `<tr class="hover:bg-slate-50 transition">
+          <td class="table-cell-std text-center font-bold text-slate-400">${count}</td>
+          <td class="table-cell-std font-extrabold text-slate-800">${esc(p.Nama_Jawatankuasa||p.nama_jawatankuasa||'-')}</td>
+          <td class="table-cell-std font-bold text-rose-600">${esc(p.Peranan||p.peranan||'-')}${tugas}</td>
+          <td class="table-cell-std"><span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">Individu / Direct</span></td>
+        </tr>`;
+      }).join('');
+      const loading=document.createElement('tr');
+      loading.id='manualProfileGroupState';
+      loading.innerHTML=`<td colspan="4" class="table-cell-std text-center text-slate-500 text-xs">Menyemak pelantikan kumpulan dinamik pada ${esc(tarikh)}…</td>`;
+      tbody.appendChild(loading);
+      document.getElementById('modal-detail-guru').classList.remove('hidden');
+      try{
+        const response=await postToBackend({action:'fiDynamicProfile',data:{idStaf,sesi:year,tarikh}});
+        if(!response?.success)throw Error(response?.error||'Tidak dapat membaca keahlian kumpulan.');
+        if(seq!==manualProfileRequestNo||currentDetailStafId!==idStaf||
+          document.getElementById('modal-detail-guru').classList.contains('hidden'))return;
+        loading.remove();
+        let groupCount=0;
+        (response.peranan||[]).forEach(p=>{
+          if(existing.has(key(p)))return; // prevent double row/merit implication for same role
+          existing.add(key(p));count++;groupCount++;
+          const skop=String(p.Skop_Tugas_Kelas||'').trim();
+          const tugas=skop&&skop!==String(p.Nama_Jawatankuasa||'').trim()?
+            `<br><span class="text-[10px] font-bold text-purple-700">${esc(skop)}</span>`:'';
+          const groups=(p.kumpulan||[]).map(g=>esc(g.nama||g.id)).join(', ');
+          const notOfficial=(p.kumpulan||[]).some(g=>g.belumRasmi);
+          const row=document.createElement('tr');row.className='hover:bg-slate-50 transition';
+          row.innerHTML=`<td class="table-cell-std text-center font-bold text-slate-400">${count}</td>
+            <td class="table-cell-std font-extrabold text-slate-800">${esc(p.Nama_Jawatankuasa||'-')}</td>
+            <td class="table-cell-std font-bold text-purple-700">${esc(p.Peranan||'-')}${tugas}</td>
+            <td class="table-cell-std"><span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-purple-50 text-purple-700 border border-purple-200">Kumpulan Dinamik: ${groups}</span>
+              ${notOfficial?'<div class="mt-1 text-[10px] text-amber-700">Jadual waktu: pratonton belum disahkan</div>':''}</td>`;
+          tbody.appendChild(row);
+        });
+        const problems=response.pending||[],notes=response.catatan||[];
+        if(!count){tbody.innerHTML=`<tr><td colspan="4" class="table-cell-std text-center text-slate-400 italic">Tiada peranan dijumpai untuk sesi ${esc(year)} pada ${esc(tarikh)}.</td></tr>`;}
+        if(problems.length){
+          const row=document.createElement('tr');row.innerHTML=`<td colspan="4" class="table-cell-std text-xs text-amber-700">Sebahagian kumpulan belum dapat disemak: ${problems.map(x=>esc(x.id)+': '+esc(x.error)).join('; ')}</td>`;tbody.appendChild(row);
+        }
+        if(groupCount && notes.length){
+          const row=document.createElement('tr');row.innerHTML=`<td colspan="4" class="table-cell-std text-xs text-amber-700">${notes.map(esc).join(' · ')}</td>`;tbody.appendChild(row);
+        }
+      }catch(error){
+        if(seq!==manualProfileRequestNo||currentDetailStafId!==idStaf)return;
+        loading.innerHTML=`<td colspan="4" class="table-cell-std text-center text-amber-700 text-xs">Pelantikan individu dipaparkan. Semakan kumpulan belum berjaya: ${esc(error.message||error)}. Semak versi Apps Script Fi.</td>`;
+      }
+    }
+    function closeDetailGuruModal(){
+      manualProfileRequestNo++;currentDetailStafId='';
       document.getElementById('modal-detail-guru').classList.add('hidden');
     }
 
