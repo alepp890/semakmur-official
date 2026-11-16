@@ -1434,6 +1434,7 @@ async function fiManualRequest(request) {
           ALL_DYNAMIC_GROUPS = res.kumpulanDinamik || [];
           DG_SETUP = res.kumpulanDinamikSiap === true;
           V65_LABELS = Array.isArray(res.labelPaparanJk) ? res.labelPaparanJk : [];
+          V66_LINKS = Array.isArray(res.rujukanSilangJk) ? res.rujukanSilangJk : [];
           dgSyncDropdownGroups();
           v4RenderCatalog();v4RenderCalendar();
 
@@ -2046,7 +2047,7 @@ async function fiManualRequest(request) {
       document.getElementById('jk_Seksyen_Baharu').value = '';
       document.getElementById('jk_ID_Tugasan').dataset.isNew='true';
       
-      onCategoryChangeInModal();v4FillSeksyen();
+      onCategoryChangeInModal();v4FillSeksyen();v66CrossFormInit('');
       document.getElementById('jk_Susunan').value=ALL_JAWATANKUASA.length+1;document.getElementById('jk_Unit_Penyelia').value='Pentadbiran';
       document.getElementById('modal-jawatankuasa').classList.remove('hidden');
     }
@@ -2075,6 +2076,7 @@ async function fiManualRequest(request) {
       if (el) el.value = item.Peranan || item.peranan || 'Penyelaras';
 
       document.getElementById('modal-jawatankuasa').classList.remove('hidden');
+      v66CrossFormInit(idTugasan);
     }
 
     async function simpanMasterJawatankuasa(e) {
@@ -2093,6 +2095,9 @@ async function fiManualRequest(request) {
         is_new: document.getElementById('jk_ID_Tugasan').dataset.isNew==='true'
       };
 
+      let crossLinks;
+      try{crossLinks=v66CrossPayload();}
+      catch(ex){Swal.fire('Semak Paparan Induk Lain',String(ex.message||ex),'warning');return;}
       const newSection=document.getElementById('jk_Seksyen_Baharu').value.trim();
       if(newSection)payload.seksyen=newSection;
       closeModalJawatankuasa();
@@ -2104,12 +2109,21 @@ async function fiManualRequest(request) {
           if(!savedSection.success)throw Error(savedSection.error||'Tidak dapat mencipta seksyen baharu.');
         }
         const res = await postToBackend({ action: 'saveMasterJawatankuasaV2', data: payload });
-        hideLoader();
         if (res && res.success) {
-          Swal.fire('Berjaya!', res.message, 'success');
-          fetchMasterStafData();
+          const savedId=String(res.id||payload.id_tugasan);
+          let linkRes;
+          try{linkRes=await postToBackend({action:'manualV66CrossSave',data:{ID_Tugasan:savedId,Sesi:manualV3Year(),Paparan:crossLinks}});}
+          catch(err){linkRes={success:false,error:String(err.message||err)};}
+          await fetchMasterStafData();
+          hideLoader();
+          if(!linkRes?.success){
+            Swal.fire('Jawatankuasa telah disimpan, tetapi rujukan silang gagal',String(linkRes?.error||'Ralat backend rujukan silang. Sila buka semula Edit dan cuba Simpan.'),'warning');
+          }else{
+            Swal.fire('Berjaya!',res.message+' Paparan induk tambahan turut dikemas kini.','success');
+          }
         } else {
-          Swal.fire('Ralat', res.error || 'Gagal menyimpan.', 'error');
+          hideLoader();
+          Swal.fire('Ralat', res?.error || 'Gagal menyimpan.', 'error');
         }
       } catch (err) {
         hideLoader();
@@ -2921,6 +2935,86 @@ window.v5SetSubEditMode=function(edit){const root=document.querySelector('#viewS
 window.v5CancelSub=function(){openSubJkDetail(activeCategoryInduk,activeSubJkName);};
 const v5OldSaveSub=window.simpanDetailSubJk;
 window.simpanDetailSubJk=async function(){const lead=document.getElementById('selSubPenyelaras')?.value,ajk=[...document.querySelectorAll('#containerAjkRows select[data-ajk-select="true"]')].map(s=>s.value).filter(Boolean);if(lead&&ajk.includes(lead)){Swal.fire('Pengagihan bertindih','Penyelaras tidak boleh menjadi AJK dalam jawatankuasa yang sama.','warning');return;}if(new Set(ajk).size!==ajk.length){Swal.fire('AJK berulang','Seorang guru hanya boleh dimasukkan sekali sebagai AJK bagi jawatankuasa yang sama.','warning');return;}await v5OldSaveSub();};
+// V6.6 — Pengurusan paparan silang: satu JK rasmi, banyak paparan induk, tiada pelantikan baharu.
+let V66_LINKS=[];
+let V66_FORM_LINKS=[];
+const V66_UNITS=['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'];
+function v66Sections(unit){return ALL_SEKSYEN.filter(s=>String(s.Kategori_Pengurusan)===unit&&v5Active(s)).sort((a,b)=>(Number(a.Susunan)||999)-(Number(b.Susunan)||999));}
+function v66CrossFormInit(jkId){
+ V66_FORM_LINKS=jkId?V66_LINKS.filter(r=>String(r.ID_Tugasan)===String(jkId)&&String(r.Sesi)===manualV3Year()).map(r=>({...r})):[];
+ v66RenderFormCross();
+}
+function v66CrossAdd(){
+ const home=document.getElementById('jk_Kategori_Pengurusan')?.value;
+ const used=new Set(V66_FORM_LINKS.map(x=>x.Induk_Sasaran));
+ const possible=V66_UNITS.filter(unit=>unit!==home&&!used.has(unit)&&v66Sections(unit).length);
+ if(!possible.length){Swal.fire('Tiada induk sasaran tersedia','Induk sasaran memerlukan sekurang-kurangnya satu seksyen aktif. Daftar seksyen dahulu melalui Tetapan Data Induk.','info');return;}
+ const target=possible[0];V66_FORM_LINKS.push({Induk_Sasaran:target,Seksyen_Sasaran:v66Sections(target)[0].Nama_Seksyen,Label_Paparan:''});
+ v66RenderFormCross();
+}
+function v66CrossRemove(i){V66_FORM_LINKS.splice(i,1);v66RenderFormCross();}
+function v66CrossSelectTarget(i,val){
+ const unit=String(val||'');V66_FORM_LINKS[i].Induk_Sasaran=unit;
+ V66_FORM_LINKS[i].Seksyen_Sasaran=v66Sections(unit)[0]?.Nama_Seksyen||'';
+ v66RenderFormCross();
+}
+function v66CrossSelectSection(i,val){V66_FORM_LINKS[i].Seksyen_Sasaran=String(val||'');}
+function v66CrossEditLabel(i,val){V66_FORM_LINKS[i].Label_Paparan=String(val||'');}
+function v66RenderFormCross(){
+ const box=document.getElementById('v66CrossRows');if(!box)return;
+ const home=document.getElementById('jk_Kategori_Pengurusan')?.value;
+ const note=document.getElementById('v66CrossNotice');
+ if(note)note.textContent='Rujukan silang untuk sesi '+manualV3Year()+'. Tidak mewujudkan pelantikan atau mata merit kedua.';
+ box.innerHTML=V66_FORM_LINKS.map((row,i)=>{
+  const options=V66_UNITS.filter(unit=>unit!==home).map(unit=>`<option value="${v5E(unit)}" ${unit===row.Induk_Sasaran?'selected':''}>JK Induk ${v5E(unit)}</option>`).join('');
+  const sections=v66Sections(row.Induk_Sasaran);
+  const secs=sections.map(s=>`<option value="${v5E(s.Nama_Seksyen)}" ${s.Nama_Seksyen===row.Seksyen_Sasaran?'selected':''}>${v5E(s.Nama_Seksyen)}</option>`).join('');
+  return `<div class="border rounded-xl bg-white p-3 space-y-2"><div class="flex gap-2 items-center justify-between"><b class="text-xs text-slate-700">Paparan tambahan ${i+1}</b><button type="button" onclick="v66CrossRemove(${i})" class="text-rose-700 text-[11px] font-bold border border-rose-200 px-2 py-1 rounded-lg">Buang</button></div><label class="block text-[11px] font-bold text-slate-600">JK Induk sasaran</label><select class="w-full border rounded-lg p-2" onchange="v66CrossSelectTarget(${i},this.value)">${options}</select><label class="block text-[11px] font-bold text-slate-600">Seksyen paparan</label><select class="w-full border rounded-lg p-2" onchange="v66CrossSelectSection(${i},this.value)">${secs||'<option value="">Tiada seksyen aktif; daftar seksyen dahulu</option>'}</select><label class="block text-[11px] font-bold text-slate-600">Label khusus dalam induk sasaran (pilihan)</label><input class="w-full border rounded-lg p-2" maxlength="140" value="${v5E(row.Label_Paparan||'')}" oninput="v66CrossEditLabel(${i},this.value)" placeholder="Contoh: Penyelaras NILAM"/></div>`;
+ }).join('')||'<p class="text-[11px] text-slate-500 italic">Tiada paparan tambahan. JK akan muncul hanya di induk asal.</p>';
+ const add=document.getElementById('v66CrossAddBtn');if(add)add.disabled=V66_FORM_LINKS.length>=3;
+}
+function v66CrossPayload(){
+ const home=document.getElementById('jk_Kategori_Pengurusan').value;
+ const used=new Set();
+ return V66_FORM_LINKS.map(row=>{
+  const target=String(row.Induk_Sasaran||'').trim(),section=String(row.Seksyen_Sasaran||'').trim(),label=String(row.Label_Paparan||'').trim();
+  if(!V66_UNITS.includes(target)||target===home)throw Error('Induk paparan tambahan mesti berbeza daripada induk asal.');
+  if(used.has(target))throw Error('Induk '+target+' dipilih lebih daripada sekali.');used.add(target);
+  if(!v66Sections(target).some(s=>s.Nama_Seksyen===section))throw Error('Sila pilih seksyen aktif bagi induk '+target+'.');
+  if(label.length>140||/[<>\x00-\x1f]/.test(label)||/^[=+\-@]/.test(label))throw Error('Label mengandungi aksara tidak dibenarkan.');
+  return {Induk_Sasaran:target,Seksyen_Sasaran:section,Label_Paparan:label};
+ });
+}
+window.v66EditCrossLabel=async function(id,target){
+ const year=manualV3Year(),current=V66_LINKS.find(x=>String(x.ID_Tugasan)===String(id)&&String(x.Sesi)===year&&x.Induk_Sasaran===target);
+ if(!current)return;
+ const j=ALL_JAWATANKUASA.find(x=>String(x.ID_Tugasan)===String(id));if(!j)return;
+ const ans=await Swal.fire({title:'Edit Label Rujukan Silang',html:`<p class="text-left text-xs text-slate-500 mb-2">Paparan JK Induk ${v5E(target)} sahaja. Nama rasmi dan pelantikan tidak berubah.</p>`,input:'text',inputValue:current.Label_Paparan||v65Label_(j),inputAttributes:{maxlength:'140'},showCancelButton:true,showDenyButton:true,confirmButtonText:'Simpan',denyButtonText:'Gunakan Label Asal',preConfirm:v=>String(v||'').trim()});
+ if(!ans.isConfirmed&&!ans.isDenied)return;
+ const label=ans.isDenied?'':String(ans.value||'').trim();
+ const links=V66_LINKS.filter(x=>String(x.ID_Tugasan)===String(id)&&String(x.Sesi)===year).map(x=>({Induk_Sasaran:x.Induk_Sasaran,Seksyen_Sasaran:x.Seksyen_Sasaran,Label_Paparan:x.Induk_Sasaran===target?label:x.Label_Paparan}));
+ try{
+  showLoader('Menyimpan label rujukan silang…');
+  const res=await postToBackend({action:'manualV66CrossSave',data:{ID_Tugasan:id,Sesi:year,Paparan:links}});
+  if(!res?.success)throw Error(res?.error||'Simpan label tidak berjaya.');
+  V66_LINKS=V66_LINKS.filter(x=>!(String(x.ID_Tugasan)===String(id)&&String(x.Sesi)===year)).concat(links.map(x=>({...x,ID_Tugasan:id,Sesi:year})));
+  renderMappingSubJkList(activeCategoryInduk);hideLoader();Swal.fire('Berjaya','Label paparan tambahan telah dikemas kini.','success');
+ }catch(ex){hideLoader();Swal.fire('Gagal Simpan Label',String(ex.message||ex),'error');}
+};
+function v66EditCrossSource(id){
+ editMasterJawatankuasa(id);
+ document.getElementById('v66CrossPanel')?.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function v66IndukEntries(cat){
+ const native=v4SortedJK(cat).map(j=>({j,section:j.Seksyen||'Belum Dikelaskan',cross:null}));
+ const cross=V66_LINKS.filter(l=>String(l.Sesi)===manualV3Year()&&String(l.Induk_Sasaran)===cat).map(l=>{
+  const j=ALL_JAWATANKUASA.find(x=>String(x.ID_Tugasan)===String(l.ID_Tugasan));
+  if(!j||String(j.Kategori_Pengurusan)===cat||!v66Sections(cat).some(s=>s.Nama_Seksyen===l.Seksyen_Sasaran))return null;
+  return {j,section:l.Seksyen_Sasaran,cross:l};
+ }).filter(Boolean);
+ return [...native,...cross].sort((a,b)=>v4SectionOrder(cat,a.section)-v4SectionOrder(cat,b.section)||Number(a.j.Susunan||999)-Number(b.j.Susunan||999)||String(a.j.Nama_Jawatankuasa).localeCompare(String(b.j.Nama_Jawatankuasa),'ms'));
+}
+
 // Isu #6.5 #6.6 — senarai penyelaras grouped by sections, tanpa skop kurungan.
 // V6.5: Induk boleh mengedit label paparan tanpa mengubah nama rasmi jawatankuasa.
 let V65_LABELS=[];
@@ -2953,15 +3047,17 @@ window.v65EditJkLabel=async function(id){
 };
 window.renderMappingSubJkList=function(cat){
  const box=document.getElementById('boxMappingSubJk');if(!box)return;
- const sections=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat&&v5Active(s)).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));
- const jks=v4SortedJK(cat);
- const names=[...new Set([...sections.map(s=>s.Nama_Seksyen),...jks.map(j=>j.Seksyen||'Belum Dikelaskan')])];
+ const sections=v66Sections(cat),entries=v66IndukEntries(cat);
+ const names=[...new Set([...sections.map(s=>s.Nama_Seksyen),...entries.map(e=>e.section)])];
  box.innerHTML=names.map(sec=>{
-   const rows=jks.filter(j=>(j.Seksyen||'Belum Dikelaskan')===sec);if(!rows.length)return '';
-   return `<div class="rounded-xl border overflow-hidden"><h4 class="bg-slate-200 text-slate-700 font-extrabold text-xs px-4 py-3">${v5E(sec)}</h4>${rows.map(j=>{
-     const role=v5RowsForJk(j.Nama_Jawatankuasa).find(r=>/penyelaras|ketua panitia/i.test(r.Peranan));
-     return `<div class="px-4 py-3 flex items-center justify-between gap-3 border-t bg-white"><div class="flex-1 min-w-0 flex items-center gap-2 flex-wrap"><span class="font-bold">${v5E(v65Label_(j))}</span><button type="button" data-id="${v5E(j.ID_Tugasan)}" onclick="v65EditJkLabel(this.dataset.id)" title="Edit label paparan" class="text-[10px] font-bold text-rose-700 border border-rose-200 hover:bg-rose-50 rounded-lg px-2 py-1"><i class="fa-solid fa-pen"></i> Edit Label</button></div><span class="font-semibold text-right ${role?'':'italic text-slate-400'}">${role?v5E(manualV3StaffName(role.ID_Staf)):'Belum Diisi'}</span></div>`;
-   }).join('')}</div>`;
+  const rows=entries.filter(e=>e.section===sec);if(!rows.length)return '';
+  return `<div class="rounded-xl border overflow-hidden"><h4 class="bg-slate-200 text-slate-700 font-extrabold text-xs px-4 py-3">${v5E(sec)}</h4>${rows.map(entry=>{
+   const j=entry.j,role=v5RowsForJk(j.Nama_Jawatankuasa).find(r=>/penyelaras|ketua panitia/i.test(r.Peranan));
+   const label=entry.cross?(entry.cross.Label_Paparan||v65Label_(j)):v65Label_(j);
+   const tag=entry.cross?`<span class="text-[10px] text-slate-500">Rujukan daripada JK Induk ${v5E(j.Kategori_Pengurusan)} · Tiada pelantikan tambahan</span>`:'';
+   const edit=entry.cross?`<button type="button" data-id="${v5E(j.ID_Tugasan)}" data-target="${v5E(cat)}" onclick="v66EditCrossLabel(this.dataset.id,this.dataset.target)" class="text-[10px] font-bold text-rose-700 border border-rose-200 rounded-lg px-2 py-1"><i class="fa-solid fa-pen"></i> Edit Label</button><button type="button" data-id="${v5E(j.ID_Tugasan)}" onclick="v66EditCrossSource(this.dataset.id)" title="Ubah paparan tambahan pada jawatankuasa asal" class="text-[10px] font-bold text-cyan-800 border border-cyan-200 hover:bg-cyan-50 rounded-lg px-2 py-1">Ubah Rujukan</button>`:`<button type="button" data-id="${v5E(j.ID_Tugasan)}" onclick="v65EditJkLabel(this.dataset.id)" title="Edit label paparan" class="text-[10px] font-bold text-rose-700 border border-rose-200 hover:bg-rose-50 rounded-lg px-2 py-1"><i class="fa-solid fa-pen"></i> Edit Label</button>`;
+   return `<div class="px-4 py-3 flex items-center justify-between gap-3 border-t bg-white"><div class="flex-1 min-w-0 flex flex-col gap-1"><div class="flex items-center gap-2 flex-wrap"><span class="font-bold">${v5E(label)}</span>${edit}</div>${tag}</div><span class="font-semibold text-right ${role?'':'italic text-slate-400'}">${role?v5E(manualV3StaffName(role.ID_Staf)):'Belum Diisi'}</span></div>`;
+  }).join('')}</div>`;
  }).join('')||'<p class="text-slate-400 italic">Tiada jawatankuasa didaftarkan.</p>';
 };
 
@@ -3599,11 +3695,12 @@ window.v4PrintManualBook=async function(){
   const v6PrintName=id=>{const group=ALL_DYNAMIC_GROUPS.find(g=>String(g.ID_Kumpulan)===String(id));return group?group.Nama_Kumpulan+' (kumpulan dinamik)':manualV3StaffName(id);};
   ['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'].forEach(cat=>{
     const jks=v4SortedJK(cat);
-    if(!jks.length)return;
+    if(!v66IndukEntries(cat).length)return;
     // V6.5: Ringkasan penyelaras induk, termasuk label khusus yang disimpan di Sheets.
-    const ringkasan=jks.map(j=>{
-      const assigned=rows.find(r=>r.Nama_Jawatankuasa===j.Nama_Jawatankuasa&&/penyelaras|ketua panitia/i.test(String(r.Peranan||'')));
-      return [v65Label_(j),assigned?v6PrintName(assigned.ID_Staf):'Belum Diisi'];
+    const ringkasan=v66IndukEntries(cat).map(entry=>{
+      const j=entry.j,assigned=rows.find(r=>r.Nama_Jawatankuasa===j.Nama_Jawatankuasa&&/penyelaras|ketua panitia/i.test(String(r.Peranan||'')));
+      const label=(entry.cross?(entry.cross.Label_Paparan||v65Label_(j)):v65Label_(j))+(entry.cross?' [Rujukan: '+j.Kategori_Pengurusan+']':'');
+      return [label,assigned?v6PrintName(assigned.ID_Staf):'Belum Diisi'];
     });
     add('Senarai Penyelaras JK Induk '+cat,'Jawatankuasa & Pelantikan',table(['Jawatan / Label Paparan','Penyandang'],ringkasan));
     jks.forEach(j=>{

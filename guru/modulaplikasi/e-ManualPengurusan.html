@@ -786,7 +786,7 @@
 
         <div>
           <label class="block font-bold mb-1 text-slate-700">Kategori Pengurusan <span class="text-rose-500">*</span></label>
-          <select id="jk_Kategori_Pengurusan" onchange="onCategoryChangeInModal();v4FillSeksyen()" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-cyan-600">
+          <select id="jk_Kategori_Pengurusan" onchange="onCategoryChangeInModal();v4FillSeksyen();v66RenderFormCross()" required class="w-full p-2.5 border border-slate-300 rounded-xl bg-slate-50 font-bold focus:outline-none focus:border-cyan-600">
             <option value="Pentadbiran">Pentadbiran</option>
             <option value="Kurikulum">Kurikulum</option>
             <option value="Hal Ehwal Murid">Hal Ehwal Murid</option>
@@ -812,6 +812,14 @@
         <div class="grid grid-cols-2 gap-3">
           <div class="hidden"><input id="jk_Susunan" type="number" value="1"/></div>
           <div><label class="block font-bold mb-1 text-slate-700">Unit Penyelia</label><select id="jk_Unit_Penyelia" class="w-full p-2.5 border rounded-xl text-xs"><option>Pentadbiran</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select></div>
+        </div>
+        <div id="v66CrossPanel" class="rounded-xl border border-cyan-200 bg-cyan-50/40 p-3 space-y-3">
+          <div class="flex items-start justify-between gap-3">
+            <div><h4 class="font-extrabold text-xs text-slate-800">Paparkan dalam JK Induk Lain <span class="text-slate-500 font-medium">(pilihan)</span></h4>
+              <p id="v66CrossNotice" class="text-[11px] text-slate-600 mt-1">Jawatankuasa kekal di induk asal. Ini hanya rujukan penyelaras.</p></div>
+            <button type="button" id="v66CrossAddBtn" onclick="v66CrossAdd()" class="shrink-0 bg-white border border-cyan-300 text-cyan-900 px-3 py-2 rounded-lg text-[11px] font-bold">+ Paparan</button>
+          </div>
+          <div id="v66CrossRows" class="space-y-3"></div>
         </div>
         <div>
           <label class="block font-bold mb-1 text-slate-700">Jawatan Pimpinan Utama <span class="text-rose-500">*</span></label>
