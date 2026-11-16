@@ -3407,18 +3407,26 @@ function v6MeritFormData(){return {
  Nama_Jawatankuasa:document.getElementById('v6MeritJk')?.value?.trim()||'*',
  Peranan:document.getElementById('v6MeritRole')?.value?.trim()||'',
  Kaedah_Padanan:document.getElementById('v6MeritMode')?.value||'TEPAT',
- Mata_Merit:Number(document.getElementById('v6MeritPoints')?.value||0),
+ Mata_Merit:document.getElementById('v6MeritPoints')?.value,
  Status:document.getElementById('v6MeritStatus')?.value||'Aktif'
 };}
-window.v6MeritNew=function(){
+function v6MeritFormScroll(){
+ const field=document.getElementById('v6MeritRole');
+ field?.closest('section')?.scrollIntoView({behavior:'smooth',block:'start'});
+ field?.focus({preventScroll:true});
+}
+window.v6MeritNew=function(scroll=false){
   const values={v6MeritId:'',v6MeritYear:manualV3Year(),v6MeritJk:'*',v6MeritRole:'',v6MeritMode:'TEPAT',v6MeritPoints:'3',v6MeritStatus:'Aktif'};
   for(const [id,v] of Object.entries(values)){const el=document.getElementById(id);if(el)el.value=v;}
+  const heading=document.getElementById('v6MeritFormHeading');if(heading)heading.textContent='Tambah Tetapan Mata Merit Baharu';
+  if(scroll)v6MeritFormScroll();
 };
 window.v6MeritEdit=function(id){
   const r=V6_MERIT_RULES.find(z=>String(z.ID_Tetapan)===String(id));if(!r)return;
   const pairs={v6MeritId:r.ID_Tetapan,v6MeritYear:r.Sesi,v6MeritJk:r.Nama_Jawatankuasa,v6MeritRole:r.Peranan,v6MeritMode:r.Kaedah_Padanan,v6MeritPoints:r.Mata_Merit,v6MeritStatus:r.Status};
   Object.entries(pairs).forEach(([k,v])=>{const el=document.getElementById(k);if(el)el.value=v;});
-  document.getElementById('v6MeritRole')?.focus();
+  const heading=document.getElementById('v6MeritFormHeading');if(heading)heading.textContent='Edit Tetapan: '+r.Peranan;
+  v6MeritFormScroll();
 };
 window.v6MeritLoad=async function(){
   const box=document.getElementById('v6MeritRules');if(box)box.innerHTML='<p class="v6-note">Memuatkan tetapan merit…</p>';
@@ -3426,25 +3434,58 @@ window.v6MeritLoad=async function(){
     const res=await postToBackend({action:'manualV6MeritRead',data:{}});
     if(!res.success)throw Error(res.error||'Tetapan merit tidak dapat dibaca.');
     V6_MERIT_RULES=res.data||[];V6_MERIT_SETUP=!!res.setup;v6MeritRenderRules();v6MeritNew();
+    V6_MERIT_PREVIEW=null;
+    const report=document.getElementById('v6MeritReport');if(report)report.innerHTML='<p class="v6-note">Klik Kira & Semak Mata untuk mendapatkan pengiraan terkini selepas perubahan tetapan.</p>';
   }catch(ex){if(box)box.textContent=String(ex.message||ex);}
 };
 function v6MeritRenderRules(){
   const box=document.getElementById('v6MeritRules');if(!box)return;
-  document.getElementById('v6MeritDraftWarning')?.classList.toggle('hidden',V6_MERIT_SETUP);
-  box.innerHTML=`<div class="overflow-x-auto"><table class="v6-table"><thead><tr><th>Peranan</th><th>Jawatankuasa</th><th>Sesi</th><th>Padanan</th><th>Mata</th><th>Status</th><th></th></tr></thead><tbody>${V6_MERIT_RULES.map(r=>`
-   <tr><td>${v6Esc(r.Peranan)}</td><td>${v6Esc(r.Nama_Jawatankuasa)}</td><td>${v6Esc(r.Sesi)}</td><td>${v6Esc(r.Kaedah_Padanan)}</td><td><strong>${v6Esc(r.Mata_Merit)}</strong></td><td>${v6Esc(r.Status)}</td><td><button type="button" onclick="v6MeritEdit('${v6Esc(r.ID_Tetapan)}')" class="v6-button-link" ${r.cadangan?'disabled':''}>Edit</button></td></tr>`).join('')}</tbody></table></div>`;
+  const hint=document.getElementById('v6MeritDraftWarning');
+  if(hint){hint.classList.toggle('hidden',V6_MERIT_SETUP);}
+  const setupBtn=document.getElementById('v6MeritInitBtn');if(setupBtn)setupBtn.classList.toggle('hidden',V6_MERIT_SETUP);
+  const rows=V6_MERIT_RULES.map(r=>{
+   const id=String(r.ID_Tetapan||''),safeId=/^MERIT[A-Z0-9]{3,32}$/.test(id)?id:'';
+   const action=safeId?`<div class="v6-merit-actions">
+    <button type="button" onclick="v6MeritEdit('${safeId}')" class="v6-button-link" title="Ubah mata atau skop">Edit</button>
+    <button type="button" onclick="v6MeritToggle('${safeId}')" class="v6-button-link v6-merit-toggle" title="Tukar status">${String(r.Status)==='Aktif'?'Nyahaktif':'Aktifkan'}</button>
+    <button type="button" onclick="v6MeritDelete('${safeId}')" class="v6-button-link v6-merit-delete" title="Padam tetapan">Padam</button>
+   </div>`:'<span class="v6-note">ID tidak sah — semak data</span>';
+   return `<tr><td>${v6Esc(r.Peranan)}</td><td>${v6Esc(r.Nama_Jawatankuasa)}</td><td>${v6Esc(r.Sesi)}</td><td>${v6Esc(r.Kaedah_Padanan)}</td><td><strong>${v6Esc(r.Mata_Merit)}</strong></td><td>${v6Esc(r.Status)}</td><td>${action}</td></tr>`;
+  }).join('');
+  box.innerHTML=`<div class="overflow-x-auto"><table class="v6-table"><thead><tr><th>Peranan</th><th>Jawatankuasa</th><th>Sesi</th><th>Padanan</th><th>Mata</th><th>Status</th><th>Tindakan</th></tr></thead><tbody>${rows||'<tr><td colspan="7" class="v6-merit-empty">Belum ada tetapan mata merit. Klik Tetapan Baharu dan masukkan jawatan yang cikgu mahu.</td></tr>'}</tbody></table></div>`;
 }
 window.v6MeritInit=async function(){
-  const a=await Swal.fire({title:'Sediakan cadangan mata merit?',text:'Nilai contoh akan disimpan dalam Google Sheets dan boleh diubah. Ini bukan dasar rasmi sehingga sekolah meluluskannya.',icon:'question',showCancelButton:true,confirmButtonText:'Teruskan',cancelButtonText:'Batal'});
+  const a=await Swal.fire({title:'Sediakan helaian merit kosong?',text:'Tiada markah contoh akan ditambah. Cikgu boleh bina semua tetapan sendiri. Data sedia ada tidak akan dipadam.',icon:'question',showCancelButton:true,confirmButtonText:'Sediakan Kosong',cancelButtonText:'Batal'});
   if(!a.isConfirmed)return;
+  showLoader('Menyediakan helaian merit…');
   try{const r=await postToBackend({action:'manualV6MeritInit',data:{}});if(!r.success)throw Error(r.error||'Gagal');await v6MeritLoad();Swal.fire('Berjaya',r.message,'success');}
-  catch(ex){Swal.fire('Gagal',String(ex.message||ex),'error');}
+  catch(ex){Swal.fire('Gagal',String(ex.message||ex),'error');}finally{hideLoader();}
 };
 window.v6MeritSave=async function(){
-  const payload=v6MeritFormData();if(!payload.Peranan)return Swal.fire('Maklumat belum lengkap','Masukkan nama Peranan.','warning');
+  const payload=v6MeritFormData();
+  if(!payload.Peranan)return Swal.fire('Maklumat belum lengkap','Masukkan nama peranan.','warning');
+  if(String(payload.Mata_Merit).trim()===''||!Number.isFinite(Number(payload.Mata_Merit)))return Swal.fire('Mata tidak sah','Masukkan nombor mata merit, contohnya 3 atau 4.5.','warning');
   showLoader('Menyimpan peraturan merit…');
   try{const r=await postToBackend({action:'manualV6MeritSave',data:payload});if(!r.success)throw Error(r.error||'Gagal');await v6MeritLoad();Swal.fire('Berjaya',r.message,'success');}
   catch(ex){Swal.fire('Gagal Simpan',String(ex.message||ex),'error');}finally{hideLoader();}
+};
+window.v6MeritToggle=async function(id){
+  const r=V6_MERIT_RULES.find(z=>String(z.ID_Tetapan)===String(id));if(!r)return;
+  const next=String(r.Status)==='Aktif'?'Tidak Aktif':'Aktif';
+  const a=await Swal.fire({title:next==='Aktif'?'Aktifkan merit ini?':'Nyahaktifkan merit ini?',text:r.Peranan+' — '+r.Nama_Jawatankuasa+'. Pelantikan guru tidak berubah.',icon:'question',showCancelButton:true,confirmButtonText:next==='Aktif'?'Aktifkan':'Nyahaktifkan',cancelButtonText:'Batal'});
+  if(!a.isConfirmed)return;
+  showLoader('Mengemaskini status merit…');
+  try{const payload={ID_Tetapan:r.ID_Tetapan,Sesi:r.Sesi,Nama_Jawatankuasa:r.Nama_Jawatankuasa,Peranan:r.Peranan,Kaedah_Padanan:r.Kaedah_Padanan,Mata_Merit:r.Mata_Merit,Status:next};
+    const out=await postToBackend({action:'manualV6MeritSave',data:payload});if(!out.success)throw Error(out.error||'Tidak berjaya');await v6MeritLoad();Swal.fire('Berjaya','Status merit dikemas kini.','success');}
+  catch(ex){Swal.fire('Gagal',String(ex.message||ex),'error');}finally{hideLoader();}
+};
+window.v6MeritDelete=async function(id){
+  const r=V6_MERIT_RULES.find(z=>String(z.ID_Tetapan)===String(id));if(!r)return;
+  const a=await Swal.fire({title:'Padam tetapan mata merit?',text:r.Peranan+' ('+r.Nama_Jawatankuasa+') akan dibuang daripada tetapan merit. Pelantikan guru dan jawatankuasa tidak dipadam. Rekod audit akan disimpan.',icon:'warning',showCancelButton:true,confirmButtonText:'Ya, Padam',cancelButtonText:'Batal',focusCancel:true});
+  if(!a.isConfirmed)return;
+  showLoader('Memadam tetapan merit…');
+  try{const out=await postToBackend({action:'manualV6MeritDelete',data:{ID_Tetapan:id}});if(!out.success)throw Error(out.error||'Tidak berjaya');await v6MeritLoad();Swal.fire('Berjaya',out.message,'success');}
+  catch(ex){Swal.fire('Gagal Padam',String(ex.message||ex),'error');}finally{hideLoader();}
 };
 window.v6MeritPreview=async function(){
  const year=manualV3Year(),date=document.getElementById('v6MeritDate')?.value||year+'-12-31';
