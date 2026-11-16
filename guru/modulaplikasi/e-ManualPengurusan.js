@@ -481,6 +481,7 @@ async function fiManualRequest(request) {
 
           <button onclick="v4OpenCalendar()" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-calendar-days w-4 text-center text-violet-400"></i><span>Takwim & Program</span></button>
           <button onclick="showView('viewV4Print')" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-book-open w-4 text-center text-emerald-400"></i><span>Cetak Buku Manual</span></button>
+          <button onclick="v65OpenBlankPrint()" class="nav-btn w-full text-left flex gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-file-lines w-4 text-center text-amber-400"></i><span>Borang Agihan JK (Kosong)</span></button>
           <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-rose-400 uppercase tracking-wider">Jawatankuasa Induk</div>
 
           <button onclick="openCategoryMenu('Pentadbiran')" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
@@ -1432,6 +1433,7 @@ async function fiManualRequest(request) {
           ALL_BUKU = res.kandunganBuku || [];
           ALL_DYNAMIC_GROUPS = res.kumpulanDinamik || [];
           DG_SETUP = res.kumpulanDinamikSiap === true;
+          V65_LABELS = Array.isArray(res.labelPaparanJk) ? res.labelPaparanJk : [];
           dgSyncDropdownGroups();
           v4RenderCatalog();v4RenderCalendar();
 
@@ -1460,7 +1462,7 @@ async function fiManualRequest(request) {
     }
 
     function showView(viewId, evt = null) {
-      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print', 'viewV5BookEditor', 'viewDynamicGroups', 'viewMeritPelantikan'];
+      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print', 'viewV5BookEditor', 'viewDynamicGroups', 'viewMeritPelantikan', 'viewV65Blank'];
       views.forEach(v => {
         const el = document.getElementById(v);
         if (el) el.classList.add('hidden');
@@ -1484,6 +1486,7 @@ async function fiManualRequest(request) {
       else if (viewId === 'viewProfilStaf') bTxt.innerText = 'Profil Guru & AKP';
       else if (viewId === 'viewDynamicGroups') {bTxt.innerText='Tetapan Kumpulan Dinamik'; dgRender();}
       else if (viewId === 'viewMeritPelantikan') bTxt.innerText='Mata Merit Pelantikan';
+      else if (viewId === 'viewV65Blank') bTxt.innerText='Borang Agihan JK (Kosong)';
       else if (viewId === 'viewPengurusanJawatankuasa') bTxt.innerText = 'Pengurusan Master Jawatankuasa';
       else if (viewId === 'viewPengurusanSekolah') bTxt.innerText = 'Pengurusan Sekolah';
       else if (viewId === 'viewIndukOverview') bTxt.innerText = `JK Induk ${activeCategoryInduk}`;
@@ -2919,7 +2922,49 @@ window.v5CancelSub=function(){openSubJkDetail(activeCategoryInduk,activeSubJkNam
 const v5OldSaveSub=window.simpanDetailSubJk;
 window.simpanDetailSubJk=async function(){const lead=document.getElementById('selSubPenyelaras')?.value,ajk=[...document.querySelectorAll('#containerAjkRows select[data-ajk-select="true"]')].map(s=>s.value).filter(Boolean);if(lead&&ajk.includes(lead)){Swal.fire('Pengagihan bertindih','Penyelaras tidak boleh menjadi AJK dalam jawatankuasa yang sama.','warning');return;}if(new Set(ajk).size!==ajk.length){Swal.fire('AJK berulang','Seorang guru hanya boleh dimasukkan sekali sebagai AJK bagi jawatankuasa yang sama.','warning');return;}await v5OldSaveSub();};
 // Isu #6.5 #6.6 — senarai penyelaras grouped by sections, tanpa skop kurungan.
-window.renderMappingSubJkList=function(cat){const box=document.getElementById('boxMappingSubJk');if(!box)return;const sections=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat&&v5Active(s)).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));const jks=v4SortedJK(cat);const names=[...new Set([...sections.map(s=>s.Nama_Seksyen),...jks.map(j=>j.Seksyen||'Belum Dikelaskan')])];box.innerHTML=names.map(sec=>{const rows=jks.filter(j=>(j.Seksyen||'Belum Dikelaskan')===sec);if(!rows.length)return '';return `<div class="rounded-xl border overflow-hidden"><h4 class="bg-slate-200 text-slate-700 font-extrabold text-xs px-4 py-3">${v5E(sec)}</h4>${rows.map(j=>{const role=v5RowsForJk(j.Nama_Jawatankuasa).find(r=>/penyelaras|ketua panitia/i.test(r.Peranan));return `<div class="px-4 py-3 flex justify-between gap-4 border-t bg-white"><span class="font-bold">${v5E(j.Peranan||'Penyelaras')} ${v5E(j.Nama_Jawatankuasa)}</span><span class="font-semibold text-right ${role?'':'italic text-slate-400'}">${role?v5E(manualV3StaffName(role.ID_Staf)):'Belum Diisi'}</span></div>`;}).join('')}</div>`;}).join('')||'<p class="text-slate-400 italic">Tiada jawatankuasa didaftarkan.</p>';};
+// V6.5: Induk boleh mengedit label paparan tanpa mengubah nama rasmi jawatankuasa.
+let V65_LABELS=[];
+function v65AutoLabel_(j){
+ const role=String(j.Peranan||'Penyelaras').trim();
+ let name=String(j.Nama_Jawatankuasa||'').trim().replace(/^(Jawatankuasa|JK)\s+/i,'');
+ if(/^ketua\s+panitia/i.test(role))name=name.replace(/^(Panitia|Pantitia)\s+/i,'');
+ return (role+' '+name).replace(/\s+/g,' ').trim();
+}
+function v65Label_(j){
+ const row=V65_LABELS.find(r=>String(r.ID_Tugasan)===String(j.ID_Tugasan)&&String(r.Sesi)===manualV3Year());
+ return String(row?.Label_Paparan||'').trim()||v65AutoLabel_(j);
+}
+window.v65EditJkLabel=async function(id){
+ const j=ALL_JAWATANKUASA.find(x=>String(x.ID_Tugasan)===String(id));if(!j)return;
+ const initial=V65_LABELS.find(x=>String(x.ID_Tugasan)===String(id)&&String(x.Sesi)===manualV3Year());
+ const ans=await Swal.fire({title:'Edit Label Paparan JK Induk',html:`<div class="text-left text-xs text-slate-600 mb-2"><strong>Nama rasmi:</strong> ${manualV3Escape(j.Nama_Jawatankuasa)}<br>Label hanya digunakan untuk paparan JK Induk dan cetakan. Pelantikan tidak berubah.</div>`,input:'text',inputValue:initial?.Label_Paparan||v65AutoLabel_(j),inputAttributes:{maxlength:'140'},showCancelButton:true,confirmButtonText:'Simpan Label',cancelButtonText:'Batal',showDenyButton:true,denyButtonText:'Pulihkan Automatik',preConfirm:v=>String(v||'').trim()});
+ if(!ans.isConfirmed&&!ans.isDenied)return;
+ const label=ans.isDenied?'':String(ans.value||'').trim();
+ try{
+   showLoader('Menyimpan label JK Induk…');
+   const res=await postToBackend({action:'manualV65LabelSave',data:{ID_Tugasan:id,Sesi:manualV3Year(),Label_Paparan:label}});
+   if(!res||!res.success)throw Error(res?.error||'Gagal menyimpan label.');
+   V65_LABELS=V65_LABELS.filter(x=>!(String(x.ID_Tugasan)===String(id)&&String(x.Sesi)===manualV3Year()));
+   V65_LABELS.push({ID_Tugasan:id,Sesi:manualV3Year(),Label_Paparan:label});
+   renderMappingSubJkList(activeCategoryInduk);
+   hideLoader();
+   Swal.fire('Berjaya',label?'Label paparan dikemas kini.':'Label automatik dipulihkan.','success');
+ }catch(ex){hideLoader();Swal.fire('Ralat',String(ex.message||ex),'error');}
+};
+window.renderMappingSubJkList=function(cat){
+ const box=document.getElementById('boxMappingSubJk');if(!box)return;
+ const sections=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat&&v5Active(s)).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));
+ const jks=v4SortedJK(cat);
+ const names=[...new Set([...sections.map(s=>s.Nama_Seksyen),...jks.map(j=>j.Seksyen||'Belum Dikelaskan')])];
+ box.innerHTML=names.map(sec=>{
+   const rows=jks.filter(j=>(j.Seksyen||'Belum Dikelaskan')===sec);if(!rows.length)return '';
+   return `<div class="rounded-xl border overflow-hidden"><h4 class="bg-slate-200 text-slate-700 font-extrabold text-xs px-4 py-3">${v5E(sec)}</h4>${rows.map(j=>{
+     const role=v5RowsForJk(j.Nama_Jawatankuasa).find(r=>/penyelaras|ketua panitia/i.test(r.Peranan));
+     return `<div class="px-4 py-3 flex items-center justify-between gap-3 border-t bg-white"><div class="flex-1 min-w-0 flex items-center gap-2 flex-wrap"><span class="font-bold">${v5E(v65Label_(j))}</span><button type="button" data-id="${v5E(j.ID_Tugasan)}" onclick="v65EditJkLabel(this.dataset.id)" title="Edit label paparan" class="text-[10px] font-bold text-rose-700 border border-rose-200 hover:bg-rose-50 rounded-lg px-2 py-1"><i class="fa-solid fa-pen"></i> Edit Label</button></div><span class="font-semibold text-right ${role?'':'italic text-slate-400'}">${role?v5E(manualV3StaffName(role.ID_Staf)):'Belum Diisi'}</span></div>`;
+   }).join('')}</div>`;
+ }).join('')||'<p class="text-slate-400 italic">Tiada jawatankuasa didaftarkan.</p>';
+};
+
 // Isu #7 — susun JK di bawah seksyen yang jelas, drag/drop, dirty state.
 window.v4DrawOrder=function(){const cat=document.getElementById('v4OrderCategory')?.value||'Pentadbiran';if(cat!==V4_ORDER_CATEGORY){V4_ORDER_CATEGORY=cat;V4_ORDER_DRAFT=v4SortedJK(cat).map(x=>({...x}));V5_ORDER_DIRTY=false;}const box=document.getElementById('v4OrderList');if(!box)return;const secs=ALL_SEKSYEN.filter(s=>s.Kategori_Pengurusan===cat&&v5Active(s)).sort((a,b)=>Number(a.Susunan||999)-Number(b.Susunan||999));const names=[...new Set([...secs.map(s=>s.Nama_Seksyen),...V4_ORDER_DRAFT.map(j=>j.Seksyen||'Belum Dikelaskan')])];box.innerHTML=names.map(sec=>{const rows=V4_ORDER_DRAFT.filter(j=>(j.Seksyen||'Belum Dikelaskan')===sec);return `<div class="bg-white border rounded-xl mb-4 overflow-hidden"><div class="bg-slate-100 p-3 font-extrabold text-xs">${v5E(sec)} <span class="text-slate-400 font-normal">(${rows.length})</span></div><div class="p-2 space-y-2" data-v5-group="${v5E(sec)}">${rows.map(j=>`<div draggable="true" data-v5-jkid="${v5E(j.ID_Tugasan)}" ondragstart="v5JkDrag(event)" ondragover="event.preventDefault()" ondrop="v5JkDrop(event)" class="flex flex-wrap items-center gap-3 p-3 border rounded-lg"><span class="cursor-grab text-slate-500" title="Seret untuk ubah kedudukan"><i class="fa-solid fa-grip-vertical"></i></span><span class="font-bold text-xs flex-1 min-w-32">${v5E(j.Nama_Jawatankuasa)}</span><select onchange="v5MoveJkToSection(this.dataset.id,this.value)" data-id="${v5E(j.ID_Tugasan)}" class="text-xs border rounded-lg p-2"><option value="">-- Pilih seksyen --</option>${secs.map(s=>`<option value="${v5E(s.Nama_Seksyen)}" ${s.Nama_Seksyen===sec?'selected':''}>${v5E(s.Nama_Seksyen)}</option>`).join('')}</select></div>`).join('')}</div></div>`;}).join('');v5OrderState();};
 window.v5OrderState=function(){const status=document.getElementById('v5OrderStatus'),btn=document.getElementById('v5OrderSaveBtn');if(status){status.innerText=V5_ORDER_DIRTY?'● Belum disimpan':'✓ Tiada perubahan';status.className='text-xs '+(V5_ORDER_DIRTY?'text-amber-700 font-bold':'text-slate-400');}if(btn)btn.disabled=!V5_ORDER_DIRTY;};
@@ -3555,6 +3600,12 @@ window.v4PrintManualBook=async function(){
   ['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'].forEach(cat=>{
     const jks=v4SortedJK(cat);
     if(!jks.length)return;
+    // V6.5: Ringkasan penyelaras induk, termasuk label khusus yang disimpan di Sheets.
+    const ringkasan=jks.map(j=>{
+      const assigned=rows.find(r=>r.Nama_Jawatankuasa===j.Nama_Jawatankuasa&&/penyelaras|ketua panitia/i.test(String(r.Peranan||'')));
+      return [v65Label_(j),assigned?v6PrintName(assigned.ID_Staf):'Belum Diisi'];
+    });
+    add('Senarai Penyelaras JK Induk '+cat,'Jawatankuasa & Pelantikan',table(['Jawatan / Label Paparan','Penyandang'],ringkasan));
     jks.forEach(j=>{
       const assigned=rows.filter(x=>x.Nama_Jawatankuasa===j.Nama_Jawatankuasa);
       const content=`<div class="meta">${text(cat)} · ${text(j.Seksyen||cat)}</div>`+
@@ -3583,4 +3634,32 @@ window.v4PrintManualBook=async function(){
    </style></head><body><div class="tools"><div><b>Pratonton Buku Manual ${text(year)}</b> <small>· Kandungan panjang akan bersambung ke halaman seterusnya</small></div><button onclick="window.print()">Cetak / Simpan PDF</button></div>${sections.map(p=>`<section class="section ${p.klass}"><div class="section-head"><div class="school">SK SEGAMBUT MAKMUR · BUKU MANUAL ${text(year)}</div>${p.klass==='coverpage'?'':`<h2>${text(p.title)}</h2>`}</div>${p.content}</section>`).join('')}</body></html>`;
   w.document.open();w.document.write(html);w.document.close();
  }catch(ex){w.document.open();w.document.write('<!doctype html><html lang="ms"><meta charset="utf-8"><body style="font-family:Arial;padding:30px"><h2>Cetakan gagal disediakan</h2><p>'+v6Esc(ex.message||ex)+'</p></body></html>');w.document.close();Swal.fire('Ralat Cetakan',String(ex.message||ex),'error');}
+};
+
+/* V6.5: Borang pelantikan kosong — cetakan berasingan daripada Buku Manual rasmi. */
+window.v65OpenBlankPrint=function(){
+ const main=document.getElementById('v65BlankCategory');
+ if(main)main.innerHTML='<option value="">Semua JK Induk</option>'+['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'].map(x=>`<option value="${manualV3Escape(x)}">${manualV3Escape(x)}</option>`).join('');
+ showView('viewV65Blank');
+ const tx=document.getElementById('v65BlankCount');if(tx)tx.textContent=ALL_JAWATANKUASA.length+' jawatankuasa didaftarkan';
+};
+window.v65PrintBlankJk=function(){
+ const cat=document.getElementById('v65BlankCategory')?.value||'';
+ const year=manualV3Year();
+ const cats=cat?[cat]:['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'];
+ const committees=cats.flatMap(c=>v4SortedJK(c)).filter(j=>String(j.ID_Tugasan||'')&&String(j.Nama_Jawatankuasa||''));
+ if(!committees.length){Swal.fire('Tiada jawatankuasa','Sila daftarkan jawatankuasa terlebih dahulu.','info');return;}
+ const w=window.open('','_blank');if(!w){Swal.fire('Popup disekat','Benarkan popup untuk mencetak borang.','warning');return;}
+ const esc=manualV3Escape;
+ const fill=(j,i)=>{
+   const role=/ketua panitia/i.test(String(j.Peranan||''))?'Ketua Panitia':'Penyelaras';
+   const titles=[role,'Setiausaha','AJK 1','AJK 2','AJK 3'];
+   return `<section class="jk"><div class="top"><div class="over">BORANG CADANGAN PELANTIKAN • SESI ${esc(year)}</div><div class="jkname">${esc(j.Nama_Jawatankuasa)}</div><div class="meta">${esc(j.Kategori_Pengurusan||'-')} &nbsp; / &nbsp; ${esc(j.Seksyen||'Belum Dikelaskan')} &nbsp; <span class="id">${esc(j.ID_Tugasan)}</span></div></div><table><thead><tr><th class="bil">Bil</th><th class="tugas">Jawatan</th><th>Cadangan Nama Guru / Staf</th></tr></thead><tbody>${titles.map((t,n)=>`<tr><td class="bil">${n+1}</td><td>${esc(t)}</td><td>&nbsp;</td></tr>`).join('')}</tbody></table><div class="sign"><span>Disediakan / disemak oleh: _________________________</span><span>Tarikh: ______________</span></div></section>`;
+ };
+ const groups=[];for(let i=0;i<committees.length;i+=2)groups.push(committees.slice(i,i+2));
+ const body=groups.map((g,i)=>`<div class="page"><div class="pagehead">SK SEGAMBUT MAKMUR <span>RUANG PENGISIAN MANUAL • BUKAN PELANTIKAN RASMI</span></div>${g.map((j,k)=>fill(j,i*2+k)).join('')}<div class="pagefoot">Cetakan kosong dijana daripada Master_Jawatankuasa • ${esc(year)} <span>Halaman ${i+1} / ${groups.length}</span></div></div>`).join('');
+ const html=`<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Borang Kosong Agihan Jawatankuasa ${esc(year)}</title><style>
+ @page{size:A4;margin:12mm 14mm}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#1b293d;background:#eef1f5;margin:0}.toolbar{padding:12px;background:#172a37;color:white;text-align:center;position:sticky;top:0;z-index:20}.toolbar button{background:#b72d50;color:white;border:0;border-radius:8px;padding:9px 17px;font-weight:bold;cursor:pointer;margin-left:14px}.page{width:182mm;min-height:273mm;padding:7mm 7mm 6mm;background:white;margin:12px auto;box-shadow:0 3px 15px #0002;display:flex;flex-direction:column;break-after:page;page-break-after:always}.pagehead{font-size:8pt;letter-spacing:.4px;font-weight:bold;border-bottom:2px solid #23443e;padding-bottom:6px;display:flex;justify-content:space-between;gap:6px}.pagehead span{font-size:7pt;color:#6d7581;font-weight:normal}.jk{margin-top:9mm;border:1px solid #d2dce3;border-radius:7px;overflow:hidden;break-inside:avoid;page-break-inside:avoid;height:114mm}.top{padding:8px 11px 9px;background:#eff4f1}.over{font-size:7pt;letter-spacing:.5px;color:#435c52;font-weight:bold}.jkname{font-size:12.2pt;font-weight:800;margin:4px 0 3px}.meta{font-size:8pt;color:#677080}.id{float:right}table{border-collapse:collapse;width:100%;font-size:9pt}th{background:#f3f5f7;text-align:left;height:28px}th,td{border:1px solid #d5dde2;padding:6px 9px}td{height:36px}.bil{width:37px;text-align:center}.tugas{width:126px}.sign{padding:9px 10px;font-size:8pt;color:#384b57;display:flex;justify-content:space-between}.pagefoot{margin-top:auto;padding-top:6px;border-top:1px solid #d9e1e5;font-size:7.5pt;color:#6a7780;display:flex;justify-content:space-between} @media print{body{background:white}.toolbar{display:none}.page{margin:0;width:100%;min-height:0;height:273mm;padding:0;box-shadow:none;border:0;break-after:page}.page:last-child{break-after:auto}.jk{height:114mm}}
+ </style></head><body><div class="toolbar">Borang Kosong Pelantikan JK ${esc(year)} — ${committees.length} Jawatankuasa <button onclick="window.print()">Cetak / Simpan PDF</button></div>${body}</body></html>`;
+ w.document.open();w.document.write(html);w.document.close();
 };
