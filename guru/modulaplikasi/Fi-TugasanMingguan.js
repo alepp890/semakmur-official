@@ -285,7 +285,7 @@ function tm43DayCards(rows,week){
       const ended=['DIGANTI','DIBATALKAN_CUTI','DIBATALKAN','PERLU_TINDAKAN'].includes(x.status);
       return `<div class="tm43-duty ${ended?'tm43-history':''}">
         <div><strong>${tmEsc(x.taskName)}</strong><small>${tmEsc(tm43TimeLabel(x))} · Beban ${Number(x.weight)||0}</small></div>
-        <div><strong>${tmEsc(x.name||'Belum ditetapkan')}</strong>${ended?`<small>${tmEsc(x.status)} · Rekod sejarah</small>`:x.replaces?'<small>Guru pengganti</small>':''}</div>
+        <div><strong>${tmEsc(x.name||'Belum ditetapkan')}</strong>${ended?`<small>${tmEsc(x.status)} · Rekod sejarah</small>`:x.replaces?'<small>Guru pengganti</small>':''}${!ended&&/^(?:GANTI_AUTO_RINGAN|AUTO_GANDA_RINGAN)$/.test(x.method||'')?'<small>Gandingan dibenarkan dengan tugas ringan</small>':''}</div>
       </div>`;
     }).join('')||'<p class="tm43-no-duty">Tiada tugasan dijana pada hari ini. Semak sama ada hari cuti atau tetapan hari.</p>';
     return `<section class="tm43-day"><header class="tm43-day-head"><div><h3>${tmEsc(day)} <span>· ${tmFmt(date)}</span></h3><p>${tmEsc(w)}</p></div><span class="tm-tag">${n} tugas aktif</span></header><div class="tm43-duty-head"><span>Tugasan</span><span>Guru Bertugas</span></div>${lines}</section>`;
@@ -312,7 +312,8 @@ function tm4Render(schedule){
     .map(([id,v])=>`<div class="tm4-fair"><span>${tmEsc(names[id]||id)}</span><strong>${Number(v.weight)||0} mata</strong><small>Rehat: ${v.rest||0} · Berat: ${v.heavy||0} · Ringan: ${v.light||0} · Jumlah: ${v.all||0}</small></div>`).join(''):
     '<p class="tm-empty">Keadilan boleh dilihat selepas jadual dijana.</p>';
   tm$('tm4-warning').innerHTML=(w?.warnings||[]).map(x=>`<p class="tm-warning-line">${tmEsc(x)}</p>`).join('')+
-    (schedule?.alerts||[]).map(x=>`<p class="tm-warning-line"><strong>PERLU TINDAKAN:</strong> ${tmEsc(x.date)} ${tmEsc(x.from)}–${tmEsc(x.to)} ${tmEsc(x.task)} — ${tmEsc(x.reason)}</p>`).join('');
+    (schedule?.alerts||[]).map(x=>`<p class="tm-warning-line"><strong>PERLU TINDAKAN:</strong> ${tmEsc(x.date)} ${tmEsc(x.from)}–${tmEsc(x.to)} ${tmEsc(x.task)} — ${tmEsc(x.reason)}</p>`).join('')+
+    (schedule?.doubleConflicts||[]).map(x=>`<p class="tm-warning-line"><strong>TUGAS BERGANDA TIDAK SERASI:</strong> ${tmEsc(x.date)} · ${tmEsc(x.staff)} · ${tmEsc(x.task)} — ${tmEsc(x.reason)}</p>`).join('');
   tm4Message(`Status pelan: ${schedule?.status||'BELUM_JANA'}. Rujukan masa: ${schedule?.asOf||'—'}.`);
 }
 async function tm4LoadSchedule(){
