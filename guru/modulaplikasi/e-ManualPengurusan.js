@@ -3751,17 +3751,84 @@ window.v4PrintManualBook=async function(){
  }catch(ex){w.document.open();w.document.write('<!doctype html><html lang="ms"><meta charset="utf-8"><body style="font-family:Arial;padding:30px"><h2>Cetakan gagal disediakan</h2><p>'+v6Esc(ex.message||ex)+'</p></body></html>');w.document.close();Swal.fire('Ralat Cetakan',String(ex.message||ex),'error');}
 };
 
+/* V6.8 — Borang Pengurusan Sekolah kosong: enam tab, tanpa mengambil penyandang sedia ada.
+   Kelas, bilik, nama guru, kumpulan dan subjek ialah data rujukan; ruang agihan dibiarkan kosong.
+   Tiada simpanan, tiada pelantikan baharu, tiada panggilan backend. */
+function v68SchoolBlankDocs_(){
+  const active=x=>String(x.Status||'Aktif').trim().toLowerCase()==='aktif';
+  const lokasi=Array.isArray(ALL_LOKASI)?ALL_LOKASI.filter(active):[];
+  const classes=lokasi.filter(x=>String(x.Kategori||'').trim().toLowerCase()==='kelas')
+    .map(x=>String(x.Nama_Lokasi||'').trim()).filter(Boolean).sort((a,b)=>a.localeCompare(b,'ms',{numeric:true}));
+  const rooms=lokasi.filter(x=>String(x.Kategori||'').trim().toLowerCase()==='bilik khas')
+    .map(x=>String(x.Nama_Lokasi||'').trim()).filter(Boolean).sort((a,b)=>a.localeCompare(b,'ms',{numeric:true}));
+  const streams=[...new Set(classes.map(getStreamKey))].sort((a,b)=>a.localeCompare(b,'ms',{numeric:true}));
+  const teachers=getGuruTanpaPraktikalAKP().filter(active);
+  const groups=v4ActiveGroups();
+  const subjects=new Map();
+  (Array.isArray(ALL_SUBJEK)?ALL_SUBJEK:[]).filter(active).forEach(sub=>{
+    const name=String(sub.Subjek_Induk||sub['Nama_Subjek / Komponen']||'').trim();
+    if(!name)return;
+    const code=String(sub.Kod_Subjek||'').trim();
+    if(!subjects.has(name))subjects.set(name,{name,years:new Set(),code});
+    const entry=subjects.get(name);
+    v4EligibleYears(sub.Kategori_Tahap||'').forEach(y=>entry.years.add(y));
+    if(entry.code.includes('-')&&!code.includes('-'))entry.code=code;
+  });
+  const fallback=(count,cols)=>Array.from({length:count},()=>Array(cols).fill(''));
+  const entries=[];
+  entries.push({tab:'01 / 06',name:'Guru Kelas & Aliran',sub:'A. Agihan Guru Kelas dan Guru Pembantu',
+    heads:['Bil.','Kelas','Guru Kelas','Guru Pembantu'],
+    rows:classes.length?classes.map((k,i)=>[i+1,k,'','']):fallback(12,4),perPage:23});
+  entries.push({tab:'01 / 06',name:'Guru Kelas & Aliran',sub:'B. Penyelaras Aliran',
+    heads:['Bil.','Aliran','Penyelaras Aliran','Catatan'],
+    rows:streams.length?streams.map((k,i)=>[i+1,'Aliran '+k,'','']):fallback(8,4),perPage:23});
+  entries.push({tab:'02 / 06',name:'Penyelaras Bilik Khas',sub:'Agihan guru penyelaras bagi setiap bilik khas',
+    heads:['Bil.','Bilik Khas','Guru Penyelaras','Catatan'],
+    rows:rooms.length?rooms.map((k,i)=>[i+1,k,'','']):fallback(12,4),perPage:23});
+  const groupRows=[];
+  groups.forEach(g=>{
+    const name=String(g.Nama_Kumpulan||'Kumpulan '+g.Nombor_Kumpulan).trim();
+    for(let i=1;i<=6;i++)groupRows.push([groupRows.length+1,name,'Ahli '+i,'']);
+  });
+  entries.push({tab:'03 / 06',name:'Kumpulan Bertugas Mingguan',sub:'Enam ruang nama guru bagi setiap kumpulan yang didaftarkan',
+    heads:['Bil.','Kumpulan','Jawatan / Ahli','Nama Guru'],
+    rows:groupRows.length?groupRows:fallback(12,4),perPage:23});
+  entries.push({tab:'04 / 06',name:'Penghantaran e-RPH',sub:'Nama guru daripada Master_Staf; ruang pegawai penyemak kosong',
+    heads:['Bil.','Nama Guru','Pegawai Penyemak e-RPH'],
+    rows:teachers.length?teachers.map((g,i)=>[i+1,String(g.Nama_Penuh||''),'']):fallback(12,3),perPage:23});
+  entries.push({tab:'05 / 06',name:'Pencerapan PdP',sub:'Nama guru daripada Master_Staf; kedua-dua ruang pencerap kosong',
+    heads:['Bil.','Nama Guru','Pencerap 1','Pencerap 2'],
+    rows:teachers.length?teachers.map((g,i)=>[i+1,String(g.Nama_Penuh||''),'','']):fallback(12,4),perPage:23});
+  const bookRows=[];
+  [...subjects.values()].sort((a,b)=>a.name.localeCompare(b.name,'ms')).forEach(sub=>{
+    [...sub.years].sort((a,b)=>a-b).forEach(y=>bookRows.push([bookRows.length+1,sub.name+(sub.code?' ('+sub.code+')':''),'Tahun '+y,'']));
+  });
+  entries.push({tab:'06 / 06',name:'Semakan Hasil Kerja Murid',sub:'Setiap baris ialah kombinasi mata pelajaran dan tahun yang layak',
+    heads:['Bil.','Mata Pelajaran','Tahun','Pegawai Penyemak'],
+    rows:bookRows.length?bookRows:fallback(12,4),perPage:23});
+  return entries;
+}
+function v68BlankPrintCount_(){
+  const el=document.getElementById('v65BlankCount');if(!el)return;
+  const mode=document.getElementById('v65BlankCategory')?.value||'';
+  const wantSchool=mode==='__SCHOOL__'||!!document.getElementById('v68IncludeSchool')?.checked;
+  const unit=mode==='__SCHOOL__'?'':mode;
+  const jks=mode==='__SCHOOL__'?0:(unit?v4SortedJK(unit).length:ALL_JAWATANKUASA.length);
+  el.textContent=(mode==='__SCHOOL__'?'Pengurusan Sekolah sahaja':jks+' JK kecil + '+(unit?1:4)+' JK Induk')+(wantSchool?' · 6 tab Pengurusan Sekolah':'');
+}
+
 /* V6.5: Borang pelantikan kosong — cetakan berasingan daripada Buku Manual rasmi. */
 window.v65OpenBlankPrint=function(){
  const main=document.getElementById('v65BlankCategory');
- if(main)main.innerHTML='<option value="">Semua JK Induk</option>'+['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'].map(x=>`<option value="${manualV3Escape(x)}">${manualV3Escape(x)}</option>`).join('');
- showView('viewV65Blank');
- const tx=document.getElementById('v65BlankCount');if(tx)tx.textContent=ALL_JAWATANKUASA.length+' JK kecil + 4 JK Induk (mengikut pilihan cetakan)';
+ if(main)main.innerHTML='<option value="">Semua JK Induk + Pengurusan Sekolah</option>'+['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'].map(x=>`<option value="${manualV3Escape(x)}">${manualV3Escape(x)}</option>`).join('')+'<option value="__SCHOOL__">Pengurusan Sekolah sahaja (6 tab)</option>';
+ const ck=document.getElementById('v68IncludeSchool');if(ck)ck.checked=true;
+ showView('viewV65Blank');v68BlankPrintCount_();
 };
 window.v65PrintBlankJk=function(){
   const selectedUnit=document.getElementById('v65BlankCategory')?.value||'';
   const year=manualV3Year();
-  const units=selectedUnit?[selectedUnit]:['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'];
+  const includeSchool=selectedUnit==='__SCHOOL__'||!!document.getElementById('v68IncludeSchool')?.checked;
+  const units=selectedUnit==='__SCHOOL__'?[]:(selectedUnit?[selectedUnit]:['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum']);
   const esc=manualV3Escape;
   const administrator=(category)=>{
     const staff=ALL_STAF.find(x=>String(x.Kategori_Staf||'').trim()===category&&v5Active(x));
@@ -3784,7 +3851,7 @@ window.v65PrintBlankJk=function(){
     // Setiap JK Induk memulakan kumpulan halaman, bukan diselit hujung induk terdahulu.
     for(let i=0;i<section.length;i+=2)cards.push(section.slice(i,i+2));
   });
-  if(!cards.length){Swal.fire('Tiada jawatankuasa','Sila semak senarai jawatankuasa.','info');return;}
+  if(!cards.length&&!includeSchool){Swal.fire('Tiada jawatankuasa','Sila semak senarai jawatankuasa.','info');return;}
   const w=window.open('','_blank');
   if(!w){Swal.fire('Popup disekat','Benarkan popup untuk mencetak borang.','warning');return;}
   const makeCard=(item)=>{
@@ -3817,7 +3884,26 @@ window.v65PrintBlankJk=function(){
     const body=rows.map((row,index)=>`<tr><td class="num">${index+1}</td><td class="role">${esc(row.label)}</td><td class="teacher">${row.name?`<strong>${esc(row.name)}</strong>`:'&nbsp;'}</td></tr>`).join('');
     return `<section class="jk"><div class="jkhead"><div class="over">${title} • SESI ${esc(year)}</div><div class="jkname">${esc(item.name)}</div><div class="meta">${esc(info)}</div></div><table><thead><tr><th class="num">Bil.</th><th class="role">Jawatan</th><th>Nama Guru / Staf</th></tr></thead><tbody>${body}</tbody></table><div class="signature">Disemak oleh: ____________________________ <span>Tarikh: ______________</span></div></section>`;
   };
-  const pages=cards.map((group,index)=>`<main class="page"><header>SK SEGAMBUT MAKMUR <span>BORANG AGIHAN JK • BUKAN SURAT PELANTIKAN</span></header>${group.map(makeCard).join('')}<footer>Rujukan Master_Jawatankuasa &amp; Master_Staf • ${esc(year)} <span>Halaman ${index+1} / ${cards.length}</span></footer></main>`).join('');
+  // Cetakan Pengurusan Sekolah: helaian penuh dengan tugasan kosong, berasingan daripada JK.
+  const schoolPages=[];
+  if(includeSchool){
+    v68SchoolBlankDocs_().forEach(doc=>{
+      for(let off=0;off<doc.rows.length;off+=doc.perPage){
+        const part=doc.rows.slice(off,off+doc.perPage);
+        schoolPages.push({doc,part,index:Math.floor(off/doc.perPage)+1,total:Math.ceil(doc.rows.length/doc.perPage)});
+      }
+    });
+  }
+  const totalPages=cards.length+schoolPages.length;
+  const pages=[
+    ...cards.map((group,index)=>`<main class="page"><header>SK SEGAMBUT MAKMUR <span>BORANG AGIHAN JK • BUKAN SURAT PELANTIKAN</span></header>${group.map(makeCard).join('')}<footer>Rujukan Master_Jawatankuasa &amp; Master_Staf • ${esc(year)} <span>Halaman ${index+1} / ${totalPages}</span></footer></main>`),
+    ...schoolPages.map((p,index)=>{
+      const {doc,part}=p;
+      const head=`${doc.name}${p.total>1?' (sambungan '+p.index+'/'+p.total+')':''}`;
+      const rows=part.map(r=>'<tr>'+r.map((cell,i)=>`<td class="${i===0?'school-num':''}">${esc(cell)}</td>`).join('')+'</tr>').join('');
+      return `<main class="page school-page"><header>SK SEGAMBUT MAKMUR <span>BORANG PENGURUSAN SEKOLAH • BUKAN PELANTIKAN RASMI</span></header><div class="school-title"><div class="over">PENGURUSAN SEKOLAH · TAB ${esc(doc.tab)} · SESI ${esc(year)}</div><h2>${esc(head)}</h2><p>${esc(doc.sub)}</p><small>Data rujukan diambil daripada sistem. Semua ruang penugasan sengaja dikosongkan untuk diisi secara tulisan tangan.</small></div><table class="school-table"><thead><tr>${doc.heads.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table><div class="school-sign">Disediakan oleh: _________________________ &nbsp;&nbsp; Disemak oleh: _________________________ &nbsp;&nbsp; Tarikh: __________</div><footer>Rujukan Data Induk SeMAKMUR • ${esc(year)} <span>Halaman ${cards.length+index+1} / ${totalPages}</span></footer></main>`;
+    })
+  ].join('');
   const pageHtml=`<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Borang Agihan JK ${esc(year)}</title><style>
   @page{size:A4 portrait;margin:12mm 14mm}
   *{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#23303a;background:#edf1f3;margin:0}
@@ -3836,8 +3922,20 @@ window.v65PrintBlankJk=function(){
   td{height:7.8mm}.num{width:10mm;text-align:center}.role{width:54mm}.teacher strong{font-size:7.7pt;line-height:1.1}
   .signature{margin-top:auto;padding:6px 8px;font-size:7.3pt;color:#4e595d;display:flex;justify-content:space-between}
   .page footer{margin-top:auto;padding:5px 0;border-top:1px solid #d6e1dc;font-size:7.3pt;color:#65746d;display:flex;justify-content:space-between}
+  .school-page{padding:0}
+  .school-title{padding:10mm 0 5mm;border-bottom:2px solid #24453c;margin-bottom:4mm}
+  .school-title h2{font-size:15pt;margin:4mm 0 2mm;color:#243b35}
+  .school-title p{font-size:10pt;font-weight:bold;margin:0 0 2mm}
+  .school-title small{font-size:7.5pt;color:#64748b;display:block}
+  .school-table{font-size:8pt;margin:0;width:100%;table-layout:auto}
+  .school-table thead{display:table-header-group}
+  .school-table th{height:9mm;background:#e8efeb}
+  .school-table td{height:8.6mm;min-height:8.6mm;overflow-wrap:break-word}
+  .school-table th:first-child,.school-num{width:9mm;text-align:center}
+  .school-table tr{break-inside:avoid;page-break-inside:avoid}
+  .school-sign{margin-top:auto;padding:5mm 0 3mm;font-size:8pt}
   @media print{html,body{background:white}.toolbar{display:none!important}.page{width:100%;height:273mm;margin:0;box-shadow:none}.page:last-child{break-after:auto}}
-  </style></head><body><div class="toolbar">Borang Agihan JK ${esc(year)} • ${cards.length} halaman <button onclick="window.print()">Cetak / Simpan PDF</button></div>${pages}</body></html>`;
+  </style></head><body><div class="toolbar">Borang Agihan JK ${esc(year)} • ${totalPages} halaman <button onclick="window.print()">Cetak / Simpan PDF</button></div>${pages}</body></html>`;
   w.document.open();w.document.write(pageHtml);w.document.close();
 };
 
