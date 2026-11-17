@@ -39,12 +39,12 @@ async function tmRun(action,after){if(tmState.busy)return;tmBusy(true);tmNotice(
 function tmTab(name){tmState.tab=name;document.querySelectorAll('[data-tm-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tmTab===name));document.querySelectorAll('[data-tm-panel]').forEach(x=>x.hidden=x.dataset.tmPanel!==name);}
 async function tmBootstrap(){
   const result=await tmRun(()=>tmAPI('bootstrap',{year:tmState.year}));if(!result)return;
-  tmState.data=result;tm$('tm-user').textContent=result.actor?.name||tmState.user?.email||'Guru';tm$('tm-tab-settings').hidden=!result.actor?.manager;tm$('tm-preflight').hidden=!result.actor?.manager;
+  tmState.data=result;tm$('tm-user').textContent=result.actor?.name||tmState.user?.email||'Guru';tm$('tm-tab-settings').hidden=!result.actor?.manager;tm$('tm-preflight').hidden=!result.actor?.manager;tm$('tm-sim-area').hidden=!result.actor?.manager;tm$('tm4-tab').hidden=!result.actor?.manager;
   const weeks=result.weeks||[];
   if(!weeks.some(x=>x.ID_Minggu===tmState.weekId)){
     const today=tmToday();tmState.weekId=(weeks.find(x=>x.Tempoh_Mula<=today&&today<=x.Tempoh_Tamat)||weeks[0])?.ID_Minggu||'';
   }
-  tmRenderOverview();tmRenderSettings();tmSignal('semakmur-tm-ready');
+  tmRenderOverview();tmRenderSettings();if(result.actor?.manager)await tm4LoadWeeks(false);tmSignal('semakmur-tm-ready');
   if(tmState.weekId)await tmLoadDetail(false);else{tmState.detail=null;tmRenderDetail();}
 }
 function tmRenderOverview(){
@@ -159,6 +159,20 @@ async function tmSaveTime(e){e.preventDefault();const payload={id:tm$('tm-time-i
   const r=await tmRun(()=>tmAPI('upsertWindow',payload));if(r){tm$('tm-time-form').reset();tm$('tm-time-id').value='';tmNotice('Waktu tugasan disimpan.');await tmBootstrap();tmTab('settings');}}
 async function tmPreflight(){const r=await tmRun(()=>tmAPI('preflight',{year:tmState.year}));if(!r)return;
   tm$('tm-preflight-result').innerHTML=`<div class="tm-card"><h3>Semakan Kesediaan — ${tmEsc(r.status)}</h3><p>${r.rekodJadual} rekod jadual, ${r.ahli} pelantikan kumpulan, ${r.waktuTugas} tetapan waktu.</p>${(r.warnings||[]).map(x=>`<p class="tm-warning-line">${tmEsc(x)}</p>`).join('')}<strong>Agihan belum boleh diterbitkan.</strong></div>`;}
+async function tmPreviewSimulation(){
+  if(!tmManager())return tmNotice('Hanya pentadbir boleh melihat simulasi.',true);
+  const r=await tmRun(()=>tmAPI('simPreview'));
+  if(!r)return;
+  const out=tm$('tm-sim-grid');
+  const list=r.jadual||[];
+  out.innerHTML=list.length?list.map(w=>`<article class="tm-week">
+    <div class="tm-week-head"><h3>${tmEsc(w.Minggu)}</h3><span class="tm-tag">SIMULASI</span></div>
+    <p>${tmEsc(w.Nama_Kumpulan)} · ${tmFmt(w.Tempoh_Mula)} – ${tmFmt(w.Tempoh_Tamat)}</p>
+    <div class="tm-week-leader">Ketua dicadangkan: ${tmEsc(w.Nama_Ketua_Cadangan||'Belum ada pelantikan ahli')}</div>
+    <p>${tmEsc(w.Bil_Ahli_Layak)} ahli · ${tmEsc(w.Nota)}</p>
+    </article>`).join(''):'<p class="tm-empty">Tiada minggu simulasi. Jalankan FiTMSimBina8Minggu dalam Apps Script.</p>';
+  tm$('tm-sim-warning').innerHTML=(r.amaran||[]).map(x=>`<p class="tm-warning-line">${tmEsc(x)}</p>`).join('');
+}
 function tmPrint(){
   const d=tmState.detail,w=tmSelected();if(!d?.plan)return tmNotice('Pilih minggu yang telah mempunyai draf dahulu.',true);
   const sections=Object.fromEntries((tmState.data?.settings?.sections||[]).map(x=>[x.id,x.name]));
@@ -179,6 +193,103 @@ function tmPrint(){
   if(!printWindow){tmNotice('Tetingkap cetakan disekat. Benarkan pop-up untuk portal.',true);return;}
   printWindow.document.open();printWindow.document.write(html);printWindow.document.close();
 }
+
+// V4: simulation & safety-gated duty scheduler. Existing daily/weekly reports unchanged.
+const tm4GetMode=()=>tm$('tm4-mode').value;
+const tm4Input=()=>({mode:tm4GetMode(),weekId:tm$('tm4-week').value,asOf:tm$('tm4-asof').value,year:tmState.year});
+function tm4Message(message,bad=false){
+  const box=tm$('tm4-status');box.textContent=message||'';box.classList.toggle('tm4-error',bad);
+}
+async function tm4LoadWeeks(loadSchedule=true){
+  if(!tmManager())return;
+  const mode=tm4GetMode(),sel=tm$('tm4-week'),old=sel.value;
+  let weeks=[];
+  if(mode==='SIMULASI'){
+    const data=await tmRun(()=>tmAPI('tm4SimList'));
+    if(!data)return;
+    weeks=(data.weeks||[]).map(w=>({id:w.id,label:w.label,from:w.from,to:w.to,group:w.group}));
+  }else{
+    weeks=(tmState.data?.weeks||[]).map(w=>({id:w.ID_Minggu,label:w.Minggu||w.ID_Minggu,from:w.Tempoh_Mula,to:w.Tempoh_Tamat,group:w.ID_Kumpulan}));
+  }
+  sel.innerHTML='<option value="">Pilih minggu…</option>'+weeks.map(w=>`<option value="${tmEsc(w.id)}">${tmEsc(w.label)} · ${tmFmt(w.from)} · Kumpulan ${tmEsc(w.group)}</option>`).join('');
+  if(weeks.some(w=>w.id===old))sel.value=old;
+  else if(weeks.length)sel.value=weeks[0].id;
+  tm$('tm4-asof').disabled=mode!=='SIMULASI';
+  tm$('tm4-absence-form').querySelectorAll('input,select,button').forEach(x=>x.disabled=mode!=='SIMULASI');
+  tm$('tm4-mode-badge').textContent=mode==='SIMULASI'?'UJIAN TERASING':'DATA RASMI';
+  tm4Message(mode==='SIMULASI'?'Semua rekod ujian berasingan daripada Takwim_Minggu rasmi.':'Mod rasmi menggunakan masa pelayan semasa. Pastikan takwim, hari sekolah dan penyegerakan keberadaan disahkan.');
+  if(loadSchedule&&sel.value)await tm4LoadSchedule();
+}
+function tm4Render(schedule){
+  tmState.tm4=schedule;
+  const rows=schedule?.assignments||[],members=schedule?.week?.members||[];
+  const oldTeacher=tm$('tm4-teacher').value;
+  tm$('tm4-teacher').innerHTML='<option value="">Pilih guru bertugas…</option>'+members.map(t=>`<option value="${tmEsc(t.id)}">${tmEsc(t.name)}</option>`).join('');
+  if(members.some(m=>m.id===oldTeacher))tm$('tm4-teacher').value=oldTeacher;
+  const w=schedule?.week;
+  if(w){
+    for(const id of ['tm4-absence-from','tm4-absence-to','tm4-cal-date']){
+      const el=tm$(id);if(!el.value||el.value<w.from||el.value>w.to)el.value=w.from;
+      el.min=w.from;el.max=w.to;
+    }
+  }
+  tm$('tm4-total').textContent=rows.filter(x=>!['DIGANTI','DIBATALKAN_CUTI','DIBATALKAN','PERLU_TINDAKAN'].includes(x.status)).length+' tugasan aktif';
+  tm$('tm4-rows').innerHTML=rows.length?rows.sort((a,b)=>a.date.localeCompare(b.date)||a.from.localeCompare(b.from))
+   .map(x=>`<tr class="${['DIGANTI','DIBATALKAN_CUTI','DIBATALKAN','PERLU_TINDAKAN'].includes(x.status)?'tm4-replaced':''}"><td>${tmFmt(x.date)}<small>${tmEsc(x.day)}</small></td>
+     <td>${tmEsc(x.from)}–${tmEsc(x.to)}</td><td>${tmEsc(x.taskName)}<small>Beban ${Number(x.weight)||0}</small></td>
+     <td>${tmEsc(x.name)}</td><td>${tmEsc(x.status)}</td><td>${tmEsc(x.method||'—')}${x.replaces?'<small>Pengganti automatik</small>':''}</td></tr>`).join(''):
+   '<tr><td colspan="6">Belum ada jadual. Isi jenis tugas dan waktu terlebih dahulu, kemudian klik Jana Jadual Bertugas.</td></tr>';
+  const fair=schedule?.fairness||{},names=Object.fromEntries(members.map(m=>[m.id,m.name]));
+  tm$('tm4-fairness').innerHTML=Object.keys(fair).length?Object.entries(fair)
+    .sort((a,b)=>Number(a[1].weight)-Number(b[1].weight))
+    .map(([id,v])=>`<div class="tm4-fair"><span>${tmEsc(names[id]||id)}</span><strong>${Number(v.weight)||0} mata</strong><small>Berat: ${v.heavy||0} · Ringan: ${v.light||0} · Jumlah: ${v.all||0}</small></div>`).join(''):
+    '<p class="tm-empty">Keadilan boleh dilihat selepas jadual dijana.</p>';
+  tm$('tm4-warning').innerHTML=(w?.warnings||[]).map(x=>`<p class="tm-warning-line">${tmEsc(x)}</p>`).join('')+
+    (schedule?.alerts||[]).map(x=>`<p class="tm-warning-line"><strong>PERLU TINDAKAN:</strong> ${tmEsc(x.date)} ${tmEsc(x.from)}–${tmEsc(x.to)} ${tmEsc(x.task)} — ${tmEsc(x.reason)}</p>`).join('');
+  tm4Message(`Status pelan: ${schedule?.status||'BELUM_JANA'}. Rujukan masa: ${schedule?.asOf||'—'}.`);
+}
+async function tm4LoadSchedule(){
+  const args=tm4Input();if(!args.weekId)return tm4Message('Pilih minggu dahulu.',true);
+  const r=await tmRun(()=>tmAPI('tm4Schedule',args));if(r)tm4Render(r);
+}
+async function tm4Generate(){
+  const args=tm4Input();if(!args.weekId)return tm4Message('Pilih minggu dahulu.',true);
+  if(!confirm(args.mode==='SIMULASI'?'Jana jadual ujian untuk minggu ini? Tetapan jenis dan waktu tugasan mesti sudah diisi.':'Jana jadual RASMI? Hanya waktu akan datang disediakan, dan hari sekolah mesti disahkan.'))return;
+  const r=await tmRun(()=>tmAPI('tm4Generate',args));if(!r)return;
+  tm4Render(r.schedule);
+  tm4Message(`Jana: ${r.bilJana||0} tugasan. ${r.bilKosong||0} slot belum dapat diisi.`);
+  if(r.unfilled?.length)tm$('tm4-warning').innerHTML=r.unfilled.map(u=>`<p class="tm-warning-line">${tmEsc(u.date)} ${tmEsc(u.from)} ${tmEsc(u.task)}: Tiada calon bebas.</p>`).join('');
+}
+async function tm4Repair(){
+  const args=tm4Input();if(!args.weekId)return tm4Message('Pilih minggu dahulu.',true);
+  const r=await tmRun(()=>tmAPI('tm4Repair',args));if(!r)return;
+  tm4Render(r.schedule);
+  tm4Message(`${r.bilGanti||0} guru diganti. ${r.bilBelumSelesai||0} slot memerlukan tindakan pentadbir. Tugasan lampau kekal.`);
+  if(r.pending?.length)tm$('tm4-warning').innerHTML=r.pending.map(u=>`<p class="tm-warning-line">BELUM DIGANTI: ${tmEsc(u.date)} ${tmEsc(u.from)} ${tmEsc(u.task)}</p>`).join('');
+}
+async function tm4Publish(){
+  const args=tm4Input();if(!args.weekId)return tm4Message('Pilih minggu dahulu.',true);
+  if(!confirm(args.mode==='SIMULASI'?'Terbitkan jadual SIMULASI sahaja? Tidak akan dihantar kepada GB.':'Terbitkan jadual RASMI? Pastikan semua tugasan telah disemak.'))return;
+  const r=await tmRun(()=>tmAPI('tm4Publish',args));if(r){tm4Render(r.schedule);tm4Message('Jadual berjaya diterbitkan: '+r.status);}
+}
+async function tm4RecordAbsence(e){
+  e.preventDefault();if(tm4GetMode()!=='SIMULASI')return tm4Message('Borang ini untuk simulasi sahaja.',true);
+  const args=tm4Input();if(!args.weekId)return tm4Message('Pilih minggu terlebih dahulu.',true);
+  const more={staff:tm$('tm4-teacher').value,from:tm$('tm4-absence-from').value,to:tm$('tm4-absence-to').value,
+    start:tm$('tm4-absence-start').value,end:tm$('tm4-absence-end').value,reason:tm$('tm4-absence-reason').value};
+  if(!more.staff)return tm4Message('Pilih nama guru untuk ujian.',true);
+  const r=await tmRun(()=>tmAPI('tm4SimAbsent',{...args,...more}));if(!r)return;
+  tm4Message('Ketidakhadiran simulasi direkod. Menyemak penggantian automatik…');
+  // The absent staff is rechecked immediately, but elapsed slots remain untouched.
+  if(tmState.tm4?.planId)await tm4Repair();
+}
+async function tm4Calendar(e){
+  e.preventDefault();const args=tm4Input();if(!args.weekId)return tm4Message('Pilih minggu dahulu.',true);
+  const more={date:tm$('tm4-cal-date').value,kind:tm$('tm4-cal-kind').value,note:tm$('tm4-cal-note').value};
+  if(args.mode==='RASMI'&&!confirm('Sahkan jenis hari RASMI untuk tarikh '+more.date+'?'))return;
+  const r=await tmRun(()=>tmAPI('tm4SetCalendar',{...args,...more}));if(r)tm4Message('Tarikh '+tmFmt(more.date)+' ditetapkan '+r.kind+'. Tetapkan sebelum jana jadual; perubahan selepas penjanaan memerlukan semakan manual.');
+}
+
 function tmListeners(){
   document.addEventListener('click',async e=>{
     const tab=e.target.closest('[data-tm-tab]');if(tab){tmTab(tab.dataset.tmTab);return;}
@@ -198,7 +309,16 @@ function tmListeners(){
   tm$('tm-review-return').addEventListener('click',()=>tmReview('DIPULANGKAN'));
   tm$('tm-print').addEventListener('click',tmPrint);
   tm$('tm-preflight').addEventListener('click',tmPreflight);
+  tm$('tm-sim-preview').addEventListener('click',tmPreviewSimulation);
   tm$('tm-seed').addEventListener('click',tmSeed);
+  tm$('tm4-mode').addEventListener('change',()=>tm4LoadWeeks(true));
+  tm$('tm4-week').addEventListener('change',tm4LoadSchedule);
+  tm$('tm4-load').addEventListener('click',tm4LoadSchedule);
+  tm$('tm4-generate').addEventListener('click',tm4Generate);
+  tm$('tm4-repair').addEventListener('click',tm4Repair);
+  tm$('tm4-publish').addEventListener('click',tm4Publish);
+  tm$('tm4-absence-form').addEventListener('submit',tm4RecordAbsence);
+  tm$('tm4-calendar-form').addEventListener('submit',tm4Calendar);
   tm$('tm-task-form').addEventListener('submit',tmSaveTask);
   tm$('tm-time-form').addEventListener('submit',tmSaveTime);
   tm$('tm-task-cancel').addEventListener('click',()=>{tm$('tm-task-form').reset();tm$('tm-task-id').value='';});
