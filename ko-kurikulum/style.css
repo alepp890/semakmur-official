@@ -21,3 +21,7 @@
 .table-wrap tbody tr.audit-row-ambiguous > td,
 .table-wrap tbody tr.audit-row-ambiguous:hover > td { background:#f2f3f5 !important; }
 @media print { .table-wrap tbody tr.audit-row-critical > td {background:#ffe7e9 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact} .table-wrap tbody tr.audit-row-notice > td {background:#fff3d9 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact} }
+
+/* V5.3: Paparan status import PAJSK supaya jadual kosong tidak disalah tafsir */
+.pajsk-empty{border:1px solid #edcf9c;border-left:5px solid #cb842c;background:#fffaf0;border-radius:10px;padding:16px 18px;margin:16px 0;color:#6d4d20;font-size:13px;line-height:1.65}
+.pajsk-empty strong{display:block;font-weight:800;margin-bottom:5px}.pajsk-empty p{margin:5px 0;color:#6d4d20}.pajsk-empty code{background:#f4ecd9;border-radius:4px;padding:2px 4px}.pajsk-empty.small{margin-top:12px}.pajsk-ok{background:#eaf6ee;border-left:4px solid #26814d;padding:13px 16px;border-radius:8px;color:#206342;font-size:13px}
