@@ -116,20 +116,56 @@ function tmRenderAssignments(){
   tm$('tm-assignments').innerHTML=r.length?r.map(x=>`<div class="tm-warning-line">${tmFmt(x.date)} · ${tmEsc(names[x.task]||x.task)} · ${tmEsc(x.staff)} (${tmEsc(x.from)}–${tmEsc(x.to)})</div>`).join(''):
     '<p class="tm-empty">Belum ada agihan tugasan yang telah disahkan. Laporan harian masih boleh diuji selepas draf ketua disediakan.</p>';
 }
+function tm43SelectedType(){return tmState.data?.settings?.types?.find(x=>x.id===tm$('tm-time-task').value)||null;}
+function tm43SyncTimeForm(){
+  const t=tm43SelectedType(),mode=t?.mode||'TANPA_MASA';
+  tm$('tm-time-start-wrap').hidden=mode==='TANPA_MASA';
+  tm$('tm-time-end-wrap').hidden=mode!=='JULAT';
+  tm$('tm-time-from').required=mode!=='TANPA_MASA';
+  tm$('tm-time-to').required=mode==='JULAT';
+  if(mode==='TANPA_MASA'){tm$('tm-time-from').value='';tm$('tm-time-to').value='';}
+  if(mode==='MULA_SAHAJA')tm$('tm-time-to').value='';
+  tm$('tm-time-count').value=t?.min||1;
+  tm$('tm-time-mode-note').textContent=mode==='TANPA_MASA'
+    ?'Tiada masa diperlukan. Pilih hari dan tahap; tugasan disemak mengikut keberadaan guru, bukan konflik jam PdPc.'
+    :mode==='JULAT'?'Rehat: isi masa mula dan masa tamat. Kelayakan guru disemak dengan waktu PdPc sebenar.'
+    :'Isi masa mula sahaja. Sistem menggunakan 15 minit selepas masa mula untuk semakan konflik PdPc.';
+}
+function tm43UpdateTaskMode(){
+  const name=tm$('tm-task-name').value.trim();
+  if(!name||tm$('tm-task-id').value)return;
+  const timed=/REHAT|BALIK|PULANG/i.test(name);
+  tm$('tm-task-time-required').value=timed?'YA':'TIDAK';
+}
 function tmRenderSettings(){
   const types=tmState.data?.settings?.types||[],times=tmState.data?.settings?.times||[];
   const names=Object.fromEntries(types.map(x=>[x.id,x.name]));
-  tm$('tm-task-list').innerHTML='<div class="tm-mini-list">'+(types.length?types.map(x=>`<div class="tm-mini"><div><strong>${tmEsc(x.name)}</strong><small>${tmEsc(x.category)} · Mata ${tmEsc(x.weight)}</small></div><button class="tm-btn tm-ghost" data-edit-task="${tmEsc(x.id)}">Edit</button></div>`).join(''):'<p class="tm-empty">Belum ada jenis tugasan.</p>')+'</div>';
+  const labels={TANPA_MASA:'Tiada tetapan masa',JULAT:'Masa mula + tamat',MULA_SAHAJA:'Masa mula sahaja'};
+  tm$('tm-task-list').innerHTML='<div class="tm-mini-list">'+(types.length?types.map(x=>
+    `<div class="tm-mini"><div><strong>${tmEsc(x.name)}</strong><small>${tmEsc(x.category)} · Mata ${Number(x.weight)||0} · ${Number(x.min)||1} guru · ${tmEsc(labels[x.mode]||'Semak tetapan masa')}</small></div><button class="tm-btn tm-ghost" data-edit-task="${tmEsc(x.id)}">Edit</button></div>`).join('')
+    :'<p class="tm-empty">Belum ada jenis tugasan.</p>')+'</div>';
   const old=tm$('tm-time-task').value;
   tm$('tm-time-task').innerHTML='<option value="">Pilih tugasan…</option>'+types.filter(x=>x.status.toUpperCase()==='AKTIF').map(x=>`<option value="${tmEsc(x.id)}">${tmEsc(x.name)}</option>`).join('');
   if(types.some(x=>x.id===old))tm$('tm-time-task').value=old;
-  tm$('tm-time-list').innerHTML='<div class="tm-mini-list">'+(times.length?times.map(x=>`<div class="tm-mini"><div><strong>${tmEsc(names[x.task]||x.task)}</strong><small>${tmEsc(x.day==='Semua Hari'?'Semua Hari (Isnin–Jumaat)':x.day)} ${tmEsc(x.start)}–${tmEsc(x.end)} · ${tmEsc(x.count)} guru · ${tmFmt(x.from)}</small></div><button class="tm-btn tm-ghost" data-edit-time="${tmEsc(x.id)}">Edit</button></div>`).join(''):'<p class="tm-empty">Tiada waktu tugasan. Sediakan sebelum semak agihan.</p>')+'</div>';
+  tm43SyncTimeForm();
+  tm$('tm-time-list').innerHTML='<div class="tm-mini-list">'+(times.length?times.map(x=>{
+    const t=types.find(t=>t.id===x.task),mode=t?.mode||'TANPA_MASA';
+    const clock=mode==='TANPA_MASA'?'Tiada masa':mode==='MULA_SAHAJA'?(x.start||'Masa mula belum diisi'):(x.start+'–'+x.end);
+    return `<div class="tm-mini"><div><strong>${tmEsc(names[x.task]||x.task)}</strong><small>${tmEsc(x.day==='Semua Hari'?'Semua Hari (Isnin–Jumaat)':x.day)} · ${tmEsc(x.level||'Semua')} · ${tmEsc(clock)} · ${t?.min||x.count||1} guru · kuat kuasa ${tmFmt(x.from)}</small></div><button class="tm-btn tm-ghost" data-edit-time="${tmEsc(x.id)}">Edit</button></div>`;
+  }).join(''):'<p class="tm-empty">Belum ada tetapan hari untuk tugasan bermasa. Jenis tanpa masa akan disediakan untuk Semua Hari apabila disimpan.</p>')+'</div>';
 }
 function tmEditTask(id){const x=tmState.data?.settings?.types?.find(x=>x.id===id);if(!x)return;
-  tm$('tm-task-id').value=x.id;tm$('tm-task-name').value=x.name;tm$('tm-task-category').value=x.category;tm$('tm-task-weight').value=x.weight;tm$('tm-task-min').value=x.min;
+  tm$('tm-task-id').value=x.id;tm$('tm-task-name').value=x.name;tm$('tm-task-category').value=x.category;
+  tm$('tm-task-weight').value=x.weight;tm$('tm-task-min').value=x.min;
+  tm$('tm-task-time-required').value=x.mode==='TANPA_MASA'?'TIDAK':'YA';
   tm$('tm-task-name').focus();}
 function tmEditTime(id){const x=tmState.data?.settings?.times?.find(x=>x.id===id);if(!x)return;
-  for(const [id,val] of [['tm-time-id',x.id],['tm-time-task',x.task],['tm-time-day',x.day],['tm-time-level',x.level],['tm-time-from',x.start],['tm-time-to',x.end],['tm-time-effective',x.from],['tm-time-expiry',x.to],['tm-time-count',x.count]])tm$(id).value=val||'';
+  for(const [key,val] of [['tm-time-id',x.id],['tm-time-task',x.task],['tm-time-day',x.day],['tm-time-level',x.level||'Semua'],
+    ['tm-time-from',x.start],['tm-time-to',x.end],['tm-time-effective',x.from],['tm-time-expiry',x.to]])tm$(key).value=val||'';
+  tm43SyncTimeForm();
+  const mode=tm43SelectedType()?.mode||'TANPA_MASA';
+  if(mode!=='TANPA_MASA')tm$('tm-time-from').value=x.start||'';
+  if(mode==='JULAT')tm$('tm-time-to').value=x.end||'';
   tm$('tm-time-task').focus();}
 async function tmChoose(id){tmState.weekId=id;await tmLoadDetail(false);tmTab('daily');}
 async function tmSaveDaily(e){e.preventDefault();if(!tmState.detail?.plan)return tmNotice('Draf minggu belum disediakan.',true);
@@ -151,11 +187,12 @@ async function tmDraft(id){if(!confirm('Sediakan draf ketua bagi minggu ini? Ini
 async function tmSeed(){if(!confirm('Tambah contoh 9 jenis tugasan dan 9 bahagian laporan? Rekod sedia ada tidak dipadam.'))return;
   const r=await tmRun(()=>tmAPI('seed'));if(r){tmNotice('Tetapan asas berjaya disediakan.');await tmBootstrap();tmTab('settings');}}
 async function tmSaveTask(e){e.preventDefault();const payload={id:tm$('tm-task-id').value,name:tm$('tm-task-name').value,
-  category:tm$('tm-task-category').value,weight:Number(tm$('tm-task-weight').value),min:Number(tm$('tm-task-min').value)};
-  const r=await tmRun(()=>tmAPI('upsertTask',payload));if(r){tm$('tm-task-form').reset();tm$('tm-task-id').value='';tmNotice('Jenis tugasan disimpan.');await tmBootstrap();tmTab('settings');}}
+  category:tm$('tm-task-category').value,weight:Number(tm$('tm-task-weight').value),min:Number(tm$('tm-task-min').value),
+  hasTime:tm$('tm-task-time-required').value,from:tmState.year+'-01-01'};
+  const r=await tmRun(()=>tmAPI('upsertTask',payload));if(r){tm$('tm-task-form').reset();tm$('tm-task-id').value='';tm$('tm-task-time-required').value='YA';tmNotice('Jenis tugasan disimpan.');await tmBootstrap();tmTab('settings');}}
 async function tmSaveTime(e){e.preventDefault();const payload={id:tm$('tm-time-id').value,task:tm$('tm-time-task').value,
   day:tm$('tm-time-day').value,level:tm$('tm-time-level').value,start:tm$('tm-time-from').value,end:tm$('tm-time-to').value,
-  from:tm$('tm-time-effective').value,to:tm$('tm-time-expiry').value,count:Number(tm$('tm-time-count').value)};
+  from:tm$('tm-time-effective').value,to:tm$('tm-time-expiry').value};
   const r=await tmRun(()=>tmAPI('upsertWindow',payload));if(r){tm$('tm-time-form').reset();tm$('tm-time-id').value='';tmNotice('Waktu tugasan disimpan.');await tmBootstrap();tmTab('settings');}}
 async function tmPreflight(){const r=await tmRun(()=>tmAPI('preflight',{year:tmState.year}));if(!r)return;
   tm$('tm-preflight-result').innerHTML=`<div class="tm-card"><h3>Semakan Kesediaan — ${tmEsc(r.status)}</h3><p>${r.rekodJadual} rekod jadual, ${r.ahli} pelantikan kumpulan, ${r.waktuTugas} tetapan waktu.</p>${(r.warnings||[]).map(x=>`<p class="tm-warning-line">${tmEsc(x)}</p>`).join('')}<strong>Agihan belum boleh diterbitkan.</strong></div>`;}
@@ -220,6 +257,40 @@ async function tm4LoadWeeks(loadSchedule=true){
   tm4Message(mode==='SIMULASI'?'Semua rekod ujian berasingan daripada Takwim_Minggu rasmi.':'Mod rasmi menggunakan masa pelayan semasa. Pastikan takwim, hari sekolah dan penyegerakan keberadaan disahkan.');
   if(loadSchedule&&sel.value)await tm4LoadSchedule();
 }
+function tm43TimeLabel(x){
+  if(x.mode==='TANPA_MASA')return 'Tiada tetapan masa';
+  if(x.mode==='MULA_SAHAJA')return x.from||'Masa belum ditetapkan';
+  return (x.from||'—')+'–'+(x.to||'—');
+}
+function tm43DayCards(rows,week){
+  if(!rows.length)return '<p class="tm-empty">Belum ada jadual. Isi Jenis Tugasan dan tetapan hari dahulu, kemudian klik Jana Jadual Bertugas.</p>';
+  const order=['Isnin','Selasa','Rabu','Khamis','Jumaat'];
+  const grouped=new Map();
+  rows.slice().sort((a,b)=>a.date.localeCompare(b.date)||
+    (a.mode==='TANPA_MASA'?1:0)-(b.mode==='TANPA_MASA'?1:0)||a.from.localeCompare(b.from)||a.taskName.localeCompare(b.taskName))
+    .forEach(x=>{if(!grouped.has(x.date))grouped.set(x.date,[]);grouped.get(x.date).push(x);});
+  // Always keep weekdays separated. A day without rows appears as 'Tiada tugasan', not hidden.
+  if(week?.from&&week?.to){
+    for(let d=new Date(week.from+'T00:00:00Z'),stop=new Date(week.to+'T00:00:00Z');d<=stop;d.setUTCDate(d.getUTCDate()+1)){
+      if(d.getUTCDay()===0||d.getUTCDay()===6)continue;
+      const iso=d.toISOString().slice(0,10);
+      if(!grouped.has(iso))grouped.set(iso,[]);
+    }
+  }
+  return [...grouped].sort((a,b)=>a[0].localeCompare(b[0])).map(([date,list])=>{
+    const day=list[0]?.day||order[(new Date(date+'T00:00:00Z').getUTCDay()+6)%7]||'Hari';
+    const w=week?.label||week?.id||'—';
+    const n=list.filter(x=>!['DIGANTI','DIBATALKAN_CUTI','DIBATALKAN','PERLU_TINDAKAN'].includes(x.status)).length;
+    const lines=list.map(x=>{
+      const ended=['DIGANTI','DIBATALKAN_CUTI','DIBATALKAN','PERLU_TINDAKAN'].includes(x.status);
+      return `<div class="tm43-duty ${ended?'tm43-history':''}">
+        <div><strong>${tmEsc(x.taskName)}</strong><small>${tmEsc(tm43TimeLabel(x))} · Beban ${Number(x.weight)||0}</small></div>
+        <div><strong>${tmEsc(x.name||'Belum ditetapkan')}</strong>${ended?`<small>${tmEsc(x.status)} · Rekod sejarah</small>`:x.replaces?'<small>Guru pengganti</small>':''}</div>
+      </div>`;
+    }).join('')||'<p class="tm43-no-duty">Tiada tugasan dijana pada hari ini. Semak sama ada hari cuti atau tetapan hari.</p>';
+    return `<section class="tm43-day"><header class="tm43-day-head"><div><h3>${tmEsc(day)} <span>· ${tmFmt(date)}</span></h3><p>${tmEsc(w)}</p></div><span class="tm-tag">${n} tugas aktif</span></header><div class="tm43-duty-head"><span>Tugasan</span><span>Guru Bertugas</span></div>${lines}</section>`;
+  }).join('');
+}
 function tm4Render(schedule){
   tmState.tm4=schedule;
   const rows=schedule?.assignments||[],members=schedule?.week?.members||[];
@@ -234,15 +305,11 @@ function tm4Render(schedule){
     }
   }
   tm$('tm4-total').textContent=rows.filter(x=>!['DIGANTI','DIBATALKAN_CUTI','DIBATALKAN','PERLU_TINDAKAN'].includes(x.status)).length+' tugasan aktif';
-  tm$('tm4-rows').innerHTML=rows.length?rows.sort((a,b)=>a.date.localeCompare(b.date)||a.from.localeCompare(b.from))
-   .map(x=>`<tr class="${['DIGANTI','DIBATALKAN_CUTI','DIBATALKAN','PERLU_TINDAKAN'].includes(x.status)?'tm4-replaced':''}"><td>${tmFmt(x.date)}<small>${tmEsc(x.day)}</small></td>
-     <td>${tmEsc(x.from)}–${tmEsc(x.to)}</td><td>${tmEsc(x.taskName)}<small>Beban ${Number(x.weight)||0}</small></td>
-     <td>${tmEsc(x.name)}</td><td>${tmEsc(x.status)}</td><td>${tmEsc(x.method||'—')}${x.replaces?'<small>Pengganti automatik</small>':''}</td></tr>`).join(''):
-   '<tr><td colspan="6">Belum ada jadual. Isi jenis tugas dan waktu terlebih dahulu, kemudian klik Jana Jadual Bertugas.</td></tr>';
+  tm$('tm4-rows').innerHTML=tm43DayCards(rows,w);
   const fair=schedule?.fairness||{},names=Object.fromEntries(members.map(m=>[m.id,m.name]));
   tm$('tm4-fairness').innerHTML=Object.keys(fair).length?Object.entries(fair)
     .sort((a,b)=>Number(a[1].weight)-Number(b[1].weight))
-    .map(([id,v])=>`<div class="tm4-fair"><span>${tmEsc(names[id]||id)}</span><strong>${Number(v.weight)||0} mata</strong><small>Berat: ${v.heavy||0} · Ringan: ${v.light||0} · Jumlah: ${v.all||0}</small></div>`).join(''):
+    .map(([id,v])=>`<div class="tm4-fair"><span>${tmEsc(names[id]||id)}</span><strong>${Number(v.weight)||0} mata</strong><small>Rehat: ${v.rest||0} · Berat: ${v.heavy||0} · Ringan: ${v.light||0} · Jumlah: ${v.all||0}</small></div>`).join(''):
     '<p class="tm-empty">Keadilan boleh dilihat selepas jadual dijana.</p>';
   tm$('tm4-warning').innerHTML=(w?.warnings||[]).map(x=>`<p class="tm-warning-line">${tmEsc(x)}</p>`).join('')+
     (schedule?.alerts||[]).map(x=>`<p class="tm-warning-line"><strong>PERLU TINDAKAN:</strong> ${tmEsc(x.date)} ${tmEsc(x.from)}–${tmEsc(x.to)} ${tmEsc(x.task)} — ${tmEsc(x.reason)}</p>`).join('');
@@ -320,10 +387,12 @@ function tmListeners(){
   tm$('tm4-absence-form').addEventListener('submit',tm4RecordAbsence);
   tm$('tm4-calendar-form').addEventListener('submit',tm4Calendar);
   tm$('tm-task-form').addEventListener('submit',tmSaveTask);
+  tm$('tm-task-name').addEventListener('change',tm43UpdateTaskMode);
+  tm$('tm-time-task').addEventListener('change',tm43SyncTimeForm);
   tm$('tm-time-form').addEventListener('submit',tmSaveTime);
-  tm$('tm-task-cancel').addEventListener('click',()=>{tm$('tm-task-form').reset();tm$('tm-task-id').value='';});
-  tm$('tm-time-cancel').addEventListener('click',()=>{tm$('tm-time-form').reset();tm$('tm-time-id').value='';});
-  tm$('tm-time-effective').value=tmState.year+'-01-01';
+  tm$('tm-task-cancel').addEventListener('click',()=>{tm$('tm-task-form').reset();tm$('tm-task-id').value='';tm$('tm-task-time-required').value='YA';});
+  tm$('tm-time-cancel').addEventListener('click',()=>{tm$('tm-time-form').reset();tm$('tm-time-id').value='';tm43SyncTimeForm();});
+  tm$('tm-time-effective').value=tmState.year+'-01-01';tm43SyncTimeForm();
 }
 async function tmInit(){tmListeners();tmTab('overview');tmNotice('Menyemak akaun Google MOE dan peranan…');
   try{

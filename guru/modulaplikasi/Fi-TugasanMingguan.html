@@ -8,11 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=4.0">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=4.0">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=4.3">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=4.3">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
-  <script src="Fi-TugasanMingguan.js?v=4.0" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=4.3" defer></script>
 </head>
 <body>
 <div class="tm-shell" id="tm-app">
@@ -87,7 +87,9 @@
         <section class="tm-card"><div class="tm-section-title"><h2>Jenis Tugasan</h2></div>
           <form id="tm-task-form" class="tm-form"><input id="tm-task-id" type="hidden"><label>Nama tugasan<input id="tm-task-name" maxlength="120" required placeholder="Contoh: Pagar Utama (Pagi)"></label>
             <div class="tm-fields"><label>Kategori<select id="tm-task-category"><option value="BERAT">Berat</option><option value="RINGAN">Ringan</option></select></label><label>Mata beban<input id="tm-task-weight" type="number" min="1" max="20" value="3" required></label></div>
-            <label>Bilangan guru minimum<input id="tm-task-min" type="number" min="1" max="15" value="1" required></label>
+            <div class="tm-fields"><label>Bilangan guru diperlukan<input id="tm-task-min" type="number" min="1" max="15" value="1" required></label>
+            <label>Tetapan masa<select id="tm-task-time-required"><option value="YA">Tetapkan Masa</option><option value="TIDAK">Tiada Tetapan Masa</option></select></label></div>
+            <p class="tm-muted">Rehat: Masa mula + tamat · Waktu balik: masa mula sahaja · Tugasan tanpa masa: tiada semakan PdPc berdasarkan jam. Tetapan ini digunakan pada semua minggu sehingga diubah.</p>
             <div class="tm-buttons"><button class="tm-btn tm-primary" type="submit">Simpan jenis tugasan</button><button type="button" id="tm-task-cancel" class="tm-btn tm-ghost">Kosongkan</button></div>
           </form><div id="tm-task-list"></div>
         </section>
@@ -98,8 +100,9 @@
               <option value="Selasa–Khamis">Selasa–Khamis</option>
               <option value="Isnin">Isnin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option>
               <option value="Khamis">Khamis</option><option value="Jumaat">Jumaat</option>
-            </select></label><label>Tahap<input id="tm-time-level" value="Semua" maxlength="30"></label></div>
-            <div class="tm-fields"><label>Masa mula<input id="tm-time-from" type="time" required></label><label>Masa tamat<input id="tm-time-to" type="time" required></label></div>
+            </select></label><label>Tahap<select id="tm-time-level"><option value="Semua">Semua</option><option value="Tahap 1">Tahap 1</option><option value="Tahap 2">Tahap 2</option></select></label></div>
+            <div class="tm-fields" id="tm-time-inputs"><label id="tm-time-start-wrap">Masa mula<input id="tm-time-from" type="time"></label><label id="tm-time-end-wrap">Masa tamat (rehat sahaja)<input id="tm-time-to" type="time"></label></div>
+            <p class="tm-muted" id="tm-time-mode-note">Pilih jenis tugasan untuk melihat keperluan masa.</p>
             <p class="tm-muted" style="margin:0">Pilih <strong>Semua Hari</strong> untuk masa tugasan yang sama setiap Isnin–Jumaat.
               Bagi tugas waktu pulang, pilih Isnin, Selasa–Khamis dan Jumaat secara berasingan. Satu rekod mewakili semua hari yang dipilih.</p>
             <details class="tm-time-guide"><summary>Rujukan waktu pulang SKSM</summary>
@@ -107,11 +110,11 @@
                 <tbody><tr><td>Isnin</td><td>1.30 petang (13:30)</td><td>1.30 petang (13:30)</td></tr>
                   <tr><td>Selasa–Khamis</td><td>1.00 tengah hari (13:00)</td><td>1.30 petang (13:30)</td></tr>
                   <tr><td>Jumaat</td><td>12.00 tengah hari (12:00)</td><td>12.00 tengah hari (12:00)</td></tr></tbody></table>
-              <p class="tm-muted">Ini masa murid pulang, bukan tempoh pengawasan yang telah ditetapkan. Isikan Masa mula dan Masa tamat tugas pengawasan sebenar mengikut ketetapan sekolah.</p>
+              <p class="tm-muted">Untuk Waktu Pulang, isi masa mula sahaja. Semakan konflik PdPc akan menggunakan tempoh teknikal 15 minit selepas masa mula; tiada masa tamat perlu diisi.</p>
             </details>
             <div class="tm-fields"><label>Berkuat kuasa<input id="tm-time-effective" type="date" required></label><label>Tamat kuat kuasa (pilihan)<input id="tm-time-expiry" type="date"></label></div>
-            <label>Bilangan guru diperlukan<input id="tm-time-count" type="number" min="1" max="15" value="1" required></label>
-            <div class="tm-buttons"><button class="tm-btn tm-primary" type="submit">Simpan waktu</button><button type="button" id="tm-time-cancel" class="tm-btn tm-ghost">Kosongkan</button></div>
+            <label>Bilangan guru diperlukan (diambil daripada Jenis Tugasan)<input id="tm-time-count" type="number" min="1" max="15" value="1" readonly aria-readonly="true"></label>
+            <div class="tm-buttons"><button class="tm-btn tm-primary" type="submit">Simpan tetapan hari</button><button type="button" id="tm-time-cancel" class="tm-btn tm-ghost">Kosongkan</button></div>
           </form><div id="tm-time-list"></div>
         </section>
       </div>
@@ -157,12 +160,12 @@
           </form>
         </section>
       </div>
-      <section class="tm-card"><div class="tm-section-title"><div><h2>Hasil Jadual Bertugas Mengikut Hari</h2><p>Rekod DIGANTI dipaparkan sebagai sejarah; nama pengganti ditunjukkan pada baris baharu.</p></div><span class="tm-tag" id="tm4-total">0 tugasan</span></div>
-        <div class="tm-table-scroll"><table class="tm4-table"><thead><tr><th>Tarikh</th><th>Masa</th><th>Tugasan</th><th>Guru</th><th>Status</th><th>Kaedah</th></tr></thead><tbody id="tm4-rows"><tr><td colspan="6">Pilih minggu dan jana jadual dahulu.</td></tr></tbody></table></div>
+      <section class="tm-card"><div class="tm-section-title"><div><h2>Hasil Jadual Bertugas Mengikut Hari</h2><p>Setiap hari mempunyai jadual tersendiri: nama tugasan dan nama guru. Tugasan yang diganti dikekalkan sebagai rekod sejarah.</p></div><span class="tm-tag" id="tm4-total">0 tugasan</span></div>
+        <div id="tm4-rows" class="tm4-daily-groups"><p class="tm-empty">Pilih minggu dan jana jadual dahulu.</p></div>
       </section>
       <section class="tm-card"><div class="tm-section-title"><h2>Ringkasan Keadilan — Mata Beban</h2></div><div id="tm4-fairness" class="tm4-fairness"></div><div id="tm4-warning"></div></section>
     </section>
   </main>
-  <footer class="tm-footer">SeMAKMUR I-System · Smart Tugasan Mingguan V4.0 · Sumber rasmi Google Sheets / Fi-Sync</footer>
+  <footer class="tm-footer">SeMAKMUR I-System · Smart Tugasan Mingguan V4.3 · Sumber rasmi Google Sheets / Fi-Sync</footer>
 </div>
 </body></html>
