@@ -29,7 +29,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     eminit:{title:'e-Minit & Tindakan',icon:'fa-envelope-open-text',tone:'blue',url:null},
     eprogram:{title:'e-Program',icon:'fa-calendar-check',tone:'green',url:null},
     eopr:{title:'e-OPR',icon:'fa-file-lines',tone:'purple',url:null},
-    bertugas:{title:'Laporan Guru Bertugas',icon:'fa-clipboard-check',tone:'orange',url:null},
+    bertugas:{title:'Smart Tugasan Mingguan',icon:'fa-clipboard-check',tone:'green',url:'modulaplikasi/Fi-TugasanMingguan.html'},
     relief:{title:'e-Relief',icon:'fa-person-circle-check',tone:'green',url:'modulaplikasi/Fi-eReliefGuru.html'},
     epbd:{title:'e-PBD',icon:'fa-chart-column',tone:'blue',url:null},
     tmk:{title:'PdPc Modul TMK',icon:'fa-computer',tone:'purple',url:null},
@@ -47,7 +47,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   const CATEGORY_MODULES={
     pentadbiran:['keberadaan','manual','eminit','eprogram','eopr','bertugas','hrmis'],
     kurikulum:['erph','jadual','epbd','tmk','relief','splkpm'],
-    hem:['kehadiran','apdm','ssdm','spbt','rmt'],
+    hem:['kehadiran','bertugas','apdm','ssdm','spbt','rmt'],
     kokurikulum:['beruniform','kelab','sukan','pajsk','eprogram'],
     lain_lain:['bilik','dokumen','manual','splkpm']
   };
@@ -327,6 +327,10 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(id==='manual'){
       if(!fiManualDesktop()||!fiManualAccessAllowed){showInfo('e-Manual Pengurusan hanya untuk Admin Sistem, GPK dan GB pada desktop.');return;}
       if(!dashboardAuthenticated){showInfo('Akses Fi masih disemak.');return;}
+      window.open(m.url,'_blank','noopener');return;
+    }
+    if(id==='bertugas'){
+      if(!dashboardAuthenticated){showInfo('Akaun MOE masih disemak.');return;}
       window.open(m.url,'_blank','noopener');return;
     }
     if(!await window.FiDashboard?.ensureOfficial()){showInfo('Modul ini masih menggunakan sistem lama dan belum dipindahkan ke Fi.');return;}
