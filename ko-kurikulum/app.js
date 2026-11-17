@@ -27,15 +27,29 @@ return `<div class="filters">${sel('unit','Unit',validUnits,chosen)}${sel('grade
 function gradePage(){if(!api.breakdown)return '<p>Memuatkan aliran…</p>';let rows=groups().filter(r=>state.category==='ALL'||r.category===state.category);
 return `<div class="filters">${sel('category','Kategori',categories,state.category)}</div>`+panel('Perbandingan Tahun 4, 5, 6','Kiraan berwajaran daripada rekod koko.',bars(calc(rows,r=>'Tahun '+r.grade).map(x=>({n:x.n,v:x.pct}))))+panel('Matriks Aliran × 12 Perjumpaan','Setiap sel ialah kadar kehadiran aliran dan perjumpaan.',matrix(rows,'grade'))+panel('Perbandingan aliran mengikut kategori','Analisis semua kategori bagi setiap aliran',table(['Kategori','Tahun 4','Tahun 5','Tahun 6'],categories.map(c=>[c,...[4,5,6].map(g=>pct(weighted(groups().filter(x=>x.category===c&&Number(x.grade)===g))))])));}
 function classPage(){let rows=classes();return panel('Perbandingan Sembilan Kelas','Agregat kelas daripada data kehadiran kokurikulum.',bars(rows.map(x=>({n:x.class,v:x.percent}))))+panel('Butiran Kehadiran Kelas','Jumlah peluang hadir tidak sama dengan bilangan murid unik.',table(['Kelas','Hadir','Peluang Hadir','Peratus'],rows.map(x=>[x.class,num(x.present),num(x.possible),pct(x.percent)])));}
-function morningPage(){let d=api.morning;if(!d)return '<p>Memuatkan audit pagi…</p>';if(d.error)return note('Audit: '+esc(d.error));
-let rows=arr(d.byUnitDateClass),unitsOpt=unique(rows.map(r=>r.unit)),dates=unique(rows.map(r=>r.date)),cl=unique(rows.map(r=>r.class));
-let f=rows.filter(r=>(state.unit==='ALL'||r.unit===state.unit)&&(state.date==='ALL'||r.date===state.date)&&(state.cls==='ALL'||r.class===state.cls));
-let bad=f.filter(r=>r.status!=='SEPADAN');
-return `<div class="filters">${sel('unit','Unit',unitsOpt,state.unit)}${sel('date','Tarikh',dates,state.date)}${sel('cls','Kelas',cl,state.cls)}</div>`+
- cards([['Semakan kumpulan',num(f.length),'Unit × tarikh × kelas'],['Tidak Sepadan',num(f.filter(r=>r.status==='TIDAK SEPADAN').length),'Perlu disiasat'],['Tiada Data Pagi',num(f.filter(r=>r.missing).length),'Tidak dikira hadir'],['Isu Lain',num(f.filter(r=>r.ambiguous).length),'Perlu pengesahan']])+
- note('Paparkan <b>unit dan kelas yang bermasalah sahaja</b>. Nilai pagi adalah daripada murid ahli unit yang berjaya dipadankan; bukan jumlah keseluruhan kelas. Status berbeza tidak membuktikan kesalahan guru.')+
- panel('Isu Semakan Silang Mengikut Unit, Tarikh dan Kelas','Baris sepadan disembunyikan secara lalai.',table(['Tarikh','Unit','Kelas','Pagi','Koko','Status','Tidak Sepadan'],bad.map(r=>[r.date,r.unit,r.class,r.missing?'TIADA DATA':r.morningPresent+'/'+r.compared,r.kokoPresent+'/'+r.compared,r.status,r.different])))+
- panel('Ranking Unit Yang Perlu Semakan','Bilangan rekod murid berbeza atau tanpa data pagi.',bars(calc(f,r=>r.unit).map(x=>({n:x.n,v:f.filter(y=>y.unit===x.n).reduce((s,r)=>s+r.different+r.missing,0)})),Math.max(1,...f.map(r=>r.different+r.missing)),false));}
+function morningPage(){
+ let d=api.morning;if(!d)return '<p>Memuatkan audit pagi…</p>';
+ if(d.error)return note('Audit: '+esc(d.error));
+ const rows=arr(d.byUnitDateClass),unitsOpt=unique(rows.map(r=>r.unit)),dates=unique(rows.map(r=>r.date)),cl=unique(rows.map(r=>r.class));
+ const f=rows.filter(r=>(state.unit==='ALL'||r.unit===state.unit)&&(state.date==='ALL'||r.date===state.date)&&(state.cls==='ALL'||r.class===state.cls));
+ const bad=f.filter(r=>r.status!=='SEPADAN');
+ const sum=key=>f.reduce((t,r)=>t+(Number(r[key])||0),0);
+ const sorted=bad.slice().sort((a,b)=>((b.critical>0)-(a.critical>0))||((b.weekend>0)-(a.weekend>0))||((b.missing>0)-(a.missing>0))||String(a.unit).localeCompare(String(b.unit),'ms'));
+ const clsStatus=r=>r.critical?'<span class="audit-flag critical">MERAH · PERLU SEMAKAN SEGERA</span>':
+   r.weekend?'<span class="audit-flag weekend">TARIKH HUJUNG MINGGU</span>':
+   r.missing?'<span class="audit-flag absent">TIADA DATA KEHADIRAN PAGI</span>':
+   r.ambiguous?'<span class="audit-flag absent">DATA TIDAK LENGKAP</span>':
+   r.notice?'<span class="audit-flag notice">KUNING · MUNGKIN TIDAK HADIR PETANG</span>':'<span class="audit-flag good">SEPADAN</span>';
+ const showPagi=r=>r.weekend?'SEMAK TARIKH':r.missing?'TIADA DATA':r.morningValid!==r.compared?'DATA SEPARA':r.morningPresent+'/'+r.compared;
+ return `<div class="filters">${sel('unit','Unit',unitsOpt,state.unit)}${sel('date','Tarikh',dates,state.date)}${sel('cls','Kelas',cl,state.cls)}</div>`+
+ cards([['Merah · Kritikal',num(sum('critical')),'Pagi tidak hadir → koko hadir'],['Kuning · Pemerhatian',num(sum('notice')),'Pagi hadir → koko tidak hadir'],['Tiada Data Pagi',num(sum('missing')),'Jangan anggap hadir'],['Tarikh Hujung Minggu',num(sum('weekend')),'Semak tarikh rekod']])+
+ note('<b>Kaedah semakan:</b> merah hanya apabila rekod murid pagi tidak hadir tetapi kokurikulum hadir. Kuning apabila pagi hadir tetapi kokurikulum tidak hadir; bukan terus kesalahan. Tarikh Sabtu/Ahad ditandakan untuk semakan dan tidak dibandingkan. Bandingan berdasarkan murid ahli unit berkenaan, bukan keseluruhan kelas.')+
+ panel('Audit Mengikut Unit, Tarikh dan Kelas','Hanya baris dengan isu dipaparkan, merah diutamakan.',
+   table(['Tarikh','Unit','Kelas','Pagi','Koko','Merah','Kuning','Status'],sorted.map(r=>[r.date,r.unit,r.class,showPagi(r),r.kokoPresent+'/'+r.compared,r.critical||'—',r.notice||'—',clsStatus(r)])))+
+ panel('Perbandingan Isu Mengikut Unit','Jumlah rekod merah, kuning, tiada data dan tarikh hujung minggu. ',
+  table(['Unit','Merah','Kuning','Tiada data pagi','Hujung minggu'],
+   unique(f.map(r=>r.unit)).map(u=>{const rr=f.filter(r=>r.unit===u),count=k=>rr.reduce((a,r)=>a+(Number(r[k])||0),0);return [u,count('critical'),count('notice'),count('missing'),count('weekend')]})));
+}
 function reportsPage(){let s=api.summary?.summary||{},w=weeks(),st=api.summary?.reportStatuses||{};return cards([['Jumlah Laporan',num(s.reports),'Dihantar'],['Disahkan',num(st.Disahkan),'Laporan'],['Semakan Penyelaras',num(st['Semakan Penyelaras']),'Memerlukan pengesahan'],['Isu Audit',num(s.issues),'Bukan semestinya kesalahan']])+panel('Status laporan','Bilangan laporan mengikut status.',bars(Object.entries(st).map(([n,v])=>({n,v})),Math.max(1,...Object.values(st)),false))+panel('Laporan Aktiviti setiap Perjumpaan','Banding bilangan dihantar daripada M1 hingga M12.',bars(w.map(x=>({n:'M'+x.week,v:x.reports})),Math.max(1,...w.map(x=>x.reports)),false))+panel('Rekod Mengikut Perjumpaan','Pisahkan laporan aktiviti daripada kehadiran murid.',table(['Perjumpaan','Bilangan laporan','Kehadiran'],w.map(x=>['M'+x.week,x.reports,pct(x.percent)])));}
 function officialRow(year,scope,cat){let p=api.pajsk||{},rows=arr(p.official).filter(r=>Number(r.Tahun)===year&&r.Skop===scope&&r.Kategori===cat);return rows.sort((a,b)=>String(b.Tarikh_Kemas_Kini).localeCompare(String(a.Tarikh_Kemas_Kini)))[0];}
 function pajskPage(){let p=api.pajsk;if(!p)return '<p>Memuatkan PAJSK daripada Google Sheets…</p>';if(p.error)return note(esc(p.error));

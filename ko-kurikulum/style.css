@@ -3,3 +3,6 @@
 .sidebar .nav-label:not(:first-child){margin-top:22px;border-top:1px solid #eef0e9;padding-top:20px}
 .sidebar a{transition:background .15s ease}
 @media print{.sidebar,.top-actions,.privacy{display:none!important}.shell{display:block}main{padding:0;max-width:none}.top{position:static;padding:8px 0}.panel{break-inside:avoid;box-shadow:none}.chart{break-inside:avoid}.page-head{margin:12px 0}.table-wrap{max-height:none;overflow:visible}body{background:#fff}}
+
+/* V5.2: Keutamaan audit dua arah */
+.audit-flag{display:inline-block;padding:5px 9px;border-radius:7px;font-size:10px;font-weight:850;white-space:normal;max-width:230px}.audit-flag.critical{color:#a11924;background:#ffe5e7;border:1px solid #f3a4aa}.audit-flag.notice{color:#8a5b10;background:#fff4d9;border:1px solid #f1d28b}.audit-flag.absent{color:#6d5762;background:#f1eaf0;border:1px solid #ddd0d8}.audit-flag.weekend{color:#673e91;background:#f2e7ff;border:1px solid #d8baf3}.audit-flag.good{color:#1d6240;background:#e5f5e9}
