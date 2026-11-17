@@ -231,12 +231,12 @@
       <div id="viewV65Blank" class="hidden space-y-4">
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4 max-w-4xl">
           <div class="flex items-center gap-3"><i class="fa-solid fa-file-circle-plus text-rose-600 text-xl"></i><div><h2 class="font-display font-extrabold text-xl text-slate-800">Cetakan Borang Agihan Jawatankuasa (Kosong)</h2><p class="text-xs text-slate-500 mt-1">Borang berasingan untuk Guru Besar menyerahkan kepada GPK bagi pengisian secara tulisan tangan. Tidak menggunakan nama pelantikan yang sedia ada.</p></div></div>
-          <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800">Senarai jawatankuasa dijana terus daripada <strong>Master_Jawatankuasa</strong> yang dimuatkan. Borang mempunyai 5 baris bagi setiap JK: Penyelaras/Ketua Panitia, Setiausaha dan AJK 1 hingga 3.</div>
+          <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-xs text-amber-800">Senarai jawatankuasa dijana terus daripada <strong>Master_Jawatankuasa</strong> yang dimuatkan. Borang merangkumi JK Induk setiap unit (nama pentadbir diisi automatik) serta JK kecil dengan ruang Setiausaha dan 8 AJK. Bagi JK Induk Kokurikulum, dua baris jawatan tambahan turut disediakan.</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
             <div><label class="block text-xs font-bold text-slate-700 mb-1">Kategori / JK Induk</label><select id="v65BlankCategory" class="w-full border border-slate-300 rounded-xl bg-white px-3 py-3 text-xs"><option value="">Semua JK Induk</option></select></div>
             <div><div class="text-xs text-slate-500 mb-2" id="v65BlankCount">Memuatkan senarai jawatankuasa...</div><button onclick="v65PrintBlankJk()" class="w-full bg-rose-700 hover:bg-rose-800 text-white rounded-xl px-5 py-3 text-xs font-bold"><i class="fa-solid fa-print mr-2"></i> Pratonton / Cetak Borang Kosong</button></div>
           </div>
-          <p class="text-[11px] text-slate-500">Cetakan A4: dua jawatankuasa setiap halaman. Tiada data disimpan ketika cetakan. Cetakan Buku Manual rasmi kekal berasingan.</p>
+          <p class="text-[11px] text-slate-500">Cetakan A4: dua borang setiap halaman. Ruang nama untuk cadangan pelantikan JK kecil dikosongkan. Nama pentadbir JK Induk dibaca daripada Master_Staf; tiada data disimpan ketika mencetak.</p>
         </div>
       </div>
 
@@ -593,20 +593,17 @@
               <span id="mapNaib3" class="font-extrabold text-slate-800 flex-1"></span>
             </div>
 
-            <!-- SETIAUSAHA (BEBAS DARI PERKATAAN INDUK) -->
-            <div class="flex items-center justify-between pt-1">
-              <span class="font-bold text-rose-600 w-40">Setiausaha:</span>
-              <div class="flex-1">
-                <span id="v5IndukSuRead" class="font-extrabold text-slate-800 text-xs"></span><select id="selSetiausahaInduk" class="select-guru-opt w-full p-2 bg-white border border-rose-300 rounded-xl font-bold text-slate-800 focus:outline-none text-xs"></select>
-              </div>
-            </div>
+            <!-- V6.7: Medan Setiausaha khas dibuang. Didaftarkan dengan Tambah Jawatan sahaja.
+                 Elemen tersembunyi dikekalkan untuk keserasian fungsi bacaan V6.6. -->
+            <div class="hidden" aria-hidden="true"><span id="v5IndukSuRead"></span><select id="selSetiausahaInduk"></select></div>
+            <p class="text-[11px] text-slate-500">Setiausaha, Naib Setiausaha dan jawatan induk lain diurus menggunakan <strong>Tambah Jawatan</strong> sahaja.</p>
 
             <!-- CONTAINER JAWATAN TAMBAHAN KHAS UNTUK JK INDUK -->
             <div id="v5IndukOfficersRead" class="pt-1"></div><div id="containerIndukCustomOfficers" class="space-y-2 pt-2 border-t border-slate-200/80"></div>
 
             <div class="pt-2 flex justify-end">
               <button id="v4AddIndukOfficer" onclick="tambahBarisPegawaiInduk()" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5">
-                <i class="fa-solid fa-plus text-xs"></i> Tambah Jawatan (e.g. Naib Setiausaha / Bendahari / SU Sukan)
+                <i class="fa-solid fa-plus text-xs"></i> Tambah Jawatan (Setiausaha / Naib Setiausaha / Lain-lain)
               </button>
             </div>
           </div>
