@@ -123,7 +123,7 @@ function tmRenderSettings(){
   const old=tm$('tm-time-task').value;
   tm$('tm-time-task').innerHTML='<option value="">Pilih tugasan…</option>'+types.filter(x=>x.status.toUpperCase()==='AKTIF').map(x=>`<option value="${tmEsc(x.id)}">${tmEsc(x.name)}</option>`).join('');
   if(types.some(x=>x.id===old))tm$('tm-time-task').value=old;
-  tm$('tm-time-list').innerHTML='<div class="tm-mini-list">'+(times.length?times.map(x=>`<div class="tm-mini"><div><strong>${tmEsc(names[x.task]||x.task)}</strong><small>${tmEsc(x.day)} ${tmEsc(x.start)}–${tmEsc(x.end)} · ${tmEsc(x.count)} guru · ${tmFmt(x.from)}</small></div><button class="tm-btn tm-ghost" data-edit-time="${tmEsc(x.id)}">Edit</button></div>`).join(''):'<p class="tm-empty">Tiada waktu tugasan. Sediakan sebelum semak agihan.</p>')+'</div>';
+  tm$('tm-time-list').innerHTML='<div class="tm-mini-list">'+(times.length?times.map(x=>`<div class="tm-mini"><div><strong>${tmEsc(names[x.task]||x.task)}</strong><small>${tmEsc(x.day==='Semua Hari'?'Semua Hari (Isnin–Jumaat)':x.day)} ${tmEsc(x.start)}–${tmEsc(x.end)} · ${tmEsc(x.count)} guru · ${tmFmt(x.from)}</small></div><button class="tm-btn tm-ghost" data-edit-time="${tmEsc(x.id)}">Edit</button></div>`).join(''):'<p class="tm-empty">Tiada waktu tugasan. Sediakan sebelum semak agihan.</p>')+'</div>';
 }
 function tmEditTask(id){const x=tmState.data?.settings?.types?.find(x=>x.id===id);if(!x)return;
   tm$('tm-task-id').value=x.id;tm$('tm-task-name').value=x.name;tm$('tm-task-category').value=x.category;tm$('tm-task-weight').value=x.weight;tm$('tm-task-min').value=x.min;

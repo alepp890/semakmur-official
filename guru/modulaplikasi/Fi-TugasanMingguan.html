@@ -93,8 +93,22 @@
         </section>
         <section class="tm-card"><div class="tm-section-title"><h2>Waktu Tugasan</h2></div>
           <form id="tm-time-form" class="tm-form"><input type="hidden" id="tm-time-id"><label>Jenis tugasan<select id="tm-time-task" required></select></label>
-            <div class="tm-fields"><label>Hari<select id="tm-time-day"> <option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select></label><label>Tahap<input id="tm-time-level" value="Semua" maxlength="30"></label></div>
+            <div class="tm-fields"><label>Hari<select id="tm-time-day">
+              <option value="Semua Hari">Semua Hari (Isnin–Jumaat)</option>
+              <option value="Selasa–Khamis">Selasa–Khamis</option>
+              <option value="Isnin">Isnin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option>
+              <option value="Khamis">Khamis</option><option value="Jumaat">Jumaat</option>
+            </select></label><label>Tahap<input id="tm-time-level" value="Semua" maxlength="30"></label></div>
             <div class="tm-fields"><label>Masa mula<input id="tm-time-from" type="time" required></label><label>Masa tamat<input id="tm-time-to" type="time" required></label></div>
+            <p class="tm-muted" style="margin:0">Pilih <strong>Semua Hari</strong> untuk masa tugasan yang sama setiap Isnin–Jumaat.
+              Bagi tugas waktu pulang, pilih Isnin, Selasa–Khamis dan Jumaat secara berasingan. Satu rekod mewakili semua hari yang dipilih.</p>
+            <details class="tm-time-guide"><summary>Rujukan waktu pulang SKSM</summary>
+              <table class="tm-table" style="width:100%;font-size:0.85rem"><thead><tr><th>Hari</th><th>Tahap 1</th><th>Tahap 2</th></tr></thead>
+                <tbody><tr><td>Isnin</td><td>1.30 petang (13:30)</td><td>1.30 petang (13:30)</td></tr>
+                  <tr><td>Selasa–Khamis</td><td>1.00 tengah hari (13:00)</td><td>1.30 petang (13:30)</td></tr>
+                  <tr><td>Jumaat</td><td>12.00 tengah hari (12:00)</td><td>12.00 tengah hari (12:00)</td></tr></tbody></table>
+              <p class="tm-muted">Ini masa murid pulang, bukan tempoh pengawasan yang telah ditetapkan. Isikan Masa mula dan Masa tamat tugas pengawasan sebenar mengikut ketetapan sekolah.</p>
+            </details>
             <div class="tm-fields"><label>Berkuat kuasa<input id="tm-time-effective" type="date" required></label><label>Tamat kuat kuasa (pilihan)<input id="tm-time-expiry" type="date"></label></div>
             <label>Bilangan guru diperlukan<input id="tm-time-count" type="number" min="1" max="15" value="1" required></label>
             <div class="tm-buttons"><button class="tm-btn tm-primary" type="submit">Simpan waktu</button><button type="button" id="tm-time-cancel" class="tm-btn tm-ghost">Kosongkan</button></div>
