@@ -47,7 +47,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   const CATEGORY_MODULES={
     pentadbiran:['keberadaan','manual','eminit','eprogram','eopr','bertugas','hrmis'],
     kurikulum:['erph','jadual','epbd','tmk','relief','splkpm'],
-    hem:['kehadiran','bertugas','apdm','ssdm','spbt','rmt'],
+    hem:['kehadiran','apdm','ssdm','spbt','rmt'],
     kokurikulum:['beruniform','kelab','sukan','pajsk','eprogram'],
     lain_lain:['bilik','dokumen','manual','splkpm']
   };
@@ -353,14 +353,14 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   };
   function qIcon(type){return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${QUICK_ICONS[type]||QUICK_ICONS.book}</svg>`;}
   function shortcutCard(id,idx){const m=MODULES[id];if(!m||(id==='manual'&&(!fiManualDesktop()||!fiManualAccessAllowed)))return '';
-    const details={kehadiran:['Kehadiran','Rekod & Analisis','attendance'],erph:['e-RPH','Rancangan Pengajaran','book'],jadual:['Jadual Waktu','Kelas & Tugasan','calendar'],splkpm:['Latihan','Pembangunan Guru','graduation'],epbd:['PBD','Pentaksiran Murid','chart'],eopr:['Laporan','Laporan & Statistik','report'],eminit:['Surat','Surat & Tindakan','mail'],manual:['Pengurusan','Manual Sekolah','settings'],keberadaan:['e-Keberadaan','Permohonan & Rekod','report']};
+    const details={kehadiran:['Kehadiran','Rekod & Analisis','attendance'],erph:['e-RPH','Rancangan Pengajaran','book'],jadual:['Jadual Waktu','Kelas & Tugasan','calendar'],splkpm:['Latihan','Pembangunan Guru','graduation'],epbd:['PBD','Pentaksiran Murid','chart'],eopr:['Laporan','Laporan & Statistik','report'],eminit:['Surat','Surat & Tindakan','mail'],manual:['Pengurusan','Manual Sekolah','settings'],keberadaan:['e-Keberadaan','Permohonan & Rekod','report'],bertugas:['Tugasan Mingguan','Tugas & Laporan','report']};
     const iconMap={hrmis:'settings',ssdm:'attendance',splkpm:'graduation',pajsk:'chart',apdm:'attendance',bilik:'calendar',kehadiran:'attendance',eprogram:'calendar',eopr:'report',bertugas:'report',beruniform:'attendance',kelab:'attendance',sukan:'chart',epbd:'chart',tmk:'book',relief:'calendar'};
     const data=details[id]||[m.title,'Aplikasi SeMAKMUR',iconMap[id]||'book'];
     return `<button class="shortcut-card shortcut-tone-${idx%7} ${m.url?'':'shortcut-inactive'}" type="button" data-module="${escapeHtml(id)}" ${m.url?'':'disabled'} title="${escapeHtml(data[0])}"><span class="shortcut-icon">${qIcon(data[2])}</span><span class="shortcut-title">${escapeHtml(data[0])}</span><span class="shortcut-description">${escapeHtml(data[1])}</span><span class="shortcut-arrow" aria-hidden="true">→</span></button>`;
   }
   function quickShortcutIds(page=activePage){
     if(page==='laman_utama'){
-      const links=['kehadiran','erph','keberadaan','jadual','epbd','eopr','eminit'];
+      const links=['kehadiran','erph','keberadaan','bertugas','jadual','epbd','eopr','eminit'];
       if(fiManualDesktop()&&fiManualAccessAllowed)links.push('manual');
       return links;
     }
