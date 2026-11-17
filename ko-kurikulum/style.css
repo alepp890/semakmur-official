@@ -6,3 +6,18 @@
 
 /* V5.2: Keutamaan audit dua arah */
 .audit-flag{display:inline-block;padding:5px 9px;border-radius:7px;font-size:10px;font-weight:850;white-space:normal;max-width:230px}.audit-flag.critical{color:#a11924;background:#ffe5e7;border:1px solid #f3a4aa}.audit-flag.notice{color:#8a5b10;background:#fff4d9;border:1px solid #f1d28b}.audit-flag.absent{color:#6d5762;background:#f1eaf0;border:1px solid #ddd0d8}.audit-flag.weekend{color:#673e91;background:#f2e7ff;border:1px solid #d8baf3}.audit-flag.good{color:#1d6240;background:#e5f5e9}
+
+/* V5.2 FIX: warna keseluruhan baris audit, termasuk ketika hover */
+.table-wrap tbody tr.audit-row-critical > td,
+.table-wrap tbody tr.audit-row-critical:hover > td { background:#ffe7e9 !important; color:#841a24; }
+.table-wrap tbody tr.audit-row-critical > td:first-child { box-shadow:inset 5px 0 #c6283b; font-weight:750; }
+.table-wrap tbody tr.audit-row-notice > td,
+.table-wrap tbody tr.audit-row-notice:hover > td { background:#fff3d9 !important; color:#76500a; }
+.table-wrap tbody tr.audit-row-notice > td:first-child { box-shadow:inset 5px 0 #d49a24; font-weight:750; }
+.table-wrap tbody tr.audit-row-weekend > td,
+.table-wrap tbody tr.audit-row-weekend:hover > td { background:#f3ebff !important; }
+.table-wrap tbody tr.audit-row-missing > td,
+.table-wrap tbody tr.audit-row-missing:hover > td,
+.table-wrap tbody tr.audit-row-ambiguous > td,
+.table-wrap tbody tr.audit-row-ambiguous:hover > td { background:#f2f3f5 !important; }
+@media print { .table-wrap tbody tr.audit-row-critical > td {background:#ffe7e9 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact} .table-wrap tbody tr.audit-row-notice > td {background:#fff3d9 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact} }

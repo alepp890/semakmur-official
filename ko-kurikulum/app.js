@@ -9,7 +9,15 @@ const categories=['BADAN BERUNIFORM','SUKAN & PERMAINAN','KELAB & PERSATUAN'];
 const unique=items=>[...new Set(items)].filter(Boolean).sort((a,b)=>String(a).localeCompare(String(b),'ms',{numeric:true}));
 function cards(items){return `<div class="cards">${items.map(([a,b,c])=>`<div class="card"><small>${esc(a)}</small><strong>${esc(b)}</strong><em>${esc(c||'')}</em></div>`).join('')}</div>`}
 function panel(title,caption,body){return `<section class="panel"><div class="panel-header"><div><h2>${esc(title)}</h2><p>${esc(caption||'')}</p></div></div>${body}</section>`}
-function table(head,rows){return `<div class="table-wrap"><table><thead><tr>${head.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
+function table(head,rows,options={}){
+ const statusCol=options.statusHtmlColumn;
+ const rowClasses=options.rowClasses||[];
+ const allowedClasses=new Set(['audit-row-critical','audit-row-notice','audit-row-weekend','audit-row-missing','audit-row-ambiguous']);
+ return `<div class="table-wrap"><table><thead><tr>${head.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${rows.map((r,i)=>{
+  const rowClass=allowedClasses.has(rowClasses[i])?rowClasses[i]:'';
+  return `<tr class="${rowClass}">${r.map((c,j)=>`<td>${j===statusCol?c:esc(c)}</td>`).join('')}</tr>`;
+ }).join('')}</tbody></table></div>`;
+}
 function bars(rows,max=100,p=true){return `<div class="chart">${rows.map(r=>{let v=Number(r.v),good=Number.isFinite(v),width=good?Math.max(0,Math.min(100,(v/max)*100)):0;return `<div class="bar"><span class="bar-name" title="${esc(r.n)}">${esc(r.n)}</span><div class="track"><div class="fill ${p&&v<95?'warn':''}" style="width:${width}%"></div></div><span class="bar-num">${good?p?pct(v):f2(v):'—'}</span></div>`}).join('')||'<p>Tiada data untuk pilihan ini.</p>'}</div>`}
 function sel(id,title,options,current,all='Semua'){return `<label class="filter">${esc(title)}<select id="${id}"><option value="ALL">${esc(all)}</option>${options.map(v=>`<option ${String(v)===String(current)?'selected':''} value="${esc(v)}">${esc(v)}</option>`).join('')}</select></label>`}
 function calc(rows,fn){let m=new Map();rows.forEach(r=>{let k=fn(r),x=m.get(k)||{n:k,present:0,possible:0,records:0};x.present+=Number(r.present)||0;x.possible+=Number(r.possible)||0;x.records++;m.set(k,x)});return [...m.values()].map(v=>({...v,pct:v.possible?v.present*100/v.possible:null}))}
@@ -45,7 +53,10 @@ function morningPage(){
  cards([['Merah · Kritikal',num(sum('critical')),'Pagi tidak hadir → koko hadir'],['Kuning · Pemerhatian',num(sum('notice')),'Pagi hadir → koko tidak hadir'],['Tiada Data Pagi',num(sum('missing')),'Jangan anggap hadir'],['Tarikh Hujung Minggu',num(sum('weekend')),'Semak tarikh rekod']])+
  note('<b>Kaedah semakan:</b> merah hanya apabila rekod murid pagi tidak hadir tetapi kokurikulum hadir. Kuning apabila pagi hadir tetapi kokurikulum tidak hadir; bukan terus kesalahan. Tarikh Sabtu/Ahad ditandakan untuk semakan dan tidak dibandingkan. Bandingan berdasarkan murid ahli unit berkenaan, bukan keseluruhan kelas.')+
  panel('Audit Mengikut Unit, Tarikh dan Kelas','Hanya baris dengan isu dipaparkan, merah diutamakan.',
-   table(['Tarikh','Unit','Kelas','Pagi','Koko','Merah','Kuning','Status'],sorted.map(r=>[r.date,r.unit,r.class,showPagi(r),r.kokoPresent+'/'+r.compared,r.critical||'—',r.notice||'—',clsStatus(r)])))+
+   table(['Tarikh','Unit','Kelas','Pagi','Koko','Merah','Kuning','Status'],
+    sorted.map(r=>[r.date,r.unit,r.class,showPagi(r),r.kokoPresent+'/'+r.compared,r.critical||'—',r.notice||'—',clsStatus(r)]),
+    {statusHtmlColumn:7,rowClasses:sorted.map(r=>r.critical?'audit-row-critical':r.weekend?'audit-row-weekend':r.missing?'audit-row-missing':r.ambiguous?'audit-row-ambiguous':r.notice?'audit-row-notice':'')}
+   ))+
  panel('Perbandingan Isu Mengikut Unit','Jumlah rekod merah, kuning, tiada data dan tarikh hujung minggu. ',
   table(['Unit','Merah','Kuning','Tiada data pagi','Hujung minggu'],
    unique(f.map(r=>r.unit)).map(u=>{const rr=f.filter(r=>r.unit===u),count=k=>rr.reduce((a,r)=>a+(Number(r[k])||0),0);return [u,count('critical'),count('notice'),count('missing'),count('weekend')]})));
