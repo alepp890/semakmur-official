@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#173c34">
+  <title>Smart Tugasan Mingguan | SeMAKMUR I-System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=3.0">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=3.0">
+  <script src="../../firebase-pilot-config.js"></script>
+  <script src="../../Fi-APIConfig.js"></script>
+  <script src="Fi-TugasanMingguan.js?v=3.0" defer></script>
+</head>
+<body>
+<div class="tm-shell" id="tm-app">
+  <header class="tm-hero">
+    <div class="tm-brand"><span class="tm-mark">S</span><div><small>SeMAKMUR I-System · Hal Ehwal Murid</small><h1>Smart Tugasan Mingguan</h1><p>Giliran kumpulan, laporan harian dan semakan Guru Besar</p></div></div>
+    <div class="tm-identity"><span id="tm-user">Mengesahkan akaun…</span><span class="tm-chip" id="tm-mode">MVP V3</span></div>
+  </header>
+  <div class="tm-toolbar"><label>Sesi persekolahan <select id="tm-year"><option value="2026" selected>2026 — Pengujian</option><option value="2027">2027</option></select></label><button class="tm-btn tm-ghost" id="tm-refresh" type="button">Muat semula</button><div id="tm-loading" class="tm-loading" hidden>Memuatkan data…</div></div>
+  <div id="tm-notice" class="tm-notice" role="status" aria-live="polite" hidden></div>
+  <nav class="tm-tabs" aria-label="Bahagian Tugasan Mingguan">
+    <button type="button" class="active" data-tm-tab="overview">Minggu & Kumpulan</button>
+    <button type="button" data-tm-tab="daily">Laporan Harian</button>
+    <button type="button" data-tm-tab="weekly">Laporan Mingguan</button>
+    <button type="button" data-tm-tab="tasks">Jadual Tugasan</button>
+    <button type="button" data-tm-tab="settings" id="tm-tab-settings" hidden>Tetapan Admin</button>
+  </nav>
+  <main class="tm-main">
+    <section id="tm-panel-overview" data-tm-panel="overview">
+      <div class="tm-summary" id="tm-summary"></div>
+      <section class="tm-card"><div class="tm-section-title"><div><h2>Jadual Kumpulan dan Ketua</h2><p>Minggu persekolahan berdasarkan Takwim_Minggu rasmi.</p></div><span class="tm-tag">Giliran automatik · Pratonton</span></div>
+        <div id="tm-weeks" class="tm-weekgrid"><p class="tm-empty">Belum dimuatkan.</p></div>
+      </section>
+      <section class="tm-card"><div class="tm-section-title"><h2>Makluman sumber data</h2></div><div id="tm-warnings" class="tm-warnings"><p class="tm-empty">Tiada makluman.</p></div></section>
+    </section>
+    <section id="tm-panel-daily" data-tm-panel="daily" hidden>
+      <section class="tm-card"><div class="tm-section-title"><div><h2>Laporan Harian</h2><p>Setiap ahli kumpulan boleh mengisi catatan sendiri. Catatan disusun mengikut tarikh.</p></div></div>
+        <div id="tm-selection-daily" class="tm-selection"></div>
+        <form id="tm-daily-form" class="tm-form" hidden>
+          <div class="tm-fields"><label>Tarikh laporan<input id="tm-day-date" type="date" required></label><label>Bahagian laporan<select id="tm-day-section" required></select></label></div>
+          <label>Catatan / pemerhatian<textarea id="tm-day-text" rows="5" minlength="2" maxlength="3000" required placeholder="Tulis laporan sebenar pada hari tersebut…"></textarea></label>
+          <div class="tm-buttons"><button class="tm-btn tm-primary" type="submit">Simpan catatan saya</button><span class="tm-muted">Disimpan mengikut guru dan bahagian; tidak menimpa catatan ahli lain.</span></div>
+        </form>
+      </section>
+      <section class="tm-card"><div class="tm-section-title"><h2>Catatan kumpulan yang direkodkan</h2></div><div id="tm-daily-list"><p class="tm-empty">Pilih minggu bertugas terlebih dahulu.</p></div></section>
+    </section>
+    <section id="tm-panel-weekly" data-tm-panel="weekly" hidden>
+      <section class="tm-card"><div class="tm-section-title"><div><h2>Ulasan Ketua Kumpulan</h2><p>Ketua meneliti laporan harian, kemudian menyerahkan ringkasan kepada Guru Besar.</p></div><span id="tm-weekly-status" class="tm-tag">Belum tersedia</span></div>
+        <div id="tm-selection-weekly" class="tm-selection"></div>
+        <form id="tm-weekly-form" class="tm-form" hidden>
+          <label>Ulasan keseluruhan<textarea id="tm-weekly-summary" rows="5" maxlength="5000" placeholder="Ringkasan kebersihan, disiplin, program dan isu penting…"></textarea></label>
+          <label>Cadangan dan tindakan susulan<textarea id="tm-weekly-followup" rows="4" maxlength="3000" placeholder="Cadangan penambahbaikan…"></textarea></label>
+          <div class="tm-buttons"><button type="button" class="tm-btn tm-ghost" id="tm-weekly-draft">Simpan Draf</button><button type="submit" class="tm-btn tm-primary">Hantar kepada GB</button></div>
+        </form>
+        <div id="tm-weekly-readonly" class="tm-readonly" hidden></div>
+        <div class="tm-buttons"><button type="button" class="tm-btn tm-outline" id="tm-print">Cetak laporan / PDF</button></div>
+        <div class="tm-manager-review" id="tm-review" hidden>
+          <h3>Semakan Guru Besar</h3><label>Ulasan / maklum balas<textarea id="tm-review-note" rows="3" maxlength="3000"></textarea></label>
+          <div class="tm-buttons"><button type="button" id="tm-review-accept" class="tm-btn tm-primary">Tandakan Disemak</button><button type="button" id="tm-review-return" class="tm-btn tm-outline">Pulangkan kepada Ketua</button></div>
+        </div>
+      </section>
+    </section>
+    <section id="tm-panel-tasks" data-tm-panel="tasks" hidden>
+      <section class="tm-card"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2><p>Penjanaan agihan adil akan diaktifkan setelah semakan PdPc, keberadaan dan e-Relief lengkap.</p></div><span class="tm-tag tm-warning">Belum diterbitkan</span></div>
+        <div id="tm-selection-tasks" class="tm-selection"></div><div id="tm-assignments" class="tm-warnings"></div>
+        <div class="tm-notice tm-info"><strong>Perlindungan jadual guru:</strong> Setiap waktu tugasan ditetapkan dengan jam mula/tamat dan tarikh kuat kuasa, bukan diikat kepada Slot_ID. Fasa ini tidak menjana atau menerbitkan nama guru secara automatik.</div>
+        <div id="tm-preflight-result"></div><button type="button" class="tm-btn tm-outline" id="tm-preflight" hidden>Semak Kesediaan Agihan (Admin)</button>
+      </section>
+    </section>
+    <section id="tm-panel-settings" data-tm-panel="settings" hidden>
+      <section class="tm-card"><div class="tm-section-title"><div><h2>Tetapan Asas</h2><p>Sediakan contoh tugasan berat/ringan dan komponen laporan tanpa menetapkan waktu secara paksa.</p></div></div>
+        <button type="button" class="tm-btn tm-outline" id="tm-seed">Sediakan 9 jenis tugasan + 9 bahagian laporan</button>
+        <p class="tm-muted">Boleh dijalankan semula tanpa menambah nama sama. Waktu tugasan tetap perlu ditetapkan oleh sekolah.</p>
+      </section>
+      <div class="tm-two-cols">
+        <section class="tm-card"><div class="tm-section-title"><h2>Jenis Tugasan</h2></div>
+          <form id="tm-task-form" class="tm-form"><input id="tm-task-id" type="hidden"><label>Nama tugasan<input id="tm-task-name" maxlength="120" required placeholder="Contoh: Pagar Utama (Pagi)"></label>
+            <div class="tm-fields"><label>Kategori<select id="tm-task-category"><option value="BERAT">Berat</option><option value="RINGAN">Ringan</option></select></label><label>Mata beban<input id="tm-task-weight" type="number" min="1" max="20" value="3" required></label></div>
+            <label>Bilangan guru minimum<input id="tm-task-min" type="number" min="1" max="15" value="1" required></label>
+            <div class="tm-buttons"><button class="tm-btn tm-primary" type="submit">Simpan jenis tugasan</button><button type="button" id="tm-task-cancel" class="tm-btn tm-ghost">Kosongkan</button></div>
+          </form><div id="tm-task-list"></div>
+        </section>
+        <section class="tm-card"><div class="tm-section-title"><h2>Waktu Tugasan</h2></div>
+          <form id="tm-time-form" class="tm-form"><input type="hidden" id="tm-time-id"><label>Jenis tugasan<select id="tm-time-task" required></select></label>
+            <div class="tm-fields"><label>Hari<select id="tm-time-day"> <option>Isnin</option><option>Selasa</option><option>Rabu</option><option>Khamis</option><option>Jumaat</option></select></label><label>Tahap<input id="tm-time-level" value="Semua" maxlength="30"></label></div>
+            <div class="tm-fields"><label>Masa mula<input id="tm-time-from" type="time" required></label><label>Masa tamat<input id="tm-time-to" type="time" required></label></div>
+            <div class="tm-fields"><label>Berkuat kuasa<input id="tm-time-effective" type="date" required></label><label>Tamat kuat kuasa (pilihan)<input id="tm-time-expiry" type="date"></label></div>
+            <label>Bilangan guru diperlukan<input id="tm-time-count" type="number" min="1" max="15" value="1" required></label>
+            <div class="tm-buttons"><button class="tm-btn tm-primary" type="submit">Simpan waktu</button><button type="button" id="tm-time-cancel" class="tm-btn tm-ghost">Kosongkan</button></div>
+          </form><div id="tm-time-list"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+  <footer class="tm-footer">SeMAKMUR I-System · Smart Tugasan Mingguan V3.0 · Sumber rasmi Google Sheets / Fi-Sync</footer>
+</div>
+</body></html>
