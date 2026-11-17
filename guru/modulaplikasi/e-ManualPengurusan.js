@@ -3785,14 +3785,31 @@ function v68SchoolBlankDocs_(){
   entries.push({tab:'02 / 06',name:'Penyelaras Bilik Khas',sub:'Agihan guru penyelaras bagi setiap bilik khas',
     heads:['Bil.','Bilik Khas','Guru Penyelaras','Catatan'],
     rows:rooms.length?rooms.map((k,i)=>[i+1,k,'','']):fallback(12,4),perPage:23});
-  const groupRows=[];
-  groups.forEach(g=>{
-    const name=String(g.Nama_Kumpulan||'Kumpulan '+g.Nombor_Kumpulan).trim();
-    for(let i=1;i<=6;i++)groupRows.push([groupRows.length+1,name,'Ahli '+i,'']);
+  // V6.9 — setiap kumpulan bertugas mempunyai borang/jadual SENDIRI.
+  // 12 ruang nama guru bagi setiap kumpulan (contohnya 4 kumpulan = 48 ruang).
+  // Hanya membaca tetapan kumpulan, tidak menyalin pelantikan sedia ada.
+  const sortedGroups=groups.slice().sort((a,b)=>
+    (Number(a.Nombor_Kumpulan)||0)-(Number(b.Nombor_Kumpulan)||0));
+  sortedGroups.forEach(g=>{
+    const number=String(g.Nombor_Kumpulan||'').trim();
+    const groupName=String(g.Nama_Kumpulan||('Kumpulan '+number)).trim();
+    entries.push({
+      tab:'03 / 06',
+      name:'Kumpulan Bertugas Mingguan — '+groupName,
+      sub:'12 ruang pengisian khusus untuk '+groupName+' · Semua nama guru dikosongkan',
+      heads:['Bil.','Jawatan / Ahli','Nama Guru','Catatan'],
+      rows:Array.from({length:12},(_,i)=>[i+1,'Ahli '+(i+1),'','']),
+      perPage:12,
+      groupDuty:true
+    });
   });
-  entries.push({tab:'03 / 06',name:'Kumpulan Bertugas Mingguan',sub:'Enam ruang nama guru bagi setiap kumpulan yang didaftarkan',
-    heads:['Bil.','Kumpulan','Jawatan / Ahli','Nama Guru'],
-    rows:groupRows.length?groupRows:fallback(12,4),perPage:23});
+  if(!sortedGroups.length){
+    entries.push({tab:'03 / 06',name:'Kumpulan Bertugas Mingguan',
+      sub:'Belum ada kumpulan aktif didaftarkan. Sila sediakan kumpulan dalam Pengurusan Sekolah.',
+      heads:['Bil.','Jawatan / Ahli','Nama Guru','Catatan'],
+      rows:Array.from({length:12},(_,i)=>[i+1,'Ahli '+(i+1),'','']),
+      perPage:12,groupDuty:true});
+  }
   entries.push({tab:'04 / 06',name:'Penghantaran e-RPH',sub:'Nama guru daripada Master_Staf; ruang pegawai penyemak kosong',
     heads:['Bil.','Nama Guru','Pegawai Penyemak e-RPH'],
     rows:teachers.length?teachers.map((g,i)=>[i+1,String(g.Nama_Penuh||''),'']):fallback(12,3),perPage:23});
@@ -3901,7 +3918,7 @@ window.v65PrintBlankJk=function(){
       const {doc,part}=p;
       const head=`${doc.name}${p.total>1?' (sambungan '+p.index+'/'+p.total+')':''}`;
       const rows=part.map(r=>'<tr>'+r.map((cell,i)=>`<td class="${i===0?'school-num':''}">${esc(cell)}</td>`).join('')+'</tr>').join('');
-      return `<main class="page school-page"><header>SK SEGAMBUT MAKMUR <span>BORANG PENGURUSAN SEKOLAH • BUKAN PELANTIKAN RASMI</span></header><div class="school-title"><div class="over">PENGURUSAN SEKOLAH · TAB ${esc(doc.tab)} · SESI ${esc(year)}</div><h2>${esc(head)}</h2><p>${esc(doc.sub)}</p><small>Data rujukan diambil daripada sistem. Semua ruang penugasan sengaja dikosongkan untuk diisi secara tulisan tangan.</small></div><table class="school-table"><thead><tr>${doc.heads.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table><div class="school-sign">Disediakan oleh: _________________________ &nbsp;&nbsp; Disemak oleh: _________________________ &nbsp;&nbsp; Tarikh: __________</div><footer>Rujukan Data Induk SeMAKMUR • ${esc(year)} <span>Halaman ${cards.length+index+1} / ${totalPages}</span></footer></main>`;
+      return `<main class="page school-page${doc.groupDuty?' school-group-duty':''}"><header>SK SEGAMBUT MAKMUR <span>BORANG PENGURUSAN SEKOLAH • BUKAN PELANTIKAN RASMI</span></header><div class="school-title"><div class="over">PENGURUSAN SEKOLAH · TAB ${esc(doc.tab)} · SESI ${esc(year)}</div><h2>${esc(head)}</h2><p>${esc(doc.sub)}</p><small>Data rujukan diambil daripada sistem. Semua ruang penugasan sengaja dikosongkan untuk diisi secara tulisan tangan.</small></div><table class="school-table"><thead><tr>${doc.heads.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table><div class="school-sign">Disediakan oleh: _________________________ &nbsp;&nbsp; Disemak oleh: _________________________ &nbsp;&nbsp; Tarikh: __________</div><footer>Rujukan Data Induk SeMAKMUR • ${esc(year)} <span>Halaman ${cards.length+index+1} / ${totalPages}</span></footer></main>`;
     })
   ].join('');
   const pageHtml=`<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Borang Agihan JK ${esc(year)}</title><style>
@@ -3931,6 +3948,8 @@ window.v65PrintBlankJk=function(){
   .school-table thead{display:table-header-group}
   .school-table th{height:9mm;background:#e8efeb}
   .school-table td{height:8.6mm;min-height:8.6mm;overflow-wrap:break-word}
+  /* Ruang tulisan tangan lebih besar pada setiap helaian kumpulan bertugas. */
+  .school-group-duty .school-table td{height:14mm;min-height:14mm}
   .school-table th:first-child,.school-num{width:9mm;text-align:center}
   .school-table tr{break-inside:avoid;page-break-inside:avoid}
   .school-sign{margin-top:auto;padding:5mm 0 3mm;font-size:8pt}
