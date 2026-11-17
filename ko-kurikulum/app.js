@@ -70,18 +70,41 @@ function pajskNotice(p){
  return `<div class="pajsk-ok">286 rekod individu ditemui. Sila pastikan jumlah gred sepadan dengan laporan rasmi 2026 (92 A, 193 B, 1 C).</div>`;
 }
 function pajskTable(head,rows,empty){return rows.length?table(head,rows):`<div class="pajsk-empty small"><strong>Tiada data untuk jadual ini.</strong><p>${esc(empty)}</p></div>`;}
-function pajskPage(){let p=api.pajsk;if(!p)return '<p>Memuatkan PAJSK daripada Google Sheets…</p>';if(p.error)return `<div class="error">PAJSK API: ${esc(p.error)}</div>`;
- let r=arr(p.latestOfficial),off=(sc,cat)=>r.find(x=>x.Skop===sc&&x.Kategori===cat),overall=off('KESELURUHAN','SEMUA'),an=p.analytics||{},rows=arr(an.byYear),cls=arr(an.byClass),cat=arr(an.byCategory),oy=arr(p.officialByYear);
- const years=oy.filter(x=>Number(x.Tahun)===2026).sort((a,b)=>Number(a.Aliran)-Number(b.Aliran));
+function pajskSummaryStatus(n){
+ return n===286?'286 rekod individu tersedia — tertakluk audit gred.':`Data individu: ${num(n)} / 286. Paparan rasmi di bawah menggunakan tab ringkasan Sheets; bukan analisis individu lengkap.`;
+}
+function pajskPage(){
+ const p=api.pajsk;
+ if(!p)return '<p>Memuatkan PAJSK daripada Google Sheets…</p>';
+ if(p.error)return `<div class="error">PAJSK API: ${esc(p.error)}</div>`;
+ const off=arr(p.latestOfficial),official=(sc,cat)=>off.find(x=>x.Skop===sc&&x.Kategori===cat),overall=official('KESELURUHAN','SEMUA')||{};
+ const a=p.analytics||{},individualYear=arr(a.byYear),individualClass=arr(a.byClass),individualCat=arr(a.byCategory),n=Number(a.imported)||0;
+ const yearRows=arr(p.officialByYear).filter(x=>Number(x.Tahun)===2026).sort((x,y)=>Number(x.Aliran)-Number(y.Aliran));
+ const classRows=arr(p.classes).filter(x=>Number(x.Tahun)===2026).sort((x,y)=>String(x.Kelas).localeCompare(String(y.Kelas),'ms',{numeric:true}));
  const componentLabels=['BADAN BERUNIFORM','KELAB & PERSATUAN','SUKAN & PERMAINAN'];
- const componentRows=componentLabels.map(label=>({label, ...(off('KOMPONEN',label)||{})}));
- return cards([['GPS Rasmi 2026',round(overall?.GPS),overall?.Status_Pengesahan||'Semak tab GPS rasmi'],['GPS 2025',round(officialRow(2025,'KESELURUHAN','SEMUA')?.GPS),'Rujukan tahun lepas'],['Gred A Rasmi',overall?.Gred_A??'—','Daripada laporan rasmi'],['Rekod individu',num(an.imported)+'/286',an.imported===286?'Jumlah lengkap':'Import perlu semakan']])+pajskNotice(p)+
- panel('GPS Rasmi Mengikut Komponen','Dibaca daripada PAJSK_GPS_Rasmi dalam Google Sheets. Lebih rendah = lebih baik.',bars(componentRows.map(c=>({n:c.label,v:c.GPS})),3,false))+
- panel('Taburan Gred Rasmi Mengikut Komponen','Gred berdasarkan laporan komponen terkini dalam PAJSK_GPS_Rasmi.',pajskTable(['Komponen','Murid','A','B','C','D','E','% Gred A','GPS','% GPS'],componentRows.filter(x=>x.GPS!==undefined).map(x=>[x.label,x.Jumlah_Murid??'—',x.Gred_A??'—',x.Gred_B??'—',x.Gred_C??'—',x.Gred_D??'—',x.Gred_E??'—',x.Jumlah_Murid?pct(100*Number(x.Gred_A)/Number(x.Jumlah_Murid)):'—',round(x.GPS),pct(x.Peratus_GPS)]),'Jalankan kokoKemaskiniGPS2026() dan deploy versi terkini untuk memasukkan laporan baharu.'))+
- panel('GPS Rasmi Mengikut Aliran','Dibaca daripada tab PAJSK_Aliran_Rasmi, tanpa bergantung pada import individu.',pajskTable(['Aliran','Murid','A','B','C','GPS','% GPS'],years.map(x=>['TAHUN '+x.Aliran,x.Jumlah_Murid,x.Gred_A,x.Gred_B,x.Gred_C,round(x.GPS),pct(x.Peratus_GPS)]),'Jalankan kokoSetupPAJSKAliran2026() sekali untuk menyediakan tab rasmi daripada PDF terkini.'))+
- panel('Analisis Individu Mengikut Aliran','Memerlukan import rekod individu, bukan ringkasan rasmi.',pajskTable(['Aliran','Rekod','Gred A','Gred B','Gred C','% A','Purata GPA','Purata CGPA'],rows.map(x=>[x.label,x.n,x.A,x.B,x.C,pct(x.percentA),round(x.avgGpa),round(x.avgCgpa)]),'Rekod individu 2026 belum dibaca daripada PAJSK_Individu_2026.'))+
- panel('Analisis Mengikut Kelas','Paparan kelas berdasarkan individu PAJSK; tidak menyalin keahlian Data Induk.',pajskTable(['Kelas','Rekod','Gred A','B','C','% A','Purata GPA','CGPA'],cls.map(x=>[x.label,x.n,x.A,x.B,x.C,pct(x.percentA),round(x.avgGpa),round(x.avgCgpa)]),'Import semua 286 rekod individu untuk perbandingan sembilan kelas.'))+
- panel('Peratus Gred A Tiga Komponen — Individu','Akan dipaparkan selepas import rekod murid.',cat.length?bars(cat.map(x=>({n:x.label,v:x.percentA}))):'<div class="pajsk-empty small">Belum ada statistik individu bagi tiga komponen. Graf rasmi mengikut komponen tersedia di atas.</div>');
+ const components=componentLabels.map(label=>({label,...(official('KOMPONEN',label)||{})}));
+ const gradeSum=x=>['A','B','C','D','E'].reduce((s,g)=>s+(Number(x['Gred_'+g])||0),0);
+ const rate=x=>{const n=Number(x.Jumlah_Murid)||gradeSum(x);return n?100*(Number(x.Gred_A)||0)/n:null};
+ const classStats=classRows.map(x=>{const gradeCount=gradeSum(x),m=Number(x.Jumlah_Murid)||0;return {...x,gradeCount,rateA:rate(x),gpsEstimate:gradeCount?(['A','B','C','D','E'].reduce((s,g,i)=>s+(i+1)*(Number(x['Gred_'+g])||0),0)/gradeCount):null};});
+ const officialYearTable=yearRows.map(x=>['TAHUN '+x.Aliran,x.Jumlah_Murid,x.Gred_A,x.Gred_B,x.Gred_C,pct(100*Number(x.Gred_A)/Number(x.Jumlah_Murid)),round(x.GPS),pct(x.Peratus_GPS)]);
+ const officialClassTable=classStats.map(x=>[x.Kelas,x.Jumlah_Murid,x.Gred_A,x.Gred_B,x.Gred_C,pct(x.rateA),round(x.gpsEstimate),x.gradeCount===Number(x.Jumlah_Murid)?'Ringkasan belum diaudit':'BILANGAN TIDAK SEPADAN']);
+ const yearsDisplay=yearRows.length?officialYearTable:individualYear.map(x=>[x.label,x.n,x.A,x.B,x.C,pct(x.percentA),round(x.gpsFromGrade),'Individu separa']);
+ const classDisplay=classRows.length?officialClassTable:individualClass.map(x=>[x.label,x.n,x.A,x.B,x.C,pct(x.percentA),round(x.gpsFromGrade),'Individu separa']);
+ const mismatch=classStats.length && (classStats.reduce((s,x)=>s+(Number(x.Gred_A)||0),0)!==Number(overall.Gred_A)||classStats.reduce((s,x)=>s+(Number(x.Gred_B)||0),0)!==Number(overall.Gred_B));
+ const summaryNote=mismatch?note('<b>Semakan data kelas:</b> jumlah A/B dalam tab ringkasan kelas belum sama dengan tab rasmi sekolah. Semak khususnya kelas 6 VIOLET; jangan gunakan GPS anggaran kelas sebagai GPS rasmi.'):'';
+ return cards([
+  ['GPS Rasmi 2026',round(overall.GPS),'Daripada tab GPS rasmi Sheets'],
+  ['GPS 2025',round(officialRow(2025,'KESELURUHAN','SEMUA')?.GPS),'Rujukan tahun sebelumnya'],
+  ['Gred A rasmi',overall.Gred_A??'—',pct(rate(overall))+' daripada '+num(overall.Jumlah_Murid)+' murid'],
+  ['Individu dalam Sheets',num(n)+'/286',n===286?'Semak keselarasan':'Import perlu dilengkapkan']
+ ])+note(`<b>${esc(pajskSummaryStatus(n))}</b> Nama unit PAJSK asal dikekalkan. Statistik aliran/kelas diambil daripada tab rasmi atau ringkasan, bukannya keahlian Data Induk.`)+
+ panel('GPS Rasmi Mengikut Komponen','Dibaca daripada PAJSK_GPS_Rasmi. GPS lebih rendah bermaksud pencapaian lebih baik.',bars(components.map(x=>({n:x.label,v:x.GPS})),3,false))+
+ panel('Peratus Gred A — Tiga Komponen PAJSK','Kiraan daripada bilangan Gred A dan jumlah murid dalam laporan rasmi 2026; bukan import individu.',bars(components.filter(x=>x.Jumlah_Murid).map(x=>({n:x.label,v:rate(x)}))))+
+ panel('Taburan Gred Rasmi Mengikut Komponen','Data langsung dalam tab PAJSK_GPS_Rasmi.',pajskTable(['Komponen','Murid','A','B','C','D','E','% A','GPS','% GPS'],components.filter(x=>x.Jumlah_Murid).map(x=>[x.label,x.Jumlah_Murid,x.Gred_A,x.Gred_B,x.Gred_C,x.Gred_D,x.Gred_E,pct(rate(x)),round(x.GPS),pct(x.Peratus_GPS)]),'Jalankan kokoKemaskiniGPS2026() sekali.'))+
+ panel('Analisis Mengikut Aliran — Data Rasmi','Jumlah, taburan gred, peratus A dan GPS daripada tab PAJSK_Aliran_Rasmi.',pajskTable(['Aliran','Murid','A','B','C','% A','GPS','% GPS / Sumber'],yearsDisplay,'Jalankan kokoSetupPAJSKAliran2026() untuk mengisi statistik rasmi.'))+
+ panel('Analisis Mengikut Kelas — Ringkasan Data','Sembilan kelas daripada PAJSK_Kelas_Ringkasan; GPS kelas ialah anggaran daripada gred, bukan GPS rasmi yang disahkan.',pajskTable(['Kelas','Murid','A','B','C','% A','GPS Gred (anggaran)','Semakan'],classDisplay,'Jalankan kokoSetupPAJSK() untuk mengisi ringkasan sembilan kelas.'))+summaryNote+
+ (n?panel('Analisis Individu Mengikut Aliran','Hanya rekod individu yang benar-benar dibaca daripada PAJSK_Individu_2026.',pajskTable(['Aliran','Rekod','A','B','C','% A','Purata GPA','Purata CGPA'],individualYear.map(x=>[x.label,x.n,x.A,x.B,x.C,pct(x.percentA),round(x.avgGpa),round(x.avgCgpa)]),'Tiada rekod individu.')):'')+
+ (n?panel('Analisis Individu Mengikut Kelas','Paparan individu (boleh berbeza daripada laporan rasmi jika import belum lengkap).',pajskTable(['Kelas','Rekod','A','B','C','% A','Purata GPA','Purata CGPA'],individualClass.map(x=>[x.label,x.n,x.A,x.B,x.C,pct(x.percentA),round(x.avgGpa),round(x.avgCgpa)]),'Tiada rekod individu.')):'');
 }
 function pajskUnitPage(){let p=api.pajsk;if(!p)return '<p>Memuatkan PAJSK daripada Sheets…</p>';if(p.error)return `<div class="error">PAJSK API: ${esc(p.error)}</div>`;
  let catOpts=['BADAN BERUNIFORM','KELAB & PERSATUAN','SUKAN & PERMAINAN'],rows=arr(p.analytics?.byUnit),detail=arr(p.analytics?.byUnitClass);
