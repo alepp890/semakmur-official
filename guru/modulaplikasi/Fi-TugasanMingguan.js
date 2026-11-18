@@ -298,7 +298,7 @@ function tm43DayCards(rows,week){
     }
     const duties=[...dutyGroups.values()].map(g=>`<div class="tm45-duty">
       <div class="tm45-task">${tmEsc(g.title)}</div>
-      <div class="tm45-names">${g.teachers.map(t=>`<span class="tm45-teacher${t.pending?' tm45-needs-action':''}">${tmEsc(t.name)}</span>`).join('')}</div>
+      <div class="tm45-names">${g.teachers.map((t,i)=>`<span class="tm45-teacher${t.pending?' tm45-needs-action':''}">${tmEsc(t.name)}${i<g.teachers.length-1?' ; ':''}</span>`).join('')}</div>
     </div>`).join('')||'<p class="tm43-no-duty">Tiada tugasan dijana pada hari ini. Semak sama ada hari cuti atau tetapan hari.</p>';
     // Sejarah tidak dibuang; disimpan dalam panel yang tertutup secara lalai.
     const oldRecords=history.length?`<details class="tm45-history"><summary>Sejarah perubahan (${history.length})</summary>
@@ -326,11 +326,12 @@ function tm4Render(schedule){
   const fair=schedule?.fairness||{},names=Object.fromEntries(members.map(m=>[m.id,m.name]));
   tm$('tm4-fairness').innerHTML=Object.keys(fair).length?Object.entries(fair)
     .sort((a,b)=>Number(a[1].weight)-Number(b[1].weight))
-    .map(([id,v])=>`<div class="tm4-fair"><span>${tmEsc(names[id]||id)}</span><strong>${Number(v.weight)||0} mata</strong><small>Rehat: ${v.rest||0} · Berat: ${v.heavy||0} · Ringan: ${v.light||0} · Jumlah: ${v.all||0}</small></div>`).join(''):
+    .map(([id,v])=>`<div class="tm4-fair"><span>${tmEsc(names[id]||id)}</span><strong>${Number(v.weight)||0} mata</strong><small>Rehat: ${v.rest||0} · Tugas Pagi: ${v.morning||0} · Berat: ${v.heavy||0} · Ringan: ${v.light||0} · Jumlah: ${v.all||0}</small></div>`).join(''):
     '<p class="tm-empty">Keadilan boleh dilihat selepas jadual dijana.</p>';
   tm$('tm4-warning').innerHTML=(w?.warnings||[]).map(x=>`<p class="tm-warning-line">${tmEsc(x)}</p>`).join('')+
     (schedule?.alerts||[]).map(x=>`<p class="tm-warning-line"><strong>PERLU TINDAKAN:</strong> ${tmEsc(x.date)} ${tmEsc(x.from)}–${tmEsc(x.to)} ${tmEsc(x.task)} — ${tmEsc(x.reason)}</p>`).join('')+
-    (schedule?.doubleConflicts||[]).map(x=>`<p class="tm-warning-line"><strong>TUGAS BERGANDA TIDAK SERASI:</strong> ${tmEsc(x.date)} · ${tmEsc(x.staff)} · ${tmEsc(x.task)} — ${tmEsc(x.reason)}</p>`).join('');
+    (schedule?.doubleConflicts||[]).map(x=>`<p class="tm-warning-line"><strong>TUGAS BERGANDA TIDAK SERASI:</strong> ${tmEsc(x.date)} · ${tmEsc(x.staff)} · ${tmEsc(x.task)} — ${tmEsc(x.reason)}</p>`).join('')+
+    (schedule?.frequencyWarnings||[]).map(x=>`<p class="tm-warning-line"><strong>SEMAKAN GILIRAN:</strong> ${tmEsc(x)}</p>`).join('');
   tm4Message(`Status pelan: ${schedule?.status||'BELUM_JANA'}. Rujukan masa: ${schedule?.asOf||'—'}.`);
 }
 async function tm4LoadSchedule(){
@@ -351,6 +352,21 @@ async function tm4Repair(){
   tm4Render(r.schedule);
   tm4Message(`${r.bilGanti||0} guru diganti. ${r.bilBelumSelesai||0} slot memerlukan tindakan pentadbir. Tugasan lampau kekal.`);
   if(r.pending?.length)tm$('tm4-warning').innerHTML=r.pending.map(u=>`<p class="tm-warning-line">BELUM DIGANTI: ${tmEsc(u.date)} ${tmEsc(u.from)} ${tmEsc(u.task)}</p>`).join('');
+}
+/** V4.6: only future dates of an unpublished draft can be reassigned. */
+async function tm46Rebalance(){
+  const args=tm4Input();
+  if(!args.weekId)return tm4Message('Pilih minggu dahulu.',true);
+  if(!tmState.tm4?.planId)return tm4Message('Jana jadual dahulu sebelum mengimbangkan draf.',true);
+  const note=args.mode==='SIMULASI'
+    ?'Imbang semula jadual SIMULASI bagi hari selepas tarikh rujukan? Rekod asal kekal sebagai DIGANTI. Untuk keseluruhan Minggu 2, pilih masa rujukan 22/11/2026 sebelum minggu bermula.'
+    :'Imbang semula DRAF RASMI yang belum diterbitkan? Hanya hari selepas hari ini akan diubah; rekod terdahulu kekal.';
+  if(!confirm(note))return;
+  const r=await tmRun(()=>tmAPI('tm46Rebalance',args));
+  if(!r)return;
+  if(r.schedule)tm4Render(r.schedule);
+  tm4Message((r.status==='TIADA_PERUBAHAN'?'Tiada perubahan diperlukan. ':'Draf telah diimbangkan semula. ')+
+    (r.bilBerubah||0)+' tugasan dipinda. Hari semasa dan lampau dikunci.');
 }
 async function tm4Publish(){
   const args=tm4Input();if(!args.weekId)return tm4Message('Pilih minggu dahulu.',true);
@@ -401,6 +417,7 @@ function tmListeners(){
   tm$('tm4-load').addEventListener('click',tm4LoadSchedule);
   tm$('tm4-generate').addEventListener('click',tm4Generate);
   tm$('tm4-repair').addEventListener('click',tm4Repair);
+  tm$('tm4-rebalance').addEventListener('click',tm46Rebalance);
   tm$('tm4-publish').addEventListener('click',tm4Publish);
   tm$('tm4-absence-form').addEventListener('submit',tm4RecordAbsence);
   tm$('tm4-calendar-form').addEventListener('submit',tm4Calendar);
