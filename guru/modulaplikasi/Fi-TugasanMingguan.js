@@ -264,12 +264,16 @@ function tm43TimeLabel(x){
 }
 function tm43DayCards(rows,week){
   if(!rows.length)return '<p class="tm-empty">Belum ada jadual. Isi Jenis Tugasan dan tetapan hari dahulu, kemudian klik Jana Jadual Bertugas.</p>';
-  const order=['Isnin','Selasa','Rabu','Khamis','Jumaat'];
+  const order=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+  const closedStatuses=new Set(['DIGANTI','DIBATALKAN_CUTI','DIBATALKAN']);
+  const pendingStatus='PERLU_TINDAKAN';
   const grouped=new Map();
-  rows.slice().sort((a,b)=>a.date.localeCompare(b.date)||
-    (a.mode==='TANPA_MASA'?1:0)-(b.mode==='TANPA_MASA'?1:0)||a.from.localeCompare(b.from)||a.taskName.localeCompare(b.taskName))
+  rows.slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||
+    (a.mode==='TANPA_MASA'?1:0)-(b.mode==='TANPA_MASA'?1:0)||
+    String(a.from||'').localeCompare(String(b.from||''))||
+    String(a.taskName||'').localeCompare(String(b.taskName||'')))
     .forEach(x=>{if(!grouped.has(x.date))grouped.set(x.date,[]);grouped.get(x.date).push(x);});
-  // Always keep weekdays separated. A day without rows appears as 'Tiada tugasan', not hidden.
+  // Tetap paparkan semua hari persekolahan minggu ini, termasuk hari yang tiada tugas.
   if(week?.from&&week?.to){
     for(let d=new Date(week.from+'T00:00:00Z'),stop=new Date(week.to+'T00:00:00Z');d<=stop;d.setUTCDate(d.getUTCDate()+1)){
       if(d.getUTCDay()===0||d.getUTCDay()===6)continue;
@@ -278,17 +282,30 @@ function tm43DayCards(rows,week){
     }
   }
   return [...grouped].sort((a,b)=>a[0].localeCompare(b[0])).map(([date,list])=>{
-    const day=list[0]?.day||order[(new Date(date+'T00:00:00Z').getUTCDay()+6)%7]||'Hari';
-    const w=week?.label||week?.id||'—';
-    const n=list.filter(x=>!['DIGANTI','DIBATALKAN_CUTI','DIBATALKAN','PERLU_TINDAKAN'].includes(x.status)).length;
-    const lines=list.map(x=>{
-      const ended=['DIGANTI','DIBATALKAN_CUTI','DIBATALKAN','PERLU_TINDAKAN'].includes(x.status);
-      return `<div class="tm43-duty ${ended?'tm43-history':''}">
-        <div><strong>${tmEsc(x.taskName)}</strong><small>${tmEsc(tm43TimeLabel(x))} · Beban ${Number(x.weight)||0}</small></div>
-        <div><strong>${tmEsc(x.name||'Belum ditetapkan')}</strong>${ended?`<small>${tmEsc(x.status)} · Rekod sejarah</small>`:x.replaces?'<small>Guru pengganti</small>':''}${!ended&&/^(?:GANTI_AUTO_RINGAN|AUTO_GANDA_RINGAN)$/.test(x.method||'')?'<small>Gandingan dibenarkan dengan tugas ringan</small>':''}</div>
-      </div>`;
-    }).join('')||'<p class="tm43-no-duty">Tiada tugasan dijana pada hari ini. Semak sama ada hari cuti atau tetapan hari.</p>';
-    return `<section class="tm43-day"><header class="tm43-day-head"><div><h3>${tmEsc(day)} <span>· ${tmFmt(date)}</span></h3><p>${tmEsc(w)}</p></div><span class="tm-tag">${n} tugas aktif</span></header><div class="tm43-duty-head"><span>Tugasan</span><span>Guru Bertugas</span></div>${lines}</section>`;
+    const day=list[0]?.day||order[new Date(date+'T00:00:00Z').getUTCDay()]||'Hari';
+    const weekLabel=week?.label||week?.id||'—';
+    const active=list.filter(x=>!closedStatuses.has(x.status)&&x.status!==pendingStatus);
+    const pending=list.filter(x=>x.status===pendingStatus);
+    const history=list.filter(x=>closedStatuses.has(x.status));
+    // Gabungkan dua guru Rehat Tahap 1/2 di bawah SATU nama tugasan.
+    // Simpan nama penuh: papar tanpa masa, beban dan maklumat teknikal.
+    const dutyGroups=new Map();
+    for(const x of [...active,...pending]){
+      const title=String(x.taskName||'Tugasan belum dinamakan').trim();
+      const key=title.toLocaleLowerCase('ms-MY');
+      if(!dutyGroups.has(key))dutyGroups.set(key,{title,teachers:[]});
+      dutyGroups.get(key).teachers.push({name:x.status===pendingStatus?'Belum ditetapkan — Perlu Tindakan':x.name||'Belum ditetapkan',pending:x.status===pendingStatus});
+    }
+    const duties=[...dutyGroups.values()].map(g=>`<div class="tm45-duty">
+      <div class="tm45-task">${tmEsc(g.title)}</div>
+      <div class="tm45-names">${g.teachers.map(t=>`<span class="tm45-teacher${t.pending?' tm45-needs-action':''}">${tmEsc(t.name)}</span>`).join('')}</div>
+    </div>`).join('')||'<p class="tm43-no-duty">Tiada tugasan dijana pada hari ini. Semak sama ada hari cuti atau tetapan hari.</p>';
+    // Sejarah tidak dibuang; disimpan dalam panel yang tertutup secara lalai.
+    const oldRecords=history.length?`<details class="tm45-history"><summary>Sejarah perubahan (${history.length})</summary>
+      ${history.map(x=>`<div class="tm45-history-row"><span>${tmEsc(x.taskName||'Tugasan')}</span><span>${tmEsc(x.name||'—')} · ${tmEsc(x.status)}</span></div>`).join('')}
+    </details>`:'';
+    return `<section class="tm43-day tm45-day"><header class="tm43-day-head"><div><h3>${tmEsc(day)} <span>· ${tmFmt(date)}</span></h3><p>${tmEsc(weekLabel)}</p></div><span class="tm-tag">${active.length} tugas aktif</span></header>
+      <div class="tm45-duty-head"><span>Tugasan</span><span>Guru Bertugas</span></div>${duties}${oldRecords}</section>`;
   }).join('');
 }
 function tm4Render(schedule){
