@@ -1,1 +1,15 @@
-<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SeMAKMUR | Anugerah PAJSK Guru</title><link rel="stylesheet" href="anugerah.css"></head><body><header><a class="back" href="index.html">← Kembali ke Insights</a><strong>SeMAKMUR <span>· Anugerah PAJSK 2026</span></strong><button type="button" id="logout" hidden>Log Keluar</button></header><main><section class="intro"><small>KHUSUS GURU SK SEGAMBUT MAKMUR</small><h1>Murid Cemerlang Mengikut Unit</h1><p>Ranking skor PAJSK dengan bukti GPA, CGPA, gred dan kehadiran kokurikulum. Data murid hanya dibuka selepas log masuk dan pengesahan staf.</p><div id="status" role="status">Menyemak sesi Google…</div><button id="login">Log Masuk Google MOE</button><div id="loading" hidden>Mengesahkan akaun dan menyediakan laporan…</div></section><section id="reportPanel" hidden><div class="bar"><strong>Laporan Peribadi · Untuk Mesyuarat Anugerah</strong><button id="refresh">Muat semula laporan</button></div><iframe id="report" title="Laporan anugerah PAJSK dalaman" referrerpolicy="no-referrer"></iframe></section></main><script src="../firebase-pilot-config.js"></script><script src="config.js"></script><script type="module" src="anugerah.js"></script></body></html>
+<!doctype html>
+<html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SeMAKMUR | Anugerah PAJSK Guru</title><link rel="stylesheet" href="anugerah.css"></head>
+<body>
+<header><a class="back" href="index.html">← Kembali ke Insights</a><strong>SeMAKMUR <span>· Anugerah PAJSK 2026</span></strong><button type="button" id="logout" hidden>Log Keluar</button></header>
+<main><section class="intro"><small>KHUSUS GURU SK SEGAMBUT MAKMUR</small><h1>Murid Cemerlang Mengikut Unit</h1>
+<p>Ranking berdasarkan skor PAJSK dengan bukti GPA, CGPA, gred dan kehadiran kokurikulum yang disahkan. Data murid hanya dipaparkan selepas pengesahan Google MOE dan Profil_Guru aktif.</p>
+<div id="status" role="status">Memuat log masuk Google…</div>
+<div id="googleButton" aria-label="Log masuk Google"></div><div id="loading" hidden>Mengesahkan akaun dan menyediakan laporan…</div></section>
+<section id="reportPanel" hidden><div class="bar"><strong>Laporan Dalaman · Jawatankuasa Anugerah</strong><button id="refresh" type="button">Muat semula laporan</button></div>
+<iframe id="report" title="Laporan anugerah PAJSK dalaman" referrerpolicy="no-referrer"></iframe></section></main>
+<script src="config.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="anugerah.js" defer></script>
+</body></html>
