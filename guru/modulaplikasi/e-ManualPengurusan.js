@@ -3328,6 +3328,15 @@ window.v5RenderCalendar=function(){
 };
 
 // Borang aktiviti V5.1: setiap jenis mempunyai warna automatik semasa paparan.
+window.v53EventWeekPreview=function(){
+  const start=document.getElementById('v51evt-Tarikh_Mula')?.value||'';
+  const end=document.getElementById('v51evt-Tarikh_Tamat')?.value||start;
+  const holder=document.getElementById('v53evt-week-preview');if(!holder)return;
+  const valid=ALL_MINGGU.filter(w=>String(w.Jenis_Minggu)==='PERSEKOLAHAN'&&v5Active(w)&&String(w.Tarikh_Mula)<=end&&String(w.Tarikh_Tamat)>=start&&start&&end>=start);
+  const weeks=[...new Set(valid.map(w=>String(w.Label_Minggu||'')).filter(Boolean))];
+  const groups=[...new Set(valid.map(w=>String(w.Kumpulan_Bertugas||'')).filter(Boolean))];
+  holder.textContent=weeks.length?'Minggu '+weeks.join(', ')+' · Kumpulan '+(groups.join(', ')||'belum ditetapkan'):'Tiada minggu persekolahan bagi tarikh dipilih';
+};
 window.v5CalendarEditorExtended=async function(id='',isTemp=false){
   const old=ALL_TAKWIM.find(e=>String(e.ID_Acara)===String(id))||{};
   const units=v5EventUnits(old);
@@ -3341,6 +3350,7 @@ window.v5CalendarEditorExtended=async function(id='',isTemp=false){
     html:`<div class="text-left max-h-[65vh] overflow-y-auto">
        ${field('Tajuk','Nama Aktiviti')}${field('Tarikh_Mula','Tarikh Mula','date',old.Tarikh_Mula||v5Today())}
        ${field('Tarikh_Tamat','Tarikh Tamat','date',old.Tarikh_Tamat||old.Tarikh_Mula||v5Today())}
+       <div id="v53evt-week-preview" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 mt-3 text-xs font-bold text-slate-600">Mengesan minggu dan kumpulan…</div>
        <label class="block font-bold text-xs mt-3 mb-1">Unit terlibat</label><div class="grid grid-cols-2 gap-2 border rounded-lg p-3">${checks}</div>
        <label class="block font-bold text-xs mt-3 mb-1">Jenis Aktiviti</label>
        <select id="v51evt-Jenis" class="w-full border rounded-lg p-2 text-sm">${opts.map(t=>`<option value="${t}" ${t===selected?'selected':''}>${t}</option>`).join('')}</select>
@@ -3350,6 +3360,7 @@ window.v5CalendarEditorExtended=async function(id='',isTemp=false){
        <select id="v51evt-Status" class="w-full border rounded-lg p-2 text-sm"><option value="Aktif" ${old.Status!=='Tidak Aktif'?'selected':''}>Aktif</option><option value="Tidak Aktif" ${old.Status==='Tidak Aktif'?'selected':''}>Tidak Aktif</option></select>
      </div>`,
     showCancelButton:true,confirmButtonText:'Simpan Aktiviti',cancelButtonText:'Batal',
+    didOpen:()=>{['v51evt-Tarikh_Mula','v51evt-Tarikh_Tamat'].forEach(id=>document.getElementById(id)?.addEventListener('change',v53EventWeekPreview));v53EventWeekPreview();},
     preConfirm:()=>{
       const get=k=>document.getElementById('v51evt-'+k)?.value||'';
       const selectedUnits=[...document.querySelectorAll('[data-v51-unit]:checked')].map(el=>el.dataset.v51Unit);
