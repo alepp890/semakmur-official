@@ -5,7 +5,7 @@ const tm$=id=>document.getElementById(id);
 const tmEsc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const tmFmt=d=>{if(!/^\d{4}-\d\d-\d\d$/.test(String(d||'')))return String(d||'—');const [y,m,dd]=d.split('-');return `${dd}/${m}/${y}`;};
 const tmToday=()=>{const v=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const parts=Object.fromEntries(v.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return `${parts.year}-${parts.month}-${parts.day}`;};
-const tmState={auth:null,user:null,data:null,detail:null,year:'2026',weekId:'',tab:'overview',busy:false,audit:null};
+const tmState={auth:null,user:null,data:null,detail:null,calendar:null,year:'2026',weekId:'',tab:'overview',busy:false,audit:null};
 const tmManager=()=>!!tmState.data?.actor?.manager;
 const tmMe=()=>tmState.data?.actor?.id||'';
 const tmSelected=()=>tmState.data?.weeks?.find(w=>w.ID_Minggu===tmState.weekId);
@@ -76,18 +76,27 @@ function tmRenderOverview(){
       <div class="tm-week-leader">Ketua: ${tmEsc(name)}</div>${leader}<p>${w.Bil_Ahli_Layak||0} ahli layak sepanjang minggu</p>
       <div class="tm-buttons"><button type="button" class="tm-btn tm-ghost" data-tm-choose="${tmEsc(w.ID_Minggu)}">Buka Minggu</button>
       ${tmManager()&&!w.pelan&&w.ID_Ketua_Cadangan?`<button type="button" class="tm-btn tm-outline" data-tm-draft="${tmEsc(w.ID_Minggu)}">Sediakan Draf</button>`:''}</div></article>`;
-  }).join(''):'<p class="tm-empty">Tiada minggu persekolahan yang mempunyai kumpulan dan pelantikan tersedia. Semak Takwim_Minggu serta Peranan_Staf.</p>';
-  tm$('tm-warnings').innerHTML=(a.warnings||[]).length?(a.warnings||[]).map(x=>`<div class="tm-warning-line">${tmEsc(x)}</div>`).join(''):'<p class="tm-muted">Tiada amaran tambahan daripada Data Induk.</p>';
+  }).join(''):'<p class="tm-empty">Tiada minggu bertugas yang tersedia.</p>';
+  const warningList=a.warnings||[];
+  const sourceCard=tm$('tm-source-card');if(sourceCard)sourceCard.hidden=!warningList.length;
+  tm$('tm-warnings').innerHTML=warningList.map(x=>`<div class="tm-warning-line">${tmEsc(x)}</div>`).join('');
 }
 async function tmLoadDetail(showMessage=true){
   const id=tmState.weekId;if(!id){tmState.detail=null;tmRenderDetail();return;}
   const r=await tmRun(()=>tmAPI('detail',{year:tmState.year,weekId:id}));if(!r)return;
-  tmState.detail=r;tmRenderDetail();if(showMessage)tmNotice('Data minggu bertugas telah dimuatkan.');
+  tmState.detail=r;tmState.calendar=null;tmRenderDetail();
+  if(showMessage)tmNotice('Data minggu bertugas telah dimuatkan.');
+  // Baca maklumat CUTI/aktiviti secara berasingan; kegagalan tidak menyekat jadual rasmi.
+  const expectedYear=tmState.year,expectedWeek=id;
+  tmAPI('calendarView',{year:expectedYear,weekId:expectedWeek}).then(calendar=>{
+    if(tmState.year!==expectedYear||tmState.weekId!==expectedWeek)return;
+    tmState.calendar=calendar;tmRenderAssignments();
+  }).catch(err=>console.warn('[TM calendar]',err.message||String(err)));
 }
 function tmRenderDetail(){
   const d=tmState.detail,sel=tmSelected();
-  const blurb=sel?`<strong>${tmEsc(sel.Minggu||sel.ID_Minggu)} · ${tmEsc(sel.Nama_Kumpulan)}</strong><small>${tmFmt(sel.Tempoh_Mula)} hingga ${tmFmt(sel.Tempoh_Tamat)}</small>`:'<strong>Belum pilih minggu bertugas.</strong>';
-  const about=`<div>${blurb}</div><div><strong>Ketua: ${tmEsc((d?.members||[]).find(x=>x.id===d?.plan?.leader)?.name||sel?.Nama_Ketua_Cadangan||'Belum ditetapkan')}</strong><small>Status: ${tmEsc(d?.plan?.status||'Belum ada draf')}</small></div>`;
+  const blurb=sel?`<strong>Minggu ${tmEsc(sel.Minggu||sel.ID_Minggu)} · ${tmEsc(sel.Nama_Kumpulan)}</strong><small>${tmFmt(sel.Tempoh_Mula)} hingga ${tmFmt(sel.Tempoh_Tamat)}</small>`:'<strong>Belum pilih minggu bertugas.</strong>';
+  const about=`<div>${blurb}</div><div><strong>Ketua: ${tmEsc((d?.members||[]).find(x=>x.id===d?.plan?.leader)?.name||sel?.Nama_Ketua_Cadangan||'Belum ditetapkan')}</strong></div>`;
   ['tm-selection-daily','tm-selection-weekly','tm-selection-tasks'].forEach(id=>tm$(id).innerHTML=about);
   const mine=!!d?.members?.some(x=>x.id===tmMe());
   tm$('tm-daily-form').hidden=!(mine&&d?.plan);tm$('tm-weekly-form').hidden=!(d?.plan&&d.plan.leader===tmMe()&&mine);
@@ -175,57 +184,46 @@ function tmRenderAssignments(){
   const names=Object.fromEntries((detail.members||[]).map(x=>[String(x.id),x.name]));
   const typeNames=Object.fromEntries(types.map(x=>[String(x.id),x.name]));
   const week=detail.week||{},dates=tmDutyDateList(week,raw);
-  const planStatus=String(detail.plan?.status||'BELUM_JANA').toUpperCase();
-  const published=planStatus==='DITERBITKAN';
-  const badge=tm$('tm-tasks-publication-badge');
-  if(badge){
-    badge.textContent=published?'Diterbitkan':planStatus==='BELUM_JANA'?'Belum dijana':planStatus.replaceAll('_',' ');
-    badge.className='tm-tag '+(published?'tm-duty-badge-live':'tm-warning');
-  }
-  const subtitle=tm$('tm-tasks-subtitle');
-  if(subtitle)subtitle.textContent=published
-    ?'Jadual rasmi minggu ini. Tugasan dipaparkan mengikut hari, masa dan guru yang ditetapkan.'
-    :'Paparan berdasarkan data rasmi yang tersedia. Jadual belum disahkan sebagai diterbitkan.';
   const holder=tm$('tm-assignments');if(!holder)return;
-  if(!raw.length){holder.innerHTML='<div class="tm-duty-empty"><strong>Belum ada tugasan untuk minggu ini</strong><p>Semak minggu dipilih atau status penjanaan rasmi dalam Smart Auto Agihan.</p></div>';return;}
+  const calDays=Array.isArray(tmState.calendar?.days)?tmState.calendar.days:[];
+  const calendar=new Map(calDays.map(d=>[String(d.date),d]));
+  if(!raw.length&&!calDays.length){holder.innerHTML='<div class="tm-duty-empty"><strong>Belum ada tugasan untuk minggu ini</strong></div>';return;}
   const valid=raw.filter(x=>x&&x.date),uniqueStaff=new Set(valid.map(x=>String(x.staff||'')).filter(Boolean));
   const byDate=new Map(dates.map(date=>[date,[]]));
   valid.forEach(x=>{if(!byDate.has(x.date))byDate.set(x.date,[]);byDate.get(x.date).push(x);});
   const activeDays=[...byDate].filter(([,entries])=>entries.length>0).length;
-  const summary=`<div class="tm-duty-stats">
-    <div><span>Jumlah penugasan</span><strong>${valid.length}</strong></div>
-    <div><span>Guru terlibat</span><strong>${uniqueStaff.size}</strong></div>
-    <div><span>Hari dengan tugasan</span><strong>${activeDays}</strong></div>
-    <div><span>Status jadual</span><strong class="tm-duty-status-text">${published?'Rasmi':tmEsc(planStatus.replaceAll('_',' '))}</strong></div>
-  </div>`;
+  const summary=`<div class="tm-duty-meta">${valid.length} penugasan <span>·</span> ${uniqueStaff.size} guru <span>·</span> ${activeDays} hari bertugas</div>`;
   const tabs=`<div class="tm-duty-filters" role="group" aria-label="Tapis jadual mengikut hari">
     <button type="button" data-duty-filter="ALL">Semua Hari</button>
-    ${dates.map(date=>`<button type="button" data-duty-filter="${tmEsc(date)}">${tmEsc(tmDayName(date))}<span>${byDate.get(date)?.length||0}</span></button>`).join('')}
+    ${dates.map(date=>{
+      const cal=calendar.get(date),isHoliday=String(cal?.kind||'').toUpperCase()==='CUTI';
+      return `<button type="button" data-duty-filter="${tmEsc(date)}">${tmEsc(tmDayName(date))}<span>${isHoliday?'Cuti':byDate.get(date)?.length||0}</span></button>`;
+    }).join('')}
   </div>`;
   const dayCards=[...byDate].sort((a,b)=>a[0].localeCompare(b[0])).map(([date,entries])=>{
+    const cal=calendar.get(date)||{},events=Array.isArray(cal.events)?cal.events:[];
+    const holiday=String(cal.kind||'').toUpperCase()==='CUTI'||events.some(e=>String(e.type||'').toUpperCase()==='CUTI');
+    const labels=events.filter(e=>e&&e.title).map(e=>({title:String(e.title),holiday:String(e.type||'').toUpperCase()==='CUTI'}));
+    if(holiday&&!labels.some(e=>e.holiday))labels.unshift({title:'Cuti',holiday:true});
+    const eventsHtml=labels.length?`<div class="tm-duty-events">${labels.map(e=>`<span class="tm-duty-event ${e.holiday?'is-holiday':''}" title="${tmEsc(e.title)}">${tmEsc(e.title)}</span>`).join('')}</div>`:'';
+    // Paparan menyatukan guru mengikut jenis tugasan; masa sebenar kekal dalam data/enjin V4.
     const grouped=new Map();
     entries.forEach(x=>{
-      const title=typeNames[String(x.task)]||String(x.task||'Tugasan');
-      const from=tmDutyClock(x.from),to=tmDutyClock(x.to);
-      const key=[String(x.task||''),from,to].join('|');
-      if(!grouped.has(key))grouped.set(key,{title,from,to,staff:[]});
-      grouped.get(key).staff.push({id:String(x.staff||''),name:names[String(x.staff)]||String(x.staff||'Belum ditetapkan')});
+      const id=String(x.task||''),title=typeNames[id]||id||'Tugasan';
+      if(!grouped.has(id))grouped.set(id,{title,staff:[]});
+      grouped.get(id).staff.push({id:String(x.staff||''),name:names[String(x.staff)]||String(x.staff||'Belum ditetapkan')});
     });
-    const sorted=[...grouped.values()].sort((a,b)=>{
-      if(!a.from&&b.from)return 1;if(a.from&&!b.from)return -1;
-      return a.from.localeCompare(b.from)||a.title.localeCompare(b.title,'ms');
-    });
+    const sorted=[...grouped.values()].sort((a,b)=>a.title.localeCompare(b.title,'ms'));
     const content=sorted.length?sorted.map(item=>{
-      const clock=item.from?(item.to&&item.to!==item.from?item.from+' – '+item.to:item.from):'Tiada masa khusus';
       const unique=[...new Map(item.staff.map(s=>[s.id,s])).values()];
       return `<div class="tm-duty-taskrow">
-        <div class="tm-duty-taskname"><strong>${tmEsc(item.title)}</strong><span class="tm-duty-clock">${tmEsc(clock)}</span></div>
+        <div class="tm-duty-taskname"><strong>${tmEsc(item.title)}</strong></div>
         <div class="tm-duty-teachers">${unique.map(s=>`<span class="tm-duty-person" title="${tmEsc(s.id)}">${tmEsc(s.name)}</span>`).join('')}</div>
       </div>`;
-    }).join(''):'<div class="tm-duty-no-tasks">Tiada tugasan dijadualkan untuk hari ini.</div>';
+    }).join(''):`<div class="tm-duty-no-tasks">${holiday?'Tiada tugasan — cuti':'Tiada tugasan pada hari ini.'}</div>`;
     return `<section class="tm-duty-daycard" data-duty-card="${tmEsc(date)}">
-      <div class="tm-duty-dayhead"><div><strong>${tmEsc(tmDayName(date))}</strong><span>${tmFmt(date)}</span></div><span class="tm-duty-count">${entries.length} penugasan</span></div>
-      ${sorted.length?'<div class="tm-duty-columns"><span>Tugasan / Masa</span><span>Guru Bertugas</span></div>':''}${content}</section>`;
+      <div class="tm-duty-dayhead"><div class="tm-duty-daytitle"><strong>${tmEsc(tmDayName(date))}</strong><span>${tmFmt(date)}</span>${eventsHtml}</div><span class="tm-duty-count">${holiday?'CUTI':entries.length+' penugasan'}</span></div>
+      ${sorted.length?'<div class="tm-duty-columns"><span>Tugasan</span><span>Guru Bertugas</span></div>':''}${content}</section>`;
   }).join('');
   holder.innerHTML=summary+tabs+'<div class="tm-duty-days">'+dayCards+'</div>';
   holder.querySelectorAll('[data-duty-filter]').forEach(btn=>btn.addEventListener('click',()=>tmDutySetFilter(btn.dataset.dutyFilter)));
@@ -323,7 +321,7 @@ async function tmPreviewSimulation(){
     <p>${tmEsc(w.Nama_Kumpulan)} · ${tmFmt(w.Tempoh_Mula)} – ${tmFmt(w.Tempoh_Tamat)}</p>
     <div class="tm-week-leader">Ketua dicadangkan: ${tmEsc(w.Nama_Ketua_Cadangan||'Belum ada pelantikan ahli')}</div>
     <p>${tmEsc(w.Bil_Ahli_Layak)} ahli · ${tmEsc(w.Nota)}</p>
-    </article>`).join(''):'<p class="tm-empty">Tiada minggu simulasi. Jalankan FiTMSimBina8Minggu dalam Apps Script.</p>';
+    </article>`).join(''):'<p class="tm-empty">Tiada minggu simulasi.</p>';
   tm$('tm-sim-warning').innerHTML=(r.amaran||[]).map(x=>`<p class="tm-warning-line">${tmEsc(x)}</p>`).join('');
 }
 function tmPrint(){
@@ -376,7 +374,7 @@ async function tm48LoadMembers(){
   const members=Array.isArray(r.members)?r.members:[];
   tmState.tm48Members={mode:args.mode,weekId:args.weekId,members};
   tm48RenderMemberPicker(members,r);
-  if(!members.length)tm4Message('Tiada ahli kumpulan aktif bagi minggu ini. Semak Peranan_Staf / kumpulan bertugas.',true);
+  if(!members.length)tm4Message('Tiada ahli kumpulan aktif bagi minggu ini.',true);
 }
 function tm4Message(message,bad=false){
   const box=tm$('tm4-status');box.textContent=message||'';box.classList.toggle('tm4-error',bad);
@@ -399,7 +397,7 @@ async function tm4LoadWeeks(loadSchedule=true){
   tm$('tm4-absence-form').querySelectorAll('input,select,button').forEach(x=>x.disabled=mode!=='SIMULASI');
   tm$('tm47-sim-section').hidden=mode!=='SIMULASI';
   tm$('tm4-mode-badge').textContent=mode==='SIMULASI'?'UJIAN TERASING':'DATA RASMI';
-  tm4Message(mode==='SIMULASI'?'Semua rekod ujian berasingan daripada Takwim_Minggu rasmi.':'Mod rasmi menggunakan masa pelayan semasa. Pastikan takwim, hari sekolah dan penyegerakan keberadaan disahkan.');
+  tm4Message(mode==='SIMULASI'?'Simulasi aktif. Rekod rasmi tidak berubah.':'Mod rasmi menggunakan masa pelayan semasa. Pastikan takwim, hari sekolah dan penyegerakan keberadaan disahkan.');
   // Must run even when loadSchedule=false during the initial bootstrap.
   await tm48LoadMembers();
   if(loadSchedule&&sel.value)await tm4LoadSchedule();
@@ -685,7 +683,7 @@ async function tm49Load(){
   }
   tm49.weekId=weekId;tm49.dirty=false;tm49.dailyDirty=false;tm49.weeklyDirty=false;
   const result=await tmRun(()=>tmAPI('tm49Load',tm49Input()));
-  if(!result){tm49Message('Gagal membaca laporan. Semak setup dan Apps Script Executions.',true);return;}
+  if(!result){tm49Message('Gagal membaca laporan.',true);return;}
   tm49.data=result;tm49Render();
   tm49Message(result.mode==='SIMULASI'?'Mod simulasi: catatan tidak masuk laporan rasmi dan tidak dihantar kepada Guru Besar.':
     'Mod rasmi: setiap catatan direkod di bawah akaun Google MOE pengguna.');
@@ -898,14 +896,14 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
  const common=()=>({weekId:state.week?.id,year:state.week?.year||state.week?.from?.slice(0,4)});
  const call=async(payload)=>{tmProcess('laporan',true,'Menyediakan Laporan Mingguan','Membaca dan memproses rekod laporan rasmi…');try{status('Memproses...');const r=await api(payload);if(r?.ok===false||r?.status==='RALAT')throw Error(r.message||r.error||'Tindakan gagal');status('Sedia');return r?.data&&typeof r.data==='object'&&r.weeks===undefined&&r.days===undefined?r.data:r;}catch(e){status(e.message||String(e),true);throw e;}finally{tmProcess('laporan',false);}};
  const guard=fn=>async(...a)=>{try{await fn(...a)}catch(e){console.error('[TM5]',e)}};
- root.innerHTML=`<div class="tm5-card"><h2>Smart Tugasan Mingguan · Laporan Rasmi V5</h2><p class="tm5-muted">Laporan harian hanya boleh dibuka bermula hari kejadian. Semua pengesahan adalah mengikut peranan rasmi.</p><div class="tm5-row"><button id="tm5-directory" class="primary">Direktori Laporan Mingguan</button><button id="tm5-reload">Muat Semula</button></div><div id="tm5-message" role="status" class="tm5-muted"></div></div><div id="tm5-content"></div>`;
+ root.innerHTML=`<div class="tm5-card"><h2>Laporan Mingguan</h2><div class="tm5-row"><button id="tm5-directory" class="primary">Direktori Laporan Mingguan</button><button id="tm5-reload">Muat Semula</button></div><div id="tm5-message" role="status" class="tm5-muted"></div></div><div id="tm5-content"></div>`;
  const content=()=>root.querySelector('#tm5-content');
- async function directory(){const r=await call({op:'tm5Directory'});state.weeks=r.weeks||[];content().innerHTML=`<div class="tm5-card"><h2>Direktori Laporan Mingguan</h2><p class="tm5-muted">Minggu terbaru dipaparkan dahulu. PDF rasmi hanya selepas pengesahan GB.</p>${state.weeks.length?state.weeks.map((w,i)=>`<div class="tm5-day"><span><b>${esc(w.label)}</b> · Kumpulan ${esc(w.group)}<br><small>${esc(w.from)} – ${esc(w.to)} · ${esc(w.status)}${w.ready?'':' · Jadual rasmi belum dijana'}</small></span><span><button data-open="${i}" ${w.ready?'':'disabled'}>Buka</button> ${w.pdfUrl?`<a href="${esc(w.pdfUrl)}" target="_blank" rel="noopener">PDF Disahkan</a>`:''}</span></div>`).join(''):'<p>Tiada laporan yang telah didaftarkan. Pihak pentadbir perlu menyediakan minggu rasmi terlebih dahulu.</p>'}</div>`;
+ async function directory(){const r=await call({op:'tm5Directory'});state.weeks=r.weeks||[];content().innerHTML=`<div class="tm5-card"><h2>Direktori Laporan Mingguan</h2>${state.weeks.length?state.weeks.map((w,i)=>`<div class="tm5-day"><span><b>${esc(w.label)}</b> · Kumpulan ${esc(w.group)}<br><small>${esc(w.from)} – ${esc(w.to)} · ${esc(w.status)}${w.ready?'':' · Jadual rasmi belum dijana'}</small></span><span><button data-open="${i}" ${w.ready?'':'disabled'}>Buka</button> ${w.pdfUrl?`<a href="${esc(w.pdfUrl)}" target="_blank" rel="noopener">PDF Disahkan</a>`:''}</span></div>`).join(''):'<p>Tiada laporan yang telah didaftarkan. Pihak pentadbir perlu menyediakan minggu rasmi terlebih dahulu.</p>'}</div>`;
  content().querySelectorAll('[data-open]').forEach(btn=>btn.onclick=guard(()=>openWeek(state.weeks[Number(btn.dataset.open)])));}
  async function openWeek(w){state.week={id:w.weekId,year:w.year,from:w.from};const r=await call({op:'tm5Load',...common(),mode:'RASMI'});state.week={...r.week,year:w.year};state.days=r.days;state.actor=r.actor;state.teachers=r.teachers||[];state.corrections=r.corrections||[];
  const all=state.days.length&&state.days.every(d=>d.status==='LENGKAP');const able=all&&state.actor.isLeader&&!['MENUNGGU_GPK','MENUNGGU_GB','DISAHKAN'].includes(state.week.status);
  content().innerHTML=`<div class="tm5-card"><div class="tm5-row"><button id="tm5-back">← Direktori</button><span class="tm5-status">${esc(state.week.status)}</span></div><h2>${esc(state.week.label)} · Kumpulan ${esc(state.week.group)}</h2><p class="tm5-muted">${esc(state.week.from)} hingga ${esc(state.week.to)} · Ketua: ${esc(state.week.leader)} · GPK: ${esc(state.week.gpk)}</p><h3>Laporan Harian</h3>${state.days.map((d,i)=>`<div class="tm5-day"><span><b>${esc(d.day)}</b> ${esc(d.date)}<br><small>${esc(d.status)} · Guru laporan: ${esc(d.teacher)} ${d.available?'':'🔒 Belum tiba'}</small></span><button data-day="${i}" ${!d.available?'disabled':''}>${d.canWrite?'Isi / Semak':'Lihat'}</button></div>`).join('')}<div id="tm5-detail"></div></div>
- ${all?`<div class="tm5-card"><h2>Ulasan Ketua Kumpulan</h2>${state.actor.isLeader?`<label>Ulasan Keseluruhan<textarea id="tm5-summary" ${able?'':'disabled'}>${esc(state.week.summary||'')}</textarea></label><label>Cadangan / Tindakan Susulan<textarea id="tm5-followup" ${able?'':'disabled'}>${esc(state.week.followup||'')}</textarea></label>${able?'<div class="tm5-row"><button id="tm5-draft">Simpan Ulasan</button><button class="primary" id="tm5-submit">Hantar kepada GPK</button></div>':''}`:'<p class="tm5-muted">Ulasan Ketua dibuka untuk semakan sahaja.</p>'}</div>`:`<div class="tm5-card"><h2>Ulasan Ketua Dikunci</h2><p>Semua hari persekolahan perlu lengkap dan terkunci sebelum seksyen ini dibuka.</p></div>`}
+ ${all?`<div class="tm5-card"><h2>Ulasan Ketua Kumpulan</h2>${state.actor.isLeader?`<label>Ulasan Keseluruhan<textarea id="tm5-summary" ${able?'':'disabled'}>${esc(state.week.summary||'')}</textarea></label><label>Cadangan / Tindakan Susulan<textarea id="tm5-followup" ${able?'':'disabled'}>${esc(state.week.followup||'')}</textarea></label>${able?'<div class="tm5-row"><button id="tm5-draft">Simpan Ulasan</button><button class="primary" id="tm5-submit">Hantar kepada GPK</button></div>':''}`:'<p class="tm5-muted">Ulasan Ketua dibuka untuk semakan sahaja.</p>'}</div>`:''}
  ${state.actor.isGPK&&state.week.status==='MENUNGGU_GPK'?reviewCard('GPK'):''}${state.actor.isGB&&state.week.status==='MENUNGGU_GB'?reviewCard('GB'):''}
  ${state.week.pdfUrl?`<div class="tm5-card"><a target="_blank" rel="noopener" href="${esc(state.week.pdfUrl)}">Buka PDF Rasmi Disahkan</a></div>`:''}`;
  content().querySelector('#tm5-back').onclick=guard(directory);content().querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>dayForm(state.days[Number(b.dataset.day)]));

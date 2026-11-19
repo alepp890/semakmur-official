@@ -10,11 +10,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('tm-embedded');</script>
-  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.0.6">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.0.6">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.0.7">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.0.7">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
-  <script src="Fi-TugasanMingguan.js?v=5.0.6" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=5.0.7" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
@@ -35,19 +35,25 @@
     <div class="tm-brand"><span class="tm-mark">S</span><div><small>SeMAKMUR I-System · Pentadbiran</small><h1>Smart Tugasan Mingguan</h1><p>Giliran kumpulan, laporan harian dan semakan Guru Besar</p></div></div>
     <div class="tm-identity"><span id="tm-user">Mengesahkan akaun…</span><span class="tm-chip" id="tm-mode">OPERASI RASMI</span></div>
   </header>
-  <div class="tm-toolbar"><label id="tm-year-label">Tahun takwim <select id="tm-year"><option value="2026" selected>2026</option><option value="2027">2027</option></select></label><button class="tm-btn tm-ghost" id="tm-refresh" type="button">Muat semula</button><div id="tm-loading" class="tm-loading" hidden>Memuatkan data…</div></div>
   <div id="tm-notice" class="tm-notice" role="status" aria-live="polite" hidden></div>
   <nav class="tm-tabs" aria-label="Bahagian Tugasan Mingguan">
+    <div class="tm-tab-links">
     <button type="button" class="active" data-tm-tab="overview">Minggu & Kumpulan</button>
     <button type="button" data-tm-tab="report-studio">Laporan &amp; Cetakan</button>
     <button type="button" data-tm-tab="tasks">Jadual Tugasan</button>
     <button type="button" data-tm-tab="smart" id="tm4-tab" hidden>Smart Auto Agihan</button>
     <button type="button" data-tm-tab="settings" id="tm-tab-settings" hidden>Tetapan Admin</button>
+    </div>
+    <div class="tm-toolbar" aria-label="Pilihan tahun dan muat semula">
+      <label id="tm-year-label">Tahun <select id="tm-year" aria-label="Tahun takwim"><option value="2026" selected>2026</option><option value="2027">2027</option></select></label>
+      <button class="tm-btn tm-ghost" id="tm-refresh" type="button">Muat semula</button>
+      <span id="tm-loading" class="tm-loading" hidden>Memuatkan…</span>
+    </div>
   </nav>
   <main class="tm-main">
     <section id="tm-panel-overview" data-tm-panel="overview">
       <div class="tm-summary" id="tm-summary"></div>
-      <section class="tm-card"><div class="tm-section-title"><div><h2>Jadual Kumpulan dan Ketua</h2><p>Minggu persekolahan berdasarkan Takwim_Minggu rasmi.</p></div><span class="tm-tag">Giliran automatik · Rasmi</span></div>
+      <section class="tm-card"><div class="tm-section-title"><div><h2>Jadual Kumpulan dan Ketua</h2></div><span class="tm-tag">Giliran automatik · Rasmi</span></div>
         <div id="tm-weeks" class="tm-weekgrid"><p class="tm-empty">Belum dimuatkan.</p></div>
       </section>
       <section class="tm-card" id="tm-sim-area" hidden>
@@ -56,7 +62,7 @@
         <div class="tm-buttons"><button type="button" class="tm-btn tm-outline" id="tm-sim-preview">Lihat Peralihan Ketua (Simulasi)</button></div>
         <div id="tm-sim-warning"></div><div id="tm-sim-grid" class="tm-weekgrid"></div>
       </section>
-      <section class="tm-card"><div class="tm-section-title"><h2>Makluman sumber data</h2></div><div id="tm-warnings" class="tm-warnings"><p class="tm-empty">Tiada makluman.</p></div></section>
+      <section class="tm-card" id="tm-source-card" hidden><div class="tm-section-title"><h2>Makluman</h2></div><div id="tm-warnings" class="tm-warnings"></div></section>
     </section>
 
     <!-- V4.9: unified daily form, weekly review and three A4 print templates. -->
@@ -127,7 +133,7 @@
       </section>
     </section>
     <section id="tm-panel-tasks" data-tm-panel="tasks" hidden>
-      <section class="tm-card tm-duty-schedule"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2><p id="tm-tasks-subtitle">Jadual rasmi mengikut minggu, hari dan kumpulan bertugas.</p></div><span id="tm-tasks-publication-badge" class="tm-tag tm-warning">Memuatkan status</span></div>
+      <section class="tm-card tm-duty-schedule"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2><p id="tm-tasks-subtitle" hidden></p></div><span id="tm-tasks-publication-badge" hidden></span></div>
         <div id="tm-selection-tasks" class="tm-selection"></div>
         <div id="tm-assignments" class="tm-duty-board" aria-live="polite"></div>
         <div id="tm-preflight-result"></div><button type="button" class="tm-btn tm-outline" id="tm-preflight" hidden>Semak Kesediaan Agihan (Admin)</button>
@@ -177,7 +183,7 @@
     <section id="tm-panel-smart" data-tm-panel="smart" hidden>
       <section class="tm-card"><div class="tm-section-title"><div><h2>Smart Auto Agihan — Simulasi & Rasmi</h2>
         <p>Jana jadual mengikut pemberatan, semak konflik PdPc/Keberadaan/e-Relief dan uji pertukaran guru tanpa mengubah rekod lampau.</p></div><span class="tm-tag tm-warning" id="tm4-mode-badge">MOD SIMULASI</span></div>
-        <div class="tm-notice tm-info"><strong>Mod simulasi:</strong> 8 minggu bermula 16/11/2026. Hari sekolah disimulasikan, dan jadual PdPc sesi 2026 menjadi rujukan bagi semua minggu termasuk tarikh sambungan 2027. Data simulasi tidak dimasukkan ke takwim rasmi atau laporan GB. <strong>Mod rasmi:</strong> Memerlukan takwim dan kalendar harian yang disahkan.</div>
+        <div class="tm-notice tm-info">Simulasi tidak mengubah jadual dan laporan rasmi.</div>
         <div class="tm-fields">
           <label>Mod Jadual<select id="tm4-mode"><option value="SIMULASI" selected>SIMULASI — Selamat untuk Ujian</option><option value="RASMI">RASMI — Mengikut Takwim Sebenar</option></select></label>
           <label>Minggu Bertugas<select id="tm4-week"><option value="">Pilih minggu…</option></select></label>
