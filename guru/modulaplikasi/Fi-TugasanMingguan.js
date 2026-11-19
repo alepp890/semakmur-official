@@ -38,7 +38,12 @@ async function tmAPI(op,extra={}){
 async function tmRun(action,after){if(tmState.busy)return;tmBusy(true);tmNotice('');try{return await action();}catch(e){console.error('[Smart Tugasan Mingguan]',e);tmNotice(e.message||String(e),true);tmSignal('semakmur-tm-error');return null;}finally{tmBusy(false);if(after)after();}}
 function tmTab(name){tmState.tab=name;document.querySelectorAll('[data-tm-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tmTab===name));document.querySelectorAll('[data-tm-panel]').forEach(x=>x.hidden=x.dataset.tmPanel!==name);}
 async function tmBootstrap(){
-  const result=await tmRun(()=>tmAPI('bootstrap',{year:tmState.year}));if(!result)return;
+  let result=await tmRun(()=>tmAPI('bootstrap',{year:tmState.year}));if(!result)return;
+  if(!(result.weeks||[]).length && tmState.year===tmToday().slice(0,4)){
+    const next=String(Number(tmState.year)+1);
+    const alternate=await tmRun(()=>tmAPI('bootstrap',{year:next}));
+    if(alternate?.weeks?.length){result=alternate;tmState.year=next;tm$('tm-year').value=next;}
+  }
   tmState.data=result;tm$('tm-user').textContent=result.actor?.name||tmState.user?.email||'Guru';tm$('tm-tab-settings').hidden=!result.actor?.manager;tm$('tm-preflight').hidden=!result.actor?.manager;tm$('tm-sim-area').hidden=!result.actor?.manager;tm$('tm4-tab').hidden=!result.actor?.manager;
   const weeks=result.weeks||[];
   if(!weeks.some(x=>x.ID_Minggu===tmState.weekId)){
@@ -744,3 +749,6 @@ function tm49Install(){
 
 // Existing authentication and page boot remain unchanged.
 tmInit();
+
+/* V5 auth bridge: uses the existing Fi token, nonce and validated Web App response. */
+window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};

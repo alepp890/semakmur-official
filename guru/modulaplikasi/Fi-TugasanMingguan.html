@@ -12,15 +12,21 @@
   <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=4.3">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
-  <script src="Fi-TugasanMingguan.js?v=4.9" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=5.0.0" defer></script>
+  <script src="Fi-TugasanMingguan-V5.js?v=5.0.0" defer></script>
+  <style>
+  #tm-sim-area{display:none!important}
+  #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
+  #tm-panel-daily,#tm-panel-weekly{display:none!important}
+  </style>
 </head>
 <body>
 <div class="tm-shell" id="tm-app">
   <header class="tm-hero">
     <div class="tm-brand"><span class="tm-mark">S</span><div><small>SeMAKMUR I-System · Pentadbiran</small><h1>Smart Tugasan Mingguan</h1><p>Giliran kumpulan, laporan harian dan semakan Guru Besar</p></div></div>
-    <div class="tm-identity"><span id="tm-user">Mengesahkan akaun…</span><span class="tm-chip" id="tm-mode">UJIAN V4</span></div>
+    <div class="tm-identity"><span id="tm-user">Mengesahkan akaun…</span><span class="tm-chip" id="tm-mode">OPERASI RASMI</span></div>
   </header>
-  <div class="tm-toolbar"><label>Sesi persekolahan <select id="tm-year"><option value="2026" selected>2026 — Pengujian</option><option value="2027">2027</option></select></label><button class="tm-btn tm-ghost" id="tm-refresh" type="button">Muat semula</button><div id="tm-loading" class="tm-loading" hidden>Memuatkan data…</div></div>
+  <div class="tm-toolbar"><label id="tm-year-label">Tahun takwim <select id="tm-year"><option value="2026" selected>2026</option><option value="2027">2027</option></select></label><button class="tm-btn tm-ghost" id="tm-refresh" type="button">Muat semula</button><div id="tm-loading" class="tm-loading" hidden>Memuatkan data…</div></div>
   <div id="tm-notice" class="tm-notice" role="status" aria-live="polite" hidden></div>
   <nav class="tm-tabs" aria-label="Bahagian Tugasan Mingguan">
     <button type="button" class="active" data-tm-tab="overview">Minggu & Kumpulan</button>
@@ -32,7 +38,7 @@
   <main class="tm-main">
     <section id="tm-panel-overview" data-tm-panel="overview">
       <div class="tm-summary" id="tm-summary"></div>
-      <section class="tm-card"><div class="tm-section-title"><div><h2>Jadual Kumpulan dan Ketua</h2><p>Minggu persekolahan berdasarkan Takwim_Minggu rasmi.</p></div><span class="tm-tag">Giliran automatik · Pratonton</span></div>
+      <section class="tm-card"><div class="tm-section-title"><div><h2>Jadual Kumpulan dan Ketua</h2><p>Minggu persekolahan berdasarkan Takwim_Minggu rasmi.</p></div><span class="tm-tag">Giliran automatik · Rasmi</span></div>
         <div id="tm-weeks" class="tm-weekgrid"><p class="tm-empty">Belum dimuatkan.</p></div>
       </section>
       <section class="tm-card" id="tm-sim-area" hidden>
