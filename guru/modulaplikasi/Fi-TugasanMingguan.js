@@ -11,7 +11,19 @@ const tmMe=()=>tmState.data?.actor?.id||'';
 const tmSelected=()=>tmState.data?.weeks?.find(w=>w.ID_Minggu===tmState.weekId);
 const tmNames=()=>Object.fromEntries((tmState.detail?.members||[]).map(x=>[x.id,x.name]));
 function tmNotice(text='',bad=false){const el=tm$('tm-notice');el.hidden=!text;el.textContent=String(text);el.classList.toggle('tm-error',!!bad);}
-function tmBusy(flag){tmState.busy=!!flag;tm$('tm-loading').hidden=!flag;document.querySelectorAll('button,select,input,textarea').forEach(el=>{if(el.id==='tm-year'||el.id==='tm-refresh')el.disabled=flag;});}
+/* V5.0.2: lapisan loading berkongsi gaya e-Kehadiran/e-Relief.
+   Hanya paparan; tidak menukar API, akses, tugasan atau data. */
+const tmProcessKeys=new Set(['startup']);
+function tmProcess(key,on,title='',message=''){
+  if(on)tmProcessKeys.add(key);else tmProcessKeys.delete(key);
+  const overlay=tm$('tm-process-overlay');if(!overlay)return;
+  if(on){if(title)tm$('tm-process-title').textContent=title;if(message)tm$('tm-process-message').textContent=message;}
+  overlay.hidden=tmProcessKeys.size===0;
+  overlay.setAttribute('aria-busy',String(tmProcessKeys.size>0));
+}
+function tmBusy(flag){tmState.busy=!!flag;tm$('tm-loading').hidden=!flag;
+  tmProcess('api',!!flag,'Memuatkan Data Tugasan Mingguan','Menyemak rekod rasmi, minggu dan kumpulan bertugas…');
+  document.querySelectorAll('button,select,input,textarea').forEach(el=>{if(el.id==='tm-year'||el.id==='tm-refresh')el.disabled=flag;});}
 function tmSignal(type){if(new URLSearchParams(location.search).get('embed')==='1'&&window.parent!==window)window.parent.postMessage({type},location.origin);}
 function tmTrusted(origin){try{const u=new URL(origin);if(u.protocol!=='https:'||u.port||u.username||u.password)return false;const host=u.hostname.toLowerCase();return host==='script.google.com'||host==='script.googleusercontent.com'||host.endsWith('.script.googleusercontent.com')||host.endsWith('-script.googleusercontent.com');}catch{return false;}}
 async function tmAPI(op,extra={}){
@@ -51,6 +63,7 @@ async function tmBootstrap(){
   }
   tmRenderOverview();tmRenderSettings();if(result.actor?.manager)await tm4LoadWeeks(false);tmSignal('semakmur-tm-ready');
   if(tmState.weekId)await tmLoadDetail(false);else{tmState.detail=null;tmRenderDetail();}
+  document.dispatchEvent(new Event('semakmur-tm-auth-ready'));
 }
 function tmRenderOverview(){
   const a=tmState.data||{},weeks=a.weeks||[],plans=weeks.filter(x=>x.pelan).length;
@@ -516,10 +529,13 @@ async function tmInit(){tmListeners();tmTab('overview');tmNotice('Menyemak akaun
     tmState.auth=authMod.getAuth(fb);
     authMod.onAuthStateChanged(tmState.auth,async user=>{
       tmState.user=user;
-      if(!user){tmNotice('Akaun belum log masuk. Sila kembali ke Fi-LoginSession melalui Dashboard Guru.',true);tmSignal('semakmur-tm-error');return;}
-      await tmBootstrap();
-    },err=>{tmNotice('Firebase Authentication gagal: '+(err.message||err),true);tmSignal('semakmur-tm-error');});
-  }catch(e){tmNotice('Sambungan modul gagal: '+(e.message||String(e)),true);tmSignal('semakmur-tm-error');}
+      try{
+        if(!user){tmNotice('Akaun belum log masuk. Sila kembali ke Fi-LoginSession melalui Dashboard Guru.',true);tmSignal('semakmur-tm-error');return;}
+        await tmBootstrap();
+      }catch(e){console.error('[TM auth]',e);tmNotice('Gagal memuatkan modul: '+(e.message||String(e)),true);tmSignal('semakmur-tm-error');}
+      finally{tmProcess('startup',false);}
+    },err=>{tmProcess('startup',false);tmNotice('Firebase Authentication gagal: '+(err.message||err),true);tmSignal('semakmur-tm-error');});
+  }catch(e){tmProcess('startup',false);tmNotice('Sambungan modul gagal: '+(e.message||String(e)),true);tmSignal('semakmur-tm-error');}
 }
 /* V4.9 Laporan & Cetakan: additive, does not modify the V4.8 duty engine. */
 const tm49={mode:'',weekId:'',year:'',date:'',weeks:[],data:null,dirty:false,dailyDirty:false,weeklyDirty:false,ready:false};
@@ -764,25 +780,25 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
  const old=[...panel.children];old.forEach(el=>el.hidden=true);
  const root=document.createElement('div');root.id='tm5-root';panel.append(root);
  const style=document.createElement('style');style.textContent=`
- #tm5-root{font-family:'Plus Jakarta Sans',sans-serif;color:#26332f}
- #tm5-root .tm5-card{border:1px solid #dfe7e2;border-radius:14px;padding:18px;margin:12px 0;background:#fff}
+ #tm5-root{font-family:'Plus Jakarta Sans',sans-serif;color:#1b2447}
+ #tm5-root .tm5-card{border:1px solid #dce3f1;border-radius:14px;padding:18px;margin:12px 0;background:#fff}
  #tm5-root h2{font-size:19px;margin:0 0 10px}#tm5-root h3{font-size:15px;margin:16px 0 8px}
  #tm5-root label{display:block;font-size:13px;font-weight:600;margin:9px 0 4px}
- #tm5-root input,#tm5-root select,#tm5-root textarea{width:100%;box-sizing:border-box;border:1px solid #c9d4cf;border-radius:8px;padding:10px;min-height:39px;font:inherit;background:#fff;color:#26332f}
- #tm5-root textarea{min-height:80px}#tm5-root button{font:inherit;border:1px solid #b5c8bb;border-radius:9px;padding:10px 13px;background:white;color:#173c34;cursor:pointer}
- #tm5-root button.primary{background:#173c34;color:white}#tm5-root button:disabled{opacity:.48;cursor:not-allowed}
+ #tm5-root input,#tm5-root select,#tm5-root textarea{width:100%;box-sizing:border-box;border:1px solid #cad7ec;border-radius:8px;padding:10px;min-height:39px;font:inherit;background:#fff;color:#1b2447}
+ #tm5-root textarea{min-height:80px}#tm5-root button{font:inherit;border:1px solid #b7c9ee;border-radius:9px;padding:10px 13px;background:white;color:#294a91;cursor:pointer}
+ #tm5-root button.primary{background:#294a91;color:white}#tm5-root button:disabled{opacity:.48;cursor:not-allowed}
  #tm5-root .tm5-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
  #tm5-root .tm5-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
- #tm5-root .tm5-muted{color:#697870;font-size:12px}#tm5-root .tm5-status{background:#edf4ee;border-radius:30px;padding:4px 10px;font-size:12px}
- #tm5-root .tm5-field{padding:12px;background:#f8faf8;border:1px solid #e6eee9;border-radius:10px;margin:10px 0}
- #tm5-root .tm5-day{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e7ebe8;padding:11px 0;gap:8px}
+ #tm5-root .tm5-muted{color:#64728e;font-size:12px}#tm5-root .tm5-status{background:#edf2ff;border-radius:30px;padding:4px 10px;font-size:12px}
+ #tm5-root .tm5-field{padding:12px;background:#f6f8ff;border:1px solid #e2e9f7;border-radius:10px;margin:10px 0}
+ #tm5-root .tm5-day{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e7edf7;padding:11px 0;gap:8px}
  #tm5-root .tm5-danger{color:#9a3429}#tm5-root .tm5-hide{display:none!important}`;document.head.append(style);
  const state={weeks:[],week:null,days:[],actor:null,corrections:[],current:null,teachers:[]};
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const api=async payload=>{if(typeof window.SeMAKMUR_TM5_API!=='function')throw Error('Sambungan V5 belum dipasang pada Fi-TugasanMingguan.js / FiTugasanMingguanAPI.gs. Jangan guna portal live sebelum sambungan dilengkapkan.');return await window.SeMAKMUR_TM5_API(payload);};
  const status=(t,isError=false)=>{const el=root.querySelector('#tm5-message');if(el){el.textContent=t;el.className=isError?'tm5-muted tm5-danger':'tm5-muted';}};
  const common=()=>({weekId:state.week?.id,year:state.week?.year||state.week?.from?.slice(0,4)});
- const call=async(payload)=>{try{status('Memproses...');const r=await api(payload);if(r?.ok===false||r?.status==='RALAT')throw Error(r.message||r.error||'Tindakan gagal');status('Sedia');return r?.data&&typeof r.data==='object'&&r.weeks===undefined&&r.days===undefined?r.data:r;}catch(e){status(e.message||String(e),true);throw e;}};
+ const call=async(payload)=>{tmProcess('laporan',true,'Menyediakan Laporan Mingguan','Membaca dan memproses rekod laporan rasmi…');try{status('Memproses...');const r=await api(payload);if(r?.ok===false||r?.status==='RALAT')throw Error(r.message||r.error||'Tindakan gagal');status('Sedia');return r?.data&&typeof r.data==='object'&&r.weeks===undefined&&r.days===undefined?r.data:r;}catch(e){status(e.message||String(e),true);throw e;}finally{tmProcess('laporan',false);}};
  const guard=fn=>async(...a)=>{try{await fn(...a)}catch(e){console.error('[TM5]',e)}};
  root.innerHTML=`<div class="tm5-card"><h2>Smart Tugasan Mingguan · Laporan Rasmi V5</h2><p class="tm5-muted">Laporan harian hanya boleh dibuka bermula hari kejadian. Semua pengesahan adalah mengikut peranan rasmi.</p><div class="tm5-row"><button id="tm5-directory" class="primary">Direktori Laporan Mingguan</button><button id="tm5-reload">Muat Semula</button></div><div id="tm5-message" role="status" class="tm5-muted"></div></div><div id="tm5-content"></div>`;
  const content=()=>root.querySelector('#tm5-content');
@@ -826,6 +842,6 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
  data.makmur_status=el.querySelector('#tm5-program').value;data.makmur_teacher=el.querySelector('#tm5-program-teacher')?.value||'';data.makmur_cancel_reason=el.querySelector('#tm5-cancel').value;
  data.activities=[...el.querySelectorAll('[data-activity-item]')].map(e=>({title:e.querySelector('[data-item-title]').value,desc:e.querySelector('[data-item-desc]').value}));data.visitors_status=el.querySelector('#tm5-visitors-status').value;data.visitors=[...el.querySelectorAll('[data-visitor-item]')].map(e=>e.querySelector('[data-item-title]').value);return data;}
  async function saveDay(complete){const date=state.current.date;if(complete&&!confirm('Laporan akan dikunci selepas dimuktamadkan. Teruskan?'))return;await call({op:'tm5SaveDay',...common(),date,data:collect(),complete});await openWeek({weekId:state.week.id,year:state.week.year,from:state.week.from});}
- root.querySelector('#tm5-directory').onclick=guard(directory);root.querySelector('#tm5-reload').onclick=guard(directory);guard(directory)();
+ root.querySelector('#tm5-directory').onclick=guard(directory);root.querySelector('#tm5-reload').onclick=guard(directory);if(tmState.data)guard(directory)();else document.addEventListener('semakmur-tm-auth-ready',()=>guard(directory)(),{once:true});
 })();
 

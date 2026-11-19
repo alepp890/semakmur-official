@@ -2,3 +2,19 @@
 @media(min-width:768px) and (max-width:1024px){.tm-weekgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.tm-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 /* Smart Tugasan Mingguan V4 */
 @media(max-width:560px){.tm4-fairness{grid-template-columns:1fr}.tm4-table{min-width:660px}.tm-table-scroll{margin-left:0;margin-right:0}}
+
+/* V5.0.2 — padanan identiti SeMAKMUR PWA e-Kehadiran/e-Keberadaan.
+   Empat fail modul kekal, susun atur serta logik asli tidak diubah. */
+@media(max-width:767px){
+  html,body{background:#eef5f8;color:#24394b;}
+  .tm-hero{background:linear-gradient(110deg,#173c5d,#217da4);color:#fff;}
+  .tm-tabs{background:#e5eef6;border-color:#d3e3f3;}
+  .tm-tabs button.active{background:linear-gradient(110deg,#168cca,#245eb4);color:#fff;}
+  .tm-metric{background:#f1f6ff;}
+  .tm-process-overlay{padding:17px;}
+  .tm-process-card{width:min(320px,100%);}
+  #tm5-root .tm5-day{align-items:flex-start;flex-wrap:wrap;}
+  #tm5-root .tm5-day>span{min-width:0;overflow-wrap:anywhere;}
+  #tm5-root .tm5-row{flex-wrap:wrap;}
+  #tm5-root .tm5-card{padding:14px!important;}
+}

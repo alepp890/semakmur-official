@@ -101,3 +101,129 @@ textarea.tm49-textarea{min-height:70px;max-width:100%;font-size:.81rem;line-heig
 .tm49-printbuttons .tm-btn{width:100%;text-align:left}
 @media(max-width:990px){.tm49-layout{grid-template-columns:minmax(0,1fr)}.tm49-progress{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:570px){.tm49-headerline .tm-btn{width:100%}.tm49-section{padding:10px}.tm49-daybar{grid-template-columns:1fr}.tm49-day-actions .tm-btn{width:100%}}
+
+
+/* V5.0.1 — desktop modul dalam iframe, selaras lebar dan hierarki e-Keberadaan. */
+@media(min-width:768px){
+  html.tm-embedded,html.tm-embedded body{width:100%;min-width:0;max-width:none;}
+  html.tm-embedded body{background:#eff4f8;overflow-x:hidden;}
+  html.tm-embedded .tm-shell{
+    width:100%;max-width:none;margin:0;padding:16px 19px 28px;
+    min-width:0;box-sizing:border-box;
+  }
+  html.tm-embedded .tm-hero{
+    width:100%;min-width:0;display:flex;align-items:center;justify-content:space-between;
+    min-height:72px;padding:13px 20px;border-radius:15px;
+    background:#e6eef9;color:#213e61;border:1px solid #d7e3f2;
+    box-shadow:0 3px 14px rgba(38,57,86,.04);gap:14px;
+  }
+  html.tm-embedded .tm-brand{gap:0;min-width:0;}
+  html.tm-embedded .tm-brand .tm-mark{display:none;}
+  html.tm-embedded .tm-brand small{font-size:11px;color:#58718a;opacity:1;}
+  html.tm-embedded .tm-brand h1{font-size:16px;font-weight:800;margin:2px 0 0;color:#213e61;line-height:1.35;}
+  html.tm-embedded .tm-brand p{display:none;}
+  html.tm-embedded .tm-identity{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;
+    align-items:center;justify-content:flex-end;justify-items:initial;
+    text-align:right;max-width:min(48%,480px);min-width:0;}
+  html.tm-embedded .tm-identity>span:first-child{font-size:11px;font-weight:700;overflow-wrap:anywhere;}
+  html.tm-embedded .tm-chip{background:#d6e8d9;color:#28583a;padding:5px 10px;font-size:10px;font-weight:800;white-space:nowrap;}
+  html.tm-embedded .tm-toolbar{width:100%;min-width:0;align-items:center;gap:12px;
+    margin:12px 0 0;padding:9px 3px 10px;}
+  html.tm-embedded .tm-toolbar label{flex-direction:row;align-items:center;gap:10px;font-size:12px;color:#304965;}
+  html.tm-embedded .tm-toolbar select{min-width:132px;width:160px;min-height:38px;}
+  html.tm-embedded .tm-toolbar .tm-btn{min-height:38px;}
+  html.tm-embedded .tm-tabs{width:100%;min-width:0;display:flex;flex-wrap:wrap;
+    overflow-x:visible;gap:7px;padding:6px;margin:0 0 14px;
+    background:#e7eef7;border:1px solid #dae4f2;border-radius:13px;}
+  html.tm-embedded .tm-tabs button{min-height:43px;padding:10px 15px;font-size:12px;
+    border-radius:10px;color:#375574;white-space:normal;}
+  html.tm-embedded .tm-tabs button.active{background:linear-gradient(115deg,#1789c3,#2056a8);
+    color:#fff;box-shadow:0 2px 10px rgba(29,91,155,.12);}
+  html.tm-embedded .tm-main,html.tm-embedded .tm-main>section{
+    width:100%;max-width:none;min-width:0;}
+  html.tm-embedded .tm-card{min-width:0;max-width:100%;padding:19px 20px;margin-bottom:14px;
+    border-color:#dae5f0;border-radius:15px;box-shadow:0 4px 17px rgba(30,58,90,.04);}
+  html.tm-embedded .tm-summary{grid-template-columns:repeat(4,minmax(0,1fr));}
+  html.tm-embedded .tm-weekgrid{grid-template-columns:repeat(3,minmax(0,1fr));}
+  html.tm-embedded .tm-table-scroll{max-width:100%;}
+  html.tm-embedded .tm-section-title h2{color:#173b61;}
+  html.tm-embedded .tm-footer{padding:10px 0;font-size:10px;}
+  html.tm-embedded #tm5-root{width:100%;min-width:0;max-width:none;}
+  html.tm-embedded #tm5-root .tm5-card{width:100%;min-width:0;max-width:100%;}
+}
+@media(min-width:768px) and (max-width:1199px){
+  html.tm-embedded .tm-summary{grid-template-columns:repeat(2,minmax(0,1fr));}
+  html.tm-embedded .tm-weekgrid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  html.tm-embedded .tm-tabs button{flex:1 1 auto;}
+}
+@media(min-width:768px) and (max-width:899px){
+  html.tm-embedded .tm-hero{align-items:flex-start;}
+  html.tm-embedded .tm-identity{max-width:50%;}
+}
+
+
+/* ===========================================================
+   V5.0.2 - THEME ALIGNMENT WITH Fi-KeberadaanGuru (BESTARI)
+   Applies visual tokens and layout only. No changes to app engine.
+   =========================================================== */
+:root{
+  --tm-forest:#253f87;--tm-forest2:#4162ae;--tm-sage:#7791b8;
+  --tm-paper:#f0f3fa;--tm-ink:#1b2447;--tm-border:#dce3f1;
+  --tm-muted:#5a6b88;--tm-white:#fff;--tm-warning:#9f671b;
+  --tm-shadow:0 4px 13px rgba(36,49,101,.068);
+}
+html,body{min-width:0;max-width:100%;}
+body{color:var(--tm-ink);background:var(--tm-paper);font-size:13px;line-height:1.55;}
+:where(button,input,textarea,select){font-family:'Plus Jakarta Sans',system-ui,sans-serif;}
+:where(button,input,textarea,select):focus-visible{outline:3px solid #8ca0e9;outline-offset:2px;}
+.tm-hero{background:linear-gradient(110deg,#173c5d,#217da4);box-shadow:0 4px 15px rgba(19,60,100,.10);}
+.tm-mark{background:rgba(255,255,255,.14);}
+.tm-tabs{background:#e9eef8;border:1px solid #dbe5f5;}
+.tm-tabs button{color:#425678;}
+.tm-tabs button.active{background:linear-gradient(120deg,#148aca,#245ab4);color:white;box-shadow:0 2px 12px rgba(33,90,160,.17);}
+.tm-card,.tm-week,.tm43-day,#tm5-root .tm5-card{background:#fff;border-color:#dce3f1;box-shadow:0 4px 13px rgba(36,49,101,.06);}
+.tm-metric{background:linear-gradient(145deg,#edf2ff,#f9fbff);border-color:#d4e2fb;}
+.tm-metric strong,.tm-section-title h2,.tm-week-head h3,.tm45-task{color:#223d83;}
+.tm-tag{background:#eaf0ff;color:#35559b;}
+.tm-toolbar label{color:#344a71;}
+.tm-toolbar :is(select,input),.tm-card :is(select,input,textarea){border-color:#cad7eb;}
+.tm-btn.tm-outline,.tm-btn.tm-ghost{color:#254d92;border-color:#c5d6f1;}
+.tm-btn:not(.tm-outline):not(.tm-ghost):not(.tm-muted){background:linear-gradient(110deg,#168bcd,#265aae);color:#fff;}
+.tm47-metrics>div,.tm49-progress>div{background:#f0f4fc;border-color:#dce5f6;}
+.tm47-table th,.tm45-duty-head,.tm43-day-head{background:#edf3fb;color:#283f7a;}
+.tm49-section,.tm49-info,.tm49-other{background:#f7f9fe;border-color:#e0e8f8;}
+#tm5-root{color:#1b2447!important;}
+#tm5-root .tm5-card{background:#fff!important;border-color:#dce3f1!important;box-shadow:0 4px 13px rgba(36,49,101,.06)!important;}
+#tm5-root h2,#tm5-root h3{color:#203c81!important;}
+#tm5-root .tm5-field{background:#f7f9fe!important;border-color:#e1e8f6!important;}
+#tm5-root .tm5-status{background:#e9f1ff!important;color:#2b4a92!important;}
+#tm5-root button.primary{background:linear-gradient(110deg,#148aca,#245ab4)!important;color:white!important;border-color:transparent!important;}
+#tm5-root :is(input,select,textarea){border-color:#cbd9ee!important;color:#1b2447!important;background:white!important;}
+/* Matching spinner/dialog used by e-Kehadiran/e-Relief. */
+.tm-process-overlay[hidden]{display:none!important;}
+.tm-process-overlay{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;
+  background:rgba(15,36,80,.58);backdrop-filter:blur(3px);padding:20px;}
+.tm-process-card{display:grid;justify-items:center;gap:10px;width:min(365px,100%);
+  padding:29px 23px;background:#fff;border:1px solid #dceafb;border-radius:19px;
+  text-align:center;box-shadow:0 20px 55px rgba(11,38,90,.22);}
+.tm-process-card strong{color:#233c82;font-size:16px;font-weight:800;line-height:1.4;}
+.tm-process-card>span:last-child{color:#647590;font-size:12px;line-height:1.6;}
+.tm-process-spinner{width:43px;height:43px;border:4px solid #d9e8fa;
+  border-top-color:#167fc4;border-radius:50%;animation:tmSpin .85s linear infinite;}
+@keyframes tmSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.tm-process-spinner{animation:none;border-top-color:#167fc4;}}
+@media(min-width:768px){
+  /* Full width, like e-Keberadaan. */
+  .tm-shell{max-width:none;width:100%;min-width:0;padding:15px 18px 34px;}
+  .tm-main,.tm-main>section,.tm-card{min-width:0;max-width:100%;}
+  html.tm-embedded .tm-hero{background:#e7eefc;color:#223d80;border-color:#d7e3f8;}
+  html.tm-embedded .tm-brand h1{color:#223d80;}
+  html.tm-embedded .tm-brand small,html.tm-embedded .tm-identity{color:#526a93;}
+  html.tm-embedded .tm-chip{background:#dce8fd;color:#2c4d97;}
+  html.tm-embedded .tm-tabs{background:#e9eef8;border-color:#dbe5f5;}
+  html.tm-embedded .tm-tabs button.active{background:linear-gradient(110deg,#148aca,#245ab4);color:#fff;}
+  html.tm-embedded #tm5-root .tm5-card{padding:18px 19px;}
+}
+@media(max-width:767px){
+  .tm-process-card{border-radius:20px;padding:25px 20px;}
+}

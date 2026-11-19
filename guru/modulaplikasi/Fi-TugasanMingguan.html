@@ -1,18 +1,20 @@
 <!doctype html>
 <html lang="ms">
+<!-- Mod iframe dikesan sebelum CSS dipaparkan; reka bentuk PWA asal kekal. -->
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#173c34">
+  <meta name="theme-color" content="#174665">
   <title>Smart Tugasan Mingguan | SeMAKMUR I-System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=4.9">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=4.3">
+  <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('tm-embedded');</script>
+  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.0.2">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.0.2">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
-  <script src="Fi-TugasanMingguan.js?v=5.0.0" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=5.0.2" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
@@ -20,6 +22,14 @@
   </style>
 </head>
 <body>
+<!-- Muat seperti modul e-Kehadiran: indikator proses dan mesej pengesahan. -->
+<div id="tm-process-overlay" class="tm-process-overlay" role="status" aria-live="polite" aria-busy="true">
+  <div class="tm-process-card">
+    <span class="tm-process-spinner" aria-hidden="true"></span>
+    <strong id="tm-process-title">Mengesahkan Akaun Guru</strong>
+    <span id="tm-process-message">Menyediakan modul Smart Tugasan Mingguan…</span>
+  </div>
+</div>
 <div class="tm-shell" id="tm-app">
   <header class="tm-hero">
     <div class="tm-brand"><span class="tm-mark">S</span><div><small>SeMAKMUR I-System · Pentadbiran</small><h1>Smart Tugasan Mingguan</h1><p>Giliran kumpulan, laporan harian dan semakan Guru Besar</p></div></div>
@@ -225,6 +235,6 @@
       </section>
     </section>
   </main>
-  <footer class="tm-footer">SeMAKMUR I-System · Smart Tugasan Mingguan V4.9 (Laporan & Cetakan) · Sumber rasmi Google Sheets / Fi-Sync</footer>
+  <footer class="tm-footer">SeMAKMUR I-System · Smart Tugasan Mingguan V5.0 (Operasi Rasmi) · Sumber rasmi Google Sheets / Fi-Sync</footer>
 </div>
 </body></html>
