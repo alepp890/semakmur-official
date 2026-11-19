@@ -34,6 +34,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     epbd:{title:'e-PBD',icon:'fa-chart-column',tone:'blue',url:null},
     tmk:{title:'PdPc Modul TMK',icon:'fa-computer',tone:'purple',url:null},
     kehadiran:{title:'Kehadiran Murid',icon:'fa-user-check',tone:'green',url:'modulaplikasi/Fi-KehadiranMurid.html'},
+    pengurusan_murid:{title:'Pengurusan Murid',icon:'fa-users-gear',tone:'green',url:'modulaplikasi/Fi-PendaftaranMurid.html'},
     keberadaan:{title:'e-Keberadaan',icon:'fa-clipboard-user',tone:'blue',url:'modulaplikasi/Fi-KeberadaanGuru.html'},
     apdm:{title:'APDM',icon:'fa-users',tone:'blue',url:'https://apdm.moe.gov.my'},
     spbt:{title:'SPBT',icon:'fa-book',tone:'orange',url:null},
@@ -47,7 +48,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   const CATEGORY_MODULES={
     pentadbiran:['keberadaan','manual','eminit','eprogram','eopr','bertugas','hrmis'],
     kurikulum:['erph','jadual','epbd','tmk','relief','splkpm'],
-    hem:['kehadiran','apdm','ssdm','spbt','rmt'],
+    hem:['pengurusan_murid','kehadiran','apdm','ssdm','spbt','rmt'],
     kokurikulum:['beruniform','kelab','sukan','pajsk','eprogram'],
     lain_lain:['bilik','dokumen','manual','splkpm']
   };
@@ -124,7 +125,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   function moduleCard(id){const m=MODULES[id];if(!m || (id==='manual' && (!fiManualAccessAllowed||!fiManualDesktop())))return '';
     if(id==='jadual'&&!bolehUrusJadual())return '';
     return `<button class="module-card" type="button" data-module="${escapeHtml(id)}" ${m.url?'':'disabled'}>
-      <span class="module-icon ${escapeHtml(m.tone)}">${qIcon(({erph:'book',manual:'settings',jadual:'calendar',ssdm:'attendance',splkpm:'graduation',pajsk:'chart',hrmis:'settings',eminit:'mail',eprogram:'calendar',eopr:'report',bertugas:'report',relief:'calendar',epbd:'chart',tmk:'book',kehadiran:'attendance',apdm:'attendance',spbt:'book',rmt:'attendance',beruniform:'attendance',kelab:'attendance',sukan:'chart',bilik:'settings',dokumen:'report'})[id]||'book')}</span>
+      <span class="module-icon ${escapeHtml(m.tone)}">${qIcon(({erph:'book',manual:'settings',jadual:'calendar',ssdm:'attendance',splkpm:'graduation',pajsk:'chart',hrmis:'settings',eminit:'mail',eprogram:'calendar',eopr:'report',bertugas:'report',relief:'calendar',epbd:'chart',tmk:'book',kehadiran:'attendance',pengurusan_murid:'attendance',apdm:'attendance',spbt:'book',rmt:'attendance',beruniform:'attendance',kelab:'attendance',sukan:'chart',bilik:'settings',dokumen:'report'})[id]||'book')}</span>
       <span class="text-slate-700">${escapeHtml(m.title)}</span></button>`;
   }
   function openErphWorkspace(){
@@ -329,6 +330,10 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       if(!dashboardAuthenticated){showInfo('Akses Fi masih disemak.');return;}
       window.open(m.url,'_blank','noopener');return;
     }
+    if(id==='pengurusan_murid'){
+      if(!dashboardAuthenticated){showInfo('Sila sahkan sesi akaun Google MOE terlebih dahulu.');return;}
+      window.open(m.url,'_blank','noopener');return;
+    }
     if(id==='bertugas'){
       if(!dashboardAuthenticated){showInfo('Akaun MOE masih disemak.');return;}
       window.open(m.url,'_blank','noopener');return;
@@ -353,7 +358,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   };
   function qIcon(type){return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${QUICK_ICONS[type]||QUICK_ICONS.book}</svg>`;}
   function shortcutCard(id,idx){const m=MODULES[id];if(!m||(id==='manual'&&(!fiManualDesktop()||!fiManualAccessAllowed)))return '';
-    const details={kehadiran:['Kehadiran','Rekod & Analisis','attendance'],erph:['e-RPH','Rancangan Pengajaran','book'],jadual:['Jadual Waktu','Kelas & Tugasan','calendar'],splkpm:['Latihan','Pembangunan Guru','graduation'],epbd:['PBD','Pentaksiran Murid','chart'],eopr:['Laporan','Laporan & Statistik','report'],eminit:['Surat','Surat & Tindakan','mail'],manual:['Pengurusan','Manual Sekolah','settings'],keberadaan:['e-Keberadaan','Permohonan & Rekod','report'],bertugas:['Tugasan Mingguan','Tugas & Laporan','report']};
+    const details={pengurusan_murid:['Pengurusan Murid','Daftar & Pindah Murid','attendance'],kehadiran:['Kehadiran','Rekod & Analisis','attendance'],erph:['e-RPH','Rancangan Pengajaran','book'],jadual:['Jadual Waktu','Kelas & Tugasan','calendar'],splkpm:['Latihan','Pembangunan Guru','graduation'],epbd:['PBD','Pentaksiran Murid','chart'],eopr:['Laporan','Laporan & Statistik','report'],eminit:['Surat','Surat & Tindakan','mail'],manual:['Pengurusan','Manual Sekolah','settings'],keberadaan:['e-Keberadaan','Permohonan & Rekod','report'],bertugas:['Tugasan Mingguan','Tugas & Laporan','report']};
     const iconMap={hrmis:'settings',ssdm:'attendance',splkpm:'graduation',pajsk:'chart',apdm:'attendance',bilik:'calendar',kehadiran:'attendance',eprogram:'calendar',eopr:'report',bertugas:'report',beruniform:'attendance',kelab:'attendance',sukan:'chart',epbd:'chart',tmk:'book',relief:'calendar'};
     const data=details[id]||[m.title,'Aplikasi SeMAKMUR',iconMap[id]||'book'];
     return `<button class="shortcut-card shortcut-tone-${idx%7} ${m.url?'':'shortcut-inactive'}" type="button" data-module="${escapeHtml(id)}" ${m.url?'':'disabled'} title="${escapeHtml(data[0])}"><span class="shortcut-icon">${qIcon(data[2])}</span><span class="shortcut-title">${escapeHtml(data[0])}</span><span class="shortcut-description">${escapeHtml(data[1])}</span><span class="shortcut-arrow" aria-hidden="true">→</span></button>`;
