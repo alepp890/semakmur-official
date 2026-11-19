@@ -10,11 +10,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('tm-embedded');</script>
-  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.0.7">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.0.7">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.0.8">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.0.8">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
-  <script src="Fi-TugasanMingguan.js?v=5.0.7" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=5.0.8" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
@@ -53,12 +53,12 @@
   <main class="tm-main">
     <section id="tm-panel-overview" data-tm-panel="overview">
       <div class="tm-summary" id="tm-summary"></div>
-      <section class="tm-card"><div class="tm-section-title"><div><h2>Jadual Kumpulan dan Ketua</h2></div><span class="tm-tag">Giliran automatik · Rasmi</span></div>
+      <section class="tm-card"><div class="tm-section-title"><div><h2>Jadual Kumpulan dan Ketua</h2></div></div>
         <div id="tm-weeks" class="tm-weekgrid"><p class="tm-empty">Belum dimuatkan.</p></div>
       </section>
       <section class="tm-card" id="tm-sim-area" hidden>
         <div class="tm-section-title"><div><h2>Simulasi Takwim: 8 Minggu</h2><p>16/11/2026 hingga 08/01/2027 · Empat kumpulan, dua giliran setiap kumpulan.</p></div><span class="tm-tag">UJIAN SAHAJA</span></div>
-        <p class="tm-muted">Pratonton ini tidak menggunakan Takwim_Minggu rasmi dan tidak boleh dijadikan draf, diisi laporan atau dihantar kepada GB.</p>
+
         <div class="tm-buttons"><button type="button" class="tm-btn tm-outline" id="tm-sim-preview">Lihat Peralihan Ketua (Simulasi)</button></div>
         <div id="tm-sim-warning"></div><div id="tm-sim-grid" class="tm-weekgrid"></div>
       </section>
@@ -133,16 +133,16 @@
       </section>
     </section>
     <section id="tm-panel-tasks" data-tm-panel="tasks" hidden>
-      <section class="tm-card tm-duty-schedule"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2><p id="tm-tasks-subtitle" hidden></p></div><span id="tm-tasks-publication-badge" hidden></span></div>
+      <section class="tm-card tm-duty-schedule"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2></div><button type="button" class="tm-btn tm-outline" id="tm-print-schedule-live">Cetak Jadual</button></div>
         <div id="tm-selection-tasks" class="tm-selection"></div>
         <div id="tm-assignments" class="tm-duty-board" aria-live="polite"></div>
         <div id="tm-preflight-result"></div><button type="button" class="tm-btn tm-outline" id="tm-preflight" hidden>Semak Kesediaan Agihan (Admin)</button>
       </section>
     </section>
     <section id="tm-panel-settings" data-tm-panel="settings" hidden>
-      <section class="tm-card"><div class="tm-section-title"><div><h2>Tetapan Asas</h2><p>Sediakan contoh tugasan berat/ringan dan komponen laporan tanpa menetapkan waktu secara paksa.</p></div></div>
+      <section class="tm-card"><div class="tm-section-title"><div><h2>Tetapan Asas</h2></div></div>
         <button type="button" class="tm-btn tm-outline" id="tm-seed">Sediakan 9 jenis tugasan + 9 bahagian laporan</button>
-        <p class="tm-muted">Boleh dijalankan semula tanpa menambah nama sama. Waktu tugasan tetap perlu ditetapkan oleh sekolah.</p>
+        
       </section>
       <div class="tm-two-cols">
         <section class="tm-card"><div class="tm-section-title"><h2>Jenis Tugasan</h2></div>
@@ -182,8 +182,8 @@
     </section>
     <section id="tm-panel-smart" data-tm-panel="smart" hidden>
       <section class="tm-card"><div class="tm-section-title"><div><h2>Smart Auto Agihan — Simulasi & Rasmi</h2>
-        <p>Jana jadual mengikut pemberatan, semak konflik PdPc/Keberadaan/e-Relief dan uji pertukaran guru tanpa mengubah rekod lampau.</p></div><span class="tm-tag tm-warning" id="tm4-mode-badge">MOD SIMULASI</span></div>
-        <div class="tm-notice tm-info">Simulasi tidak mengubah jadual dan laporan rasmi.</div>
+        </div><span class="tm-tag tm-warning" id="tm4-mode-badge">MOD SIMULASI</span></div>
+        
         <div class="tm-fields">
           <label>Mod Jadual<select id="tm4-mode"><option value="SIMULASI" selected>SIMULASI — Selamat untuk Ujian</option><option value="RASMI">RASMI — Mengikut Takwim Sebenar</option></select></label>
           <label>Minggu Bertugas<select id="tm4-week"><option value="">Pilih minggu…</option></select></label>
@@ -241,6 +241,6 @@
       </section>
     </section>
   </main>
-  <footer class="tm-footer">SeMAKMUR I-System · Smart Tugasan Mingguan V5.0 (Operasi Rasmi) · Sumber rasmi Google Sheets / Fi-Sync</footer>
+
 </div>
 </body></html>
