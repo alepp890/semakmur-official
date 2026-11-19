@@ -234,6 +234,34 @@ function tmPrint(){
 // V4: simulation & safety-gated duty scheduler. Existing daily/weekly reports unchanged.
 const tm4GetMode=()=>tm$('tm4-mode').value;
 const tm4Input=()=>({mode:tm4GetMode(),weekId:tm$('tm4-week').value,asOf:tm$('tm4-asof').value,year:tmState.year});
+// V4.8: load group members independently of generated schedules.
+function tm48RenderMemberPicker(members,week){
+  const picker=tm$('tm4-teacher'),old=picker.value;
+  picker.innerHTML='<option value="">'+(members.length?'Pilih guru bertugas…':'Tiada ahli kumpulan untuk minggu ini')+'</option>'+
+    members.map(p=>`<option value="${tmEsc(p.id)}">${tmEsc(p.name)}</option>`).join('');
+  if(members.some(p=>p.id===old))picker.value=old;
+  if(week){
+    for(const id of ['tm4-absence-from','tm4-absence-to','tm4-cal-date']){
+      const el=tm$(id);if(!el.value||el.value<week.from||el.value>week.to)el.value=week.from;
+      el.min=week.from;el.max=week.to;
+    }
+  }
+}
+async function tm48LoadMembers(){
+  const args=tm4Input(),picker=tm$('tm4-teacher');
+  // Do not show members of a previously selected week.
+  tmState.tm48Members=null;
+  picker.innerHTML='<option value="">'+(args.weekId?'Memuatkan nama guru…':'Pilih minggu dahulu…')+'</option>';
+  if(!args.weekId)return;
+  const r=await tmRun(()=>tmAPI('tm4Members',args));
+  if(!r){picker.innerHTML='<option value="">Gagal muat nama guru — cuba Muat Jadual</option>';return;}
+  // Ignore a stale response when the user changed session/mode/week mid-request.
+  if(args.mode!==tm4GetMode()||args.weekId!==tm$('tm4-week').value||args.year!==tmState.year)return;
+  const members=Array.isArray(r.members)?r.members:[];
+  tmState.tm48Members={mode:args.mode,weekId:args.weekId,members};
+  tm48RenderMemberPicker(members,r);
+  if(!members.length)tm4Message('Tiada ahli kumpulan aktif bagi minggu ini. Semak Peranan_Staf / kumpulan bertugas.',true);
+}
 function tm4Message(message,bad=false){
   const box=tm$('tm4-status');box.textContent=message||'';box.classList.toggle('tm4-error',bad);
 }
@@ -256,6 +284,8 @@ async function tm4LoadWeeks(loadSchedule=true){
   tm$('tm47-sim-section').hidden=mode!=='SIMULASI';
   tm$('tm4-mode-badge').textContent=mode==='SIMULASI'?'UJIAN TERASING':'DATA RASMI';
   tm4Message(mode==='SIMULASI'?'Semua rekod ujian berasingan daripada Takwim_Minggu rasmi.':'Mod rasmi menggunakan masa pelayan semasa. Pastikan takwim, hari sekolah dan penyegerakan keberadaan disahkan.');
+  // Must run even when loadSchedule=false during the initial bootstrap.
+  await tm48LoadMembers();
   if(loadSchedule&&sel.value)await tm4LoadSchedule();
 }
 function tm43TimeLabel(x){
@@ -312,16 +342,9 @@ function tm43DayCards(rows,week){
 function tm4Render(schedule){
   tmState.tm4=schedule;
   const rows=schedule?.assignments||[],members=schedule?.week?.members||[];
-  const oldTeacher=tm$('tm4-teacher').value;
-  tm$('tm4-teacher').innerHTML='<option value="">Pilih guru bertugas…</option>'+members.map(t=>`<option value="${tmEsc(t.id)}">${tmEsc(t.name)}</option>`).join('');
-  if(members.some(m=>m.id===oldTeacher))tm$('tm4-teacher').value=oldTeacher;
   const w=schedule?.week;
-  if(w){
-    for(const id of ['tm4-absence-from','tm4-absence-to','tm4-cal-date']){
-      const el=tm$(id);if(!el.value||el.value<w.from||el.value>w.to)el.value=w.from;
-      el.min=w.from;el.max=w.to;
-    }
-  }
+  tm48RenderMemberPicker(members,w);
+  tmState.tm48Members={mode:tm4GetMode(),weekId:tm$('tm4-week').value,members};
   tm$('tm4-total').textContent=rows.filter(x=>!['DIGANTI','DIBATALKAN_CUTI','DIBATALKAN','PERLU_TINDAKAN'].includes(x.status)).length+' tugasan aktif';
   tm$('tm4-rows').innerHTML=tm43DayCards(rows,w);
   const fair=schedule?.fairness||{},names=Object.fromEntries(members.map(m=>[m.id,m.name]));
@@ -401,7 +424,9 @@ async function tm47LoadAbsences(){
   const root=tm$('tm47-absence-list');if(!root||tm4GetMode()!=='SIMULASI')return;
   const args=tm4Input();if(!args.weekId){root.innerHTML='<p class="tm-muted">Pilih minggu simulasi dahulu.</p>';return;}
   try{
-    const result=await tmAPI('tm47AbsenceList',args),people=Object.fromEntries((tmState.tm4?.week?.members||[]).map(x=>[x.id,x.name]));
+    const visible=(tmState.tm48Members?.weekId===args.weekId&&tmState.tm48Members?.mode===args.mode)
+      ?tmState.tm48Members.members:(tmState.tm4?.week?.members||[]);
+    const result=await tmAPI('tm47AbsenceList',args),people=Object.fromEntries(visible.map(x=>[x.id,x.name]));
     const rows=result?.entries||[];
     root.innerHTML='<h3 class="tm47-subhead">Senarai Keberadaan Minggu Ini ('+rows.filter(x=>x.status==='AKTIF').length+' aktif)</h3>'+
       (rows.length?rows.map(x=>`<div class="tm47-absence-item ${x.status!=='AKTIF'?'is-cancelled':''}">
@@ -458,7 +483,7 @@ function tmListeners(){
   tm$('tm-sim-preview').addEventListener('click',tmPreviewSimulation);
   tm$('tm-seed').addEventListener('click',tmSeed);
   tm$('tm4-mode').addEventListener('change',()=>tm4LoadWeeks(true));
-  tm$('tm4-week').addEventListener('change',()=>{tm4LoadSchedule();});
+  tm$('tm4-week').addEventListener('change',async()=>{await tm48LoadMembers();await tm4LoadSchedule();});
   tm$('tm4-load').addEventListener('click',tm4LoadSchedule);
   tm$('tm4-generate').addEventListener('click',tm4Generate);
   tm$('tm4-repair').addEventListener('click',tm4Repair);
