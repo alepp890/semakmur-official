@@ -7,6 +7,28 @@ const tmFmt=d=>{if(!/^\d{4}-\d\d-\d\d$/.test(String(d||'')))return String(d||'�
 const tmToday=()=>{const v=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const parts=Object.fromEntries(v.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return `${parts.year}-${parts.month}-${parts.day}`;};
 const tmState={overviewMeta:{},auth:null,user:null,data:null,detail:null,calendar:null,year:'2026',weekId:'',tab:'overview',busy:false,audit:null};
 const tm51={db:null,fns:null,overviewStop:null,weekStops:[],schedule:null,audit:null,overview:null,year:'',weekKey:'',tab:'schedule',initStarted:false};
+/* V5.1B: satu paparan dimuat sekali sahaja; tiada cache kekal untuk laporan peribadi. */
+const tm51b={detailCache:new Map(),detailPending:new Map(),maxAge:120000,authUid:null};
+function tm51bReset(){tm51b.detailCache.clear();tm51b.detailPending.clear();}
+async function tm51bFallbackDetail(){
+  const year=tmState.year,week=tmState.weekId,key=year+'|'+week;
+  if(!week||tmState.tab!=='tasks'||tm51.schedule?.published)return;
+  const record=tm51b.detailCache.get(key);
+  if(record&&Date.now()-record.at<15*60*1000){
+    if(record.data&&tmState.year===year&&tmState.weekId===week){
+      tmState.detail=record.data;tmRenderAssignments();}
+    return;
+  }
+  if(tm51b.detailPending.has(key))return tm51b.detailPending.get(key);
+  const job=tmAPI('detail',{year,weekId:week}).then(data=>{
+    tm51b.detailCache.set(key,{data,at:Date.now()});
+    if(tmState.year===year&&tmState.weekId===week&&!tm51.schedule?.published){
+      tmState.detail=data;tmRenderAssignments();}
+  }).catch(e=>console.warn('[TM51B fallback]',e?.message||String(e)))
+    .finally(()=>tm51b.detailPending.delete(key));
+  tm51b.detailPending.set(key,job);return job;
+}
+
 const tmManager=()=>!!tmState.data?.actor?.manager;
 const tmMe=()=>tmState.data?.actor?.id||'';
 const tmSelected=()=>tmState.data?.weeks?.find(w=>w.ID_Minggu===tmState.weekId);
@@ -65,7 +87,9 @@ async function tmBootstrap(){
   tmState.overviewMeta={};tmRenderOverview();tmRenderSettings();tmState.tm4WeeksLoaded=false;
   if(result.actor?.manager&&tmState.tab==='smart'){await tm4LoadWeeks(false);tmState.tm4WeeksLoaded=true;}
   tmSignal('semakmur-tm-ready');
-  if(tmState.weekId)await tmLoadDetail(false);else{tmState.detail=null;tmRenderDetail();}
+  // V5.1B: jadual diterbitkan terus melalui Firestore. Jangan memanggil
+  // 'detail' + 'calendarView' Apps Script secara automatik setiap bootstrap.
+  tmState.detail=null;tmState.calendar=null;tmRenderDetail();
   tm51PopulateWeekSelector();
   if(!tm51.initStarted)tm51InitFirestore();else{tm51ListenOverview();tm51ListenWeek();}
   document.dispatchEvent(new Event('semakmur-tm-auth-ready'));
@@ -262,7 +286,8 @@ function tmPrintDocumentHTML(title,inner){
 }
 function tmPrintScheduleOfficial(){
   const w=tmSelected(),d=tmState.detail,table=tm$('tm-assignments');
-  if(!w||!d?.assignments?.length||!table)return tmNotice('Jadual rasmi belum tersedia untuk dicetak.',true);
+  const valid=tm51.schedule?.published===true&&tm51.schedule?.weekId===tmState.weekId?tm51.schedule.assignments:d?.assignments;
+  if(!w||!valid?.length||!table)return tmNotice('Jadual rasmi belum tersedia untuk dicetak.',true);
   const clone=table.cloneNode(true);
   clone.querySelector('.tm-duty-filters')?.remove();clone.querySelectorAll('[data-duty-card]').forEach(x=>x.hidden=false);
   tmPrintDocumentHTML('Jadual Guru Bertugas',`<div class="tm508-print-meta">Minggu ${tmEsc(w.Minggu)} · ${tmEsc(w.Nama_Kumpulan)} · ${tmFmt(w.Tempoh_Mula)} – ${tmFmt(w.Tempoh_Tamat)}</div>${clone.outerHTML}`);
@@ -318,7 +343,8 @@ function tmEditTime(id){const x=tmState.data?.settings?.times?.find(x=>x.id===id
   if(mode!=='TANPA_MASA')tm$('tm-time-from').value=x.start||'';
   if(mode==='JULAT')tm$('tm-time-to').value=x.end||'';
   tm$('tm-time-task').focus();}
-async function tmChoose(id){tmState.weekId=id;tm51ListenWeek();await tmLoadDetail(false);if(window.SeMAKMUR_TM5_UI)await window.SeMAKMUR_TM5_UI.openFromOverview(id);else tmTab('report-studio');}
+async function tmChoose(id){tmState.weekId=id;tm51ListenWeek();
+  if(window.SeMAKMUR_TM5_UI)await window.SeMAKMUR_TM5_UI.openFromOverview(id);else tmTab('report-studio');}
 async function tmSaveDaily(e){e.preventDefault();if(!tmState.detail?.plan)return tmNotice('Draf minggu belum disediakan.',true);
   const date=tm$('tm-day-date').value,section=tm$('tm-day-section').value,text=tm$('tm-day-text').value;
   const result=await tmRun(()=>tmAPI('saveDaily',{year:tmState.year,weekId:tmState.weekId,date,section,text}));
@@ -435,8 +461,9 @@ async function tm4LoadWeeks(loadSchedule=true){
   tm$('tm47-sim-section').hidden=mode!=='SIMULASI';
   tm$('tm4-mode-badge').textContent=mode==='SIMULASI'?'UJIAN TERASING':'DATA RASMI';
   tm4Message(mode==='SIMULASI'?'Simulasi aktif. Rekod rasmi tidak berubah.':'Mod rasmi menggunakan masa pelayan semasa. Pastikan takwim, hari sekolah dan penyegerakan keberadaan disahkan.');
-  // Must run even when loadSchedule=false during the initial bootstrap.
-  await tm48LoadMembers();
+  // Keahlian simulasi sahaja memerlukan semakan backend, jangan lakukan
+  // bacaan berat setiap kali tab Smart Auto Agihan dibuka dalam mod RASMI.
+  if(mode==='SIMULASI')await tm48LoadMembers();
   if(loadSchedule&&sel.value)await tm4LoadSchedule();
 }
 function tm43TimeLabel(x){
@@ -632,7 +659,8 @@ async function tm51InitFirestore(){
     const app=appmod.getApps().find(a=>a.name==='semakmur-fi-dashboard')||appmod.initializeApp(cfg,'semakmur-fi-dashboard');
     tm51.db=fire.getFirestore(app);tm51.fns=fire;
     tm51ListenOverview();tm51ListenWeek();
-  }catch(err){tm51SetStatus('Bacaan Fi-Sync');console.warn('[TM51 Firestore disabled]',err);tmOverviewMeta();}
+  }catch(err){tm51SetStatus('Bacaan Fi-Sync');console.warn('[TM51 Firestore disabled]',err);
+    tmOverviewMeta();if(tmState.weekId)tmLoadDetail(false).catch(e=>console.warn('[TM51 fallback detail]',e));}
 }
 function tm51PopulateWeekSelector(){
   const el=tm$('tm51-week-select');if(!el)return;
@@ -658,6 +686,7 @@ function tm51ApplyOverview(data){
   tmState.data.weeks=(tmState.data.weeks||[]).map(w=>({...w,...(mapped.get(String(w.ID_Minggu))||{})}));
   tmState.overviewMeta=Object.fromEntries(Object.entries(data.metadata||{}).filter(([id])=>allowed.has(id)));
   tmRenderOverview();tm51PopulateWeekSelector();tm51SetStatus('Firestore · Langsung');
+  window.SeMAKMUR_TM5_UI?.notifyOverview?.(tmState.overviewMeta);
 }
 function tm51ListenOverview(){
   if(!tm51.db||!tmState.user||!tmState.data)return;
@@ -683,6 +712,7 @@ function tm51ListenWeek(){
     if(tmState.year!==year||tmState.weekId!==weekId)return;
     tm51.schedule=snap.exists()&&snap.data().published===true?snap.data():null;
     tmRenderAssignments();tm51RenderAudit();
+    if(!tm51.schedule&&tmState.tab==='tasks')tm51bFallbackDetail();
   },err=>{console.warn('[TM51 schedule listener]',err?.code||err);tm51SetStatus('Fi-Sync · Cadangan');}));
   tm51.weekStops.push(tm51.fns.onSnapshot(tm51.fns.doc(tm51.db,'semakmur_fi_tm51_audit',key),snap=>{
     if(tmState.year!==year||tmState.weekId!==weekId)return;
@@ -721,8 +751,9 @@ function tmListeners(){
   document.addEventListener('click',async e=>{
     const subtab=e.target.closest('[data-tm51-subtab]');if(subtab){tm51SelectTab(subtab.dataset.tm51Subtab);return;}
     const tab=e.target.closest('[data-tm-tab]');if(tab){tmTab(tab.dataset.tmTab);
-      if(tab.dataset.tmTab==='report-studio'&&window.SeMAKMUR_TM5_UI)await window.SeMAKMUR_TM5_UI.openPrimary?.();
+      if(tab.dataset.tmTab==='report-studio'&&window.SeMAKMUR_TM5_UI)await window.SeMAKMUR_TM5_UI.resume?.();
       if(tab.dataset.tmTab==='smart'&&tmManager()&&!tmState.tm4WeeksLoaded){await tm4LoadWeeks(false);tmState.tm4WeeksLoaded=true;}
+      if(tab.dataset.tmTab==='tasks'&&!tm51.schedule?.published)tm51bFallbackDetail();
       return;}
     const choose=e.target.closest('[data-tm-choose]');if(choose){await tmChoose(choose.dataset.tmChoose);return;}
     const draft=e.target.closest('[data-tm-draft]');if(draft){await tmDraft(draft.dataset.tmDraft);return;}
@@ -731,8 +762,9 @@ function tmListeners(){
     const cancel=e.target.closest('[data-tm47-cancel]');if(cancel){await tm47CancelAbsence(cancel.dataset.tm47Cancel);return;}
   });
   tm$('tm51-week-select').addEventListener('change',e=>tm51ChooseScheduleWeek(e.target.value));
-  tm$('tm-year').addEventListener('change',async()=>{tm51StopListening();tmState.year=tm$('tm-year').value;tmState.weekId='';tm49.ready=false;await tmBootstrap();if(tmState.tab==='report-studio')await window.SeMAKMUR_TM5_UI?.reload?.();});
-  tm$('tm-refresh').addEventListener('click',tmBootstrap);
+  tm$('tm-year').addEventListener('change',async()=>{tm51StopListening();tmState.year=tm$('tm-year').value;tmState.weekId='';tm49.ready=false;tm51bReset();window.SeMAKMUR_TM5_UI?.clearCache?.();await tmBootstrap();
+    if(tmState.tab==='report-studio')await window.SeMAKMUR_TM5_UI?.reload?.();});
+  tm$('tm-refresh').addEventListener('click',()=>{tm51bReset();window.SeMAKMUR_TM5_UI?.clearCache?.();tmBootstrap();});
   tm$('tm-day-date').addEventListener('change',tmRenderSections);
   tm$('tm-day-section').addEventListener('change',tmRestoreOwnEntry);
   tm$('tm-daily-form').addEventListener('submit',tmSaveDaily);
@@ -772,7 +804,14 @@ async function tmInit(){tmListeners();tmTab('overview');tmNotice('Menyemak akaun
     const fb=appMod.getApps().find(x=>x.name==='semakmur-fi-dashboard')||appMod.initializeApp(cfg,'semakmur-fi-dashboard');
     tmState.auth=authMod.getAuth(fb);
     authMod.onAuthStateChanged(tmState.auth,async user=>{
-      tmState.user=user;
+      if(tm51b.authUid!==String(user?.uid||'')){
+        tm51bReset();tm51StopListening();window.SeMAKMUR_TM5_UI?.resetAccount?.();
+        tmState.detail=null;tmState.data=null;tmTab('overview');
+        for(const id of ['tm-tab-settings','tm-preflight','tm-sim-area','tm4-tab']){
+          const el=tm$(id);if(el)el.hidden=true;
+        }
+      }
+      tm51b.authUid=String(user?.uid||'');tmState.user=user;
       try{
         if(!user){tmNotice('Akaun belum log masuk. Sila kembali ke Fi-LoginSession melalui Dashboard Guru.',true);tmSignal('semakmur-tm-error');return;}
         await tmBootstrap();
@@ -1020,7 +1059,16 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
   [...panel.children].forEach(el=>el.hidden=true);
   const root=document.createElement('div');root.id='tm5-root';panel.append(root);
   const S={weeks:[],week:null,days:[],actor:null,teachers:[],corrections:[],current:null,
-    chosen:'',screen:'fill',loaded:false,request:0,previewOrigin:'directory'};
+    chosen:'',screen:'fill',loaded:false,request:0,previewOrigin:'directory',directoryAt:0,
+    directoryPending:null,reportCache:new Map(),reportPending:new Map(),reportAt:0,activeYear:'',dirty:false};
+  const TM51B_TTL=120000;
+  const reporterKey=(w,year)=>String(tmState.user?.uid||'')+'|'+String(year)+'|'+String(w);
+  function clearReportCache(){S.directoryAt=0;S.loaded=false;S.directoryPending=null;
+    S.reportCache.clear();S.reportPending.clear();S.activeYear='';}
+  function resetAccount(){clearReportCache();S.week=null;S.days=[];S.actor=null;
+    S.teachers=[];S.corrections=[];S.chosen='';S.screen='fill';S.dirty=false;
+    chrome();}
+  const reportWrites=new Set(['tm5SaveDay','tm5Reopen','tm5SaveWeek','tm5GpkReview','tm5GBReview']);
   const esc=v=>tmEsc(v);
   const showDate=v=>tmFmt(String(v||''));
   const names=()=>Object.fromEntries(S.teachers.map(t=>[String(t.id),String(t.name)]));
@@ -1031,6 +1079,11 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
   const msg=(s='',bad=false)=>{const el=root.querySelector('#tm5-message');if(el){el.textContent=s;el.dataset.error=bad?'1':'0';}};
   async function call(p){tmProcess('laporan',true,'Memuatkan Laporan Mingguan','Menyemak rekod rasmi…');try{
     const raw=await api(p);if(raw?.ok===false||raw?.status==='RALAT')throw Error(raw?.message||raw?.error||'Tindakan tidak berjaya');
+    if(reportWrites.has(String(p?.op||''))){
+      // Simpanan disahkan oleh Fi-Sync; jangan kekalkan cache laporan lama.
+      S.directoryAt=0;S.dirty=false;
+      S.reportCache.delete(reporterKey(p.weekId,p.year));
+    }
     return raw?.data&&typeof raw.data==='object'&&raw.weeks===undefined&&raw.days===undefined?raw.data:raw;
   }catch(e){msg(e?.message||String(e),true);throw e;}finally{tmProcess('laporan',false);}}
   const guard=fn=>async(...args)=>{try{return await fn(...args);}catch(e){console.error('[TM5 V508]',e);}};
@@ -1046,9 +1099,15 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
     <button type="button" id="tm5-reload" class="tm5-action tm5-refresh">Muat Semula</button>
   </div><div id="tm5-message" role="status" aria-live="polite"></div></div><div id="tm5-content"></div>`;
     root.querySelector('#tm5-fill-tab').onclick=guard(openPrimary);
-    root.querySelector('#tm5-directory-tab').onclick=guard(directory);
+    root.querySelector('#tm5-directory-tab').onclick=guard(()=>{
+      if(S.dirty&&!confirm('Perubahan borang belum disimpan. Buka direktori dan buang perubahan?'))return;
+      S.dirty=false;return directory(false);
+    });
+    root.addEventListener('input',event=>{
+      if(event.target.closest('.tm5-daily-form,.tm5-leader-panel'))S.dirty=true;
+    });
     root.querySelector('#tm5-reload').onclick=guard(async()=>{
-      const selection=S.week?.id,old=S.screen;await fetchWeeks();
+      const selection=S.week?.id,old=S.screen;clearReportCache();await fetchWeeks(true);
       if(old==='directory')await directory(false);
       else if(selection)await loadWeek(S.weeks.find(w=>weekId(w)===selection)||{weekId:selection,year:tmState.year,from:S.week?.from},old==='preview');
       else await openPrimary();
@@ -1056,10 +1115,24 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
   }
   const slot=()=>root.querySelector('#tm5-content');
   const setTab=name=>{S.screen=name;root.querySelector('#tm5-fill-tab')?.classList.toggle('current',name==='fill');root.querySelector('#tm5-directory-tab')?.classList.toggle('current',name==='directory'||name==='preview');};
-  async function fetchWeeks(){const res=await call({op:'tm5Directory',years:[tmState.year]});S.weeks=res.weeks||[];S.loaded=true;}
+  async function fetchWeeks(force=false){
+    const year=String(tmState.year);
+    if(!force&&S.loaded&&S.activeYear===year&&Date.now()-S.directoryAt<TM51B_TTL)return;
+    if(!force&&S.directoryPending)return S.directoryPending;
+    const job=(async()=>{const res=await call({op:'tm5Directory',years:[year]});
+      if(String(tmState.year)!==year)return;
+      S.weeks=res.weeks||[];S.loaded=true;S.activeYear=year;S.directoryAt=Date.now();})();
+    S.directoryPending=job;
+    try{await job;}finally{if(S.directoryPending===job)S.directoryPending=null;}
+  }
   const planned=w=>!!w?.ready;
   const containsNow=w=>String(w.from||'')<=today()&&today()<=String(w.to||'');
-  async function openPrimary(){setTab('fill');if(!S.loaded)await fetchWeeks();
+  async function openPrimary(){
+    // Jika borang sudah ada, jangan panggil backend sekali lagi bila menukar tab.
+    if(S.screen==='fill'&&S.week&&String(S.week.year)===String(tmState.year)&&root.querySelector('.tm5-editor-layout')){
+      setTab('fill');return;
+    }
+    setTab('fill');await fetchWeeks();
     let w=S.weeks.find(w=>weekId(w)===S.chosen&&planned(w));
     if(!w)w=S.weeks.find(w=>containsNow(w)&&planned(w))||S.weeks.find(planned);
     if(!w){slot().innerHTML='<div class="tm5-card tm5-empty">Belum ada jadual rasmi untuk diisi.</div>';return;}
@@ -1070,7 +1143,7 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
     if(!w||!planned(w)){setTab('fill');slot().innerHTML='<div class="tm5-card tm5-empty">Jadual rasmi bagi minggu ini belum tersedia.</div>';return;}
     await loadWeek(w,false);
   }
-  async function directory(reload=true){setTab('directory');if(reload||!S.loaded)await fetchWeeks();
+  async function directory(reload=false){setTab('directory');await fetchWeeks(reload);
     const rows=S.weeks.map((w,i)=>{const allowed=w.status==='DISAHKAN'&&planned(w);
       return `<div class="tm5-dirrow ${allowed?'tm5-dir-open':'tm5-dir-disabled'}" ${allowed?`role="button" tabindex="0" data-preview-week="${i}"`:'aria-disabled="true"'}>
         <div class="tm5-dir-title"><strong>Minggu ${esc(w.label)} · Kumpulan ${esc(w.group)}</strong><span>${showDate(w.from)} – ${showDate(w.to)}</span></div>
@@ -1082,7 +1155,18 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
       el.addEventListener('click',open);el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});});
   }
   async function loadWeek(w,preview=false,selectedDate=''){
-    const seq=++S.request;const year=String(w.year||tmState.year);const data=await call({op:'tm5Load',year,weekId:weekId(w),mode:'RASMI'});if(seq!==S.request)return;
+    const seq=++S.request,year=String(w.year||tmState.year),key=reporterKey(weekId(w),year);
+    let data,record=S.reportCache.get(key);
+    if(record&&Date.now()-record.at<TM51B_TTL){data=record.data;}
+    else{
+      let promise=S.reportPending.get(key);
+      if(!promise){promise=call({op:'tm5Load',year,weekId:weekId(w),mode:'RASMI'});
+        S.reportPending.set(key,promise);}
+      try{data=await promise;if(data&&String(tmState.year)===year)
+        S.reportCache.set(key,{data,at:Date.now()});}
+      finally{if(S.reportPending.get(key)===promise)S.reportPending.delete(key);}
+    }
+    if(seq!==S.request||String(tmState.year)!==year)return;
     S.week={...data.week,year};S.actor=data.actor||{};S.days=data.days||[];S.teachers=data.teachers||[];
     S.corrections=data.corrections||[];S.chosen=S.week.id;
     if(preview){S.previewOrigin='directory';setTab('preview');renderDocument();return;}
@@ -1108,7 +1192,10 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
       </aside><div class="tm5-report-right"><div id="tm5-detail"></div>${right}
       ${S.actor?.isGPK&&w.status==='MENUNGGU_GPK'?reviewCard('GPK'):''}
       ${S.actor?.isGB&&w.status==='MENUNGGU_GB'?reviewCard('GB'):''}</div></div>`;
-    slot().querySelectorAll('[data-day-index]').forEach(el=>el.onclick=()=>{S.current=S.days[Number(el.dataset.dayIndex)];renderEditor();});
+    slot().querySelectorAll('[data-day-index]').forEach(el=>el.onclick=()=>{
+      if(S.dirty&&!confirm('Perubahan hari ini belum disimpan. Tukar hari dan buang perubahan?'))return;
+      S.dirty=false;S.current=S.days[Number(el.dataset.dayIndex)];renderEditor();
+    });
     if(S.current&&S.current.available)renderDay();else slot().querySelector('#tm5-detail').innerHTML='<section class="tm5-card tm5-empty">Pilih hari laporan.</section>';
     if(canSend){slot().querySelector('#tm5-draft').onclick=guard(()=>saveWeek(false));slot().querySelector('#tm5-submit').onclick=guard(()=>saveWeek(true));}
     const r=slot().querySelector('#tm5-review-submit');if(r)r.onclick=guard(review);
@@ -1225,6 +1312,29 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
   // P1: jangan mengambil direktori/laporan ketika tab laporan tidak dibuka.
   // `openPrimary` atau `openFromOverview` akan memuat sekali ketika pengguna memerlukan data.
   function init(){chrome();}
-  window.SeMAKMUR_TM5_UI={openFromOverview:guard(openFromOverview),openPrimary:guard(openPrimary),reload:guard(async()=>{await fetchWeeks();await openPrimary();})};
+  function resume(){
+    // Satu sesi: kembali ke tab yang sedang terbuka tanpa sync semula.
+    if(S.screen==='directory'&&root.querySelector('.tm5-directory'))return Promise.resolve();
+    if(S.screen==='preview'&&root.querySelector('.tm5-document'))return Promise.resolve();
+    if(S.screen==='fill'&&root.querySelector('.tm5-editor-layout'))return Promise.resolve();
+    return openPrimary();
+  }
+  function notifyOverview(meta){
+    if(!S.loaded||!meta||S.activeYear!==String(tmState.year))return;
+    let changed=false;
+    S.weeks.forEach(w=>{
+      const next=meta[weekId(w)]?.reportStatus;
+      if(next&&next!==w.status){w.status=next;changed=true;
+        S.reportCache.delete(reporterKey(weekId(w),w.year||tmState.year));}
+    });
+    if(changed&&S.screen==='directory')directory(false);
+    else if(changed&&S.screen==='fill')msg('Status laporan berubah. Tekan Muat Semula untuk mendapatkan perubahan terkini.');
+  }
+  window.SeMAKMUR_TM5_UI={openFromOverview:guard(openFromOverview),openPrimary:guard(openPrimary),
+    resume:guard(resume),notifyOverview,clearCache:clearReportCache,resetAccount,
+    reload:guard(async()=>{clearReportCache();await fetchWeeks(true);
+      if(S.screen==='directory')return directory(false);
+      if(S.week)return loadWeek({weekId:S.week.id,year:tmState.year,from:S.week.from},S.screen==='preview',S.current?.date);
+      return openPrimary();})};
   init();
 })();
