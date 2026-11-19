@@ -227,3 +227,73 @@ body{color:var(--tm-ink);background:var(--tm-paper);font-size:13px;line-height:1
 @media(max-width:767px){
   .tm-process-card{border-radius:20px;padding:25px 20px;}
 }
+
+
+/* ===========================================================
+   V5.0.6 - JADUAL RASMI (VISUAL ONLY)
+   Kad harian, nama guru sebenar, masa HH:mm dan status dinamik.
+   Enjin/API/roles dan borang laporan tidak disentuh.
+   =========================================================== */
+.tm-duty-schedule{overflow:hidden}
+.tm-duty-schedule .tm-section-title{align-items:center}
+.tm-duty-schedule .tm-selection{margin:8px 0 17px;gap:10px}
+.tm-duty-schedule .tm-selection>div{background:#f4f7fc;border:1px solid #e0e8f4;padding:14px 17px;border-radius:13px}
+.tm-duty-schedule .tm-selection strong{color:#203d74;font-size:13px;line-height:1.45}
+.tm-duty-schedule .tm-selection small{color:#71809a;font-size:12px;margin-top:5px}
+.tm-duty-badge-live{background:#e1f5e9!important;color:#126442!important}
+.tm-duty-board{display:grid;gap:16px;min-width:0}
+.tm-duty-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+.tm-duty-stats>div{display:flex;flex-direction:column;justify-content:center;gap:4px;min-height:87px;padding:15px 18px;border-radius:13px;background:#f4f7ff;border:1px solid #e0e9f8;min-width:0}
+.tm-duty-stats span{color:#667895;font-size:11px;font-weight:700}
+.tm-duty-stats strong{color:#183f85;font-size:23px;font-weight:800;line-height:1.25;font-variant-numeric:tabular-nums}
+.tm-duty-stats strong.tm-duty-status-text{font-size:15px}
+.tm-duty-filters{display:flex;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:1px solid #e5ecf6;padding:0 0 13px}
+.tm-duty-filters button{width:auto;min-height:37px;padding:8px 12px;border:1px solid #d9e4f3;background:#fff;border-radius:9px;font-size:12px;font-weight:700;color:#4a6082;display:inline-flex;align-items:center;gap:8px;cursor:pointer}
+.tm-duty-filters button span{font-size:10px;font-weight:800;padding:2px 6px;background:#eef3fa;color:#506d9c;border-radius:6px}
+.tm-duty-filters button:hover{background:#f1f6ff}
+.tm-duty-filters button.is-active{background:#1f65b9;border-color:#1f65b9;color:white;box-shadow:0 3px 10px rgba(30,88,165,.14)}
+.tm-duty-filters button.is-active span{background:#ffffff30;color:#fff}
+.tm-duty-days{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;align-items:start;min-width:0}
+.tm-duty-daycard{min-width:0;background:#fff;border:1px solid #dfe7f3;border-radius:14px;overflow:hidden;box-shadow:0 3px 10px rgba(29,67,110,.035)}
+.tm-duty-daycard[hidden]{display:none!important}
+.tm-duty-dayhead{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:9px;background:#edf3fc;border-bottom:1px solid #dfe8f6}
+.tm-duty-dayhead>div{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;min-width:0}
+.tm-duty-dayhead strong{font-size:14px;color:#1e427b;font-weight:800}
+.tm-duty-dayhead>div>span{font-size:11px;color:#637998;font-weight:600}
+.tm-duty-count{font-size:10px;font-weight:800;color:#315895;border:1px solid #d3e2f6;background:#fff;border-radius:50px;padding:5px 9px;white-space:nowrap}
+.tm-duty-columns,.tm-duty-taskrow{display:grid;grid-template-columns:minmax(0,.96fr) minmax(0,1.15fr);align-items:start;gap:14px}
+.tm-duty-columns{padding:8px 15px;background:#f8faff;color:#7c8eaa;text-transform:uppercase;letter-spacing:.04em;font-size:10px;font-weight:800}
+.tm-duty-taskrow{padding:12px 15px;border-top:1px solid #eff2f7}
+.tm-duty-taskrow:nth-child(2n){background:#fbfcff}
+.tm-duty-taskname{display:grid;gap:4px;min-width:0}
+.tm-duty-taskname strong{font-size:12px;font-weight:750;color:#263c63;line-height:1.45;overflow-wrap:anywhere}
+.tm-duty-clock{font-size:11px;color:#6881a2;font-variant-numeric:tabular-nums}
+.tm-duty-teachers{display:flex;flex-wrap:wrap;gap:5px;min-width:0}
+.tm-duty-person{display:inline-block;max-width:100%;font-size:11px;font-weight:700;color:#275b95;background:#edf4ff;border:1px solid #dae8f8;border-radius:7px;padding:5px 7px;line-height:1.5;overflow-wrap:anywhere}
+.tm-duty-no-tasks{padding:18px 16px;color:#697a93;font-size:12px;background:#fdfefe}
+.tm-duty-empty{padding:24px;border:1px dashed #c9d6e8;background:#f8faff;border-radius:13px;text-align:center}
+.tm-duty-empty strong{color:#294978}.tm-duty-empty p{color:#647792;font-size:12px;margin:6px 0 0}
+@media(min-width:1420px){.tm-duty-days{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:768px) and (max-width:1199px){.tm-duty-days{grid-template-columns:1fr}.tm-duty-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:767px){
+ .tm-duty-schedule .tm-selection{grid-template-columns:1fr}
+ .tm-duty-schedule .tm-section-title{align-items:flex-start}
+ .tm-duty-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .tm-duty-stats>div{min-height:70px;padding:11px 12px}
+ .tm-duty-stats strong{font-size:19px}
+ .tm-duty-stats strong.tm-duty-status-text{font-size:12px}
+ .tm-duty-filters{gap:6px}
+ .tm-duty-filters button{font-size:11px;min-height:34px;padding:7px 9px}
+ .tm-duty-days{grid-template-columns:1fr;gap:10px}
+ .tm-duty-dayhead{padding:11px 12px}
+ .tm-duty-columns{padding:8px 11px;gap:9px;grid-template-columns:minmax(0,.95fr) minmax(0,1.1fr)}
+ .tm-duty-taskrow{padding:10px 11px;gap:9px;grid-template-columns:minmax(0,.95fr) minmax(0,1.1fr)}
+ .tm-duty-person{font-size:10px}
+}
+@media print{
+ .tm-duty-filters{display:none!important}
+ .tm-duty-days{grid-template-columns:1fr}
+ .tm-duty-daycard[hidden]{display:block!important}
+ .tm-duty-stats{grid-template-columns:repeat(4,1fr)}
+ .tm-duty-daycard{break-inside:avoid}
+}

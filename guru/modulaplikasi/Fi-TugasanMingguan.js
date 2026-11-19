@@ -71,7 +71,7 @@ function tmRenderOverview(){
   tm$('tm-summary').innerHTML=summary.map(([lab,num])=>`<div class="tm-metric"><strong>${num}</strong><span>${tmEsc(lab)}</span></div>`).join('');
   tm$('tm-weeks').innerHTML=weeks.length?weeks.map(w=>{
     const name=w.Nama_Ketua_Cadangan||'Belum ada calon',leader=w.pelan?.leader&&w.pelan?.leader!==w.ID_Ketua_Cadangan?`<span class="tm-muted">Ketua draf: ${tmEsc(w.pelan.leader)}</span>`:'';
-    return `<article class="tm-week"><div class="tm-week-head"><h3>${tmEsc(w.Minggu||w.ID_Minggu)}</h3><span class="tm-tag ${w.pelan?'':'tm-warning'}">${w.pelan?'Draf':'Cadangan'}</span></div>
+    return `<article class="tm-week"><div class="tm-week-head"><h3>${tmEsc(w.Minggu||w.ID_Minggu)}</h3><span class="tm-tag ${w.pelan?'':'tm-warning'}">${w.pelan?(w.pelan.status==='DITERBITKAN'?'Diterbitkan':'Draf'):'Cadangan'}</span></div>
       <p>${tmEsc(w.Nama_Kumpulan||'—')} · ${tmFmt(w.Tempoh_Mula)} – ${tmFmt(w.Tempoh_Tamat)}</p>
       <div class="tm-week-leader">Ketua: ${tmEsc(name)}</div>${leader}<p>${w.Bil_Ahli_Layak||0} ahli layak sepanjang minggu</p>
       <div class="tm-buttons"><button type="button" class="tm-btn tm-ghost" data-tm-choose="${tmEsc(w.ID_Minggu)}">Buka Minggu</button>
@@ -128,11 +128,109 @@ function tmRenderWeekly(){
   if(editable){tm$('tm-weekly-summary').value=w?.summary||'';tm$('tm-weekly-followup').value=w?.followup||'';}
   tm$('tm-review').hidden=!(tmState.data?.actor?.isGB&&status==='DIHANTAR');
 }
+/* V5.0.6 — Paparan jadual RASMI. Format sahaja; tidak mengubah agihan / API / data. */
+function tmDutyClock(value){
+  if(value===null||value===undefined||value==='')return '';
+  if(typeof value==='number'&&Number.isFinite(value)){
+    const frac=((value%1)+1)%1,mins=Math.round(frac*1440)%1440;
+    return String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0');
+  }
+  const text=String(value).trim();
+  // Apps Script String(Date) daripada sel masa mengandungi tarikh palsu 1899.
+  // Ambil komponen jam secara langsung, tanpa Date.parse yang boleh menukar zon waktu.
+  const match=text.match(/(?:^|[ T])(\d{1,2}):(\d{2})(?::\d{2})?(?=$|\s|Z|[+-]|\.)/);
+  if(match){
+    const hh=Number(match[1]),mm=Number(match[2]);
+    if(hh<24&&mm<60)return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+  }
+  if(/^\d{1,2}\.\d{2}$/.test(text)){
+    const parts=text.split('.'),hh=Number(parts[0]),mm=Number(parts[1]);
+    if(hh<24&&mm<60)return String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+  }
+  return ''; // Jangan papar tarikh 1899 atau nilai masa rosak kepada guru.
+}
+function tmDutyDateList(week,rows){
+  const start=week?.mula||week?.start,stop=week?.tamat||week?.end;
+  if(/^20\d{2}-\d\d-\d\d$/.test(String(start||''))&&/^20\d{2}-\d\d-\d\d$/.test(String(stop||''))){
+    const dates=[];
+    for(let d=new Date(start+'T00:00:00Z'),last=new Date(stop+'T00:00:00Z');d<=last&&dates.length<7;d.setUTCDate(d.getUTCDate()+1)){
+      if(d.getUTCDay()>=1&&d.getUTCDay()<=5)dates.push(d.toISOString().slice(0,10));
+    }
+    if(dates.length)return dates;
+  }
+  return [...new Set(rows.map(x=>String(x.date||'')).filter(Boolean))].sort();
+}
+function tmDutySetFilter(date){
+  tmState.dutyFilter=date;
+  const wrap=tm$('tm-assignments');if(!wrap)return;
+  wrap.querySelectorAll('[data-duty-filter]').forEach(btn=>{
+    const active=btn.dataset.dutyFilter===date;
+    btn.classList.toggle('is-active',active);
+    btn.setAttribute('aria-pressed',String(active));
+  });
+  wrap.querySelectorAll('[data-duty-card]').forEach(el=>{el.hidden=date!=='ALL'&&el.dataset.dutyCard!==date;});
+}
 function tmRenderAssignments(){
-  const r=tmState.detail?.assignments||[],types=tmState.data?.settings?.types||[];
-  const names=Object.fromEntries(types.map(x=>[x.id,x.name]));
-  tm$('tm-assignments').innerHTML=r.length?r.map(x=>`<div class="tm-warning-line">${tmFmt(x.date)} · ${tmEsc(names[x.task]||x.task)} · ${tmEsc(x.staff)} (${tmEsc(x.from)}–${tmEsc(x.to)})</div>`).join(''):
-    '<p class="tm-empty">Belum ada agihan tugasan yang telah disahkan. Laporan harian masih boleh diuji selepas draf ketua disediakan.</p>';
+  const detail=tmState.detail||{},raw=detail.assignments||[],types=tmState.data?.settings?.types||[];
+  const names=Object.fromEntries((detail.members||[]).map(x=>[String(x.id),x.name]));
+  const typeNames=Object.fromEntries(types.map(x=>[String(x.id),x.name]));
+  const week=detail.week||{},dates=tmDutyDateList(week,raw);
+  const planStatus=String(detail.plan?.status||'BELUM_JANA').toUpperCase();
+  const published=planStatus==='DITERBITKAN';
+  const badge=tm$('tm-tasks-publication-badge');
+  if(badge){
+    badge.textContent=published?'Diterbitkan':planStatus==='BELUM_JANA'?'Belum dijana':planStatus.replaceAll('_',' ');
+    badge.className='tm-tag '+(published?'tm-duty-badge-live':'tm-warning');
+  }
+  const subtitle=tm$('tm-tasks-subtitle');
+  if(subtitle)subtitle.textContent=published
+    ?'Jadual rasmi minggu ini. Tugasan dipaparkan mengikut hari, masa dan guru yang ditetapkan.'
+    :'Paparan berdasarkan data rasmi yang tersedia. Jadual belum disahkan sebagai diterbitkan.';
+  const holder=tm$('tm-assignments');if(!holder)return;
+  if(!raw.length){holder.innerHTML='<div class="tm-duty-empty"><strong>Belum ada tugasan untuk minggu ini</strong><p>Semak minggu dipilih atau status penjanaan rasmi dalam Smart Auto Agihan.</p></div>';return;}
+  const valid=raw.filter(x=>x&&x.date),uniqueStaff=new Set(valid.map(x=>String(x.staff||'')).filter(Boolean));
+  const byDate=new Map(dates.map(date=>[date,[]]));
+  valid.forEach(x=>{if(!byDate.has(x.date))byDate.set(x.date,[]);byDate.get(x.date).push(x);});
+  const activeDays=[...byDate].filter(([,entries])=>entries.length>0).length;
+  const summary=`<div class="tm-duty-stats">
+    <div><span>Jumlah penugasan</span><strong>${valid.length}</strong></div>
+    <div><span>Guru terlibat</span><strong>${uniqueStaff.size}</strong></div>
+    <div><span>Hari dengan tugasan</span><strong>${activeDays}</strong></div>
+    <div><span>Status jadual</span><strong class="tm-duty-status-text">${published?'Rasmi':tmEsc(planStatus.replaceAll('_',' '))}</strong></div>
+  </div>`;
+  const tabs=`<div class="tm-duty-filters" role="group" aria-label="Tapis jadual mengikut hari">
+    <button type="button" data-duty-filter="ALL">Semua Hari</button>
+    ${dates.map(date=>`<button type="button" data-duty-filter="${tmEsc(date)}">${tmEsc(tmDayName(date))}<span>${byDate.get(date)?.length||0}</span></button>`).join('')}
+  </div>`;
+  const dayCards=[...byDate].sort((a,b)=>a[0].localeCompare(b[0])).map(([date,entries])=>{
+    const grouped=new Map();
+    entries.forEach(x=>{
+      const title=typeNames[String(x.task)]||String(x.task||'Tugasan');
+      const from=tmDutyClock(x.from),to=tmDutyClock(x.to);
+      const key=[String(x.task||''),from,to].join('|');
+      if(!grouped.has(key))grouped.set(key,{title,from,to,staff:[]});
+      grouped.get(key).staff.push({id:String(x.staff||''),name:names[String(x.staff)]||String(x.staff||'Belum ditetapkan')});
+    });
+    const sorted=[...grouped.values()].sort((a,b)=>{
+      if(!a.from&&b.from)return 1;if(a.from&&!b.from)return -1;
+      return a.from.localeCompare(b.from)||a.title.localeCompare(b.title,'ms');
+    });
+    const content=sorted.length?sorted.map(item=>{
+      const clock=item.from?(item.to&&item.to!==item.from?item.from+' – '+item.to:item.from):'Tiada masa khusus';
+      const unique=[...new Map(item.staff.map(s=>[s.id,s])).values()];
+      return `<div class="tm-duty-taskrow">
+        <div class="tm-duty-taskname"><strong>${tmEsc(item.title)}</strong><span class="tm-duty-clock">${tmEsc(clock)}</span></div>
+        <div class="tm-duty-teachers">${unique.map(s=>`<span class="tm-duty-person" title="${tmEsc(s.id)}">${tmEsc(s.name)}</span>`).join('')}</div>
+      </div>`;
+    }).join(''):'<div class="tm-duty-no-tasks">Tiada tugasan dijadualkan untuk hari ini.</div>';
+    return `<section class="tm-duty-daycard" data-duty-card="${tmEsc(date)}">
+      <div class="tm-duty-dayhead"><div><strong>${tmEsc(tmDayName(date))}</strong><span>${tmFmt(date)}</span></div><span class="tm-duty-count">${entries.length} penugasan</span></div>
+      ${sorted.length?'<div class="tm-duty-columns"><span>Tugasan / Masa</span><span>Guru Bertugas</span></div>':''}${content}</section>`;
+  }).join('');
+  holder.innerHTML=summary+tabs+'<div class="tm-duty-days">'+dayCards+'</div>';
+  holder.querySelectorAll('[data-duty-filter]').forEach(btn=>btn.addEventListener('click',()=>tmDutySetFilter(btn.dataset.dutyFilter)));
+  const validFilters=['ALL',...byDate.keys()];
+  tmDutySetFilter(validFilters.includes(tmState.dutyFilter)?tmState.dutyFilter:'ALL');
 }
 function tm43SelectedType(){return tmState.data?.settings?.types?.find(x=>x.id===tm$('tm-time-task').value)||null;}
 function tm43SyncTimeForm(){

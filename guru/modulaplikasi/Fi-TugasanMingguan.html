@@ -10,11 +10,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('tm-embedded');</script>
-  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.0.2">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.0.2">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.0.6">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.0.6">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
-  <script src="Fi-TugasanMingguan.js?v=5.0.2" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=5.0.6" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
@@ -127,9 +127,9 @@
       </section>
     </section>
     <section id="tm-panel-tasks" data-tm-panel="tasks" hidden>
-      <section class="tm-card"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2><p>Penjanaan agihan adil akan diaktifkan setelah semakan PdPc, keberadaan dan e-Relief lengkap.</p></div><span class="tm-tag tm-warning">Belum diterbitkan</span></div>
-        <div id="tm-selection-tasks" class="tm-selection"></div><div id="tm-assignments" class="tm-warnings"></div>
-        <div class="tm-notice tm-info"><strong>Perlindungan jadual guru:</strong> Setiap waktu tugasan ditetapkan dengan jam mula/tamat dan tarikh kuat kuasa, bukan diikat kepada Slot_ID. Fasa ini tidak menjana atau menerbitkan nama guru secara automatik.</div>
+      <section class="tm-card tm-duty-schedule"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2><p id="tm-tasks-subtitle">Jadual rasmi mengikut minggu, hari dan kumpulan bertugas.</p></div><span id="tm-tasks-publication-badge" class="tm-tag tm-warning">Memuatkan status</span></div>
+        <div id="tm-selection-tasks" class="tm-selection"></div>
+        <div id="tm-assignments" class="tm-duty-board" aria-live="polite"></div>
         <div id="tm-preflight-result"></div><button type="button" class="tm-btn tm-outline" id="tm-preflight" hidden>Semak Kesediaan Agihan (Admin)</button>
       </section>
     </section>
