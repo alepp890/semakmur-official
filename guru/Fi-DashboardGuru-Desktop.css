@@ -1440,3 +1440,23 @@
 @media(min-width:1280px){
   body.fi-manual-access #home-modules{grid-template-columns:repeat(4,minmax(0,1fr))!important}
 }
+
+
+/* Smart Tugasan Mingguan V5.0.1 — lebarkan iframe sepadan e-Keberadaan. */
+@media (min-width:768px){
+  #tugasan-mingguan-workspace {
+    width:100%!important;min-width:0!important;max-width:none!important;
+    flex:1 1 auto!important;
+  }
+  #tugasan-mingguan-workspace>.fi-keberadaan-frame-wrap{
+    position:relative!important;display:flex!important;flex:1 1 0%!important;
+    width:100%!important;min-width:0!important;max-width:none!important;
+    min-height:0!important;overflow:hidden!important;
+  }
+  #tugasan-mingguan-workspace-frame{
+    display:block!important;flex:1 1 0%!important;width:100%!important;
+    max-width:none!important;min-width:0!important;height:100%!important;
+    min-height:0!important;border:0!important;background:#f0f5f9!important;
+  }
+  #tugasan-mingguan-workspace>.erph-workspace-toolbar{display:none!important}
+}

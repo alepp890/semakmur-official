@@ -340,6 +340,22 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     fiV6Header();
   }
   window.closePengurusanMuridWorkspace=closePengurusanMuridWorkspace;
+  /* Smart Tugasan Mingguan V5.0.1 — nama modul pada header dashboard desktop. */
+  let tmDesktopHeadingBefore=null;
+  function tmDesktopHeading(active){
+    const a=$('greeting-text'), b=$('header-user-name');
+    if(!a||!b)return;
+    if(active){
+      if(window.matchMedia('(max-width:767px)').matches)return;
+      if(!tmDesktopHeadingBefore)tmDesktopHeadingBefore={greeting:a.textContent,name:b.textContent,title:b.title};
+      a.textContent='Pentadbiran';b.textContent='Smart Tugasan Mingguan';b.title='Smart Tugasan Mingguan';
+    }else if(tmDesktopHeadingBefore){
+      a.textContent=tmDesktopHeadingBefore.greeting;
+      b.textContent=tmDesktopHeadingBefore.name;
+      b.title=tmDesktopHeadingBefore.title;
+      tmDesktopHeadingBefore=null;
+    }
+  }
   /* Smart Tugasan Mingguan V5: same-origin Dashboard Guru iframe. */
   function openTugasanMingguanWorkspace(){
     const pane=$('tugasan-mingguan-workspace'),frame=$('tugasan-mingguan-workspace-frame');
@@ -348,14 +364,14 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);
     closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);closeTugasanMingguanWorkspace(true);closeMobileMenu();
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
-    rememberWorkspace('bertugas');
+    tmDesktopHeading(true);rememberWorkspace('bertugas');
     if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#tugasan-mingguan');
-    if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-TugasanMingguan.html?embed=1&v=5.0.0';
+    if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-TugasanMingguan.html?embed=1&v=5.0.2';
     fiV6Header();
   }
   function closeTugasanMingguanWorkspace(keepHash){
     const pane=$('tugasan-mingguan-workspace');if(!pane||pane.hidden)return;
-    pane.hidden=true;pane.classList.remove('is-open');$('page-scroll').classList.remove('hidden');
+    pane.hidden=true;pane.classList.remove('is-open');tmDesktopHeading(false);$('page-scroll').classList.remove('hidden');
     if(!keepHash){rememberWorkspace('laman_utama');if(location.hash==='#tugasan-mingguan'&&history.replaceState)history.replaceState(null,'',location.pathname+location.search);}
     fiV6Header();
   }
