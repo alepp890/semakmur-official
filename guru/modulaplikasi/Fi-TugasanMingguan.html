@@ -8,11 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=4.7">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=4.9">
   <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=4.3">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
-  <script src="Fi-TugasanMingguan.js?v=4.7" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=4.9" defer></script>
 </head>
 <body>
 <div class="tm-shell" id="tm-app">
@@ -24,8 +24,7 @@
   <div id="tm-notice" class="tm-notice" role="status" aria-live="polite" hidden></div>
   <nav class="tm-tabs" aria-label="Bahagian Tugasan Mingguan">
     <button type="button" class="active" data-tm-tab="overview">Minggu & Kumpulan</button>
-    <button type="button" data-tm-tab="daily">Laporan Harian</button>
-    <button type="button" data-tm-tab="weekly">Laporan Mingguan</button>
+    <button type="button" data-tm-tab="report-studio">Laporan &amp; Cetakan</button>
     <button type="button" data-tm-tab="tasks">Jadual Tugasan</button>
     <button type="button" data-tm-tab="smart" id="tm4-tab" hidden>Smart Auto Agihan</button>
     <button type="button" data-tm-tab="settings" id="tm-tab-settings" hidden>Tetapan Admin</button>
@@ -43,6 +42,47 @@
         <div id="tm-sim-warning"></div><div id="tm-sim-grid" class="tm-weekgrid"></div>
       </section>
       <section class="tm-card"><div class="tm-section-title"><h2>Makluman sumber data</h2></div><div id="tm-warnings" class="tm-warnings"><p class="tm-empty">Tiada makluman.</p></div></section>
+    </section>
+
+    <!-- V4.9: unified daily form, weekly review and three A4 print templates. -->
+    <section id="tm-panel-report-studio" data-tm-panel="report-studio" hidden>
+      <section class="tm-card tm49-top"><div class="tm-section-title"><div><h2>Studio Laporan Guru Bertugas</h2>
+        <p>Catatan harian oleh ahli · ulasan ketua · semakan GB · cetakan A4</p></div><span id="tm49-banner" class="tm-tag tm49-demo">UJIAN</span></div>
+        <div class="tm-fields"><label>Mod Laporan<select id="tm49-mode"><option value="RASMI">Rasmi</option></select></label>
+          <label>Minggu &amp; Kumpulan<select id="tm49-week"><option value="">Pilih minggu…</option></select></label></div>
+        <div class="tm49-headerline"><div><strong id="tm49-title">Pilih minggu laporan</strong><small id="tm49-leader"></small></div>
+          <button type="button" id="tm49-refresh" class="tm-btn tm-ghost">Muat Semula Laporan</button></div>
+        <div id="tm49-info" class="tm49-info" role="status" aria-live="polite"></div>
+        <div id="tm49-progress" class="tm49-progress"></div>
+      </section>
+      <div class="tm49-layout">
+        <section class="tm-card tm49-daily-panel"><div class="tm-section-title"><div><h2>Borang Laporan Harian</h2>
+          <p>Pilih hari; semua bahagian akan muncul untuk diisi. Catatan setiap guru disimpan berasingan.</p></div></div>
+          <div class="tm-fields tm49-daybar"><label>Hari / Tarikh<select id="tm49-date"></select></label>
+            <div class="tm49-day-actions"><button type="button" class="tm-btn tm-outline" id="tm49-print-day">Cetak Hari Ini</button></div></div>
+          <div id="tm49-day-summary" class="tm-muted"></div><div id="tm49-sections" class="tm49-sections"></div>
+          <p class="tm-muted" id="tm49-blocked"></p>
+          <div class="tm-buttons"><button type="button" id="tm49-save-day" class="tm-btn tm-primary">Simpan Semua Catatan Saya</button></div>
+        </section>
+        <section class="tm-card tm49-week-panel"><div class="tm-section-title"><div><h2>Ulasan Akhir Minggu</h2>
+          <p>Ketua kumpulan membaca catatan harian, menulis rumusan dan menyerahkan laporan.</p></div>
+          <span id="tm49-weekly-status" class="tm-tag">Belum diisi</span></div>
+          <div class="tm-form"><label>Ulasan keseluruhan<textarea id="tm49-summary" rows="5" maxlength="5000"
+            placeholder="Ringkasan aktiviti, disiplin, kebersihan dan kemenjadian murid…"></textarea></label>
+          <label>Cadangan / tindakan susulan<textarea id="tm49-followup" rows="4" maxlength="3000"
+            placeholder="Isu berulang, tindakan segera, cadangan untuk minggu depan…"></textarea></label>
+          <div class="tm-buttons"><button type="button" class="tm-btn tm-ghost" id="tm49-save-week">Simpan Draf</button>
+            <button type="button" class="tm-btn tm-primary" id="tm49-submit-week">Hantar kepada Guru Besar</button></div></div>
+          <div id="tm49-gb-comment" class="tm49-gb-comment"></div>
+          <div id="tm49-review-box" class="tm-manager-review" hidden><h3>Semakan / Pulangkan</h3>
+            <label>Ulasan Penyemak<textarea id="tm49-review-note" rows="3" maxlength="3000"></textarea></label>
+            <div class="tm-buttons"><button type="button" class="tm-btn tm-primary" id="tm49-review-accept">Tandakan Disemak</button>
+              <button type="button" class="tm-btn tm-outline" id="tm49-review-return">Pulangkan</button></div></div>
+          <div class="tm49-print"><h3>Template Cetakan A4</h3><p class="tm-muted">Cetakan menggunakan data semasa yang telah disimpan, bukan teks yang belum disimpan.</p>
+            <div class="tm49-printbuttons"><button type="button" class="tm-btn tm-outline" id="tm49-print-schedule">Cetak Jadual Bertugas</button>
+            <button type="button" class="tm-btn tm-outline" id="tm49-print-week">Cetak Laporan Mingguan Lengkap</button></div></div>
+        </section>
+      </div>
     </section>
     <section id="tm-panel-daily" data-tm-panel="daily" hidden>
       <section class="tm-card"><div class="tm-section-title"><div><h2>Laporan Harian</h2><p>Setiap ahli kumpulan boleh mengisi catatan sendiri. Catatan disusun mengikut tarikh.</p></div></div>
@@ -169,7 +209,7 @@
         </section>
       </div>
       <section class="tm-card"><div class="tm-section-title"><div><h2>Hasil Jadual Bertugas Mengikut Hari</h2><p>Dua hari bersebelahan pada desktop. Rekod DIGANTI kekal dalam Sejarah. Draf boleh diimbang semula tanpa memadam rekod lama.</p></div><span class="tm-tag" id="tm4-total">0 tugasan</span></div>
-        <div id="tm4-rows" class="tm4-daily-groups"><p class="tm-empty">Pilih minggu dan jana jadual dahulu.</p></div>
+        <div id="tm4-rows" class="tm4-daily-groups"><p class="tm-empty">Pilih minggu dan jana jadual dahulu.</p></div><div class="tm-buttons" style="margin-top:14px"><button type="button" id="tm49-open-from-smart" class="tm-btn tm-outline">Buka Borang Laporan Minggu Ini</button></div>
       </section>
       <section class="tm-card"><div class="tm-section-title"><h2>Ringkasan Keadilan — Mata Beban</h2></div><div id="tm4-fairness" class="tm4-fairness"></div><div id="tm4-warning"></div></section>
       <section class="tm-card tm47-analytics"><div class="tm-section-title"><div><h2>Statistik &amp; Audit Silang PdPc</h2>
@@ -180,6 +220,6 @@
       </section>
     </section>
   </main>
-  <footer class="tm-footer">SeMAKMUR I-System · Smart Tugasan Mingguan V4.7 (V4.6 + audit & keberadaan) · Sumber rasmi Google Sheets / Fi-Sync</footer>
+  <footer class="tm-footer">SeMAKMUR I-System · Smart Tugasan Mingguan V4.9 (Laporan & Cetakan) · Sumber rasmi Google Sheets / Fi-Sync</footer>
 </div>
 </body></html>

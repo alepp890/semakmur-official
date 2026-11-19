@@ -71,3 +71,33 @@
 .tm47-table td small{display:block;font-size:.7rem;color:var(--tm-muted);margin-top:2px}
 .tm47-clash{background:#fff0ef}.tm47-clash strong{color:#a3322c}
 @media(max-width:680px){.tm47-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.tm47-absence-item{align-items:flex-start;flex-direction:column}}
+
+/* V4.9 — Report Studio. Does not alter schedule cards or PWA original. */
+.tm49-top{border-top:3px solid #446f56}
+.tm49-headerline{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 0 8px}
+.tm49-headerline strong{font-size:.92rem;display:block}.tm49-headerline small{display:block;color:var(--tm-muted);font-size:.76rem;margin-top:3px}
+.tm49-info{padding:10px 12px;background:#f3f7f2;color:#355d43;border:1px solid #dce7da;border-radius:9px;font-size:.78rem;line-height:1.5}
+.tm49-info.tm49-error{background:#fff0ee;border-color:#f0cbca;color:#913e32}
+.tm49-demo{background:#fff0e8;color:#9a492e}
+.tm49-progress{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:14px}
+.tm49-progress>div{background:#f5f8f3;border:1px solid #e3ebe0;padding:11px 12px;border-radius:10px;min-width:0}
+.tm49-progress strong{display:block;color:var(--tm-forest);font-size:1.08rem;overflow-wrap:anywhere}
+.tm49-progress span{color:var(--tm-muted);font-size:.71rem;font-weight:600}
+.tm49-layout{display:grid;grid-template-columns:minmax(0,1.24fr) minmax(310px,.86fr);gap:14px;align-items:start}
+.tm49-daily-panel,.tm49-week-panel{min-width:0}
+.tm49-daybar{align-items:end}.tm49-day-actions{display:flex;align-items:flex-end;justify-content:flex-start;padding-bottom:1px}
+.tm49-sections{display:grid;gap:10px;margin:13px 0 16px}
+.tm49-section{border:1px solid #e2ebe1;border-radius:11px;background:#fbfcfa;padding:11px 12px;min-width:0}
+.tm49-section-head{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:8px}
+.tm49-section-head strong{font-size:.79rem;line-height:1.4;color:#2a4c37}
+.tm49-daybadge{font-size:.66rem;color:#667f69;background:#e7f0e6;border-radius:16px;padding:3px 8px;font-weight:700}
+textarea.tm49-textarea{min-height:70px;max-width:100%;font-size:.81rem;line-height:1.5;padding:9px 10px}
+.tm49-other{margin-top:10px;padding:9px 11px;background:#f0f5ef;border-radius:7px;overflow-wrap:anywhere}
+.tm49-other>b{font-size:.72rem;color:#536e59}.tm49-other p{font-size:.76rem;line-height:1.45;margin:6px 0;white-space:pre-wrap}
+.tm49-gb-comment{padding:10px 0;font-size:.8rem;color:#4c6c56;white-space:pre-wrap}
+.tm49-print{margin-top:20px;padding:15px;background:#f6f8f3;border:1px solid #e0e8da;border-radius:11px}
+.tm49-print h3{font-size:.9rem;color:var(--tm-forest);margin:0 0 5px}
+.tm49-printbuttons{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+.tm49-printbuttons .tm-btn{width:100%;text-align:left}
+@media(max-width:990px){.tm49-layout{grid-template-columns:minmax(0,1fr)}.tm49-progress{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:570px){.tm49-headerline .tm-btn{width:100%}.tm49-section{padding:10px}.tm49-daybar{grid-template-columns:1fr}.tm49-day-actions .tm-btn{width:100%}}
