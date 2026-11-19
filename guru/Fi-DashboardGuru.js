@@ -201,7 +201,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       showInfo('Akses Dashboard sedang disahkan. Sila cuba sebentar lagi.');return;
     }
     closeErphWorkspace(true);
-    closeKeberadaanWorkspace(true);closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);
+    closeKeberadaanWorkspace(true);closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);closeTugasanMingguanWorkspace(true);
     closeMobileMenu();
     const pane=$('kehadiran-workspace'),frame=$('kehadiran-workspace-frame');
     if(!pane||!frame)return;
@@ -259,7 +259,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       showInfo('Akses Dashboard sedang disahkan. Sila cuba sebentar lagi.');return;
     }
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
-    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);closeMobileMenu();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);closeTugasanMingguanWorkspace(true);closeMobileMenu();
     const pane=$('keberadaan-workspace'),frame=$('keberadaan-workspace-frame');
     if(!pane||!frame)return;
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
@@ -303,7 +303,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   function openReliefWorkspace(){
     if(!dashboardAuthenticated||!window.FiAuthenticatedUser){showInfo('Akses Dashboard belum disahkan.');return;}
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
-    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);closePengurusanMuridWorkspace(true);closeMobileMenu();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);closePengurusanMuridWorkspace(true);closeTugasanMingguanWorkspace(true);closeMobileMenu();
     const pane=$('relief-workspace'),frame=$('relief-workspace-frame');if(!pane||!frame)return;
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
     rememberWorkspace('relief');
@@ -340,6 +340,26 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     fiV6Header();
   }
   window.closePengurusanMuridWorkspace=closePengurusanMuridWorkspace;
+  /* Smart Tugasan Mingguan V5: same-origin Dashboard Guru iframe. */
+  function openTugasanMingguanWorkspace(){
+    const pane=$('tugasan-mingguan-workspace'),frame=$('tugasan-mingguan-workspace-frame');
+    if(!pane||!frame){showInfo('Ruang Tugasan Mingguan belum dipasang.');return;}
+    if(fiV6ScheduleOpen)fiV6CloseSchedule();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);
+    closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);closeTugasanMingguanWorkspace(true);closeMobileMenu();
+    $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
+    rememberWorkspace('bertugas');
+    if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#tugasan-mingguan');
+    if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-TugasanMingguan.html?embed=1&v=5.0.0';
+    fiV6Header();
+  }
+  function closeTugasanMingguanWorkspace(keepHash){
+    const pane=$('tugasan-mingguan-workspace');if(!pane||pane.hidden)return;
+    pane.hidden=true;pane.classList.remove('is-open');$('page-scroll').classList.remove('hidden');
+    if(!keepHash){rememberWorkspace('laman_utama');if(location.hash==='#tugasan-mingguan'&&history.replaceState)history.replaceState(null,'',location.pathname+location.search);}
+    fiV6Header();
+  }
+  window.closeTugasanMingguanWorkspace=closeTugasanMingguanWorkspace;
   async function openModule(id){const m=MODULES[id];if(!m)return;
     // Kehadiran dibuka serta-merta. Jangan tunggu ensureOfficial() sebelum memaparkan ruang.
     if(id==='kehadiran'){openKehadiranWorkspace();return;}
@@ -356,7 +376,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     }
     if(id==='bertugas'){
       if(!dashboardAuthenticated){showInfo('Akaun MOE masih disemak.');return;}
-      window.open(m.url,'_blank','noopener');return;
+      openTugasanMingguanWorkspace();return;
     }
     if(!await window.FiDashboard?.ensureOfficial()){showInfo('Modul ini masih menggunakan sistem lama dan belum dipindahkan ke Fi.');return;}
     if(!dashboardAuthenticated){showInfo('Akses sedang disahkan. Sila cuba sebentar lagi.');return;}
@@ -511,7 +531,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(!dashboardAuthenticated){showInfo('Dashboard sedang menyediakan data.');return;}
     fiV6ScheduleOpen=true;
     closeKehadiranWorkspace(true);
-    closeKeberadaanWorkspace(true);closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);
+    closeKeberadaanWorkspace(true);closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);closeTugasanMingguanWorkspace(true);
     $('page-scroll').classList.remove('hidden');
     $('fi-v6-schedule-screen').hidden=false;
     $('fi-v6-day').value=DAYS.includes(todayDay())?todayDay():'Isnin';
@@ -532,6 +552,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(!$('keberadaan-workspace').hidden){closeKeberadaanWorkspace();return;}
     if(!$('relief-workspace').hidden){closeReliefWorkspace();return;}
     if(!$('pengurusan-murid-workspace').hidden){closePengurusanMuridWorkspace();return;}
+    if(!$('tugasan-mingguan-workspace').hidden){closeTugasanMingguanWorkspace();return;}
     switchMainMenu('laman_utama');
   }
   function fiV6RenderSchedule(){
@@ -836,7 +857,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     updateClock();setInterval(updateClock,30000);
     $('greeting-text').textContent='Selamat Datang';
     document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){if(module.dataset.module==='jadual'){if(fiV6Mobile())fiV6OpenSchedule();else switchMainMenu('kurikulum');return;}openModule(module.dataset.module);return;}
-      const page=e.target.closest('[data-page]');if(page){fiV6CloseSchedule();closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closePengurusanMuridWorkspace();switchMainMenu(page.dataset.page);rememberWorkspace(page.dataset.page);return;}
+      const page=e.target.closest('[data-page]');if(page){fiV6CloseSchedule();closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closePengurusanMuridWorkspace();closeTugasanMingguanWorkspace();switchMainMenu(page.dataset.page);rememberWorkspace(page.dataset.page);return;}
       const day=e.target.closest('[data-day]');if(day){activeDay=day.dataset.day;renderTimetable();}
     });
     $('kehadiran-workspace-frame').addEventListener('load',fiKehadiranFrameReady);
@@ -894,7 +915,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     });
     $('profile-form').addEventListener('submit',saveProfile);
     $('profile-modal').addEventListener('click',e=>{if(e.target===$('profile-modal'))closeProfile();});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closePengurusanMuridWorkspace();closeProfile();closeMobileMenu();}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closePengurusanMuridWorkspace();closeTugasanMingguanWorkspace();closeProfile();closeMobileMenu();}});
     window.addEventListener('resize',()=>{fitName();if(window.innerWidth>=768){$('sidebar-container').classList.remove('-translate-x-full');$('sidebar-backdrop').classList.remove('active');}else{$('sidebar-container').classList.add('-translate-x-full');}});
     showInstantShell();
     fiV6Header();
