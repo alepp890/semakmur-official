@@ -55,3 +55,19 @@
 .tm45-history-row{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.35fr);gap:10px;padding:5px 0;border-top:1px dashed #e3e9e2;font-size:.72rem;color:#748078;overflow-wrap:anywhere}
 @media(max-width:890px){.tm4-daily-groups{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:600px){.tm45-day .tm43-day-head{padding:10px 11px}.tm45-duty,.tm45-duty-head{grid-template-columns:minmax(0,.85fr) minmax(0,1.25fr);gap:7px;padding-left:10px;padding-right:10px}.tm45-duty{font-size:.8rem;padding-top:8px;padding-bottom:8px}.tm45-duty-head{font-size:.67rem}}
+
+/* V4.7 — Rancang keberadaan awal & audit PdPc; responsive within desktop/PWA. */
+.tm47-absence-list{margin-top:15px;border-top:1px solid var(--tm-border);padding-top:12px}
+.tm47-subhead{font-size:.93rem;font-weight:800;margin:16px 0 10px;color:var(--tm-forest)}
+.tm47-absence-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #edf1ed}
+.tm47-absence-item strong{font-size:.78rem}.tm47-absence-item small{display:block;color:var(--tm-muted);font-size:.72rem;margin-top:3px}
+.tm47-absence-item.is-cancelled{opacity:.6}
+.tm47-analytics{margin-top:8px}.tm47-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tm47-metrics>div{background:#f4f7f3;border:1px solid #e0e9df;border-radius:9px;padding:12px}
+.tm47-metrics span{display:block;font-size:.74rem;color:var(--tm-muted);font-weight:700}.tm47-metrics strong{font-size:1.35rem;color:var(--tm-forest)}
+.tm47-table{width:100%;border-collapse:collapse;font-size:.76rem;min-width:660px}
+.tm47-table th{text-align:left;background:#eff5ed;padding:9px 10px;color:#244a36;white-space:nowrap}
+.tm47-table td{padding:8px 10px;vertical-align:top;border-bottom:1px solid #e8eee8}
+.tm47-table td small{display:block;font-size:.7rem;color:var(--tm-muted);margin-top:2px}
+.tm47-clash{background:#fff0ef}.tm47-clash strong{color:#a3322c}
+@media(max-width:680px){.tm47-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.tm47-absence-item{align-items:flex-start;flex-direction:column}}

@@ -8,11 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=4.5">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=4.7">
   <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=4.3">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
-  <script src="Fi-TugasanMingguan.js?v=4.5" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=4.7" defer></script>
 </head>
 <body>
 <div class="tm-shell" id="tm-app">
@@ -141,18 +141,25 @@
         <div id="tm4-status" class="tm-muted" aria-live="polite"></div>
       </section>
       <div class="tm-two-cols">
-        <section class="tm-card"><div class="tm-section-title"><h2>Uji Guru Tidak Hadir (Simulasi)</h2></div>
-          <p class="tm-muted">Contoh: selepas jadual dijana, pilih guru dan tandakan MC pada 17/11/2026. Kemudian ubah masa rujukan kepada 17/11/2026 jam 08:00 dan klik Semak &amp; Ganti.</p>
+        <section class="tm-card" id="tm47-sim-section"><div class="tm-section-title"><div><h2>Keberadaan Guru — Simulasi</h2><p>Masukkan CRK, CTR, urusan rasmi atau ketiadaan yang diketahui <strong>sebelum jana jadual</strong>. Boleh juga uji MC mengejut selepas jadual bermula.</p></div></div>
           <form id="tm4-absence-form" class="tm-form">
             <label>Nama Guru<select id="tm4-teacher" required><option value="">Pilih guru bertugas…</option></select></label>
             <div class="tm-fields"><label>Dari Tarikh<input id="tm4-absence-from" type="date" required></label><label>Hingga Tarikh<input id="tm4-absence-to" type="date" required></label></div>
+            <div class="tm-fields"><label>Kategori Keberadaan<select id="tm4-absence-reason">
+              <option value="CRK">CRK</option><option value="CTR">CTR</option><option value="URUSAN_RASMI_LUAR">Urusan Rasmi Luar</option>
+              <option value="URUSAN_RASMI_DALAM">Urusan Rasmi Dalam Sekolah</option><option value="MC">MC / Demam</option>
+              <option value="KECEMASAN">Kecemasan</option><option value="LAIN_LAIN">Lain-lain</option></select></label>
+              <label>Lokasi / Kelayakan<select id="tm4-absence-location"><option value="LUAR_SEKOLAH">Tiada di sekolah — jangan agih tugas</option><option value="DALAM_SEKOLAH">Masih di sekolah — boleh diagih tugas</option></select></label></div>
+            <div class="tm-fields"><label>Jenis Ujian<select id="tm4-absence-stage"><option value="DIRANCANG">Dirancang lebih awal (sebelum jana)</option><option value="MENDADAK">MC / Kecemasan selepas jana</option></select></label>
+              <label>Catatan (pilihan)<input id="tm4-absence-note" maxlength="160" placeholder="Contoh: surat program diterima lebih awal"></label></div>
             <div class="tm-fields"><label>Masa mula (pilihan)<input id="tm4-absence-start" type="time"></label><label>Masa tamat (pilihan)<input id="tm4-absence-end" type="time"></label></div>
-            <label>Sebab<select id="tm4-absence-reason"><option>MC / Demam</option><option>Kecemasan</option><option>CRK</option><option>CTR</option><option>Urusan Rasmi</option></select></label>
-            <button class="tm-btn tm-outline" type="submit">Rekod Ketiadaan Ujian</button>
+            <p class="tm-muted">Kosongkan kedua-dua masa untuk satu hari penuh. Keberadaan <b>di dalam sekolah</b> hanya dicatat dan tidak menyekat agihan. Rekod ini tidak dihantar ke Smart Keberadaan rasmi.</p>
+            <button class="tm-btn tm-primary" type="submit">Simpan Keberadaan Simulasi</button>
           </form>
+          <div class="tm47-absence-list" id="tm47-absence-list"><p class="tm-muted">Pilih minggu untuk melihat senarai ketiadaan dirancang.</p></div>
         </section>
         <section class="tm-card"><div class="tm-section-title"><h2>Uji Minggu Pendek / Cuti</h2></div>
-          <p class="tm-muted">Tandakan CUTI sebelum jana jadual untuk menguji agihan bagi tiga hari persekolahan. Rekod rasmi perlu disahkan hari demi hari.</p>
+          <p class="tm-muted">Tandakan CUTI sebelum jana jadual. Rekod rasmi disahkan secara berasingan.</p>
           <form id="tm4-calendar-form" class="tm-form">
             <label>Tarikh<input id="tm4-cal-date" type="date" required></label>
             <label>Jenis Hari<select id="tm4-cal-kind"><option value="CUTI">Cuti / Tiada Persekolahan</option><option value="SEKOLAH">Hari Persekolahan</option></select></label>
@@ -165,8 +172,14 @@
         <div id="tm4-rows" class="tm4-daily-groups"><p class="tm-empty">Pilih minggu dan jana jadual dahulu.</p></div>
       </section>
       <section class="tm-card"><div class="tm-section-title"><h2>Ringkasan Keadilan — Mata Beban</h2></div><div id="tm4-fairness" class="tm4-fairness"></div><div id="tm4-warning"></div></section>
+      <section class="tm-card tm47-analytics"><div class="tm-section-title"><div><h2>Statistik &amp; Audit Silang PdPc</h2>
+        <p>Semak bilangan petugas rehat, taburan tugas berat/ringan, giliran tugas pagi serta padanan W5 Tahap 1 / Tahap 2 dan waktu balik berdasarkan jadual mengajar sebenar.</p></div>
+        <button type="button" id="tm47-audit" class="tm-btn tm-outline">Semak Statistik &amp; Konflik PdPc</button></div>
+        <p class="tm-muted">Semakan akan membaca Jadual_Waktu_Hasil dan Master_Grid_Masa terkini. Status <strong>Tiada Kelas</strong> hanya diberikan apabila bacaan jadual berjaya.</p>
+        <div id="tm47-audit-result" aria-live="polite"><p class="tm-empty">Jana atau buka jadual, kemudian klik Semak Statistik &amp; Konflik PdPc.</p></div>
+      </section>
     </section>
   </main>
-  <footer class="tm-footer">SeMAKMUR I-System · Smart Tugasan Mingguan V4.5 (paparan) · Sumber rasmi Google Sheets / Fi-Sync</footer>
+  <footer class="tm-footer">SeMAKMUR I-System · Smart Tugasan Mingguan V4.7 (V4.6 + audit & keberadaan) · Sumber rasmi Google Sheets / Fi-Sync</footer>
 </div>
 </body></html>
