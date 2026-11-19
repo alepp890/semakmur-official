@@ -201,7 +201,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       showInfo('Akses Dashboard sedang disahkan. Sila cuba sebentar lagi.');return;
     }
     closeErphWorkspace(true);
-    closeKeberadaanWorkspace(true);closeReliefWorkspace(true);
+    closeKeberadaanWorkspace(true);closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);
     closeMobileMenu();
     const pane=$('kehadiran-workspace'),frame=$('kehadiran-workspace-frame');
     if(!pane||!frame)return;
@@ -259,7 +259,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       showInfo('Akses Dashboard sedang disahkan. Sila cuba sebentar lagi.');return;
     }
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
-    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeReliefWorkspace(true);closeMobileMenu();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);closeMobileMenu();
     const pane=$('keberadaan-workspace'),frame=$('keberadaan-workspace-frame');
     if(!pane||!frame)return;
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
@@ -303,7 +303,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   function openReliefWorkspace(){
     if(!dashboardAuthenticated||!window.FiAuthenticatedUser){showInfo('Akses Dashboard belum disahkan.');return;}
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
-    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);closeMobileMenu();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);closePengurusanMuridWorkspace(true);closeMobileMenu();
     const pane=$('relief-workspace'),frame=$('relief-workspace-frame');if(!pane||!frame)return;
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
     rememberWorkspace('relief');
@@ -320,6 +320,26 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     fiV6Header();
   }
   window.closeReliefWorkspace=closeReliefWorkspace;
+  // HEM V2: iframe same-origin dalam Dashboard, tidak membuka tab baharu.
+  function openPengurusanMuridWorkspace(){
+    const pane=$('pengurusan-murid-workspace'),frame=$('pengurusan-murid-workspace-frame');
+    if(!pane||!frame){showInfo('Ruang Pengurusan Murid belum dipasang dalam HTML Dashboard.');return;}
+    if(fiV6ScheduleOpen)fiV6CloseSchedule();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);closeReliefWorkspace(true);closeMobileMenu();
+    $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
+    rememberWorkspace('pengurusan_murid');
+    if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#pengurusan-murid');
+    if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-PendaftaranMurid.html?embed=1';
+    fiV6Header();
+  }
+  function closePengurusanMuridWorkspace(keepHash){
+    const pane=$('pengurusan-murid-workspace');if(!pane||pane.hidden)return;
+    pane.hidden=true;pane.classList.remove('is-open');$('page-scroll').classList.remove('hidden');
+    if(!keepHash){rememberWorkspace('laman_utama');
+      if(location.hash==='#pengurusan-murid'&&history.replaceState)history.replaceState(null,'',location.pathname+location.search);}
+    fiV6Header();
+  }
+  window.closePengurusanMuridWorkspace=closePengurusanMuridWorkspace;
   async function openModule(id){const m=MODULES[id];if(!m)return;
     // Kehadiran dibuka serta-merta. Jangan tunggu ensureOfficial() sebelum memaparkan ruang.
     if(id==='kehadiran'){openKehadiranWorkspace();return;}
@@ -332,7 +352,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     }
     if(id==='pengurusan_murid'){
       if(!dashboardAuthenticated){showInfo('Sila sahkan sesi akaun Google MOE terlebih dahulu.');return;}
-      window.open(m.url,'_blank','noopener');return;
+      openPengurusanMuridWorkspace();return;
     }
     if(id==='bertugas'){
       if(!dashboardAuthenticated){showInfo('Akaun MOE masih disemak.');return;}
@@ -466,15 +486,17 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     const attendance=!$('kehadiran-workspace').hidden;
     const keberadaan=!$('keberadaan-workspace').hidden;
     const relief=!$('relief-workspace').hidden;
+    const hemMurid=!$('pengurusan-murid-workspace').hidden;
     const back=$('v4-back');
     if(!fiV6Mobile()){back.hidden=true;return;}
-    back.hidden=!(fiV6ScheduleOpen||attendance||keberadaan||relief);
-    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':fiV8AttendanceSection==='semakan'?'Semakan Kehadiran':'Kehadiran Kelas'):keberadaan?'e-Keberadaan':relief?'e-Relief':'SeMAKMUR Smart System';
+    back.hidden=!(fiV6ScheduleOpen||attendance||keberadaan||relief||hemMurid);
+    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':fiV8AttendanceSection==='semakan'?'Semakan Kehadiran':'Kehadiran Kelas'):keberadaan?'e-Keberadaan':relief?'e-Relief':hemMurid?'Pengurusan Murid':'SeMAKMUR Smart System';
     document.body.classList.toggle('fi-v6-on-schedule',fiV6ScheduleOpen);
     document.body.classList.toggle('fi-v6-on-attendance',attendance);
     document.body.classList.toggle('fi-v6-on-keberadaan',keberadaan);
     document.body.classList.toggle('fi-v6-on-relief',relief);
-    document.body.classList.toggle('v4-on-home',!attendance&&!keberadaan&&!relief&&!fiV6ScheduleOpen);
+    document.body.classList.toggle('fi-v6-on-hem-murid',hemMurid);
+    document.body.classList.toggle('v4-on-home',!attendance&&!keberadaan&&!relief&&!hemMurid&&!fiV6ScheduleOpen);
     document.querySelectorAll('#mobile-bottom-nav .bottom-btn').forEach(b=>b.classList.remove('active'));
     const current=$('fi-bottom-current-module');
     if(current){
@@ -482,14 +504,14 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       current.querySelector('i').className=relief?'fa-solid fa-person-chalkboard':keberadaan?'fa-solid fa-clipboard-check':'fa-solid fa-clipboard-user';
       current.setAttribute('aria-label',relief?'Modul e-Relief':keberadaan?'Modul e-Keberadaan':'Modul Kehadiran');
     }
-    const active=attendance||keberadaan||relief?'.fi-v5-bottom-attendance':'.fi-v5-bottom-home';
+    const active=attendance||keberadaan||relief||hemMurid?'.fi-v5-bottom-attendance':'.fi-v5-bottom-home';
     $("mobile-bottom-nav").querySelector(active)?.classList.add('active');
   }
   function fiV6OpenSchedule(){
     if(!dashboardAuthenticated){showInfo('Dashboard sedang menyediakan data.');return;}
     fiV6ScheduleOpen=true;
     closeKehadiranWorkspace(true);
-    closeKeberadaanWorkspace(true);closeReliefWorkspace(true);
+    closeKeberadaanWorkspace(true);closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);
     $('page-scroll').classList.remove('hidden');
     $('fi-v6-schedule-screen').hidden=false;
     $('fi-v6-day').value=DAYS.includes(todayDay())?todayDay():'Isnin';
@@ -509,6 +531,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     }
     if(!$('keberadaan-workspace').hidden){closeKeberadaanWorkspace();return;}
     if(!$('relief-workspace').hidden){closeReliefWorkspace();return;}
+    if(!$('pengurusan-murid-workspace').hidden){closePengurusanMuridWorkspace();return;}
     switchMainMenu('laman_utama');
   }
   function fiV6RenderSchedule(){
@@ -813,7 +836,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     updateClock();setInterval(updateClock,30000);
     $('greeting-text').textContent='Selamat Datang';
     document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){if(module.dataset.module==='jadual'){if(fiV6Mobile())fiV6OpenSchedule();else switchMainMenu('kurikulum');return;}openModule(module.dataset.module);return;}
-      const page=e.target.closest('[data-page]');if(page){fiV6CloseSchedule();closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();switchMainMenu(page.dataset.page);rememberWorkspace(page.dataset.page);return;}
+      const page=e.target.closest('[data-page]');if(page){fiV6CloseSchedule();closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closePengurusanMuridWorkspace();switchMainMenu(page.dataset.page);rememberWorkspace(page.dataset.page);return;}
       const day=e.target.closest('[data-day]');if(day){activeDay=day.dataset.day;renderTimetable();}
     });
     $('kehadiran-workspace-frame').addEventListener('load',fiKehadiranFrameReady);
@@ -871,7 +894,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     });
     $('profile-form').addEventListener('submit',saveProfile);
     $('profile-modal').addEventListener('click',e=>{if(e.target===$('profile-modal'))closeProfile();});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closeProfile();closeMobileMenu();}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closePengurusanMuridWorkspace();closeProfile();closeMobileMenu();}});
     window.addEventListener('resize',()=>{fitName();if(window.innerWidth>=768){$('sidebar-container').classList.remove('-translate-x-full');$('sidebar-backdrop').classList.remove('active');}else{$('sidebar-container').classList.add('-translate-x-full');}});
     showInstantShell();
     fiV6Header();
