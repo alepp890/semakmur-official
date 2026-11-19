@@ -6,6 +6,7 @@ const tmEsc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':
 const tmFmt=d=>{if(!/^\d{4}-\d\d-\d\d$/.test(String(d||'')))return String(d||'—');const [y,m,dd]=d.split('-');return `${dd}/${m}/${y}`;};
 const tmToday=()=>{const v=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const parts=Object.fromEntries(v.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return `${parts.year}-${parts.month}-${parts.day}`;};
 const tmState={overviewMeta:{},auth:null,user:null,data:null,detail:null,calendar:null,year:'2026',weekId:'',tab:'overview',busy:false,audit:null};
+const tm51={db:null,fns:null,overviewStop:null,weekStops:[],schedule:null,audit:null,overview:null,year:'',weekKey:'',tab:'schedule',initStarted:false};
 const tmManager=()=>!!tmState.data?.actor?.manager;
 const tmMe=()=>tmState.data?.actor?.id||'';
 const tmSelected=()=>tmState.data?.weeks?.find(w=>w.ID_Minggu===tmState.weekId);
@@ -61,8 +62,12 @@ async function tmBootstrap(){
   if(!weeks.some(x=>x.ID_Minggu===tmState.weekId)){
     const today=tmToday();tmState.weekId=(weeks.find(x=>x.Tempoh_Mula<=today&&today<=x.Tempoh_Tamat)||weeks[0])?.ID_Minggu||'';
   }
-  tmState.overviewMeta={};tmRenderOverview();tmOverviewMeta();tmRenderSettings();if(result.actor?.manager)await tm4LoadWeeks(false);tmSignal('semakmur-tm-ready');
+  tmState.overviewMeta={};tmRenderOverview();tmRenderSettings();tmState.tm4WeeksLoaded=false;
+  if(result.actor?.manager&&tmState.tab==='smart'){await tm4LoadWeeks(false);tmState.tm4WeeksLoaded=true;}
+  tmSignal('semakmur-tm-ready');
   if(tmState.weekId)await tmLoadDetail(false);else{tmState.detail=null;tmRenderDetail();}
+  tm51PopulateWeekSelector();
+  if(!tm51.initStarted)tm51InitFirestore();else{tm51ListenOverview();tm51ListenWeek();}
   document.dispatchEvent(new Event('semakmur-tm-auth-ready'));
 }
 function tmRenderOverview(){
@@ -90,8 +95,9 @@ function tmRenderOverview(){
   tm$('tm-warnings').innerHTML=warnings.map(x=>`<div class="tm-warning-line">${tmEsc(x)}</div>`).join('');
 }
 async function tmOverviewMeta(){
+  if(tm51.overview?.year===tmState.year)return;
   const year=tmState.year;try{const r=await tmAPI('tm5OverviewMeta',{year});
-    if(tmState.year!==year)return;tmState.overviewMeta=r.weeks||{};tmRenderOverview();
+    if(tmState.year!==year||tm51.overview?.year===year)return;tmState.overviewMeta=r.weeks||{};tmRenderOverview();
   }catch(e){console.warn('[TM5 metadata]',e?.message||String(e));}
 }
 async function tmLoadDetail(showMessage=true){
@@ -193,12 +199,14 @@ function tmDutySetFilter(date){
   wrap.querySelectorAll('[data-duty-card]').forEach(el=>{el.hidden=date!=='ALL'&&el.dataset.dutyCard!==date;});
 }
 function tmRenderAssignments(){
-  const detail=tmState.detail||{},raw=detail.assignments||[],types=tmState.data?.settings?.types||[];
-  const names=Object.fromEntries((detail.members||[]).map(x=>[String(x.id),x.name]));
+  const detail=tmState.detail||{},published=tm51.schedule?.published===true&&tm51.schedule?.weekId===tmState.weekId&&tm51.schedule?.year===tmState.year?tm51.schedule:null;
+  const raw=published?.assignments||detail.assignments||[],types=tmState.data?.settings?.types||[];
+  const names=Object.fromEntries([...(detail.members||[]),...(published?.week?.members||[])].map(x=>[String(x.id),x.name]));
   const typeNames=Object.fromEntries(types.map(x=>[String(x.id),x.name]));
-  const week=detail.week||{},dates=tmDutyDateList(week,raw);
+  const week=published?.week||detail.week||{},dates=tmDutyDateList(week,raw);
   const holder=tm$('tm-assignments');if(!holder)return;
-  const calDays=Array.isArray(tmState.calendar?.days)?tmState.calendar.days:[];
+  const calendarSource=published?.calendarDays||(tmState.calendar?.weekId===tmState.weekId?tmState.calendar.days:[]);
+  const calDays=Array.isArray(calendarSource)?calendarSource:[];
   const calendar=new Map(calDays.map(d=>[String(d.date),d]));
   if(!raw.length&&!calDays.length){holder.innerHTML='<div class="tm-duty-empty"><strong>Belum ada tugasan untuk minggu ini</strong></div>';return;}
   const valid=raw.filter(x=>x&&x.date),uniqueStaff=new Set(valid.map(x=>String(x.staff||'')).filter(Boolean));
@@ -222,7 +230,7 @@ function tmRenderAssignments(){
     // Paparan menyatukan guru mengikut jenis tugasan; masa sebenar kekal dalam data/enjin V4.
     const grouped=new Map();
     entries.forEach(x=>{
-      const id=String(x.task||''),title=typeNames[id]||id||'Tugasan';
+      const id=String(x.task||''),title=x.taskName||typeNames[id]||id||'Tugasan';
       if(!grouped.has(id))grouped.set(id,{title,staff:[]});
       grouped.get(id).staff.push({id:String(x.staff||''),name:names[String(x.staff)]||String(x.staff||'Belum ditetapkan')});
     });
@@ -310,7 +318,7 @@ function tmEditTime(id){const x=tmState.data?.settings?.times?.find(x=>x.id===id
   if(mode!=='TANPA_MASA')tm$('tm-time-from').value=x.start||'';
   if(mode==='JULAT')tm$('tm-time-to').value=x.end||'';
   tm$('tm-time-task').focus();}
-async function tmChoose(id){tmState.weekId=id;await tmLoadDetail(false);if(window.SeMAKMUR_TM5_UI)await window.SeMAKMUR_TM5_UI.openFromOverview(id);else tmTab('report-studio');}
+async function tmChoose(id){tmState.weekId=id;tm51ListenWeek();await tmLoadDetail(false);if(window.SeMAKMUR_TM5_UI)await window.SeMAKMUR_TM5_UI.openFromOverview(id);else tmTab('report-studio');}
 async function tmSaveDaily(e){e.preventDefault();if(!tmState.detail?.plan)return tmNotice('Draf minggu belum disediakan.',true);
   const date=tm$('tm-day-date').value,section=tm$('tm-day-section').value,text=tm$('tm-day-text').value;
   const result=await tmRun(()=>tmAPI('saveDaily',{year:tmState.year,weekId:tmState.weekId,date,section,text}));
@@ -584,10 +592,10 @@ async function tm47CancelAbsence(id){
 }
 function tm47RenderAudit(a){
   const root=tm$('tm47-audit-result'),s=a.summary||{};
-  const fields=[['Tugas Aktif',s.active],['Guru',s.teachers],['Rehat T1 / T2',`${s.rest1} / ${s.rest2}`],
+  const fields=[['Tugas Aktif',s.active],['Guru',s.teachers],['Rehat T1 / T2',`${s.rest1??0} / ${s.rest2??0}`],
     ['Semakan PdPc',s.checked],['Konflik PdPc',s.pdpcConflicts],['Slot Rehat Kurang Guru',s.restShortages]];
   const summary=`<div class="tm47-metrics">${fields.map(([k,v])=>`<div><span>${tmEsc(k)}</span><strong>${tmEsc(v??0)}</strong></div>`).join('')}</div>`;
-  const personRows=(a.people||[]).map(x=>`<tr><td>${tmEsc(x.name)}</td><td>${x.total}</td><td>${x.rest1}</td><td>${x.rest2}</td><td>${x.rest}</td><td>${x.morning}</td><td>${x.heavy}</td><td>${x.light}</td><td>${x.weight}</td><td>${tmEsc(x.repeats||'—')}</td></tr>`).join('');
+  const personRows=(a.people||[]).map(x=>`<tr><td>${tmEsc(x.name)}</td><td>${Number(x.total)||0}</td><td>${Number(x.rest1)||0}</td><td>${Number(x.rest2)||0}</td><td>${Number(x.rest)||0}</td><td>${Number(x.morning)||0}</td><td>${Number(x.heavy)||0}</td><td>${Number(x.light)||0}</td><td>${Number(x.weight)||0}</td><td>${tmEsc(x.repeats||'—')}</td></tr>`).join('');
   const table=`<h3 class="tm47-subhead">Keadilan dan Kekerapan Jenis Tugas</h3><div class="tm-table-scroll"><table class="tm47-table"><thead><tr><th>Guru</th><th>Jumlah</th><th>Rehat T1</th><th>Rehat T2</th><th>Rehat</th><th>Pagi</th><th>Berat</th><th>Ringan</th><th>Mata</th><th>Ulangan Pagi</th></tr></thead><tbody>${personRows}</tbody></table></div>`;
   const rest=(a.restByDay||[]).map(x=>`<tr><td>${tmEsc(x.day)} · ${tmFmt(x.date)}</td><td>${x.t1}/${x.need1}</td><td>${x.t2}/${x.need2}</td><td>${x.ok?'Cukup':'PERLU TINDAKAN'}</td></tr>`).join('');
   const restTable=`<h3 class="tm47-subhead">Bilangan Petugas Waktu Rehat Mengikut Hari</h3><div class="tm-table-scroll"><table class="tm47-table"><thead><tr><th>Hari / Tarikh</th><th>Tahap 1</th><th>Tahap 2</th><th>Status</th></tr></thead><tbody>${rest}</tbody></table></div>`;
@@ -603,16 +611,127 @@ async function tm47Audit(){
   tm4Message(`Audit siap: ${result.summary.checked} tugasan bermasa disemak · ${result.summary.pdpcConflicts} konflik PdPc · ${result.summary.restShortages} sesi rehat kurang petugas.`);
 }
 
+
+/* V5.1 P1: Firestore read-only subscriptions; never write to Firestore from client.
+   Fallback remains the existing authenticated Fi-Sync backend. */
+function tm51StopListening(){
+  tm51.overviewStop?.();tm51.overviewStop=null;
+  for(const stop of tm51.weekStops)stop();tm51.weekStops=[];
+  tm51.schedule=null;tm51.audit=null;tm51.overview=null;tm51.year='';tm51.weekKey='';
+}
+function tm51SetStatus(status){const el=tm$('tm51-sync-status');if(el)el.textContent=status;}
+async function tm51InitFirestore(){
+  if(tm51.initStarted)return;
+  tm51.initStarted=true;
+  try{
+    const cfg=window.SeMAKMURFirebasePilotConfig;
+    const [appmod,fire]=await Promise.all([
+      import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')
+    ]);
+    const app=appmod.getApps().find(a=>a.name==='semakmur-fi-dashboard')||appmod.initializeApp(cfg,'semakmur-fi-dashboard');
+    tm51.db=fire.getFirestore(app);tm51.fns=fire;
+    tm51ListenOverview();tm51ListenWeek();
+  }catch(err){tm51SetStatus('Bacaan Fi-Sync');console.warn('[TM51 Firestore disabled]',err);tmOverviewMeta();}
+}
+function tm51PopulateWeekSelector(){
+  const el=tm$('tm51-week-select');if(!el)return;
+  const weeks=tm51.overview?.year===tmState.year?tm51.overview.weeks:(tmState.data?.weeks||[]);
+  const old=tmState.weekId;
+  el.innerHTML='<option value="">Pilih minggu</option>'+(weeks||[]).map(w=>
+    `<option value="${tmEsc(w.ID_Minggu)}">Minggu ${tmEsc(w.Minggu)} · ${tmEsc(w.Nama_Kumpulan)} · ${tmFmt(w.Tempoh_Mula)}</option>`
+  ).join('');
+  el.value=(weeks||[]).some(w=>w.ID_Minggu===old)?old:'';
+}
+function tm51ChooseScheduleWeek(id){
+  if(!id||!/^[A-Za-z0-9_-]{1,120}$/.test(id))return;
+  tmState.weekId=id;tmState.detail=null;tmState.calendar=null;
+  tm51.schedule=null;tm51.audit=null;tm51.weekKey='';
+  const week=(tm51.overview?.weeks||tmState.data?.weeks||[]).find(w=>w.ID_Minggu===id);
+  tm$('tm-selection-tasks').innerHTML=week?`<strong>Minggu ${tmEsc(week.Minggu)} · ${tmEsc(week.Nama_Kumpulan)}</strong><small>${tmFmt(week.Tempoh_Mula)} hingga ${tmFmt(week.Tempoh_Tamat)}</small>`:'';
+  tmRenderAssignments();tm51RenderAudit();tm51ListenWeek();
+}
+function tm51ApplyOverview(data){
+  if(!data||data.year!==tmState.year||!tmState.data)return;
+  const allowed=new Set((tmState.data.weeks||[]).map(w=>String(w.ID_Minggu)));
+  const mapped=new Map((data.weeks||[]).filter(w=>allowed.has(String(w.ID_Minggu))).map(w=>[String(w.ID_Minggu),w]));
+  tmState.data.weeks=(tmState.data.weeks||[]).map(w=>({...w,...(mapped.get(String(w.ID_Minggu))||{})}));
+  tmState.overviewMeta=Object.fromEntries(Object.entries(data.metadata||{}).filter(([id])=>allowed.has(id)));
+  tmRenderOverview();tm51PopulateWeekSelector();tm51SetStatus('Firestore · Langsung');
+}
+function tm51ListenOverview(){
+  if(!tm51.db||!tmState.user||!tmState.data)return;
+  const year=tmState.year;
+  if(tm51.year===year&&tm51.overviewStop){tm51ApplyOverview(tm51.overview);return;}
+  tm51.overviewStop?.();tm51.overviewStop=null;tm51.year=year;tm51.overview=null;
+  tm51.overviewStop=tm51.fns.onSnapshot(tm51.fns.doc(tm51.db,'semakmur_fi_tm51_overview',year),snap=>{
+    if(tmState.year!==year)return;
+    if(!snap.exists()){tm51SetStatus('Menunggu penerbitan Firestore');tmOverviewMeta();return;}
+    const data=snap.data();if(!data.active||data.year!==year)return;
+    tm51.overview=data;tm51ApplyOverview(data);
+  },err=>{console.warn('[TM51 overview listener]',err?.code||err);tm51SetStatus('Fi-Sync · Cadangan');tmOverviewMeta();});
+}
+function tm51ListenWeek(){
+  if(!tm51.db||!tmState.user)return;
+  const year=tmState.year,weekId=String(tmState.weekId||'');
+  const key=year+'_'+weekId;
+  if(tm51.weekKey===key&&tm51.weekStops.length)return;
+  for(const stop of tm51.weekStops)stop();tm51.weekStops=[];
+  tm51.weekKey=key;tm51.schedule=null;tm51.audit=null;
+  if(!/^20\d\d$/.test(year)||!/^[A-Za-z0-9_-]{1,120}$/.test(weekId))return;
+  tm51.weekStops.push(tm51.fns.onSnapshot(tm51.fns.doc(tm51.db,'semakmur_fi_tm51_schedule',key),snap=>{
+    if(tmState.year!==year||tmState.weekId!==weekId)return;
+    tm51.schedule=snap.exists()&&snap.data().published===true?snap.data():null;
+    tmRenderAssignments();tm51RenderAudit();
+  },err=>{console.warn('[TM51 schedule listener]',err?.code||err);tm51SetStatus('Fi-Sync · Cadangan');}));
+  tm51.weekStops.push(tm51.fns.onSnapshot(tm51.fns.doc(tm51.db,'semakmur_fi_tm51_audit',key),snap=>{
+    if(tmState.year!==year||tmState.weekId!==weekId)return;
+    tm51.audit=snap.exists()&&snap.data().published===true?snap.data():null;
+    tm51RenderAudit();
+  },err=>console.warn('[TM51 audit listener]',err?.code||err)));
+}
+function tm51SelectTab(value){
+  tm51.tab=value==='audit'?'audit':'schedule';
+  document.querySelectorAll('[data-tm51-subtab]').forEach(btn=>{
+    const chosen=btn.dataset.tm51Subtab===tm51.tab;
+    btn.classList.toggle('is-current',chosen);btn.setAttribute('aria-pressed',String(chosen));
+  });
+  tm$('tm51-schedule-view').hidden=tm51.tab!=='schedule';
+  tm$('tm51-audit-view').hidden=tm51.tab!=='audit';
+  if(tm51.tab==='audit')tm51RenderAudit();
+}
+function tm51RenderAudit(){
+  const root=tm$('tm47-audit-result'),fairEl=tm$('tm4-fairness'),warnings=tm$('tm4-warning');
+  if(!root||!fairEl)return;
+  const schedule=tm51.schedule?.published&&tm51.schedule.weekId===tmState.weekId?tm51.schedule:null;
+  const audit=tm51.audit?.published&&tm51.audit.weekId===tmState.weekId?tm51.audit:null;
+  const names=Object.fromEntries((schedule?.week?.members||[]).map(x=>[x.id,x.name]));
+  const fairness=schedule?.fairness||{};
+  fairEl.innerHTML=Object.entries(fairness).sort((a,b)=>(Number(a[1]?.weight)||0)-(Number(b[1]?.weight)||0)).map(([id,v])=>
+    `<div class="tm4-fair"><span>${tmEsc(names[id]||id)}</span><strong>${Number(v.weight)||0} mata</strong><small>Rehat: ${Number(v.rest)||0} · Pagi: ${Number(v.morning)||0} · Berat: ${Number(v.heavy)||0} · Ringan: ${Number(v.light)||0} · Jumlah: ${Number(v.all)||0}</small></div>`
+  ).join('')||'<p class="tm-empty">Jadual rasmi belum diterbitkan untuk minggu ini.</p>';
+  warnings.innerHTML=(schedule?.warnings||[]).map(w=>`<p class="tm-warning-line">${tmEsc(w)}</p>`).join('');
+  if(!audit||!schedule||audit.scheduleHash!==schedule.scheduleHash){
+    root.innerHTML='<p class="tm-empty">Audit rasmi belum tersedia untuk minggu ini. Sistem akan menerbitkannya selepas jadual diselaraskan.</p>';return;
+  }
+  tm47RenderAudit(audit);
+}
+
 function tmListeners(){
   document.addEventListener('click',async e=>{
-    const tab=e.target.closest('[data-tm-tab]');if(tab){tmTab(tab.dataset.tmTab);if(tab.dataset.tmTab==='report-studio'&&window.SeMAKMUR_TM5_UI)await window.SeMAKMUR_TM5_UI.openPrimary?.();return;}
+    const subtab=e.target.closest('[data-tm51-subtab]');if(subtab){tm51SelectTab(subtab.dataset.tm51Subtab);return;}
+    const tab=e.target.closest('[data-tm-tab]');if(tab){tmTab(tab.dataset.tmTab);
+      if(tab.dataset.tmTab==='report-studio'&&window.SeMAKMUR_TM5_UI)await window.SeMAKMUR_TM5_UI.openPrimary?.();
+      if(tab.dataset.tmTab==='smart'&&tmManager()&&!tmState.tm4WeeksLoaded){await tm4LoadWeeks(false);tmState.tm4WeeksLoaded=true;}
+      return;}
     const choose=e.target.closest('[data-tm-choose]');if(choose){await tmChoose(choose.dataset.tmChoose);return;}
     const draft=e.target.closest('[data-tm-draft]');if(draft){await tmDraft(draft.dataset.tmDraft);return;}
     const edTask=e.target.closest('[data-edit-task]');if(edTask){tmEditTask(edTask.dataset.editTask);return;}
     const edTime=e.target.closest('[data-edit-time]');if(edTime){tmEditTime(edTime.dataset.editTime);return;}
     const cancel=e.target.closest('[data-tm47-cancel]');if(cancel){await tm47CancelAbsence(cancel.dataset.tm47Cancel);return;}
   });
-  tm$('tm-year').addEventListener('change',async()=>{tmState.year=tm$('tm-year').value;tmState.weekId='';tm49.ready=false;await tmBootstrap();if(tmState.tab==='report-studio')await window.SeMAKMUR_TM5_UI?.reload?.();});
+  tm$('tm51-week-select').addEventListener('change',e=>tm51ChooseScheduleWeek(e.target.value));
+  tm$('tm-year').addEventListener('change',async()=>{tm51StopListening();tmState.year=tm$('tm-year').value;tmState.weekId='';tm49.ready=false;await tmBootstrap();if(tmState.tab==='report-studio')await window.SeMAKMUR_TM5_UI?.reload?.();});
   tm$('tm-refresh').addEventListener('click',tmBootstrap);
   tm$('tm-day-date').addEventListener('change',tmRenderSections);
   tm$('tm-day-section').addEventListener('change',tmRestoreOwnEntry);
@@ -636,7 +755,7 @@ function tmListeners(){
   tm$('tm4-publish').addEventListener('click',tm4Publish);
   tm$('tm4-absence-form').addEventListener('submit',tm4RecordAbsence);
   tm$('tm4-calendar-form').addEventListener('submit',tm4Calendar);
-  tm$('tm47-audit').addEventListener('click',tm47Audit);
+
   tm$('tm4-absence-reason').addEventListener('change',()=>{const v=tm$('tm4-absence-reason').value; if(v==='URUSAN_RASMI_DALAM')tm$('tm4-absence-location').value='DALAM_SEKOLAH';else if(['URUSAN_RASMI_LUAR','CRK','CTR','MC','KECEMASAN'].includes(v))tm$('tm4-absence-location').value='LUAR_SEKOLAH';});
   tm$('tm-task-form').addEventListener('submit',tmSaveTask);
   tm$('tm-task-name').addEventListener('change',tm43UpdateTaskMode);
@@ -1103,9 +1222,9 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
   function printDocument(){if(!isApproved())return msg('Laporan belum disahkan oleh Guru Besar.',true);
     tmPrintDocumentHTML('Laporan Guru Bertugas Mingguan',documentHTML());
   }
-  function init(){chrome();if(tmState.data)guard(async()=>{await fetchWeeks();await openPrimary();})();
-    else document.addEventListener('semakmur-tm-auth-ready',()=>guard(async()=>{await fetchWeeks();await openPrimary();})(),{once:true});
-  }
+  // P1: jangan mengambil direktori/laporan ketika tab laporan tidak dibuka.
+  // `openPrimary` atau `openFromOverview` akan memuat sekali ketika pengguna memerlukan data.
+  function init(){chrome();}
   window.SeMAKMUR_TM5_UI={openFromOverview:guard(openFromOverview),openPrimary:guard(openPrimary),reload:guard(async()=>{await fetchWeeks();await openPrimary();})};
   init();
 })();

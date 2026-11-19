@@ -10,11 +10,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('tm-embedded');</script>
-  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.0.8">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.1.0">
   <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.0.8">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
-  <script src="Fi-TugasanMingguan.js?v=5.0.8" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=5.1.0" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
@@ -133,11 +133,25 @@
       </section>
     </section>
     <section id="tm-panel-tasks" data-tm-panel="tasks" hidden>
-      <section class="tm-card tm-duty-schedule"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2></div><button type="button" class="tm-btn tm-outline" id="tm-print-schedule-live">Cetak Jadual</button></div>
-        <div id="tm-selection-tasks" class="tm-selection"></div>
-        <div id="tm-assignments" class="tm-duty-board" aria-live="polite"></div>
-        <div id="tm-preflight-result"></div><button type="button" class="tm-btn tm-outline" id="tm-preflight" hidden>Semak Kesediaan Agihan (Admin)</button>
-      </section>
+      <div class="tm51-subtabs" role="group" aria-label="Paparan tugasan mingguan">
+        <button type="button" class="tm51-subtab is-current" data-tm51-subtab="schedule" aria-pressed="true">Jadual Tugasan Harian</button>
+        <button type="button" class="tm51-subtab" data-tm51-subtab="audit" aria-pressed="false">Audit Agihan</button>
+        <label class="tm51-week-filter">Minggu <select id="tm51-week-select" aria-label="Pilih minggu untuk jadual dan audit"><option value="">Pilih minggu</option></select></label>
+        <span class="tm51-sync-badge" id="tm51-sync-status" aria-live="polite">Data rasmi</span>
+      </div>
+      <div id="tm51-schedule-view">
+        <section class="tm-card tm-duty-schedule"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2></div><button type="button" class="tm-btn tm-outline" id="tm-print-schedule-live">Cetak Jadual</button></div>
+          <div id="tm-selection-tasks" class="tm-selection"></div>
+          <div id="tm-assignments" class="tm-duty-board" aria-live="polite"></div>
+          <div id="tm-preflight-result"></div><button type="button" class="tm-btn tm-outline" id="tm-preflight" hidden>Semak Kesediaan Agihan (Admin)</button>
+        </section>
+      </div>
+      <div id="tm51-audit-view" hidden>
+        <section class="tm-card"><div class="tm-section-title"><h2>Ringkasan Keadilan — Mata Beban</h2></div><div id="tm4-fairness" class="tm4-fairness"></div><div id="tm4-warning"></div></section>
+        <section class="tm-card tm47-analytics"><div class="tm-section-title"><h2>Statistik &amp; Audit Silang PdPc</h2></div>
+          <div id="tm47-audit-result" aria-live="polite"><p class="tm-empty">Audit belum diterbitkan untuk minggu yang dipilih.</p></div>
+        </section>
+      </div>
     </section>
     <section id="tm-panel-settings" data-tm-panel="settings" hidden>
       <section class="tm-card"><div class="tm-section-title"><div><h2>Tetapan Asas</h2></div></div>
@@ -232,13 +246,7 @@
       <section class="tm-card"><div class="tm-section-title"><div><h2>Hasil Jadual Bertugas Mengikut Hari</h2><p>Dua hari bersebelahan pada desktop. Rekod DIGANTI kekal dalam Sejarah. Draf boleh diimbang semula tanpa memadam rekod lama.</p></div><span class="tm-tag" id="tm4-total">0 tugasan</span></div>
         <div id="tm4-rows" class="tm4-daily-groups"><p class="tm-empty">Pilih minggu dan jana jadual dahulu.</p></div><div class="tm-buttons" style="margin-top:14px"><button type="button" id="tm49-open-from-smart" class="tm-btn tm-outline">Buka Borang Laporan Minggu Ini</button></div>
       </section>
-      <section class="tm-card"><div class="tm-section-title"><h2>Ringkasan Keadilan — Mata Beban</h2></div><div id="tm4-fairness" class="tm4-fairness"></div><div id="tm4-warning"></div></section>
-      <section class="tm-card tm47-analytics"><div class="tm-section-title"><div><h2>Statistik &amp; Audit Silang PdPc</h2>
-        <p>Semak bilangan petugas rehat, taburan tugas berat/ringan, giliran tugas pagi serta padanan W5 Tahap 1 / Tahap 2 dan waktu balik berdasarkan jadual mengajar sebenar.</p></div>
-        <button type="button" id="tm47-audit" class="tm-btn tm-outline">Semak Statistik &amp; Konflik PdPc</button></div>
-        <p class="tm-muted">Semakan akan membaca Jadual_Waktu_Hasil dan Master_Grid_Masa terkini. Status <strong>Tiada Kelas</strong> hanya diberikan apabila bacaan jadual berjaya.</p>
-        <div id="tm47-audit-result" aria-live="polite"><p class="tm-empty">Jana atau buka jadual, kemudian klik Semak Statistik &amp; Konflik PdPc.</p></div>
-      </section>
+
     </section>
   </main>
 

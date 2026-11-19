@@ -519,3 +519,17 @@ html.tm-embedded .tm-tab-links>button{min-height:39px;padding:9px 12px;font-size
 #tm-panel-settings .tm-section-title p,
 #tm-panel-smart .tm-section-title p,
 #tm-panel-smart .tm-notice.tm-info{display:none!important}
+
+/* V5.1: subtab harian / audit, kekalkan gaya PWA lama. */
+.tm51-subtabs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:var(--tm-surface,#fff);border:1px solid var(--tm-border,#e3e8ec);border-radius:13px;padding:9px 11px;margin-bottom:14px}
+.tm51-subtab{border:1px solid transparent;background:transparent;border-radius:9px;padding:10px 14px;cursor:pointer;font:700 13px 'Plus Jakarta Sans',sans-serif;color:#425357}
+.tm51-subtab.is-current{background:#e7f3ef;border-color:#c6e6d9;color:#1e5d49}
+.tm51-subtab:focus-visible{outline:3px solid #bc7854;outline-offset:2px}
+.tm51-sync-badge{margin-left:auto;color:#53665f;font-size:11px;font-weight:650}
+#tm51-audit-view>.tm-card{margin-bottom:13px}
+@media(max-width:620px){.tm51-subtabs{gap:5px}.tm51-subtab{padding:9px 10px;font-size:12px}.tm51-sync-badge{width:100%;margin:2px 0 0 6px}}
+
+.tm51-week-filter{display:flex;align-items:center;gap:6px;margin-left:auto;font-size:12px;font-weight:700;color:#445b52}
+.tm51-week-filter select{max-width:260px;min-width:175px;background:white;border:1px solid #dbe4e0;border-radius:8px;padding:8px 9px;color:#24342e;font:600 12px 'Plus Jakarta Sans',sans-serif}
+.tm51-sync-badge{margin-left:0}
+@media(max-width:720px){.tm51-week-filter{width:100%;margin-left:0;justify-content:space-between}.tm51-week-filter select{flex:1;max-width:none}.tm51-sync-badge{margin-left:0}}
