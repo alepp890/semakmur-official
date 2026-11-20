@@ -533,3 +533,24 @@ html.tm-embedded .tm-tab-links>button{min-height:39px;padding:9px 12px;font-size
 .tm51-week-filter select{max-width:260px;min-width:175px;background:white;border:1px solid #dbe4e0;border-radius:8px;padding:8px 9px;color:#24342e;font:600 12px 'Plus Jakarta Sans',sans-serif}
 .tm51-sync-badge{margin-left:0}
 @media(max-width:720px){.tm51-week-filter{width:100%;margin-left:0;justify-content:space-between}.tm51-week-filter select{flex:1;max-width:none}.tm51-sync-badge{margin-left:0}}
+
+/* V5.2: paparan cuti, audit, cetakan dan mod ujian pentadbir */
+.tm52-holiday-card{min-height:160px}.tm52-holiday{margin:12px 0;padding:12px 14px;border-radius:10px;background:#fff5df;color:#7a4d12;font-weight:750}
+.tm52-doc-holiday{background:#faf7f2;border:1px solid #dfcfb5;padding:14px}
+.tm52-not-approved{font-size:12px;font-weight:700;color:#975922}
+#tm52-schedule-overlay{position:fixed;inset:0;z-index:99999;background:#ebefed;overflow:auto;padding:14px}
+.tm52-preview-toolbar{position:sticky;top:0;z-index:2;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fff;border:1px solid #d8e4de;border-radius:12px;margin-bottom:18px}
+.tm52-preview-toolbar>div{display:flex;gap:9px}
+.tm52-preview-toolbar button,.tm52-demo button{background:#fff;border:1px solid #b8cec2;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer;color:#264839}
+.tm52-preview-toolbar button.primary,.tm52-demo button.primary{background:#1d5d45;color:#fff;border-color:#1d5d45}
+#tm52-schedule-paper-wrap{max-width:1020px;margin:auto}
+.tm52-schedule-paper{background:#fff;padding:24px;box-shadow:0 10px 32px #1b2a221a;border-radius:10px}
+.tm52-paper-school{text-align:center;letter-spacing:.07em;font-size:12px;font-weight:750}.tm52-schedule-paper h2{text-align:center;font-size:18px}
+.tm52-demo{margin-top:10px}.tm52-demo-banner{border:1px solid #ccad6f;background:#fff9eb;padding:12px 15px;border-radius:10px;margin-bottom:14px;font-weight:800;color:#835615}
+.tm52-demo-nav{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}.tm52-demo button[aria-current=true]{background:#1d5d45;color:#fff}
+.tm52-demo-grid{display:grid;grid-template-columns:minmax(180px,245px) minmax(0,1fr);gap:14px}.tm52-demo-card{border:1px solid #dbe4df;border-radius:12px;padding:16px;background:#fff}
+.tm52-demo-day{width:100%;text-align:left;margin:3px 0;padding:10px;border:1px solid #e3e9e5;border-radius:9px;cursor:pointer;background:#fff}
+.tm52-demo-day.chosen{border-color:#478a6a;background:#eff7f0}.tm52-demo textarea{width:100%;min-height:64px;display:block;border:1px solid #cbd6cf;border-radius:7px;padding:10px;box-sizing:border-box}
+.tm52-demo label{display:block;margin:10px 0;font-weight:650}.tm52-demo p{line-height:1.5}.tm52-demo .muted{font-size:12px;color:#5e6d63}.tm52-demo-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.tm52-demo-paper{max-width:800px;margin:15px auto;padding:26px;border:1px solid #d4dcd6;background:#fff;box-shadow:0 5px 18px #142f2312}.tm52-demo-paper h2{text-align:center}
+@media(max-width:650px){.tm52-demo-grid{grid-template-columns:1fr}.tm52-preview-toolbar{align-items:flex-start;flex-direction:column}.tm52-schedule-paper{padding:12px}.tm52-demo-paper{padding:13px}}
+@media print{#tm52-schedule-overlay .tm52-preview-toolbar{display:none!important}#tm52-schedule-overlay{position:static;padding:0;background:#fff}.tm52-schedule-paper{box-shadow:none;padding:0}}
