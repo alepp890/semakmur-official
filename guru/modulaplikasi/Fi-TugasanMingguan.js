@@ -101,6 +101,8 @@ async function tmBootstrap(){
     const alternate=await tmRun(()=>tmAPI('bootstrap',{year:next}));
     if(alternate?.weeks?.length){result=alternate;tmState.year=next;tm$('tm-year').value=next;}
   }
+  // V5.2.1: Clear startup notice only after successful authentication/bootstrap.
+  tmNotice('');
   tmState.data=result;tm$('tm-user').textContent=result.actor?.name||tmState.user?.email||'Guru';tm$('tm-tab-settings').hidden=!result.actor?.isAdmin;tm$('tm-preflight').hidden=!result.actor?.isAdmin;tm$('tm-sim-area').hidden=!result.actor?.isAdmin;tm$('tm4-tab').hidden=!result.actor?.isAdmin;
   const weeks=result.weeks||[];
   if(!weeks.some(x=>x.ID_Minggu===tmState.weekId)){
