@@ -1087,6 +1087,60 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
 
 
 /* SeMAKMUR TM V5.0.8: laporan live, direktori, pratonton dokumen dan cetak manual. */
+  // V5.2.3: Penomboran huraian hanya dalam borang desktop (rasmi dan mod ujian).
+  // Kandungan disimpan sebagai teks bernombor supaya pratonton/cetakan konsisten.
+  function tm523Renumber_(value){
+    const lines=String(value||'').replace(/\r/g,'').split('\n');
+    if(lines.every(line=>!line.replace(/^\s*\d+\.\s*/, '').trim()))return '';
+    return lines.map((line,i)=>`${i+1}. ${line.replace(/^\s*\d+\.\s*/, '').replace(/^\s+/, '')}`).join('\n');
+  }
+  function tm523BindNumbering_(host){
+    if(!host||host.dataset.tm523Bound==='true')return;
+    host.dataset.tm523Bound='true';
+    host.addEventListener('focusin',ev=>{
+      const el=ev.target;if(!el.matches?.('textarea[data-tm-numbered]')||el.disabled)return;
+      const formatted=tm523Renumber_(el.value);
+      if(!formatted){el.value='1. ';el.setSelectionRange(el.value.length,el.value.length);}
+      else if(formatted!==el.value){el.value=formatted;el.setSelectionRange(el.value.length,el.value.length);}
+    });
+    host.addEventListener('keydown',ev=>{
+      const el=ev.target;if(!el.matches?.('textarea[data-tm-numbered]')||el.disabled||ev.key!=='Enter'||ev.isComposing||ev.ctrlKey||ev.altKey||ev.metaKey)return;
+      ev.preventDefault();
+      const before=el.value.slice(0,el.selectionStart);
+      const after=el.value.slice(el.selectionEnd);
+      const nextLine=before.split('\n').length; // next numbered row
+      const lines=(before+'\n'+after).split('\n');
+      const norm=lines.map((line,i)=>`${i+1}. ${line.replace(/^\s*\d+\.\s*/, '').replace(/^\s+/, '')}`);
+      el.value=norm.join('\n');
+      const caret=norm.slice(0,nextLine).reduce((a,l)=>a+l.length+1,0)+`${nextLine+1}. `.length;
+      el.setSelectionRange(caret,caret);
+      el.dispatchEvent(new Event('input',{bubbles:true}));
+    });
+    host.addEventListener('input',ev=>{
+      const el=ev.target;if(!el.matches?.('textarea[data-tm-numbered]'))return;
+      if(ev.inputType==='insertFromPaste'||ev.inputType==='insertFromDrop'){
+        el.value=tm523Renumber_(el.value)||'';el.setSelectionRange(el.value.length,el.value.length);
+      }
+    });
+    host.addEventListener('focusout',ev=>{
+      const el=ev.target;if(!el.matches?.('textarea[data-tm-numbered]'))return;
+      const numbered=tm523Renumber_(el.value);
+      if(numbered!==el.value)el.value=numbered;
+    });
+  }
+  function tm523Narrative_(key,text,prompt,attr=''){
+    return `<textarea class="tm53-numbered" data-tm-numbered ${attr} ${key} rows="3" maxlength="3000" placeholder="1. ${tmEsc(prompt)}">${tmEsc(text||'')}</textarea>`;
+  }
+  function tm523VisitorLabels_(host,selector){
+    const items=[...host.querySelectorAll(selector)];
+    items.forEach((item,i)=>{
+      const lab=item.querySelector('label');if(!lab)return;
+      // Label mengandungi input, jadi hanya ubah node teksnya.
+      const node=[...lab.childNodes].find(x=>x.nodeType===3);
+      if(node)node.textContent=i===0?'Nama Pelawat 1':'Nama Pelawat';
+    });
+  }
+
 (()=>{'use strict';
   const panel=document.getElementById('tm-panel-report-studio');if(!panel)return;
   [...panel.children].forEach(el=>el.hidden=true);
@@ -1309,12 +1363,14 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
   function tm53Desktop(){return window.matchMedia('(min-width: 901px)').matches;}
   function field(key,title,options,value){const o=value||{},v=String(o.status||''),desktop=tm53Desktop();return `<div class="tm5-field" data-pair="${key}">
     <label>${esc(title)}<select data-status="${key}"><option value="">${desktop?"Pilih status":"Pilih..."}</option>${options.map(x=>`<option value="${x}" ${v===x?'selected':''}>${x.replaceAll('_',' ')}</option>`).join('')}</select></label>
-    <div data-extra="${key}"><label>${desktop?(key.startsWith('speech_')?'Isi ucapan':'Catatan / Penerangan'):'Catatan / Penerangan'}${desktop?`<input type="text" data-text="${key}" value="${esc(o.text||'')}" placeholder="${key.startsWith('speech_')?'Ringkasan ucapan':'Nyatakan pemerhatian'}" maxlength="3000">`:`<textarea data-text="${key}">${esc(o.text||'')}</textarea>`}</label></div></div>`;}
+    <div data-extra="${key}">${desktop?
+      tm523Narrative_(`data-text="${key}"`,o.text||'',key==='speech_gb'?'Sila isi ucapan guru besar / pentadbir di sini...':key==='speech_duty'?'Sila isi ucapan guru bertugas di sini...':key==='speech_discipline'?'Sila isi ucapan guru disiplin di sini...':'Sila berikan penerangan atau huraian di sini...'):
+      `<label>Catatan / Penerangan<textarea data-text="${key}">${esc(o.text||'')}</textarea></label>`}</div></div>`;}
   function items(list,type){const desktop=tm53Desktop();return (list||[]).map((a,i)=>desktop?
     `<div class="tm53-repeat-item tm5-field" data-${type}-item>
        ${type==='activity'?`<div class="tm53-repeat-grid"><label>Tajuk Aktiviti<input data-item-title value="${esc(a.title||'')}" maxlength="200" placeholder="Nama aktiviti"></label>
-       <label>Ringkasan<input data-item-desc value="${esc(a.desc||'')}" maxlength="3000" placeholder="Ringkasan aktiviti"></label></div>`:
-       `<label>Nama pelawat ${i+1}<input data-item-title value="${esc(a||'')}" maxlength="250" placeholder="Nama pelawat"></label>`}
+       <label>Ringkasan${tm523Narrative_('data-item-desc',a.desc||'','Sila isi ringkasan aktiviti di sini...')}</label></div>`:
+       `<label>${i===0?"Nama Pelawat 1":"Nama Pelawat"}<input data-item-title value="${esc(a||'')}" maxlength="250" placeholder="Nama pelawat"></label>`}
        <button type="button" data-remove class="tm53-remove" aria-label="Buang ${type==='activity'?'aktiviti':'pelawat'} ${i+1}">Buang</button>
      </div>`:
     `<div class="tm5-field" data-${type}-item><label>${type==='activity'?'Aktiviti':'Pelawat'} ${i+1}</label>
@@ -1332,9 +1388,9 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
       ${block('Laporan Kawalan dan Disiplin Murid', [['discipline_assembly','Waktu Perhimpunan'],['discipline_break','Waktu Rehat'],['discipline_exit','Waktu Pulang']].map(([k,v])=>field(k,v,['TERKAWAL','MEMUASKAN','PERLU_PERHATIAN'],x[k])).join(''))}
       ${block('Lain-lain',
        `<div class="tm53-field" data-tm53-makmur><label>Program Makmur <small>· ${esc(program)}</small><select id="tm5-program"><option value="ADA">Berjalan</option><option value="BATAL">Batal</option></select></label></div>
-        <div class="tm53-field" data-tm53-program-note><label>Catatan pelaksanaan<input id="tm53-makmur-note" maxlength="3000" value="${esc(x.makmur_note||'')}" placeholder="Ringkasan Program Makmur"></label></div>
+        <div class="tm53-field" data-tm53-program-note><label>Catatan pelaksanaan${tm523Narrative_('id="tm53-makmur-note"',x.makmur_note||'','Sila nyatakan pelaksanaan Program Makmur di sini...')}</label></div>
         ${d.dayIndex===0?`<p class="tm53-smallhint">Guru pengendali: Kumpulan ${esc(S.week.group)}</p>`:`<div class="tm53-field" data-program-teacher><label>Guru Pengendali<select id="tm5-program-teacher"><option value="">Pilih guru</option>${S.teachers.map(t=>`<option value="${esc(t.id)}" ${String(x.makmur_teacher)===String(t.id)?'selected':''}>${esc(t.name)}</option>`).join('')}</select></label></div>`}
-        <div data-cancel-wrap class="tm53-field"><label>Sebab pembatalan<input id="tm5-cancel" maxlength="3000" value="${esc(x.makmur_cancel_reason||'')}" placeholder="Sebab program dibatalkan"></label></div>`)}
+        <div data-cancel-wrap class="tm53-field"><label>Sebab pembatalan${tm523Narrative_('id="tm5-cancel"',x.makmur_cancel_reason||'','Sila nyatakan sebab pembatalan di sini...')}</label></div>`)}
       <section class="tm53-form-section"><h4>Jemputan / Kehadiran Pelawat</h4>
         <input id="tm5-visitors-status" type="hidden" value="${(x.visitors||[]).length?'ADA':'TIADA'}">
         <div id="tm5-visitors" class="tm53-repeater">${items((x.visitors||[]).length?x.visitors:[''],'visitor')}</div>
@@ -1377,6 +1433,7 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
       ${edit?'<div class="tm5-row tm5-save-actions"><button id="tm5-save-draft">Simpan Draf</button><button class="primary" id="tm5-finish">Tandakan Lengkap & Kunci</button></div>':''}
       ${S.actor?.isLeader&&d.status==='LENGKAP'&&['BELUM_DIHANTAR','LENGKAP','DIPULANGKAN'].includes(S.week.status)?'<div class="tm5-field"><label>Alasan Buka Semula<textarea id="tm5-reopen-reason"></textarea></label><button id="tm5-reopen">Buka Semula Laporan</button></div>':''}
     </section>`;
+    if(tm53Desktop())tm523BindNumbering_(el);
     el.querySelector('#tm5-program').value=x.makmur_status||'ADA';el.querySelector('#tm5-visitors-status').value=x.visitors_status||'TIADA';
     const desktop=tm53Desktop();
     const toggle=()=>{el.querySelectorAll('[data-pair]').forEach(p=>{const k=p.dataset.pair,v=p.querySelector('select').value;
@@ -1398,8 +1455,8 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
     if(!edit){el.querySelectorAll('input,select,textarea,button:not(#tm5-reopen)').forEach(x=>x.disabled=true);}
     else{el.querySelector('#tm5-save-draft').onclick=guard(()=>saveDay(false));el.querySelector('#tm5-finish').onclick=guard(()=>saveDay(true));
       el.querySelector('#tm5-add-activity').onclick=()=>el.querySelector('#tm5-activities').insertAdjacentHTML('beforeend',items([{title:'',desc:''}],'activity'));
-      el.querySelector('#tm5-add-visitor').onclick=()=>el.querySelector('#tm5-visitors').insertAdjacentHTML('beforeend',items([''],'visitor'));
-      el.addEventListener('click',ev=>{if(ev.target.closest('[data-remove]'))ev.target.closest('.tm5-field').remove();});}
+      el.querySelector('#tm5-add-visitor').onclick=()=>{el.querySelector('#tm5-visitors').insertAdjacentHTML('beforeend',items([''],'visitor'));if(desktop)tm523VisitorLabels_(el,'[data-visitor-item]');};
+      el.addEventListener('click',ev=>{if(ev.target.closest('[data-remove]')){ev.target.closest('.tm5-field').remove();if(desktop)tm523VisitorLabels_(el,'[data-visitor-item]');}});}
     const reopen=el.querySelector('#tm5-reopen');if(reopen)reopen.onclick=guard(async()=>{const reason=el.querySelector('#tm5-reopen-reason').value;
       await call({op:'tm5Reopen',...common(),date:d.date,reason});await loadWeek({weekId:S.week.id,year:S.week.year,from:S.week.from},false,d.date);});
   }
@@ -1528,7 +1585,7 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
    const selection=(key,label,options)=>{const v=x[key]||{},status=typeof v==='object'?v.status:'';
      const note=typeof v==='object'?v.text||'':'';return `<div class="tm53-field" data-dem-pair="${key}"><label>${E(label)}<select data-dem-status="${key}" ${disabled}><option value="">Pilih status</option>
        ${options.map(o=>`<option value="${o}" ${status===o?'selected':''}>${E(o.replaceAll('_',' '))}</option>`).join('')}</select></label>
-       <label data-dem-extra="${key}" hidden>${key.startsWith('speech_')?'Isi ucapan':'Catatan / penerangan'}<input type="text" data-dem-note="${key}" maxlength="3000" value="${E(note)}" ${disabled}></label></div>`;};
+       <div data-dem-extra="${key}" hidden>${tm523Narrative_(`data-dem-note="${key}"`,note,key==='speech_gb'?'Sila isi ucapan guru besar / pentadbir di sini...':key==='speech_duty'?'Sila isi ucapan guru bertugas di sini...':key==='speech_discipline'?'Sila isi ucapan guru disiplin di sini...':'Sila berikan penerangan atau huraian di sini...',disabled)}</div></div>`;};
    const section=(name,body)=>`<section class="tm53-form-section"><h4>${E(name)}</h4><div class="tm53-field-grid">${body}</div></section>`;
    const speeches=demoPairs.filter(a=>a[2]==='speech').map(a=>selection(a[0],a[1],['ADA','TIADA'])).join('');
    const cleans=demoPairs.filter(a=>a[2]==='clean').map(a=>selection(a[0],a[1],['BERSIH','MEMUASKAN','PERLU_PERHATIAN'])).join('');
@@ -1541,15 +1598,15 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
      ${section('Laporan Kawalan dan Disiplin Murid',disc)}
      ${section('Lain-lain',`<div class="tm53-field"><label>Program Makmur<select id="demo-program" ${disabled}>
        <option value="ADA" ${(x.program||'ADA')==='ADA'?'selected':''}>Berjalan</option><option value="BATAL" ${x.program==='BATAL'?'selected':''}>Batal</option></select></label></div>
-       <div class="tm53-field" data-demo-program-note><label>Catatan pelaksanaan<input id="demo-program-note" maxlength="3000" value="${E(x.program_note||'')}" ${disabled}></label></div>
-       <div class="tm53-field" data-demo-program-reason><label>Sebab pembatalan<input id="demo-program-reason" maxlength="3000" value="${E(x.program_reason||'')}" ${disabled}></label></div>`)}
+       <div class="tm53-field" data-demo-program-note><label>Catatan pelaksanaan${tm523Narrative_('id="demo-program-note"',x.program_note||'','Sila nyatakan pelaksanaan Program Makmur di sini...',disabled)}</label></div>
+       <div class="tm53-field" data-demo-program-reason><label>Sebab pembatalan${tm523Narrative_('id="demo-program-reason"',x.program_reason||'','Sila nyatakan sebab pembatalan di sini...',disabled)}</label></div>`)}
      <section class="tm53-form-section"><h4>Jemputan / Kehadiran Pelawat</h4><div id="demo-visitors-list" class="tm53-repeater">
-        ${visitors.map((v,i)=>`<div class="tm53-repeat-item" data-demo-visitor><label>Nama pelawat ${i+1}<input value="${E(v)}" maxlength="250" ${disabled}></label>${editableNow?'<button type="button" data-demo-remove="visitor">Buang</button>':''}</div>`).join('')}</div>
+        ${visitors.map((v,i)=>`<div class="tm53-repeat-item" data-demo-visitor><label>${i===0?'Nama Pelawat 1':'Nama Pelawat'}<input value="${E(v)}" maxlength="250" ${disabled}></label>${editableNow?'<button type="button" data-demo-remove="visitor">Buang</button>':''}</div>`).join('')}</div>
         ${editableNow?'<button type="button" class="tm53-add" data-demo-add="visitor">+ Tambah Nama</button>':''}</section>
      <section class="tm53-form-section"><h4>Laporan Aktiviti / Program</h4><div class="tm53-field-grid"><label>Aktiviti / Program<select id="demo-activity-status" ${disabled}>
        <option value="TIADA" ${activities.length?'':'selected'}>Tiada</option><option value="ADA" ${activities.length?'selected':''}>Ada</option></select></label></div>
        <div id="demo-activities-list" class="tm53-repeater">${activities.map((a,i)=>`<div class="tm53-repeat-item" data-demo-activity>
-         <div class="tm53-repeat-grid"><label>Tajuk Aktiviti<input data-demo-title maxlength="200" value="${E(a.title||'')}" ${disabled}></label><label>Ringkasan<input data-demo-summary maxlength="3000" value="${E(a.desc||'')}" ${disabled}></label></div>
+         <div class="tm53-repeat-grid"><label>Tajuk Aktiviti<input data-demo-title maxlength="200" value="${E(a.title||'')}" ${disabled}></label><label>Ringkasan${tm523Narrative_('data-demo-summary',a.desc||'','Sila isi ringkasan aktiviti di sini...',disabled)}</label></div>
          ${editableNow?'<button type="button" data-demo-remove="activity">Buang</button>':''}</div>`).join('')}</div>
        ${editableNow?'<button type="button" class="tm53-add" data-demo-add="activity">+ Tambah Aktiviti</button>':''}</section>
    </div>`;
@@ -1647,14 +1704,18 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
      };
      D.root.querySelectorAll('[data-dem-pair] select,#demo-program,#demo-activity-status').forEach(sel=>sel.onchange=()=>{
        if(sel.id==='demo-activity-status'&&sel.value==='ADA'&&!D.root.querySelector('[data-demo-activity]')&&!sel.disabled){
-         D.root.querySelector('#demo-activities-list').insertAdjacentHTML('beforeend',`<div class="tm53-repeat-item" data-demo-activity><div class="tm53-repeat-grid"><label>Tajuk Aktiviti<input data-demo-title maxlength="200"></label><label>Ringkasan<input data-demo-summary maxlength="3000"></label></div><button type="button" data-demo-remove="activity">Buang</button></div>`);
+         D.root.querySelector('#demo-activities-list').insertAdjacentHTML('beforeend',`<div class="tm53-repeat-item" data-demo-activity><div class="tm53-repeat-grid"><label>Tajuk Aktiviti<input data-demo-title maxlength="200"></label><label>Ringkasan${tm523Narrative_('data-demo-summary','','Sila isi ringkasan aktiviti di sini...')}</label></div><button type="button" data-demo-remove="activity">Buang</button></div>`);
        }toggle();});
      D.root.querySelectorAll('[data-demo-add]').forEach(b=>b.onclick=()=>{
        const type=b.dataset.demoAdd;
-       if(type==='visitor')D.root.querySelector('#demo-visitors-list').insertAdjacentHTML('beforeend',`<div class="tm53-repeat-item" data-demo-visitor><label>Nama pelawat<input maxlength="250"></label><button type="button" data-demo-remove="visitor">Buang</button></div>`);
-       else D.root.querySelector('#demo-activities-list').insertAdjacentHTML('beforeend',`<div class="tm53-repeat-item" data-demo-activity><div class="tm53-repeat-grid"><label>Tajuk Aktiviti<input data-demo-title maxlength="200"></label><label>Ringkasan<input data-demo-summary maxlength="3000"></label></div><button type="button" data-demo-remove="activity">Buang</button></div>`);
+       if(type==='visitor')D.root.querySelector('#demo-visitors-list').insertAdjacentHTML('beforeend',`<div class="tm53-repeat-item" data-demo-visitor><label>Nama Pelawat<input maxlength="250"></label><button type="button" data-demo-remove="visitor">Buang</button></div>`);
+       else D.root.querySelector('#demo-activities-list').insertAdjacentHTML('beforeend',`<div class="tm53-repeat-item" data-demo-activity><div class="tm53-repeat-grid"><label>Tajuk Aktiviti<input data-demo-title maxlength="200"></label><label>Ringkasan${tm523Narrative_('data-demo-summary','','Sila isi ringkasan aktiviti di sini...')}</label></div><button type="button" data-demo-remove="activity">Buang</button></div>`);
+       if(type==='visitor')tm523VisitorLabels_(D.root,'[data-demo-visitor]');
      });
-     const area=D.root.querySelector('#tm52-demo-content');if(area)area.onclick=ev=>{const b=ev.target.closest('[data-demo-remove]');if(b)b.closest('.tm53-repeat-item').remove();};
+     const area=D.root.querySelector('#tm52-demo-content');if(area){
+       area.onclick=ev=>{const b=ev.target.closest('[data-demo-remove]');if(b){b.closest('.tm53-repeat-item').remove();tm523VisitorLabels_(area,'[data-demo-visitor]');}};
+       tm523BindNumbering_(area);
+     }
      toggle();
    }
    D.root.querySelectorAll('[data-dem-role]').forEach(el=>el.onclick=()=>{collect();D.role=el.dataset.demRole;render();});

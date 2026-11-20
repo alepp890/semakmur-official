@@ -597,3 +597,49 @@ html.tm-embedded .tm-tab-links>button{min-height:39px;padding:9px 12px;font-size
   .tm52-demo .tm52-demo-day span.muted{font-size:12px!important;}
   @media (max-width:1100px){.tm53-repeater{grid-template-columns:1fr}.tm52-demo-grid{grid-template-columns:minmax(190px,230px) minmax(0,1fr)}}
 }
+
+/* V5.2.3 — skala teks borang desktop dan huraian bernombor; PWA tidak diubah. */
+@media (min-width:901px){
+  #tm5-root .tm53-form-section h4,
+  #tm5-root .tm53-demo-form .tm53-form-section h4,
+  .tm52-demo .tm53-form-section h4{
+    font-size:15px!important;font-weight:800!important;line-height:1.45!important;
+  }
+  #tm5-root .tm53-form-section label,
+  #tm5-root .tm53-form-section .tm5-field label,
+  .tm52-demo .tm53-form-section label{
+    font-size:14px!important;font-weight:650!important;
+  }
+  #tm5-root .tm53-form-section input,
+  #tm5-root .tm53-form-section select,
+  #tm5-root .tm53-form-section textarea,
+  .tm52-demo .tm53-form-section input,
+  .tm52-demo .tm53-form-section select,
+  .tm52-demo .tm53-form-section textarea{
+    font-weight:450!important;font-size:14px!important;line-height:1.45!important;
+  }
+  #tm5-root .tm53-form-section .tm53-numbered,
+  .tm52-demo .tm53-form-section .tm53-numbered{
+    display:block!important;min-height:88px!important;height:auto;
+    max-height:none!important;resize:vertical!important;overflow-y:auto!important;
+    line-height:1.55!important;padding:9px 12px!important;
+    background:#fff!important;border:1px solid #cbd9e8!important;
+  }
+  #tm5-root .tm53-form-section .tm53-numbered::placeholder,
+  .tm52-demo .tm53-form-section .tm53-numbered::placeholder{
+    color:#8b9aad!important;font-weight:450!important;opacity:1;
+  }
+  #tm5-root .tm53-form-section [data-extra] textarea,
+  .tm52-demo .tm53-form-section [data-dem-extra] textarea{margin-top:0!important;}
+  #tm5-root .tm5-daily-form .tm5-formhead h3,
+  .tm52-demo #tm52-demo-content>h3{font-size:18px!important;}
+  #tm5-root .tm5-daybutton strong,
+  .tm52-demo .tm52-demo-day b{font-size:14px!important;font-weight:650!important;}
+  #tm5-root .tm5-daybadge,
+  .tm52-demo .tm52-demo-day span.muted{
+    font-size:14px!important;font-weight:450!important;
+  }
+  #tm5-root .tm5-pill{font-weight:500!important;font-size:14px!important;}
+  #tm5-root .tm53-form-section .tm53-field-grid,
+  .tm52-demo .tm53-form-section .tm53-field-grid{align-items:start;}
+}
