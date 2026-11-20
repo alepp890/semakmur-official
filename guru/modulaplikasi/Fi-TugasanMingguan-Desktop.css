@@ -554,3 +554,46 @@ html.tm-embedded .tm-tab-links>button{min-height:39px;padding:9px 12px;font-size
 .tm52-demo label{display:block;margin:10px 0;font-weight:650}.tm52-demo p{line-height:1.5}.tm52-demo .muted{font-size:12px;color:#5e6d63}.tm52-demo-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.tm52-demo-paper{max-width:800px;margin:15px auto;padding:26px;border:1px solid #d4dcd6;background:#fff;box-shadow:0 5px 18px #142f2312}.tm52-demo-paper h2{text-align:center}
 @media(max-width:650px){.tm52-demo-grid{grid-template-columns:1fr}.tm52-preview-toolbar{align-items:flex-start;flex-direction:column}.tm52-schedule-paper{padding:12px}.tm52-demo-paper{padding:13px}}
 @media print{#tm52-schedule-overlay .tm52-preview-toolbar{display:none!important}#tm52-schedule-overlay{position:static;padding:0;background:#fff}.tm52-schedule-paper{box-shadow:none;padding:0}}
+
+/* SeMAKMUR TM 5.2.2 — Desktop sahaja: borang pendek, dua lajur, satu aliran skrol halaman.
+   Tidak mengubah .tm5-* PWA, dan tidak membina scroll dalaman. */
+@media (min-width:901px){
+  #tm5-root .tm5-editor-layout,#tm5-root .tm5-report-right,#tm5-root .tm5-daily-form,#tm5-root #tm5-detail,
+  #tm5-root .tm53-official-form,.tm52-demo-grid,.tm52-demo-card,#tm52-demo-content,.tm53-demo-form{
+    height:auto!important;max-height:none!important;min-height:0;overflow:visible!important;
+  }
+  #tm5-root .tm5-daily-form .tm5-formhead h3,.tm52-demo #tm52-demo-content>h3{font-size:18px!important;line-height:1.35;color:#173c68;font-weight:800;}
+  #tm5-root .tm5-daybadge,#tm5-root .tm5-pill{font-size:13px;font-weight:800;}
+  #tm5-root .tm5-daybutton strong,.tm52-demo .tm52-demo-day b{font-size:14px;}
+  #tm5-root .tm5-daybutton .tm5-daybadge,.tm52-demo .tm52-demo-day span{font-size:13px;}
+  .tm53-form-section{padding:13px 15px 14px;border:1px solid #dde6f2;border-radius:11px;margin:0 0 12px;background:#fff;}
+  .tm53-form-section h4{font-size:16px!important;line-height:1.4!important;margin:0 0 11px!important;color:#1f4169!important;font-weight:800!important;padding:0 0 8px;border-bottom:1px solid #e7edf5;}
+  .tm53-field-grid,.tm53-repeat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 15px;align-items:start;}
+  .tm53-form-section .tm53-field,#tm5-root .tm53-form-section .tm5-field{padding:0!important;margin:0!important;border:0!important;background:transparent!important;min-width:0;box-shadow:none!important;}
+  .tm53-form-section label,.tm53-form-section .tm5-field label,.tm52-demo .tm53-form-section label{font-size:14px!important;line-height:1.4!important;font-weight:750!important;color:#27466a!important;margin:0!important;display:grid;gap:5px;}
+  .tm53-form-section select,.tm53-form-section input,.tm53-form-section textarea{font-size:14px!important;min-height:39px!important;max-width:100%;width:100%;padding:7px 10px;box-sizing:border-box;border:1px solid #ccd9ec;border-radius:8px;background:#fff;color:#1d3758;}
+  .tm53-form-section select:focus,.tm53-form-section input:focus{outline:2px solid #85b4f1;outline-offset:1px;}
+  .tm53-form-section [data-extra],.tm53-form-section [data-dem-extra]{margin-top:7px!important;padding:0!important;}
+  .tm53-form-section [hidden]{display:none!important;}
+  .tm53-form-section label small{font-size:12px;font-weight:650;color:#68809b;}
+  .tm53-repeater{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px;margin:0 0 8px;}
+  .tm53-repeat-item{border:1px solid #e0e9f3;border-radius:9px;background:#f8fbff;padding:10px 12px;min-width:0;position:relative;}
+  .tm53-repeat-item:has(.tm53-repeat-grid){grid-column:1/-1;}
+  .tm53-repeat-item button[data-remove],.tm53-repeat-item button[data-demo-remove],#tm5-root .tm53-remove{width:auto;min-height:28px!important;font-size:12px!important;padding:4px 9px!important;margin-top:7px;background:#fff!important;color:#a44343!important;border-color:#f1cccc!important;}
+  #tm5-root .tm53-add,.tm52-demo .tm53-add{font-size:13px!important;font-weight:800;min-height:32px!important;background:#f1f6fe!important;border:1px dashed #9cbee9!important;color:#235e9f!important;padding:5px 12px!important;}
+  .tm53-smallhint{font-size:13px!important;margin:5px 0;color:#526b8b;}
+  #tm5-root .tm5-daily-form{padding:16px 17px!important;}
+  #tm5-root .tm5-daily-form>.tm53-official-form{margin-top:10px;}
+  #tm5-root .tm53-official-form .tm5-program{font-size:13px;}
+  .tm52-demo-grid{grid-template-columns:minmax(220px,260px) minmax(0,1fr);align-items:start;}
+  .tm52-demo .tm52-demo-card{padding:15px;}
+  .tm52-demo .tm52-demo-card>strong{font-size:15px;}
+  .tm52-demo .tm52-demo-card>p.muted{margin:7px 0 10px;font-size:13px;}
+  .tm52-demo .tm53-form-section{background:#fff;border-color:#dee7f2;}
+  .tm52-demo .tm53-form-section input,.tm52-demo .tm53-form-section select{display:block;}
+  .tm52-demo .tm53-form-section [hidden]{display:none!important;}
+  .tm52-demo .tm53-demo-form{margin:12px 0;}
+  .tm52-demo .tm52-demo-day{margin:4px 0;padding:9px 11px;}
+  .tm52-demo .tm52-demo-day span.muted{font-size:12px!important;}
+  @media (max-width:1100px){.tm53-repeater{grid-template-columns:1fr}.tm52-demo-grid{grid-template-columns:minmax(190px,230px) minmax(0,1fr)}}
+}
