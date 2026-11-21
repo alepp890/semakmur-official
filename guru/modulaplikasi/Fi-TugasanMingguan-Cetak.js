@@ -1,7 +1,8 @@
-/* SeMAKMUR V5.2.8 — Template A4 Laporan Mingguan. Tiada akses DB, hanya render data dibekalkan modul. */
+/* SeMAKMUR V5.2.9 — Template A4 Laporan Mingguan. Tiada akses DB, hanya render data dibekalkan modul. */
 (function (g) {
   'use strict';
   const CSS = String.raw`
+
 :root { --pine:#183d3b; --pine2:#285854; --muted:#668078; --cream:#f6f8f6; --line:#dce5e2; --gold:#bb9564; --ink:#1c2b2b; --saffron:#f9f2e6; }
 * { box-sizing:border-box; }
 html { scroll-behavior:smooth; }
@@ -209,68 +210,39 @@ body { margin:0; background:#e8eeec; font-family:'Aptos','Segoe UI',Arial,sans-s
 .paper .daily-note{margin-top:5px;}
 .paper .paper-foot{line-height:1.3;}
 
-/* Logo slogan rasmi: dipaparkan sebelum footer pada setiap helaian. */
-.school-slogan{margin-top:auto;padding-top:7px;min-height:29px;max-height:36px;display:flex;justify-content:center;align-items:center;gap:10px;}
-.school-slogan img{max-width:178px;max-height:28px;object-fit:contain;}
-.school-slogan.placeholder{font-size:10px;color:#78938a;letter-spacing:.65px;border:1px dashed #b7c9c1;border-radius:6px;max-width:215px;margin-left:auto;margin-right:auto;padding:4px 9px;min-height:24px;}
-.paper-foot{margin-top:5px;}
-@media print{.school-slogan img{max-height:28px;}}
-/* Lebih padat tanpa mengecilkan font 11pt; simpan ruang slogan dan footer. */
-.paper {padding-top:13mm;padding-bottom:11mm;}
-.paper .daily-hero{margin-top:9px;padding:10px 14px;}
-.paper .recorder{padding:6px 1px;margin:0 0 2px;}
-.paper .daily-section{margin-top:4px;}
-.paper .sec-title{margin-bottom:5px;}
-.paper .speech-card{padding:7px 10px;}
-.paper .speech-mini{padding:6px 9px;}
-.paper .metric{padding:5px 9px;}
-.paper .activity-card{padding:8px 11px;margin-top:5px;}
-.paper .info-line{padding:6px 11px;}
-.school-slogan{padding-top:4px;min-height:24px;max-height:29px;}
-@media print{.paper{padding:13mm 17mm 11mm!important;}}
 @page {size:A4; margin:0;}
 @media print {
   html,body{background:#fff!important;margin:0!important;padding:0!important;}
   .toolbar,.preview-nav{display:none!important;}
   .workspace{display:block!important;max-width:none!important;margin:0!important;padding:0!important;}
   .pages{gap:0!important;display:block!important;overflow:visible!important;}
-  .paper{width:210mm!important;height:auto!important;min-height:297mm!important;max-width:none!important;transform:none!important;margin:0!important;padding:13mm 17mm 11mm!important;box-shadow:none!important;border-radius:0!important;break-after:page!important;page-break-after:always!important;overflow:visible!important;}
+  .paper{width:210mm!important;height:297mm!important;min-height:297mm!important;max-width:none!important;transform:none!important;margin:0!important;padding:16mm 17mm 15.5mm!important;box-shadow:none!important;border-radius:0!important;break-after:page!important;page-break-after:always!important;overflow:hidden!important;}
   .paper:last-child{page-break-after:auto!important;break-after:auto!important;}
   .paper,.paper *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   a{color:inherit;text-decoration:none;}
 }
 
-/* V5.2.8 template cetakan rasmi: teks 11pt dan pembahagian halaman anjal. */
-.printbar{position:sticky;top:0;z-index:100;background:#173935;color:white;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:Arial,sans-serif}
-.printbar button{font-size:14px;border:0;border-radius:8px;padding:9px 15px;background:#e6c59c;color:#223b36;cursor:pointer;font-weight:700}
-.printbar .print-note{font-size:12px;color:#c9d9d5}
+/* V5.2.9 — pemegang tempat logo slogan sahaja; reka bentuk dan tipografi asal tidak diubah. */
+.school-slogan{margin-top:auto;min-height:29px;max-height:34px;display:flex;align-items:center;justify-content:center;padding-top:3px;flex-shrink:0;}
+.school-slogan img{max-width:220px;max-height:28px;object-fit:contain;}
+.school-slogan .slogan-fallback {border:1px dashed #abc6bb;border-radius:6px;padding:4px 9px;font-size:10px;letter-spacing:.3px;color:#708d84;}
+.school-slogan + .paper-foot {margin-top:4px;}
+.school-logo.has-src .logo-fallback,.school-slogan.has-src .slogan-fallback {display:none;}
+.school-logo.missing .logo-fallback,.school-slogan.missing .slogan-fallback {display:block;}
+/* Bar kawalan pratonton sahaja — disembunyikan ketika cetak. */
+.printbar{position:sticky;top:0;z-index:100;background:#173935;color:#fff;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:Arial,sans-serif;}
+.printbar button{font-size:14px;border:0;border-radius:8px;padding:9px 15px;background:#e6c59c;color:#223b36;cursor:pointer;font-weight:700;}
+.printbar .print-note{font-size:12px;color:#c9d9d5;}
 .pages{max-width:210mm;margin:22px auto 45px;}
-.paper {min-height:297mm; height:auto;}
-.paper .daily-section{break-inside:avoid-page;}
-.paper .speech-card,.paper .speech-mini,.paper .metric,.paper .activity-card,.paper .info-line{break-inside:avoid;}
-.paper .activity-card li,.paper .numbered li {orphans:2;widows:2;}
-.paper .school-logo.has-src .logo-fallback,.paper .school-slogan.has-src .slogan-fallback{display:none;}
-.paper .school-logo.missing .logo-fallback,.paper .school-slogan.missing .slogan-fallback{display:block;}
-.paper .school-logo img,.paper .school-slogan img {max-width:100%;max-height:100%;object-fit:contain;}
-.school-slogan{min-height:35px;max-height:45px;}
-.school-slogan img{max-height:35px!important;max-width:230px;}
-.school-slogan .slogan-fallback {font-size:10px;color:#668078;text-align:center;padding:6px 10px;border:1px dashed #b6c9c1;border-radius:7px;}
-.paper .info-line.no-record {background:#f8faf9;color:#607970;}
-.approval-flow{margin-top:5px;}
-.paper-foot {font-size:12px!important;}
-.paper .approval-card{min-height:114px;}
-.paper .approval-head{margin-top:16px;}
-.paper .section-heading{margin:14px 0 9px;}
-.paper .auditbox{margin-top:8px;}
-.paper .quote p,.paper .approval-card p,.paper .approval-final p,.paper .activity-card p{white-space:pre-line;}
-.doc-subtitle {font-size:11pt;line-height:1.5;color:#627c72;}
-.paper .doc-symbol b {font-size:12px;}
-@media print {
-  .printbar{display:none!important;}
-  .pages{margin:0!important;max-width:none!important;}
-  .paper{height:auto!important;min-height:297mm!important;overflow:visible!important;}
-  .paper:last-child {break-after:auto!important;page-break-after:auto!important;}
-  .paper .daily-section {break-inside:avoid-page;}
+.paper .info-line.no-record{background:#f8faf9;color:#607970;}
+.paper .activity-card p,.paper .approval-final p,.paper .approval-card p{white-space:pre-line;}
+@media print{
+ .printbar{display:none!important;}
+ .pages{margin:0!important;max-width:none!important;}
+ /* Tiada pemotongan isi panjang; Chromium boleh sambung ke helaian berikutnya. */
+ .paper{height:auto!important;min-height:297mm!important;overflow:visible!important;}
+ .paper:last-child{break-after:auto!important;page-break-after:auto!important;}
+ .daily-section,.activity-card,.metric{break-inside:avoid-page;}
 }
 `;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
