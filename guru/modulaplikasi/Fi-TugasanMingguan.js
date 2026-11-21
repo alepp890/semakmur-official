@@ -1320,7 +1320,7 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
       try{
         stop=tm51.fns.onSnapshot(tm51.fns.doc(tm51.db,'semakmur_fi_tm52_reports',key),snap=>{
           if(S.reportListenKey!==key)return;
-          const data=snap.exists()?reportFromMirror(snap.data()):null;
+          const data=snap.exists()&&snap.data().active!==false?reportFromMirror(snap.data()):null;
           if(data){S.reportCache.set(reporterKey(id,year),{data,at:Date.now()});}
           if(first){first=false;finish(data);return;}
           if(!data)return;
@@ -1693,15 +1693,36 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
     const pbtn=slot().querySelector('#tm5-print-preview');if(pbtn)pbtn.onclick=printDocument;
     const download=slot().querySelector('#tm525-download-preview');if(download)download.onclick=downloadDocument;
   }
-  function downloadDocument(){
-    if(!isApproved())return msg('Laporan belum disahkan oleh Guru Besar.',true);
-    const safe=String(S.week?.label||'').replace(/[^a-zA-Z0-9_-]/g,'_');
-    const doc=`<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Laporan Minggu ${esc(S.week.label)}</title><style>body{font:14px Arial,sans-serif;color:#202020;margin:30px auto;max-width:850px}.tm5-doc-day{break-inside:avoid;margin-bottom:20px;border-bottom:1px solid #bbb;padding:12px}.tm5-doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tm5-doc-cell{padding:8px;border:1px solid #ddd}.tm5-doc-title{text-align:center}.tm5-doc-cell p{white-space:pre-wrap}@media print{body{margin:0;max-width:none}}</style></head><body>${documentHTML()}</body></html>`;
-    const url=URL.createObjectURL(new Blob([doc],{type:'text/html;charset=utf-8'}));
-    const a=document.createElement('a');a.href=url;a.download='Laporan_Minggu_'+safe+'.html';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  // V5.2.8: Template HTML A4 — data rasmi dibaca daripada laporan yang sudah dimuatkan.
+  // Tidak mengubah data Sheets, Firestore atau kebenaran laporan.
+  function tm528OfficialPayload(){
+    const w=S.week||{},teacherMap=Object.fromEntries((S.teachers||[]).map(t=>[String(t.id),String(t.name||'')]));
+    const resolveName=(id,fromRecord='')=>String(fromRecord||teacherMap[String(id)]||'');
+    const days=(S.days||[]).map(d=>{
+      const data={...(d.data||{})};
+      if(data.makmur_teacher)data.makmur_teacher_name=resolveName(data.makmur_teacher);
+      return {...d,reporter:resolveName(d.teacher,d.teacherName||d.recordedByName||''),data};
+    });
+    return {status:String(w.status||''),simulation:false,year:String(w.year||tmState.year),
+      week:String(w.label||''),group:String(w.group||''),from:w.from,to:w.to,
+      leader:resolveName(w.leader,w.leaderName||''),gpk:resolveName(w.gpk,w.gpkName||''),
+      summary:w.summary||'',followup:w.followup||'',gpkNote:w.gpkNote||'',gbNote:w.gbNote||'',
+      verifiedName:resolveName(w.verifiedBy,w.verifiedName||''),verifiedAt:w.verifiedAt||'',days};
   }
-  function printDocument(){if(!isApproved())return msg('Laporan belum disahkan oleh Guru Besar.',true);
-    tmPrintDocumentHTML('Laporan Guru Bertugas Mingguan',documentHTML());
+  function tm528PrintReady(){
+    if(!isApproved()){msg('Laporan belum disahkan oleh Guru Besar.',true);return false;}
+    if(!window.SeMAKMUR_TM528_PRINT){msg('Template cetakan V5.2.8 belum dimuatkan. Semak fail Fi-TugasanMingguan-Cetak.js.',true);return false;}
+    return true;
+  }
+  function downloadDocument(){
+    if(!tm528PrintReady())return;
+    try{window.SeMAKMUR_TM528_PRINT.download(tm528OfficialPayload());}
+    catch(e){msg(e?.message||'Muat turun dokumen gagal.',true);}
+  }
+  function printDocument(){
+    if(!tm528PrintReady())return;
+    try{window.SeMAKMUR_TM528_PRINT.open(tm528OfficialPayload());}
+    catch(e){msg(e?.message||'Pratonton cetakan tidak dapat dibuka.',true);}
   }
   // P1: jangan mengambil direktori/laporan ketika tab laporan tidak dibuka.
   // `openPrimary` atau `openFromOverview` akan memuat sekali ketika pengguna memerlukan data.
@@ -1798,6 +1819,23 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
          ${editableNow?'<button type="button" data-demo-remove="activity">Buang</button>':''}</div>`).join('')}</div>
        ${editableNow?'<button type="button" class="tm53-add" data-demo-add="activity">+ Tambah Aktiviti</button>':''}</section>
    </div>`;
+ }
+ // V5.2.8: Cetakan Mod Ujian menggunakan template sama, berlabel BUKAN RASMI.
+ function tm528DemoPayload(){
+   const parts=String(D.week?.name||'').match(/Minggu\s+(\d+)/i);
+   return {simulation:true,status:D.phase,year:String(D.week?.from||'').slice(0,4),week:parts?.[1]||'—',
+     group:String(D.week?.group||''),from:D.week?.from,to:D.week?.to,
+     leader:'Ketua Kumpulan (Simulasi)',gpk:'GPK Penyelia (Simulasi)',
+     summary:D.summary,followup:D.followup,gpkNote:D.gpkNote,gbNote:D.gbNote,
+     verifiedName:'Guru Besar (Simulasi)',verifiedAt:D.phase==='DISAHKAN'?tmToday():'',
+     days:D.days.map(d=>{
+       const v=d.data||{};
+       return {day:d.day,date:d.date,holiday:d.holiday,holidayTitle:d.holidayTitle,
+         reporter:d.holiday?'':'Guru Laporan '+d.day,
+         data:{...v,makmur_status:v.program||'TIADA',makmur_note:v.program_note||'',
+           makmur_cancel_reason:v.program_reason||'',activities:v.activities_list||[],
+           visitors:v.visitors_list||[]}};
+     })};
  }
  const doc=()=>`<article class="tm5-document tm52-demo-paper"><div class="tm5-doc-title"><div class="tm5-doc-school">SK SEGAMBUT MAKMUR · CONTOH UJIAN</div>
  <h2>LAPORAN GURU BERTUGAS MINGGUAN</h2><p>${E(D.week.name)} · ${show(D.week.from)} – ${show(D.week.to)}</p></div>
@@ -2025,7 +2063,7 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
      const html=doc();D.root.innerHTML=`<div class="tm52-demo"><div class="tm52-demo-banner">PRATONTON UJIAN · ${approved?'Disahkan secara simulasi':'Belum disahkan GB · Tidak boleh cetak rasmi'}</div>
        <div class="tm52-demo-actions"><button data-demo-back>Kembali</button>${approved?'<button class="primary" data-demo-print>Cetak Contoh Ujian</button>':''}</div>${html}</div>`;
      D.root.querySelector('[data-demo-back]').onclick=render;
-     if(approved)D.root.querySelector('[data-demo-print]').onclick=()=>tmPrintDocumentHTML('CONTOH UJIAN — Bukan Laporan Rasmi',html);
+     if(approved)D.root.querySelector('[data-demo-print]').onclick=()=>{try{window.SeMAKMUR_TM528_PRINT.open(tm528DemoPayload());}catch(e){alert(e.message);}};
      return;
    }
    if(cmd==='schedule'){tmPrintScheduleOfficial();return;}
@@ -2080,10 +2118,9 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
  function demoDocument(){if(D.phase!=='DISAHKAN')return;
    const paper=doc();D.root.innerHTML=`<section class="tm5-card tm5-preview-banner"><div><h2>Pratonton Dokumen · ${E(D.week.name)}</h2><span>Dokumen ujian disahkan</span></div><div class="tm5-banner-right"><button type="button" data-demo-dir-back>Kembali</button><button type="button" data-demo-dir-download>Muat Turun Dokumen</button><button type="button" data-demo-dir-print class="primary">Cetak Dokumen</button></div></section>${paper}`;
    D.root.querySelector('[data-demo-dir-back]').onclick=()=>demoDirectory(D.root);
-   D.root.querySelector('[data-demo-dir-print]').onclick=()=>tmPrintDocumentHTML('CONTOH UJIAN — Bukan Laporan Rasmi',paper);
+   D.root.querySelector('[data-demo-dir-print]').onclick=()=>{try{window.SeMAKMUR_TM528_PRINT.open(tm528DemoPayload());}catch(e){alert(e.message);}};
    D.root.querySelector('[data-demo-dir-download]').onclick=()=>{
-     const blob=new Blob(['<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Contoh Laporan</title></head><body>'+paper+'</body></html>'],{type:'text/html;charset=utf-8'});
-     const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='CONTOH_UJIAN_Laporan_Mingguan.html';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);
+     try{window.SeMAKMUR_TM528_PRINT.download(tm528DemoPayload());}catch(e){alert(e.message);}
    };
  }
  window.SeMAKMUR_TM52_DEMO={isOn:()=>D.on,show:root=>{D.root=root;render();},directory:demoDirectory,on:root=>{D.on=true;D.root=root;D.week=selectedWeek();D.days=makeDays();D.index=D.days.findIndex(d=>!d.holiday);if(D.index<0)D.index=0;
