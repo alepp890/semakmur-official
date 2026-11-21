@@ -462,3 +462,112 @@
   html #tm-panel-report-studio .tm538-mobile-page-heading p{margin:3px 0 0!important;font-size:11px!important;color:#768ba4!important;line-height:1.35!important;}
   html #tm-panel-report-studio .tm538-mobile-page #tm5-detail .tm5-card{margin-bottom:12px!important;}
 }
+
+
+/* ============================================================
+   V5.3.9 — Ruang pilihan dan tab PWA terapung
+   Hanya rupa susun atur: tiada perubahan fungsi, handler atau data.
+   ============================================================ */
+@media (max-width:900px) {
+  /* Bahagian pilihan minggu/kumpulan ialah kad tersendiri, BUKAN sticky.
+     Ruang atas menjarakkannya daripada header Dashboard Guru. */
+  html .tm536-top-filter:not([hidden]),
+  html.tm-embedded .tm536-top-filter:not([hidden]) {
+    display:flex!important;
+    position:relative!important;
+    top:auto!important;
+    z-index:1!important;
+    box-sizing:border-box!important;
+    width:auto!important;
+    margin:12px 12px 0!important;
+    padding:11px 13px!important;
+    background:linear-gradient(115deg,#f8fbff 0%,#edf6ff 100%)!important;
+    border:1px solid #bdd7f0!important;
+    border-radius:14px!important;
+    box-shadow:0 3px 12px rgba(24,70,128,.09)!important;
+  }
+
+  /* Tajuk pada kiri, dropdown tetap pada kanan; sepadan visual kedua-dua mod. */
+  html .tm536-top-filter .tm536-filter-label:not([hidden]),
+  html.tm-embedded .tm536-top-filter .tm536-filter-label:not([hidden]) {
+    display:flex!important;
+    flex-direction:row!important;
+    justify-content:space-between!important;
+    align-items:center!important;
+    width:100%!important;
+    gap:12px!important;
+  }
+  html .tm536-filter-label span,
+  html.tm-embedded .tm536-filter-label span {
+    color:#355e87!important;
+    font:500 12px/1.4 'Plus Jakarta Sans',Arial,sans-serif!important;
+    white-space:nowrap!important;
+  }
+
+  /* Saiz seragam dengan penapis dalam imej rujukan (148 × 38 CSS px). */
+  html .tm536-filter-label select,
+  html.tm-embedded .tm536-filter-label select,
+  html #tm-panel-tasks .tm-pwa-day-picker select,
+  html .tm537-overview-week-picker select {
+    box-sizing:border-box!important;
+    height:38px!important;
+    min-height:38px!important;
+    width:148px!important;
+    min-width:0!important;
+    max-width:100%!important;
+    padding:6px 10px!important;
+    background:#fff!important;
+    border:1px solid #c7dcf4!important;
+    border-radius:11px!important;
+    color:#23486d!important;
+    font:400 12px/1.35 'Plus Jakarta Sans',Arial,sans-serif!important;
+    box-shadow:0 1px 2px rgba(35,77,130,.025)!important;
+  }
+  html #tm-panel-tasks .tm-pwa-day-picker {
+    width:148px!important;
+    flex:0 0 148px!important;
+    max-width:52%!important;
+  }
+  html .tm537-overview-week-picker {
+    flex:0 1 auto!important;
+    max-width:none!important;
+    min-width:0!important;
+  }
+  html .tm537-overview-week-picker span {
+    font:400 11px/1.4 'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+
+  /* Nav utama bukan lagi jalur rata yang melekat dengan kandungan.
+     Ia kad floating di atas warna halaman dengan jurang jelas. */
+  html .tm-tabs,html.tm-embedded .tm-tabs {
+    position:relative!important;
+    top:auto!important;
+    z-index:1!important;
+    box-sizing:border-box!important;
+    width:auto!important;
+    margin:11px 12px 0!important;
+    padding:12px!important;
+    background:#fff!important;
+    border:1px solid #d4e4f5!important;
+    border-radius:15px!important;
+    box-shadow:0 5px 16px rgba(24,70,128,.09)!important;
+  }
+  html .tm-tabs .tm-tab-links,html.tm-embedded .tm-tabs .tm-tab-links {
+    grid-auto-rows:40px!important;
+    column-gap:10px!important;
+    row-gap:10px!important;
+  }
+  html .tm-tabs [data-tm-tab],html.tm-embedded .tm-tabs [data-tm-tab] {
+    height:40px!important;
+    min-height:40px!important;
+  }
+  /* Kekalkan jarak antara tab dan kandungan pertama. */
+  html .tm-main,html.tm-embedded .tm-main {
+    padding-top:12px!important;
+  }
+}
+@media (max-width:370px) {
+  /* Peranti sangat sempit: elakkan 'Minggu Giliran' dan picker bertindih. */
+  html .tm537-overview-week-picker {gap:5px!important;}
+  html .tm537-overview-week-picker select {width:126px!important;}
+}
