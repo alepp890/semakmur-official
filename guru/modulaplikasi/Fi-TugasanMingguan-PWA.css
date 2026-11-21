@@ -571,3 +571,29 @@
   html .tm537-overview-week-picker {gap:5px!important;}
   html .tm537-overview-week-picker select {width:126px!important;}
 }
+
+/* V5.3.10 — Direktori Program: tipografi baris minggu ikut senarai hari Laporan Harian.
+   Skop PWA sahaja; tiada perubahan HTML, JS, status atau tindakan direktori. */
+@media (max-width:767px) {
+  html #tm-panel-report-studio .tm5-directory .tm5-dir-title {
+    display:flex!important;
+    flex-direction:column!important;
+    min-width:0!important;
+    gap:2px!important;
+    font-family:'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5-directory .tm5-dir-title strong {
+    display:block!important;
+    font-size:14px!important;
+    line-height:1.2!important;
+    font-weight:800!important;
+    color:#193f73!important;
+  }
+  html #tm-panel-report-studio .tm5-directory .tm5-dir-title span {
+    display:block!important;
+    font-size:11px!important;
+    line-height:1.3!important;
+    font-weight:500!important;
+    color:#7a8da3!important;
+  }
+}
