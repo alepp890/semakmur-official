@@ -822,3 +822,36 @@ html.tm-embedded .tm-tab-links>button{min-height:39px;padding:9px 12px;font-size
   #tm5-root .tm53-form-section select:valid,.tm52-demo .tm53-form-section select:valid{color:#1c3758!important}
   .tm52-demo .tm532-submitted{margin-bottom:14px}
 }
+
+/* V5.3.3 — Status tunggal, kad hari boleh diklik, pulang pembetulan dalam popup,
+   dan navigasi automatik ke medan wajib yang tidak lengkap. Desktop sahaja. */
+@media (min-width:901px) {
+  #tm5-root .tm532-day-card,
+  .tm52-demo .tm532-day-card { cursor:pointer; }
+  #tm5-root .tm532-day-card:hover,
+  .tm52-demo .tm532-day-card:hover { background:#f2f7ff!important; border-color:#8db7e6!important; }
+  #tm5-root .tm532-day-card.tm532-selected:hover,
+  .tm52-demo .tm532-day-card.tm532-selected:hover { background:#eaf3ff!important; }
+  #tm5-root .tm532-day-card:has(.tm5-daybutton:disabled) { cursor:default; }
+  #tm5-root .tm532-day-card .tm525-edit-day,
+  .tm52-demo .tm532-day-card .tm525-edit-day {position:relative;z-index:1;cursor:pointer;}
+  #tm5-root .tm53-form-section .tm533-invalid,
+  .tm52-demo .tm53-form-section .tm533-invalid,
+  #tm5-root .tm5-leader-panel .tm533-invalid,
+  .tm52-demo .tm524-leader-ready .tm533-invalid {border:2px solid #d63232!important;background:#fff8f8!important;outline:2px solid #f6b2b2!important;outline-offset:1px;}
+  #tm5-root .tm533-field-error,
+  .tm52-demo .tm533-field-error {display:block!important;margin:7px 0 1px!important;color:#b42318!important;font-size:13px!important;font-weight:800!important;line-height:1.5!important;}
+  #tm5-root .tm533-invalid-section,
+  .tm52-demo .tm533-invalid-section {border-color:#ef9a9a!important;box-shadow:0 0 0 2px #fbe1e1!important;}
+  .tm533-return-overlay .tm533-return-modal {width:min(720px,100%);}
+  .tm533-return-content {padding:23px 26px 18px;}
+  .tm533-return-label {display:block;font-size:15px;font-weight:800;color:#254d79;margin:0 0 12px;}
+  .tm533-return-tabs {display:flex;flex-wrap:wrap;gap:10px;margin:0 0 10px;}
+  .tm533-return-tabs .tm533-return-day {display:grid;gap:4px;justify-items:center;min-width:108px;min-height:62px;padding:9px 12px;border:1px solid #cadbed;border-radius:10px;background:#f8fbfe;color:#245078;font-size:14px;font-weight:800;cursor:pointer;}
+  .tm533-return-tabs .tm533-return-day small {font-size:11px;color:#6d829b;font-weight:500;}
+  .tm533-return-tabs .tm533-return-day[aria-pressed="true"] {background:#e5f2ff;color:#15599a;border:2px solid #2674bd;box-shadow:inset 0 3px #2b7ac4;}
+  .tm533-return-help {font-size:12px;line-height:1.5;color:#667f96;margin:0 0 20px;}
+  .tm533-return-content textarea {display:block;width:100%;min-height:130px;padding:12px 14px;resize:vertical;border:1px solid #cdddee;border-radius:11px;font:400 14px/1.55 'Plus Jakarta Sans',Arial,sans-serif;color:#243f5e;background:#fff;}
+  .tm533-return-content textarea:focus {outline:2px solid #7bb0e4;outline-offset:1px;}
+  .tm533-return-error:not([hidden]) {color:#b42318;font-size:13px;font-weight:800;margin:10px 0 0;}
+}
