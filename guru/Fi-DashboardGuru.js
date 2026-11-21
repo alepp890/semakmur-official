@@ -391,9 +391,9 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       openPengurusanMuridWorkspace();return;
     }
     if(id==='bertugas'){
-      // PWA: ruang iframe + butang Back; desktop asal tidak diubah.
-      if(fiV6Mobile())openTugasanWorkspace();
-      else {if(!dashboardAuthenticated){showInfo('Akaun MOE masih disemak.');return;}window.open(m.url,'_blank','noopener');}
+      // Semua peranti: kekalkan Smart Tugasan Mingguan dalam iframe Dashboard Guru.
+      // Sama seperti e-Keberadaan dan e-Relief; jangan buka tab baharu pada desktop.
+      openTugasanWorkspace();
       return;
     }
     if(!await window.FiDashboard?.ensureOfficial()){showInfo('Modul ini masih menggunakan sistem lama dan belum dipindahkan ke Fi.');return;}
