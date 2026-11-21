@@ -343,3 +343,122 @@
   html #tm526-members-updated{display:none!important;}
   html #tm-panel-members .tm526-groups-intro{display:none!important;}
 }
+
+
+/* ============================================================
+   V5.3.8 · Laporan & Cetakan — PWA sahaja
+   Navigasi dalaman helaian dan halaman berasingan borang harian.
+   Semua data, backend, desktop, cetakan rasmi dikekalkan.
+   ============================================================ */
+@media(max-width:900px){
+  /* Butang pemeriksaan agihan masih ada untuk desktop/admin. */
+  html #tm-panel-tasks #tm-preflight{display:none!important;}
+  html #tm-panel-report-studio #tm5-root{font-family:'Plus Jakarta Sans',Arial,sans-serif!important;}
+  html #tm-panel-report-studio .tm5-toolbar-card.tm538-nav-shell{
+    background:transparent!important;border:0!important;box-shadow:none!important;
+    padding:0!important;margin:0!important;border-radius:0!important;
+  }
+  html #tm-panel-report-studio .tm538-attached-tabs{
+    display:flex!important;align-items:stretch!important;gap:0!important;
+    padding:0 4px!important;margin:0!important;border-bottom:2px solid #bfd6ee!important;
+    background:transparent!important;
+  }
+  html #tm-panel-report-studio .tm538-attached-tabs .tm5-action{
+    display:flex!important;align-items:center!important;justify-content:center!important;
+    flex:1 1 0!important;min-width:0!important;min-height:40px!important;
+    padding:10px 9px!important;margin:0!important;
+    background:#f4f8ff!important;color:#55718f!important;
+    border:1px solid #d8e5f5!important;border-bottom:0!important;
+    border-radius:10px 10px 0 0!important;box-shadow:none!important;
+    font:650 12px 'Plus Jakarta Sans',Arial,sans-serif!important;line-height:1.25!important;
+    position:relative!important;
+  }
+  html #tm-panel-report-studio .tm538-attached-tabs .tm5-action:first-child{margin-right:5px!important;}
+  html #tm-panel-report-studio .tm538-attached-tabs .tm5-action.current{
+    background:#fff!important;color:#1b5f9d!important;border-color:#bfd6ee!important;
+    font-weight:800!important;z-index:1!important;
+  }
+  html #tm-panel-report-studio .tm538-attached-tabs .tm5-action.current:after{
+    content:'';height:3px;position:absolute;left:0;right:0;bottom:-1px;
+    background:linear-gradient(120deg,#168ec8,#245cb4);border-radius:3px 3px 0 0;
+  }
+  html #tm-panel-report-studio #tm5-message:empty{display:none!important;}
+  /* Kandungan benar-benar melekat pada tab dalaman, bukan tab utama di atas. */
+  html #tm-panel-report-studio #tm5-content{margin-top:0!important;}
+  html #tm-panel-report-studio #tm5-content>.tm5-card:first-child{
+    margin-top:0!important;border-top:0!important;border-radius:0 0 14px 14px!important;
+  }
+  html #tm-panel-report-studio #tm5-content>.tm538-mobile-page{padding-top:12px!important;}
+  /* Ringkasan minggu: tarikh ringkas, susunan GPK kemudian Ketua. */
+  html #tm-panel-report-studio .tm538-week-banner{padding:15px 14px!important;}
+  html #tm-panel-report-studio .tm538-week-banner h2{font-size:17px!important;line-height:1.3!important;margin:0 0 6px!important;color:#193e75!important;}
+  html #tm-panel-report-studio .tm5-period{display:block!important;margin-bottom:10px!important;font-size:12px!important;line-height:1.45!important;}
+  html #tm-panel-report-studio .tm538-people{display:flex!important;flex-direction:column!important;gap:5px!important;
+    color:#4f6c8a!important;font-size:12px!important;line-height:1.45!important;}
+  html #tm-panel-report-studio .tm538-role-line{display:block!important;}
+  html #tm-panel-report-studio .tm538-role-line strong{color:#2b5c8e!important;font-weight:700!important;}
+  /* Senarai laporan: typografi sama dengan header jadual tugasan, status kecil berwarna. */
+  html #tm-panel-report-studio .tm538-list-layout{display:block!important;}
+  html #tm-panel-report-studio .tm538-daylist{padding:12px 11px 6px!important;}
+  html #tm-panel-report-studio .tm538-list-heading{
+    display:flex!important;align-items:center!important;gap:8px!important;
+    font-size:14px!important;font-weight:800!important;line-height:1.4!important;
+    color:#193e75!important;margin:0 0 10px!important;padding:0 1px 9px!important;
+    border-bottom:1px solid #e5eef9!important;
+  }
+  html #tm-panel-report-studio .tm538-heading-icon{
+    display:grid!important;place-items:center!important;flex:0 0 27px!important;
+    width:27px!important;height:27px!important;border-radius:8px!important;
+    background:#eaf4ff!important;color:#267bb4!important;font-size:15px!important;
+  }
+  html #tm-panel-report-studio .tm538-day-row{
+    width:100%!important;min-height:54px!important;display:flex!important;align-items:center!important;
+    justify-content:space-between!important;gap:10px!important;cursor:pointer!important;
+    border:0!important;border-bottom:1px solid #e7edf6!important;background:#fff!important;
+    margin:0!important;padding:9px 4px!important;text-align:left!important;border-radius:0!important;
+    box-shadow:none!important;font-family:'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm538-day-row:last-child{border-bottom:0!important;}
+  html #tm-panel-report-studio .tm538-day-row:active{background:#f3f8ff!important;}
+  html #tm-panel-report-studio .tm538-day-row[disabled]{opacity:.55!important;cursor:not-allowed!important;}
+  html #tm-panel-report-studio .tm538-day-info{display:flex!important;flex-direction:column!important;min-width:0!important;gap:2px!important;}
+  html #tm-panel-report-studio .tm538-day-info strong{font-size:14px!important;line-height:1.2!important;font-weight:800!important;color:#193f73!important;}
+  html #tm-panel-report-studio .tm538-day-info small{font-size:11px!important;line-height:1.3!important;font-weight:500!important;color:#7a8da3!important;}
+  html #tm-panel-report-studio .tm538-day-status{
+    display:inline-flex!important;align-items:center!important;gap:5px!important;white-space:nowrap!important;
+    padding:5px 8px!important;border-radius:8px!important;font-size:11px!important;
+    line-height:1.25!important;font-weight:650!important;background:#fff3df!important;color:#98641f!important;
+  }
+  html #tm-panel-report-studio .tm538-status-icon{
+    display:grid!important;place-items:center!important;width:15px!important;height:15px!important;
+    border-radius:50%!important;background:currentColor!important;color:inherit!important;font-size:12px!important;
+    line-height:1!important;
+  }
+  /* Ikon menggunakan latar transparen bagi mengekalkan simbol dan warna. */
+  html #tm-panel-report-studio .tm538-status-icon{background:transparent!important;font-weight:800!important;}
+  html #tm-panel-report-studio .tm538-day-status.done{background:#e8f7ef!important;color:#247a58!important;}
+  html #tm-panel-report-studio .tm538-day-status.draft{background:#eaf2ff!important;color:#236aa4!important;}
+  html #tm-panel-report-studio .tm538-day-status.holiday{background:#eef1f5!important;color:#687b8e!important;}
+  html #tm-panel-report-studio .tm538-day-status.fix{background:#fff0e9!important;color:#a65d35!important;}
+  html #tm-panel-report-studio .tm538-summary-area{margin-top:10px!important;}
+  /* Halaman borang berasingan selepas memilih hari; masih dalam iframe asal. */
+  html #tm-panel-report-studio .tm538-mobile-page{display:block!important;min-height:50vh!important;}
+  html #tm-panel-report-studio .tm538-back-button{
+    display:inline-flex!important;align-items:center!important;gap:8px!important;
+    padding:9px 11px!important;border:1px solid #cadef4!important;border-radius:10px!important;
+    background:#fff!important;color:#2867a0!important;font:700 12px 'Plus Jakarta Sans',Arial,sans-serif!important;
+    margin:0 0 12px!important;box-shadow:none!important;
+  }
+  html #tm-panel-report-studio .tm538-back-button span{font-size:18px!important;line-height:1!important;}
+  html #tm-panel-report-studio .tm538-mobile-page-heading{
+    display:flex!important;align-items:center!important;gap:10px!important;
+    padding:11px 12px!important;border:1px solid #d9e5f4!important;border-radius:12px!important;
+    background:#fff!important;margin-bottom:10px!important;
+  }
+  html #tm-panel-report-studio .tm538-page-icon{display:grid!important;place-items:center!important;
+    width:38px!important;height:38px!important;border-radius:11px!important;
+    background:linear-gradient(120deg,#168ec8,#245cb4)!important;color:#fff!important;font-size:20px!important;flex:0 0 38px!important;}
+  html #tm-panel-report-studio .tm538-mobile-page-heading h2{margin:0!important;font-size:15px!important;color:#183e73!important;line-height:1.25!important;}
+  html #tm-panel-report-studio .tm538-mobile-page-heading p{margin:3px 0 0!important;font-size:11px!important;color:#768ba4!important;line-height:1.35!important;}
+  html #tm-panel-report-studio .tm538-mobile-page #tm5-detail .tm5-card{margin-bottom:12px!important;}
+}
