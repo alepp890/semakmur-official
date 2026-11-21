@@ -754,3 +754,71 @@ html.tm-embedded .tm-tab-links>button{min-height:39px;padding:9px 12px;font-size
 @media (max-width:1120px) and (min-width:901px){
   #tm-panel-members .tm526-groups-grid{grid-template-columns:1fr}
 }
+
+/* V5.3.2 — Borang wajib + paparan mengikut peranan; hanya desktop. */
+@media (min-width:901px){
+  #tm5-root .tm532-day-card,.tm52-demo .tm532-day-card{
+    display:flex!important;flex-direction:column;align-items:stretch;gap:0!important;
+    border:1px solid #d7e2f2;border-radius:11px;background:#fff;
+    overflow:hidden;transition:border-color .15s,background .15s,box-shadow .15s;
+    margin:0 0 8px!important;
+  }
+  #tm5-root .tm532-day-card.tm532-selected,.tm52-demo .tm532-day-card.tm532-selected{
+    border:2px solid #2671b9!important;background:#eaf3ff!important;
+    box-shadow:inset 4px 0 #1f67ac,0 2px 9px #154b8012!important;
+  }
+  #tm5-root .tm532-day-card .tm5-daybutton,.tm52-demo .tm532-day-card .tm52-demo-day{
+    background:transparent!important;border:0!important;box-shadow:none!important;
+    border-radius:0!important;width:100%;padding:10px 12px 2px!important;
+    margin:0!important;min-height:34px;text-align:left;
+  }
+  #tm5-root .tm532-day-card .tm5-daybutton.chosen,.tm52-demo .tm532-day-card .tm52-demo-day.chosen{
+    background:transparent!important;border:0!important;box-shadow:none!important;
+  }
+  #tm5-root .tm532-day-bottom,.tm52-demo .tm532-day-bottom{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    min-height:35px;padding:0 10px 9px 12px;
+  }
+  #tm5-root .tm532-day-bottom .tm524-day-status,.tm52-demo .tm532-day-bottom .tm524-day-status{margin:0!important;min-width:0;font-size:13px!important}
+  #tm5-root .tm532-day-card .tm525-edit-day,.tm52-demo .tm532-day-card .tm525-edit-day{
+    margin:0 0 0 auto!important;min-height:28px!important;padding:4px 9px!important;
+    border-radius:8px!important;border:1px solid #b8d1f2!important;
+    background:#edf5ff!important;color:#1d5d9c!important;font-size:12px!important;
+    font-weight:750!important;white-space:nowrap;cursor:pointer;
+  }
+  #tm5-root .tm532-inline-document{padding:17px 19px!important}
+  #tm5-root .tm532-inline-document .tm5-doc-day{margin:0!important}
+  #tm5-root .tm532-inline-document .tm5-doc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #tm5-root .tm532-no-duty,.tm52-demo .tm532-no-duty{
+    display:grid;justify-items:center;text-align:center;gap:10px;padding:34px 22px;
+    border:1px dashed #c9dbed;background:#f7faff;border-radius:12px;color:#557087;
+  }
+  #tm5-root .tm532-no-duty strong,.tm52-demo .tm532-no-duty strong{font-size:15px;color:#254e7c;font-weight:800;line-height:1.45}
+  #tm5-root .tm532-no-duty p,.tm52-demo .tm532-no-duty p{font-size:13px;line-height:1.5;margin:0;color:#627b94}
+  #tm5-root .tm532-state-icon,.tm52-demo .tm532-state-icon{
+    display:inline-grid;place-items:center;background:#e6f0fa;color:#225d92;
+    border-radius:11px;width:42px;height:42px;font-size:21px;font-weight:850;
+  }
+  #tm5-root .tm532-role-notice,.tm52-demo .tm532-role-notice{
+    display:flex;align-items:center;gap:13px;background:#f3f8ff!important;
+    padding:17px 19px!important;border:1px solid #dce8f7!important;
+    border-left:4px solid #3276ba!important;border-radius:11px;
+  }
+  #tm5-root .tm532-role-notice strong,.tm52-demo .tm532-role-notice strong{display:block;color:#204977;font-weight:800;font-size:15px;line-height:1.5}
+  #tm5-root .tm532-role-notice p,.tm52-demo .tm532-role-notice p{margin:5px 0 0;font-size:13px;line-height:1.55;color:#657e97}
+  #tm5-root .tm532-modal-notice,.tm52-demo .tm532-modal-notice{padding:35px 24px!important;text-align:center;display:grid;justify-items:center;gap:11px;border-radius:12px;background:#f8fbff}
+  #tm5-root .tm532-modal-notice h3,.tm52-demo .tm532-modal-notice h3{color:#245782;font-weight:800;font-size:18px;margin:0}
+  #tm5-root .tm532-modal-notice p,.tm52-demo .tm532-modal-notice p{font-size:14px;color:#63788f;margin:0}
+  #tm5-root .tm532-review-card,.tm52-demo .tm532-review-card{padding:19px 20px;border:1px solid #dce6f3;border-radius:12px;background:#fff;margin-top:14px}
+  #tm5-root .tm532-review-card h3,.tm52-demo .tm532-review-card h3{font-size:17px;color:#1d4a75;margin:0 0 12px}
+  #tm5-root .tm532-review-help,.tm52-demo .tm532-review-card p{font-size:13px;color:#657d92;line-height:1.6;margin-bottom:12px}
+  #tm5-root .tm532-review-card label,.tm52-demo .tm532-review-card label{font-size:14px;color:#2b4a69;font-weight:700;display:grid;gap:7px}
+  #tm5-root .tm532-review-card textarea,.tm52-demo .tm532-review-card textarea{font-size:14px;font-weight:450;line-height:1.55;resize:vertical;min-height:91px;width:100%}
+  #tm5-root .tm532-review-actions,.tm52-demo .tm532-review-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  #tm5-root .tm532-correction{margin:14px 0;padding:12px 14px;background:#f8fbfe;border:1px solid #dce6f2;border-radius:9px}
+  #tm5-root .tm532-correction summary{font-size:13px;font-weight:700;color:#315b84;cursor:pointer}
+  #tm5-root .tm532-summary-hint,.tm52-demo .tm532-summary-hint{font-size:13px;color:#60768d;line-height:1.6}
+  #tm5-root .tm53-form-section select:invalid,.tm52-demo .tm53-form-section select:invalid{color:#7a8da5!important;background:#fbfcff!important;border-color:#e3ba75!important}
+  #tm5-root .tm53-form-section select:valid,.tm52-demo .tm53-form-section select:valid{color:#1c3758!important}
+  .tm52-demo .tm532-submitted{margin-bottom:14px}
+}
