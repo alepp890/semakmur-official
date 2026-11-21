@@ -11,11 +11,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('tm-embedded');</script>
   <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.3.3">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.3.6">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.3.7">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
   
-  <script src="Fi-TugasanMingguan.js?v=5.3.6" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=5.3.7" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
@@ -37,14 +37,14 @@
     <div class="tm-identity"><span id="tm-user">Mengesahkan akaun…</span><span class="tm-chip" id="tm-mode">OPERASI RASMI</span></div>
   </header>
   <div id="tm-notice" class="tm-notice" role="status" aria-live="polite" hidden></div>
-  <!-- V5.3.6 PWA: dropdown kontekstual tepat di bawah sticky header Dashboard. -->
+  <!-- V5.3.7 PWA: penapis atas hanya untuk Jadual Tugasan dan Senarai Ahli. -->
   <div id="tm536-top-filter" class="tm536-top-filter" hidden>
     <label id="tm536-week-wrap" class="tm536-filter-label" for="tm536-week-select" hidden>
-      <span>Minggu &amp; Kumpulan</span>
-      <select id="tm536-week-select" aria-label="Pilih minggu dan kumpulan"><option value="">Memuatkan minggu…</option></select>
+      <span>Pilih Minggu</span>
+      <select id="tm536-week-select" aria-label="Pilih minggu jadual tugasan"><option value="">Memuatkan minggu…</option></select>
     </label>
     <label id="tm536-group-wrap" class="tm536-filter-label" for="tm536-group-select" hidden>
-      <span>Senarai Ahli Kumpulan</span>
+      <span>Pilih Kumpulan</span>
       <select id="tm536-group-select" aria-label="Pilih kumpulan bertugas"><option value="">Memuatkan kumpulan…</option></select>
     </label>
   </div>
@@ -66,7 +66,14 @@
   <main class="tm-main">
     <section id="tm-panel-overview" data-tm-panel="overview">
       <div class="tm-pwa-weeks-shell" id="tm-pwa-weeks-shell" aria-label="Minggu bertugas" hidden>
-        <div class="tm-pwa-weeks-header"><div><h2>Minggu Giliran</h2></div><span class="tm-pwa-count" id="tm-pwa-week-count" hidden>—</span></div>
+        <div class="tm-pwa-weeks-header">
+          <div><h2>Minggu Giliran</h2></div>
+          <label class="tm537-overview-week-picker" for="tm537-overview-week-select">
+            <span>Pilih Minggu</span>
+            <select id="tm537-overview-week-select" aria-label="Tatal ke minggu giliran"><option value="">Pilih minggu</option></select>
+          </label>
+          <span class="tm-pwa-count" id="tm-pwa-week-count" hidden>—</span>
+        </div>
         <div id="tm-pwa-week-cards" class="tm-pwa-week-cards" aria-live="polite"><p class="tm-empty">Memuatkan maklumat minggu…</p></div>
       </div>
       <div class="tm-summary" id="tm-summary"></div>

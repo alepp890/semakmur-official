@@ -651,16 +651,15 @@ function tm536Picker(){
   const wk=tm$('tm536-week-select'),group=tm$('tm536-group-select');
   if(!root||!wk||!group)return;
   if(!tmPwaCompact()){root.hidden=true;return;}
-  const mode=tmState.tab||'overview',isWeek=mode==='overview'||mode==='tasks',isGroup=mode==='members';
+  const mode=tmState.tab||'overview',isWeek=mode==='tasks',isGroup=mode==='members';
   root.hidden=!(isWeek||isGroup);weekWrap.hidden=!isWeek;groupWrap.hidden=!isGroup;
   if(isWeek){
-    const choices=mode==='tasks'?tmPwaWeekChoices(tm51.overview?.weeks||tmState.data?.weeks||[]):tm536WeeksForOverview();
-    const value=mode==='tasks'?tmState.weekId:tm536Selection.week;
-    const initial=mode==='overview'?'<option value="">Semua minggu</option>':'';
-    wk.innerHTML=initial+choices.map(w=>`<option value="${tmEsc(w.ID_Minggu)}">Minggu ${tmEsc(w.Minggu)} · ${tmEsc(w.Nama_Kumpulan)}</option>`).join('');
-    let next=choices.some(w=>w.ID_Minggu===value)?value:(mode==='tasks'?choices[0]?.ID_Minggu||'':'');
+    const choices=tmPwaWeekChoices(tm51.overview?.weeks||tmState.data?.weeks||[]);
+    const value=tmState.weekId;
+    wk.innerHTML=choices.map(w=>`<option value="${tmEsc(w.ID_Minggu)}">Minggu ${tmEsc(String(w.Minggu||'').replace(/^Minggu\s*/i,''))}</option>`).join('');
+    let next=choices.some(w=>w.ID_Minggu===value)?value:(choices[0]?.ID_Minggu||'');
     wk.value=next;
-    if(mode==='tasks'&&next&&next!==tmState.weekId){
+    if(next&&next!==tmState.weekId){
       tm$('tm51-week-select').value=next;tm51ChooseScheduleWeek(next);
     }
   }
@@ -670,7 +669,7 @@ function tm536Picker(){
     const own=groups.find(g=>(g.members||[]).some(m=>String(m.id||'')===actor));
     if(!tm536Selection.group||!groups.some(g=>String(g.id)===tm536Selection.group))
       tm536Selection.group=String(own?.id||groups[0]?.id||'');
-    group.innerHTML=groups.length?groups.map(g=>`<option value="${tmEsc(g.id)}">${tmEsc(g.name||'Kumpulan '+g.id)}</option>`).join(''):'<option value="">Memuatkan senarai kumpulan…</option>';
+    group.innerHTML=groups.length?groups.map(g=>`<option value="${tmEsc(g.id)}">${tmEsc(/^Kumpulan\s+/i.test(String(g.name||''))?g.name:('Kumpulan '+g.id))}</option>`).join(''):'<option value="">Memuatkan senarai kumpulan…</option>';
     group.value=tm536Selection.group;
   }
 }
@@ -747,7 +746,7 @@ function tmPwaRenderWeeks(){
   const anchor=current||past[past.length-1]||null;
   const next=all.find(w=>tmPwaISO(w.Tempoh_Mula)>(anchor?tmPwaISO(anchor.Tempoh_Mula):today));
   const allowed=all.filter(w=>tmPwaISO(w.Tempoh_Mula)<=today||(next&&String(w.ID_Minggu)===String(next.ID_Minggu)));
-  const display=allowed.filter(w=>!tmPwaCompact()||!tm536Selection.week||w.ID_Minggu===tm536Selection.week).slice().sort((a,b)=>tmPwaISO(b.Tempoh_Mula).localeCompare(tmPwaISO(a.Tempoh_Mula)));
+  const display=allowed.slice().sort((a,b)=>tmPwaISO(b.Tempoh_Mula).localeCompare(tmPwaISO(a.Tempoh_Mula)));
   if(count)count.textContent=display.length+' minggu';
   const meta=tmState.overviewMeta||{};
   box.innerHTML=display.length?display.map(w=>{
@@ -762,12 +761,22 @@ function tmPwaRenderWeeks(){
     const role=String(m.gpkRole||m.gpkCategory||'').trim();
     const gpk=String(m.gpkName||'Belum ditetapkan').trim();
     const safeRole=role?role+' · ':'GPK · ';
-    return `<article class="tm-pwa-week tm-pwa-week-${tone}" aria-label="${tmEsc(weekLabel+' '+group+' '+status)}">
+    const leader=String(w.Nama_Ketua_Cadangan||m.leaderName||'Belum ditetapkan').trim();
+    return `<article class="tm-pwa-week tm-pwa-week-${tone}" data-tm-week-card="${tmEsc(w.ID_Minggu)}" aria-label="${tmEsc(weekLabel+' '+group+' '+status)}">
       <div class="tm-pwa-week-top"><div><h3>${tmEsc(weekLabel)} <span>·</span> ${tmEsc(group)}</h3><p>${tmPwaDate(w.Tempoh_Mula)} – ${tmPwaDate(w.Tempoh_Tamat)}</p></div><span class="tm-pwa-week-status tm-pwa-status-${tone}">${status}</span></div>
-      <div class="tm-pwa-week-details"><div><span>Penyelia</span><strong>${tmEsc(safeRole+gpk)}</strong></div><div><span>Tema</span><strong>${tmEsc(m.theme||'Belum ditetapkan')}</strong></div><div><span>Tajuk Nilai Murni</span><strong>${tmEsc(m.nilaiTitle||'Belum ditetapkan')}</strong></div></div>
+      <div class="tm-pwa-week-details"><div><span>Penyelia</span><strong>${tmEsc(safeRole+gpk)}</strong></div><div><span>Ketua Kumpulan</span><strong>${tmEsc(leader)}</strong></div><div><span>Tema</span><strong>${tmEsc(m.theme||'Belum ditetapkan')}</strong></div><div><span>Tajuk Nilai Murni</span><strong>${tmEsc(m.nilaiTitle||'Belum ditetapkan')}</strong></div></div>
     </article>`;
   }).join(''):'<p class="tm-empty">Tiada minggu persekolahan yang tersedia.</p>';
   shell.hidden=false;
+  // V5.3.7: navigasi ke kad, BUKAN penapis; semua minggu kekal dalam DOM.
+  const picker=tm$('tm537-overview-week-select');
+  if(picker){
+    const navWeeks=tm536WeeksForOverview();
+    const selected=tm536Selection.week;
+    picker.innerHTML='<option value="">Pilih minggu</option>'+navWeeks.map(w=>
+      `<option value="${tmEsc(w.ID_Minggu)}">Minggu ${tmEsc(String(w.Minggu||'').replace(/^Minggu\s*/i,''))}</option>`).join('');
+    picker.value=navWeeks.some(w=>w.ID_Minggu===selected)?selected:'';
+  }
 }
 function tmRenderOverview(){
   const a=tmState.data||{},weeks=a.weeks||[],today=tmToday(),meta=tmState.overviewMeta||{};
@@ -1467,7 +1476,7 @@ function tm525MembersRender(){
   const total=groups.reduce((n,g)=>n+(Array.isArray(g.members)?g.members.length:0),0);
   if(tmPwaCompact()&&tmState.tab==='members')tm536Picker();
   const shown=tmPwaCompact()?groups.filter(g=>String(g.id)===tm536Selection.group):groups;
-  out.innerHTML=`<div class="tm526-groups-intro"><strong>Keahlian kumpulan terkini</strong><span>${groups.length} kumpulan · ${total} ahli</span></div>`+
+  out.innerHTML=(tmPwaCompact()?'':`<div class="tm526-groups-intro"><strong>Keahlian kumpulan terkini</strong><span>${groups.length} kumpulan · ${total} ahli</span></div>`)+
     `<div class="tm526-groups-grid">${shown.map(g=>{
        const list=Array.isArray(g.members)?g.members:[];
        return `<section class="tm526-group" aria-label="${tmEsc(g.name||'Kumpulan '+g.id)}">
@@ -1497,9 +1506,13 @@ function tmListeners(){
   tm$('tm536-week-select')?.addEventListener('change',e=>{
     if(tmState.tab==='tasks'){
       if(e.target.value){tm$('tm51-week-select').value=e.target.value;tm51ChooseScheduleWeek(e.target.value);}
-    }else if(tmState.tab==='overview'){
-      tm536Selection.week=e.target.value||'';tmPwaRenderWeeks();
     }
+  });
+  tm$('tm537-overview-week-select')?.addEventListener('change',e=>{
+    tm536Selection.week=e.target.value||'';
+    const cards=tm$('tm-pwa-week-cards');
+    const card=[...(cards?.querySelectorAll('[data-tm-week-card]')||[])].find(x=>x.dataset.tmWeekCard===tm536Selection.week);
+    if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
   });
   tm$('tm536-group-select')?.addEventListener('change',e=>{
     tm536Selection.group=e.target.value||'';tm525MembersRender();
