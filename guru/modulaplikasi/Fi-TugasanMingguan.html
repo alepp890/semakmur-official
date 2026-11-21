@@ -10,11 +10,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('tm-embedded');</script>
-  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.2.4">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.2.5">
   <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.0.8">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
-  <script src="Fi-TugasanMingguan.js?v=5.2.4" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=5.2.5" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
@@ -39,8 +39,9 @@
   <nav class="tm-tabs" aria-label="Bahagian Tugasan Mingguan">
     <div class="tm-tab-links">
     <button type="button" class="active" data-tm-tab="overview">Minggu & Kumpulan</button>
-    <button type="button" data-tm-tab="report-studio">Laporan &amp; Cetakan</button>
     <button type="button" data-tm-tab="tasks">Jadual Tugasan</button>
+    <button type="button" data-tm-tab="report-studio">Laporan &amp; Cetakan</button>
+    <button type="button" data-tm-tab="members">Senarai Ahli Kumpulan</button>
     <button type="button" data-tm-tab="smart" id="tm4-tab" hidden>Smart Auto Agihan</button>
     <button type="button" data-tm-tab="settings" id="tm-tab-settings" hidden>Tetapan Admin</button>
     </div>
@@ -152,6 +153,14 @@
           <div id="tm47-audit-result" aria-live="polite"><p class="tm-empty">Audit belum diterbitkan untuk minggu yang dipilih.</p></div>
         </section>
       </div>
+    </section>
+    <section id="tm-panel-members" data-tm-panel="members" hidden>
+      <section class="tm-card tm525-members-card">
+        <div class="tm-section-title"><h2>Senarai Ahli Kumpulan Bertugas</h2>
+          <label class="tm525-members-select">Minggu <select id="tm525-member-week" aria-label="Pilih minggu untuk senarai ahli"></select></label>
+        </div>
+        <div id="tm525-members-content" aria-live="polite"><p class="tm-empty">Maklumat ahli sedang dimuatkan.</p></div>
+      </section>
     </section>
     <section id="tm-panel-settings" data-tm-panel="settings" hidden>
       <section class="tm-card"><div class="tm-section-title"><div><h2>Tetapan Asas</h2></div></div>

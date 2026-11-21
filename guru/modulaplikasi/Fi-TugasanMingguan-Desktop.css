@@ -693,3 +693,39 @@ html.tm-embedded .tm-tab-links>button{min-height:39px;padding:9px 12px;font-size
   .tm52-demo .tm52-demo-day .tm524-day-status{display:flex!important;width:max-content;max-width:100%;margin-top:4px}
   .tm52-demo .tm52-demo-day b{display:block}
 }
+
+/* V5.2.5 | Desktop sahaja — peranan, direktori dan Senarai Ahli. */
+@media (min-width:901px){
+  .tm525-members-card{min-height:280px}
+  .tm525-members-card .tm-section-title{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .tm525-members-select{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;color:#27466d}
+  .tm525-members-select select{min-width:250px;max-width:100%;background:#fff;border:1px solid #c9d9ed;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:500}
+  .tm525-members-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:17px 18px;margin:0 0 14px;border:1px solid #dbe5f2;background:#f2f6fd;border-radius:13px;color:#204579}
+  .tm525-members-heading>div{display:grid;gap:3px}.tm525-members-heading strong{font-size:16px}.tm525-members-heading span{font-size:13px;color:#607692}
+  .tm525-member-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .tm525-member-row{display:flex;gap:12px;align-items:center;min-width:0;min-height:68px;background:#fff;border:1px solid #e0e8f4;border-radius:12px;padding:11px 14px}
+  .tm525-member-row>div{min-width:0;flex:1;display:grid;gap:3px}.tm525-member-row strong{font-size:13px;color:#1c3f71;overflow-wrap:anywhere;line-height:1.5}
+  .tm525-member-row small{font-size:11px;color:#7586a2}
+  .tm525-member-number{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:9px;font-size:12px;font-weight:800;color:#205b9a;background:#e9f2fe}
+  .tm525-leader{flex:none;border-radius:18px;padding:5px 9px;background:#e8f5ee;color:#1c7448;font-size:11px;font-weight:800}
+  #tm5-root .tm525-day-row{display:flex;align-items:center;gap:7px;min-width:0}
+  #tm5-root .tm525-day-row .tm5-daybutton{flex:1;min-width:0;width:auto}
+  #tm5-root .tm525-edit-day{flex:none;font-size:12px;font-weight:700;border:1px solid #b9d2f3;color:#1d5d9c;background:#eff6ff;border-radius:9px;min-height:35px;padding:6px 10px;cursor:pointer}
+  #tm5-root .tm525-edit-day:hover{background:#ddecff}
+  #tm5-root .tm525-role-notice{border-left:4px solid #4a83bd!important;padding:15px 17px!important}
+  #tm5-root .tm525-role-notice strong{font-size:14px;font-weight:750;color:#205080}
+  #tm5-root .tm525-role-notice p,#tm5-root .tm525-review-hint p{font-size:13px;color:#60748c;margin-top:6px}
+  #tm5-root .tm525-sent-edit{display:grid;gap:13px;justify-items:start;margin-top:15px}
+  #tm5-root .tm525-sent-tabs{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  #tm5-root .tm525-sent-tabs button{border:1px solid #c4d8f2;background:#fff;color:#285781;border-radius:9px;font-size:12px;font-weight:650;padding:8px 11px;min-height:34px}
+  #tm5-root .tm525-sent-tabs button.active{color:#fff;background:#2765a2;border-color:#2765a2}
+  #tm5-root .tm5-pill.tm525-gpk{background:#e9f3ff!important;color:#245d99!important}
+  #tm5-root .tm5-pill.tm525-gb{background:#fff2dc!important;color:#986214!important}
+  #tm5-root .tm5-dirrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(138px,180px) 26px;gap:17px;align-items:center;padding:13px 17px}
+  #tm5-root .tm5-dirrow .tm5-dir-arrow{text-align:right;font-size:23px}
+  #tm5-root .tm5-dir-title strong{font-size:14px;line-height:1.5}
+  #tm5-root .tm5-dir-title span{font-size:12px;color:#687e99}
+  #tm5-root .tm525-demo-header p{font-size:12px;color:#687e99;margin:0 0 12px}
+  #tm5-root .tm525-demo-directory{max-width:1100px}
+  @media(max-width:1120px){.tm525-member-grid{grid-template-columns:1fr}}
+}
