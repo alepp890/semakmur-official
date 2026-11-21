@@ -1,4 +1,4 @@
-/* SeMAKMUR V5.3.0 — Template A4 Laporan Mingguan. Tiada akses DB, hanya render data dibekalkan modul. */
+/* SeMAKMUR V5.3.1 — Template A4 Laporan Mingguan. Tiada akses DB, hanya render data dibekalkan modul. */
 (function (g) {
   'use strict';
   const CSS = String.raw`
@@ -289,6 +289,28 @@ body { margin:0; background:#e8eeec; font-family:'Aptos','Segoe UI',Arial,sans-s
 .paper#pengesahan .auditbox{margin-top:8px;padding:8px 10px;}
 .paper.tm530-daily.tm530-oversize{height:auto!important;max-height:none!important;overflow:visible!important;}
 @media print{.paper.tm530-daily.tm530-oversize{height:auto!important;max-height:none!important;overflow:visible!important;}}
+
+/* V5.3.1 — Ruang pernafasan cetakan. Biar bersambung ke halaman baharu, bukan mampatkan teks. */
+.paper.tm530-daily .daily-section{margin-top:20px!important;flex-shrink:0!important;break-inside:avoid-page;page-break-inside:avoid;}
+.paper.tm530-daily .daily-section + .daily-section{margin-top:22px!important;}
+.paper.tm530-daily .daily-section .sec-title{margin-bottom:13px!important;break-after:avoid-page;page-break-after:avoid;}
+.paper.tm530-daily .speech-stack{gap:11px!important;}
+.paper.tm530-daily .speech-card{padding:11px 13px!important;}
+.paper.tm530-daily .speech-card .numbered{margin-top:10px!important;}
+.paper.tm530-daily .speech-card .narrative{margin-top:9px;}
+.paper.tm530-daily .metric-grid{gap:9px!important;}
+.paper.tm530-daily .metric{padding:10px 12px!important;}
+.paper.tm530-daily .activity-card{padding:12px 14px!important;margin-top:10px!important;}
+.paper.tm530-daily .info-line{padding:11px 13px!important;}
+.paper.tm530-daily .recorder{margin-bottom:5px!important;}
+/* Hari baharu sentiasa halaman baharu; sambungan bagi hari sama di halaman susulan. */
+.paper.tm530-daily{break-before:page;page-break-before:always;}
+.paper.tm530-daily .daily-section .sec-title{break-inside:avoid-page;}
+@media print{
+ .paper.tm530-daily{break-before:page!important;page-break-before:always!important;}
+ .paper.tm530-daily .daily-section{break-inside:avoid-page!important;page-break-inside:avoid!important;}
+}
+
 `;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const isID=v=>/^(SKSM\d+|[A-Fa-f0-9-]{20,})$/.test(String(v||'').trim());
@@ -365,41 +387,134 @@ body { margin:0; background:#e8eeec; font-family:'Aptos','Segoe UI',Arial,sans-s
     const urls=assets(),items=[paper(r,urls,'kulit',cover(r)),...r.days.map((d,i)=>paper(r,urls,'hari-'+i,daily(r,d,i))),paper(r,urls,'pengesahan',approval(r))];
     const paginateScript=String.raw`<script>
 (function(){
+ 'use strict';
  function paginate(){
   const pages=document.querySelector('.pages');if(!pages)return;
-  for(const origin of [...pages.querySelectorAll('.paper.tm530-daily:not(.tm530-continued-page)')]){
+  const originalDays=[...pages.querySelectorAll('.paper.tm530-daily:not(.tm530-continued-page)')];
+  for(const origin of originalDays){
    let current=origin,count=0;
-   const daySections=[...origin.querySelectorAll(':scope > .daily-section')];
-   for(const section of daySections){
-    const footer=current.querySelector(':scope > .paper-foot');
-    if(current!==origin)current.insertBefore(section,footer);
-    const bounds=current.getBoundingClientRect();
-    const computed=getComputedStyle(current);
-    const lower=bounds.bottom-parseFloat(computed.paddingBottom)-footer.getBoundingClientRect().height-9;
-    if(section.getBoundingClientRect().bottom<=lower)continue;
-    // Always move the WHOLE numbered section (01-06), never a loose heading.
-    count++;
+   const originalSections=[...origin.querySelectorAll(':scope > .daily-section')];
+   const footerOf=p=>p.querySelector(':scope > .paper-foot');
+   function fits(section,page){
+    const r=page.getBoundingClientRect();
+    const f=footerOf(page).getBoundingClientRect();
+    const pad=parseFloat(getComputedStyle(page).paddingBottom)||0;
+    return section.getBoundingClientRect().bottom <= r.bottom-pad-f.height-12;
+   }
+   function newPage(){
+    count+=1;
     const next=document.createElement('section');
     next.className='paper tm530-daily tm530-continued-page';
     next.id=origin.id+'-sambungan-'+count;
-    const head=origin.querySelector(':scope > .schoolhead').cloneNode(true);
+    const header=origin.querySelector(':scope > .schoolhead').cloneNode(true);
     const banner=origin.querySelector(':scope > .daily-hero').cloneNode(true);
     banner.classList.add('tm530-continued');
-    const kicker=banner.querySelector('.kicker');if(kicker)kicker.textContent='Laporan Harian · Sambungan';
-    next.append(head,banner,origin.querySelector(':scope > .paper-foot').cloneNode(true));
-    current.after(next);
-    current=next;
-    next.insertBefore(section,next.querySelector(':scope > .paper-foot'));
-    // For unusually long one-section narratives the browser can continue text,
-    // while headings remain bound to content; do not silently discard text.
-    if(section.getBoundingClientRect().bottom > next.getBoundingClientRect().bottom-100){
-      next.classList.add('tm530-oversize');
-      next.style.maxHeight='none';next.style.height='auto';next.style.overflow='visible';
+    const kicker=banner.querySelector('.kicker');
+    if(kicker)kicker.textContent='Laporan Harian · Sambungan';
+    next.append(header,banner,footerOf(origin).cloneNode(true));
+    current.after(next);current=next;
+    return next;
+   }
+   function place(el){current.insertBefore(el,footerOf(current));}
+   function emptySection(section){
+    const el=document.createElement('section');el.className='daily-section';
+    const title=section.querySelector(':scope > .sec-title');
+    if(title)el.append(title.cloneNode(true));
+    return el;
+   }
+   // When a single section is longer than an A4 page, distribute its
+   // individual cards / list items across continuation sheets, repeating
+   // the section heading. This avoids cutting off the end of the report.
+   function atomize(section){
+    const content=[...section.children].filter(n=>!n.classList.contains('sec-title'));
+    if(content.length>1)return {kind:'direct',atoms:content};
+    const wrap=content[0];if(!wrap)return null;
+    if(wrap.classList.contains('speech-stack'))return {kind:'speech-stack',atoms:[...wrap.children]};
+    if(wrap.classList.contains('metric-grid')){
+      const children=[...wrap.children],pairs=[];
+      for(let i=0;i<children.length;i+=2)pairs.push(children.slice(i,i+2));
+      return {kind:'metric-grid',atoms:pairs};
     }
+    if(wrap.tagName==='OL')return {kind:'OL',atoms:[...wrap.children]};
+    if(wrap.classList.contains('narrative'))return {kind:'narrative',atoms:[...wrap.children]};
+    // A single long activity/speech card can be divided at its paragraphs.
+    if(wrap.classList.contains('activity-card')||wrap.classList.contains('speech-card')){
+      const number=wrap.querySelector(':scope > .numbered');
+      const description=wrap.querySelector(':scope > .narrative');
+      if(number&&number.children.length>1)return {kind:'card-list',card:wrap,atoms:[...number.children]};
+      if(description&&description.children.length>1)return {kind:'card-paras',card:wrap,atoms:[...description.children]};
+    }
+    return null;
+   }
+   function buildWrapper(spec,section){
+    const el=emptySection(section),kind=spec.kind;
+    if(kind==='speech-stack'||kind==='metric-grid'||kind==='narrative'){
+      const wrap=document.createElement('div');wrap.className=kind;el.append(wrap);
+    }else if(kind==='OL'){
+      el.append(document.createElement('ol')).lastChild.className='numbered';
+    }else if(kind==='card-list'||kind==='card-paras'){
+      const card=spec.card.cloneNode(true);
+      const child=card.querySelector(':scope > .'+(kind==='card-list'?'numbered':'narrative'));
+      if(child)child.replaceChildren();
+      el.append(card);
+    }
+    return el;
+   }
+   function appendAtom(el,atom,spec){
+    if(spec.kind==='direct')el.append(atom);
+    else if(spec.kind==='speech-stack'||spec.kind==='narrative'||spec.kind==='OL')el.lastElementChild.append(atom);
+    else if(spec.kind==='metric-grid')atom.forEach(node=>el.lastElementChild.append(node));
+    else if(spec.kind==='card-list'||spec.kind==='card-paras'){
+      const selector=spec.kind==='card-list'?'.numbered':'.narrative';
+      el.lastElementChild.querySelector(selector).append(atom);
+    }
+   }
+   function splitLong(section){
+    const spec=atomize(section);
+    if(!spec||spec.atoms.length<2){
+      // Even one giant text item cannot be kept on a physical sheet.
+      // Allow native continuation rather than crop text.
+      current.classList.add('tm530-oversize');
+      current.style.overflow='visible';
+      return;
+    }
+    const parent=current;
+    section.remove();
+    let frag=null;
+    for(const atom of spec.atoms){
+      if(!frag){frag=buildWrapper(spec,section);place(frag);}
+      appendAtom(frag,atom,spec);
+      if(fits(frag,current))continue;
+      // If this chunk is too tall, put it on a new A4 continuation page.
+      if(spec.kind==='metric-grid')atom.forEach(a=>a.remove());
+      else atom.remove();
+      const hadPrevious=spec.kind==='metric-grid'?frag.lastElementChild.children.length>0:
+         (spec.kind==='direct'?frag.children.length>1:
+           spec.kind==='card-list'||spec.kind==='card-paras'?frag.lastElementChild.querySelector(spec.kind==='card-list'?'.numbered':'.narrative').children.length>0:
+             frag.lastElementChild.children.length>0);
+      if(!hadPrevious){frag.remove();frag=null;}
+      newPage();frag=buildWrapper(spec,section);place(frag);appendAtom(frag,atom,spec);
+      if(!fits(frag,current)){
+       current.classList.add('tm530-oversize');
+       current.style.overflow='visible';
+      }
+    }
+   }
+   for(const section of originalSections){
+    if(current!==origin)place(section); // preserve original section order on first sheet
+    if(fits(section,current))continue;
+    // Move entire section to following sheet, never leave a lone header.
+    newPage();place(section);
+    if(!fits(section,current))splitLong(section);
    }
   }
  }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',paginate,{once:true});else paginate();
+ function start(){
+  const ready=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
+  ready.then(()=>Promise.all([...document.querySelectorAll('.paper img')].map(img=>img.complete?Promise.resolve():new Promise(done=>{img.addEventListener('load',done,{once:true});img.addEventListener('error',done,{once:true});setTimeout(done,1500);}))))
+   .then(()=>requestAnimationFrame(()=>requestAnimationFrame(paginate)));
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>`;
     const documentTitle=`Laporan Minggu ${r.week} - Kumpulan ${r.group}`;
