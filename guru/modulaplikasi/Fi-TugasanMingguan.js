@@ -1128,8 +1128,8 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
   // Kandungan disimpan sebagai teks bernombor supaya pratonton/cetakan konsisten.
   function tm523Renumber_(value){
     const lines=String(value||'').replace(/\r/g,'').split('\n');
-    if(lines.every(line=>!line.replace(/^\s*\d+\.\s*/, '').trim()))return '';
-    return lines.map((line,i)=>`${i+1}. ${line.replace(/^\s*\d+\.\s*/, '').replace(/^\s+/, '')}`).join('\n');
+    if(lines.every(line=>!line.replace(/^\s*\d+[.)]\s*/, '').trim()))return '';
+    return lines.map((line,i)=>`${i+1}. ${line.replace(/^\s*\d+[.)]\s*/, '').replace(/^\s+/, '')}`).join('\n');
   }
   function tm523BindNumbering_(host){
     if(!host||host.dataset.tm523Bound==='true')return;
@@ -1143,14 +1143,20 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
     host.addEventListener('keydown',ev=>{
       const el=ev.target;if(!el.matches?.('textarea[data-tm-numbered]')||el.disabled||ev.key!=='Enter'||ev.isComposing||ev.ctrlKey||ev.altKey||ev.metaKey)return;
       ev.preventDefault();
-      const before=el.value.slice(0,el.selectionStart);
-      const after=el.value.slice(el.selectionEnd);
-      const nextLine=before.split('\n').length; // next numbered row
-      const lines=(before+'\n'+after).split('\n');
-      const norm=lines.map((line,i)=>`${i+1}. ${line.replace(/^\s*\d+\.\s*/, '').replace(/^\s+/, '')}`);
-      el.value=norm.join('\n');
-      const caret=norm.slice(0,nextLine).reduce((a,l)=>a+l.length+1,0)+`${nextLine+1}. `.length;
-      el.setSelectionRange(caret,caret);
+      // Popup edit is a child of the demo form. Prevent its Enter event from
+      // reaching the second (outer) delegated numbering handler.
+      ev.stopPropagation();
+      const selectionStart=el.selectionStart;
+      const selectionEnd=el.selectionEnd;
+      const before=el.value.slice(0,selectionStart);
+      const after=el.value.slice(selectionEnd);
+      const cursorLine=before.split('\n').length;
+      const raw=(before+'\n'+after).split('\n');
+      const numbered=raw.map((line,i)=>`${i+1}. ${line.replace(/^\s*\d+[.)]\s*/, '').replace(/^\s+/, '')}`);
+      el.value=numbered.join('\n');
+      // The cursor belongs immediately after the NEW number, not two rows down.
+      const position=numbered.slice(0,cursorLine).reduce((acc,line)=>acc+line.length+1,0)+`${cursorLine+1}. `.length;
+      el.setSelectionRange(position,position);
       el.dispatchEvent(new Event('input',{bubbles:true}));
     });
     host.addEventListener('input',ev=>{

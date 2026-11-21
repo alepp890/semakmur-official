@@ -1,4 +1,4 @@
-/* SeMAKMUR V5.2.9 — Template A4 Laporan Mingguan. Tiada akses DB, hanya render data dibekalkan modul. */
+/* SeMAKMUR V5.3.0 — Template A4 Laporan Mingguan. Tiada akses DB, hanya render data dibekalkan modul. */
 (function (g) {
   'use strict';
   const CSS = String.raw`
@@ -244,6 +244,51 @@ body { margin:0; background:#e8eeec; font-family:'Aptos','Segoe UI',Arial,sans-s
  .paper:last-child{break-after:auto!important;page-break-after:auto!important;}
  .daily-section,.activity-card,.metric{break-inside:avoid-page;}
 }
+
+/* V5.3.0 — 6 seksyen sedia ada dikekalkan; caption seragam dan isi 10pt. */
+.paper .speech-stack{display:flex;flex-direction:column;gap:7px;}
+.paper .speech-card{padding:8px 11px;}
+.paper .speech-card .cardtop,.paper .program-card .cardtop{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.paper .speech-card .cardtop strong,.paper .program-card .cardtop strong,
+.paper .metric .metric-label,.paper .activity-card .activity-title{font-family:'Aptos','Segoe UI',Arial,sans-serif;font-size:10.5pt;font-weight:700;line-height:1.3;}
+.paper .speech-card .numbered,.paper .speech-card .numbered li,
+.paper .speech-card .narrative,.paper .speech-card .narrative p,
+.paper .activity-card .narrative,.paper .activity-card .narrative p,
+.paper .activity-card .numbered,.paper .activity-card .numbered li,
+.paper .activity-card p:not(.activity-title),.paper .info-line,
+.paper .metric .badge,.paper .program-card .numbered,
+.paper .program-card .numbered li{font-size:10pt;font-weight:400;line-height:1.45;}
+.paper .speech-card .badge,.paper .program-card .badge{flex:none;margin-left:auto;}
+.paper .program-card .cardtop{width:100%;}
+.paper .activity-card .activity-number{font-variant-numeric:tabular-nums;margin-right:4px;}
+.paper .daily-section{break-inside:avoid-page;page-break-inside:avoid;flex-shrink:0;}
+.paper .daily-section .sec-title{break-after:avoid-page;page-break-after:avoid;}
+/* Footer satu baris: jenama sekolah | logo slogan | minggu. */
+.paper .paper-foot{display:grid;grid-template-columns:1fr minmax(90px,220px) 1fr;gap:12px;align-items:center;margin-top:auto;padding:7px 0 0;min-height:34px;}
+.paper .paper-foot>b{font-size:10pt;letter-spacing:.1px;text-transform:none;justify-self:start;white-space:nowrap;}
+.paper .paper-foot>.page-number{font-size:10pt;justify-self:end;white-space:nowrap;text-transform:none;}
+.paper .paper-foot .school-slogan{margin:0;min-height:20px;max-height:30px;padding:0;justify-self:center;width:100%;}
+.paper .paper-foot .school-slogan img{max-height:27px;max-width:195px;}
+.paper .paper-foot .school-slogan .slogan-fallback{font-size:8px;padding:2px 6px;text-align:center;}
+.paper.tm530-daily{height:297mm;min-height:297mm;max-height:297mm;overflow:hidden;}
+.paper.tm530-daily .daily-section{flex-shrink:0;}
+.paper .daily-hero.tm530-continued{margin-top:14px;padding:9px 14px;}
+.paper .daily-hero.tm530-continued h1{font-size:19px;}
+@media print{
+ .paper.tm530-daily{height:297mm!important;min-height:297mm!important;max-height:297mm!important;overflow:hidden!important;}
+ .paper .daily-section{break-inside:avoid-page!important;page-break-inside:avoid!important;}
+ .paper .speech-stack,.paper .activity-card{break-inside:avoid-page;}
+}
+
+/* Ruang halaman pengesahan diselaraskan supaya footer tidak melewati kertas A4. */
+.paper#pengesahan .approval-head{margin-top:12px;}
+.paper#pengesahan .quote{margin:10px 0 9px;padding:12px 16px;}
+.paper#pengesahan .section-heading{margin:12px 0 8px;}
+.paper#pengesahan .approval-card{min-height:130px;padding:12px 14px;}
+.paper#pengesahan .approval-final{margin-top:7px;padding:10px 13px;}
+.paper#pengesahan .auditbox{margin-top:8px;padding:8px 10px;}
+.paper.tm530-daily.tm530-oversize{height:auto!important;max-height:none!important;overflow:visible!important;}
+@media print{.paper.tm530-daily.tm530-oversize{height:auto!important;max-height:none!important;overflow:visible!important;}}
 `;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const isID=v=>/^(SKSM\d+|[A-Fa-f0-9-]{20,})$/.test(String(v||'').trim());
@@ -276,8 +321,8 @@ body { margin:0; background:#e8eeec; font-family:'Aptos','Segoe UI',Arial,sans-s
   function logoHtml(src){return `<div class="school-logo ${src?'has-src':''}">${src?`<img src="${esc(src)}" alt="Logo rasmi SK Segambut Makmur" onerror="this.parentNode.classList.add('missing');this.style.display='none'">`:''}<span class="logo-fallback">RUANG<br><b>LOGO</b><br>SEKOLAH</span></div>`;}
   function sloganHtml(src){return `<div class="school-slogan ${src?'has-src':''}">${src?`<img src="${esc(src)}" alt="Logo slogan rasmi sekolah" onerror="this.parentNode.classList.add('missing');this.style.display='none'">`:''}<span class="slogan-fallback">RUANG LOGO SLOGAN RASMI SEKOLAH</span></div>`;}
   function head(r,urls){return `<header class="schoolhead">${logoHtml(urls.logo)}<div class="school-name"><div class="gov">Kementerian Pendidikan Malaysia</div><h2>SK SEGAMBUT MAKMUR</h2><p>SeMAKMUR DIGITAL · SMART TUGASAN MINGGUAN</p></div><div class="doc-symbol"><b>${r.simulation?'SIMULASI UJIAN':'LAPORAN RASMI'}</b><span>TAHUN ${esc(r.year||'')}</span></div></header>`;}
-  function footer(r,urls){return `${sloganHtml(urls.slogan)}<footer class="paper-foot"><span>${r.simulation?'MOD UJIAN · BUKAN DOKUMEN RASMI':'DOKUMEN DIGITAL · SELEPAS PENGESAHAN GURU BESAR'}</span><b>SeMAKMUR I-SYSTEM</b><span class="page-number">MINGGU ${esc(r.week||'—')}</span></footer>`;}
-  function paper(r,urls,id,body){return `<section class="paper" id="${esc(id)}">${head(r,urls)}${body}${footer(r,urls)}</section>`;}
+  function footer(r,urls){return `<footer class="paper-foot"><b>SeMAKMUR I-System</b>${sloganHtml(urls.slogan)}<span class="page-number">Minggu ${esc(r.week||'—')}</span></footer>`;}
+  function paper(r,urls,id,body){return `<section class="paper ${id.startsWith('hari-')?'tm530-daily':''}" id="${esc(id)}">${head(r,urls)}${body}${footer(r,urls)}</section>`;}
   function cover(r){const days=(r.days||[]).map(d=>`<div class="day-tile"><div class="day">${esc(d.day)}</div><div class="date">${esc(formatDate(d.date))}</div><div class="name">${d.holiday?'Cuti / Tiada Laporan':esc(humanName(d.reporter))}</div></div>`).join('');return `
     <div class="cover-lead"><div class="eyebrow">Laporan Pengurusan · Guru Bertugas</div><h1>Laporan Rumusan<br>Guru Bertugas<br>Mingguan</h1><p>Dokumentasi pemerhatian harian, pengurusan murid dan aktiviti sekolah bagi minggu persekolahan yang telah direkodkan.</p></div>
     <div class="cover-rule"></div><div class="week-hero"><div class="left"><span class="tiny">Minggu Persekolahan</span><div class="number">${esc(r.week||'—')}</div></div><div class="right"><div class="label">Tempoh Laporan</div><b>${esc(formatDate(r.from))} – ${esc(formatDate(r.to))}</b><small>Kumpulan Bertugas ${esc(r.group||'—')} · Tahun ${esc(r.year||'')}</small></div></div>
@@ -289,15 +334,15 @@ body { margin:0; background:#e8eeec; font-family:'Aptos','Segoe UI',Arial,sans-s
   function metric(items){return `<div class="metric-grid">${items.map(([n,v])=>`<div class="metric"><span class="metric-label">${esc(n)}</span>${badge(pair(v).status||'Tiada rekod')}</div>`).join('')}</div>`;}
   function daily(r,d,i){const v=d.data||{},speeches=[
     ['Ucapan Guru Besar / Pentadbir',v.speech_gb],['Ucapan Guru Bertugas',v.speech_duty],['Ucapan Guru Disiplin',v.speech_discipline]];
-    const speechBody=`${speech(speeches[0][1],speeches[0][0])}<div class="speech-shortcuts">${speeches.slice(1).map(([name,val])=>{const x=pair(val);return `<div class="speech-mini"><div class="cardtop"><b>${esc(name)}</b>${badge(x.status||'TIADA')}</div>${x.status==='ADA'&&x.note?`<div class="speechnote">${narrative(x.note)}</div>`:''}</div>`;}).join('')}</div>`;
+    const speechBody=`<div class="speech-stack">${speeches.map(([name,val])=>speech(val,name)).join('')}</div>`;
     const hygiene=metric([['Tandas Murid',v.clean_student],['Tandas Guru',v.clean_teacher],['Dewan Sri Makmur',v.clean_hall],['Persekitaran Sekolah',v.clean_ground]]);
     const disiplin=metric([['Waktu Perhimpunan',v.discipline_assembly],['Waktu Rehat',v.discipline_break],['Waktu Pulang',v.discipline_exit]]);
     const ps=text(v.makmur_status||v.program||'TIADA');const desc=ps==='BATAL'?text(v.makmur_cancel_reason||v.program_reason):text(v.makmur_note||v.program_note);
-    const program= `<div class="activity-card"><div class="cardtop"><strong>Pelaksanaan Program Makmur</strong>${badge(ps)}</div>${desc?narrative(desc):''}${v.makmur_teacher?`<p><b>Guru Pengendali:</b> ${esc(humanName(v.makmur_teacher_name||v.makmur_teacher))}</p>`:''}</div>`;
+    const program= `<div class="activity-card program-card"><div class="cardtop"><strong>Pelaksanaan Program Makmur</strong>${badge(ps)}</div>${desc?narrative(desc):''}${v.makmur_teacher?`<p><b>Guru Pengendali:</b> ${esc(humanName(v.makmur_teacher_name||v.makmur_teacher))}</p>`:''}</div>`;
     const visitors=Array.isArray(v.visitors)?v.visitors:(Array.isArray(v.visitors_list)?v.visitors_list:[]);
     const visitorBody=visitors.filter(Boolean).length?`<ol class="numbered">${visitors.filter(Boolean).map(n=>`<li>${esc(n)}</li>`).join('')}</ol>`:'<div class="info-line no-record">Tiada kehadiran pelawat direkodkan.</div>';
     const acts=Array.isArray(v.activities)?v.activities:(Array.isArray(v.activities_list)?v.activities_list:[]);
-    const activityBody=acts.length?acts.map(a=>`<article class="activity-card"><p class="activity-title">${esc(a.title||'Aktiviti')}</p>${narrative(a.desc||a.description||'')}</article>`).join(''):'<div class="info-line no-record">Tiada aktiviti tambahan direkodkan.</div>';
+    const activityBody=acts.length?acts.map((a,i)=>`<article class="activity-card"><p class="activity-title"><span class="activity-number">${i+1}.</span> ${esc(a.title||'Aktiviti')}</p>${narrative(a.desc||a.description||'')}</article>`).join(''):'<div class="info-line no-record">Tiada aktiviti tambahan direkodkan.</div>';
     if(d.holiday)return `<div class="daily-hero"><div><div class="kicker">Laporan Harian · ${i+1} / ${r.days.length}</div><h1>${esc(d.day)}</h1><div class="sub">${esc(formatDate(d.date))}</div></div></div><div class="info-line no-record" style="margin-top:25px"><b>Tiada laporan diperlukan</b> — ${esc(d.holidayTitle||'Cuti Persekolahan')}</div>`;
     return `<div class="daily-hero"><div><div class="kicker">Laporan Harian · ${i+1} / ${r.days.length}</div><h1>${esc(d.day)}</h1><div class="sub">${esc(formatDate(d.date))}</div></div><div class="date-card"><strong>${esc(String(d.date||'').slice(-2))}</strong><span>${esc(r.year||'')}</span></div></div>
       <div class="recorder"><div class="avatar">${esc(humanName(d.reporter).slice(0,2))}</div><div class="by"><small>Direkodkan oleh</small><b>${esc(humanName(d.reporter))}</b></div>${badge('Lengkap')}</div>
@@ -318,8 +363,47 @@ body { margin:0; background:#e8eeec; font-family:'Aptos','Segoe UI',Arial,sans-s
     if(!r||typeof r!=='object'||!Array.isArray(r.days))throw new Error('Data laporan tidak lengkap.');
     if(!r.simulation&&r.status!=='DISAHKAN')throw new Error('Laporan belum disahkan Guru Besar; cetakan rasmi tidak dibenarkan.');
     const urls=assets(),items=[paper(r,urls,'kulit',cover(r)),...r.days.map((d,i)=>paper(r,urls,'hari-'+i,daily(r,d,i))),paper(r,urls,'pengesahan',approval(r))];
+    const paginateScript=String.raw`<script>
+(function(){
+ function paginate(){
+  const pages=document.querySelector('.pages');if(!pages)return;
+  for(const origin of [...pages.querySelectorAll('.paper.tm530-daily:not(.tm530-continued-page)')]){
+   let current=origin,count=0;
+   const daySections=[...origin.querySelectorAll(':scope > .daily-section')];
+   for(const section of daySections){
+    const footer=current.querySelector(':scope > .paper-foot');
+    if(current!==origin)current.insertBefore(section,footer);
+    const bounds=current.getBoundingClientRect();
+    const computed=getComputedStyle(current);
+    const lower=bounds.bottom-parseFloat(computed.paddingBottom)-footer.getBoundingClientRect().height-9;
+    if(section.getBoundingClientRect().bottom<=lower)continue;
+    // Always move the WHOLE numbered section (01-06), never a loose heading.
+    count++;
+    const next=document.createElement('section');
+    next.className='paper tm530-daily tm530-continued-page';
+    next.id=origin.id+'-sambungan-'+count;
+    const head=origin.querySelector(':scope > .schoolhead').cloneNode(true);
+    const banner=origin.querySelector(':scope > .daily-hero').cloneNode(true);
+    banner.classList.add('tm530-continued');
+    const kicker=banner.querySelector('.kicker');if(kicker)kicker.textContent='Laporan Harian · Sambungan';
+    next.append(head,banner,origin.querySelector(':scope > .paper-foot').cloneNode(true));
+    current.after(next);
+    current=next;
+    next.insertBefore(section,next.querySelector(':scope > .paper-foot'));
+    // For unusually long one-section narratives the browser can continue text,
+    // while headings remain bound to content; do not silently discard text.
+    if(section.getBoundingClientRect().bottom > next.getBoundingClientRect().bottom-100){
+      next.classList.add('tm530-oversize');
+      next.style.maxHeight='none';next.style.height='auto';next.style.overflow='visible';
+    }
+   }
+  }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',paginate,{once:true});else paginate();
+})();
+</script>`;
     const documentTitle=`Laporan Minggu ${r.week} - Kumpulan ${r.group}`;
-    return `<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(documentTitle)}</title><style>${CSS}</style></head><body><div class="printbar"><div><strong>${esc(documentTitle)}</strong><div class="print-note">A4 · Isi laporan 11pt · ${r.simulation?'Simulasi ujian':'Disahkan Guru Besar'}</div></div><button type="button" onclick="window.print()">Cetak / Simpan PDF</button></div><main class="pages">${items.join('')}</main></body></html>`;
+    return `<!doctype html><html lang="ms"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(documentTitle)}</title><style>${CSS}</style></head><body><div class="printbar"><div><strong>${esc(documentTitle)}</strong><div class="print-note">A4 · Isi laporan 11pt · ${r.simulation?'Simulasi ujian':'Disahkan Guru Besar'}</div></div><button type="button" onclick="window.print()">Cetak / Simpan PDF</button></div><main class="pages">${items.join('')}</main>${paginateScript}</body></html>`;
   }
   function open(r){const html=generate(r),win=g.open('','_blank');if(!win)throw new Error('Tetingkap cetakan disekat. Benarkan pop-up untuk portal.');win.opener=null;win.document.open();win.document.write(html);win.document.close();return win;}
   function download(r){const html=generate(r),safe=String(r.week||'').replace(/[^a-zA-Z0-9_-]/g,'_'),url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=`Laporan_Minggu_${safe}_Kumpulan_${String(r.group||'').replace(/[^0-9A-Za-z_-]/g,'_')}.html`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
