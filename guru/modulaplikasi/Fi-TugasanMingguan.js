@@ -631,13 +631,63 @@ function tmPwaDefaultDutyDay(dates,now=tmToday()){
 function tmPwaSetDayOptions(dates){
   const select=tm$('tm-pwa-day-select');if(!select)return;
   const prev=tmState.dutyFilter;
-  select.innerHTML=dates.map(date=>`<option value="${tmEsc(date)}">${tmEsc(tmDayName(date))} · ${tmPwaDate(date)}</option>`).join('');
+  select.innerHTML=dates.map(date=>`<option value="${tmEsc(date)}">${tmEsc(tmDayName(date))}</option>`).join('');
   const chosen=dates.includes(prev)?prev:tmPwaDefaultDutyDay(dates);
   if(!dates.length){select.innerHTML='<option value="">Tiada hari tersedia</option>';select.disabled=true;return;}
   select.disabled=false;select.value=chosen;
 }
 
-function tmTab(name){tmState.tab=name;document.querySelectorAll('[data-tm-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tmTab===name));document.querySelectorAll('[data-tm-panel]').forEach(x=>x.hidden=x.dataset.tmPanel!==name);}
+/* V5.3.6: picker mengikut tab. Desktop sentiasa menggunakan komponen asal. */
+const tm536Selection={week:'',group:''};
+function tm536WeeksForOverview(){
+  const weeks=(tmState.data?.weeks||[]).filter(w=>tmPwaISO(w.Tempoh_Mula)).slice()
+    .sort((a,b)=>tmPwaISO(a.Tempoh_Mula).localeCompare(tmPwaISO(b.Tempoh_Mula)));
+  const today=tmToday();const last=weeks.filter(w=>tmPwaISO(w.Tempoh_Mula)<=today).at(-1)||null;
+  const next=weeks.find(w=>tmPwaISO(w.Tempoh_Mula)>(last?tmPwaISO(last.Tempoh_Mula):today));
+  return weeks.filter(w=>tmPwaISO(w.Tempoh_Mula)<=today||(next&&w.ID_Minggu===next.ID_Minggu)).reverse();
+}
+function tm536Picker(){
+  const root=tm$('tm536-top-filter'),weekWrap=tm$('tm536-week-wrap'),groupWrap=tm$('tm536-group-wrap');
+  const wk=tm$('tm536-week-select'),group=tm$('tm536-group-select');
+  if(!root||!wk||!group)return;
+  if(!tmPwaCompact()){root.hidden=true;return;}
+  const mode=tmState.tab||'overview',isWeek=mode==='overview'||mode==='tasks',isGroup=mode==='members';
+  root.hidden=!(isWeek||isGroup);weekWrap.hidden=!isWeek;groupWrap.hidden=!isGroup;
+  if(isWeek){
+    const choices=mode==='tasks'?tmPwaWeekChoices(tm51.overview?.weeks||tmState.data?.weeks||[]):tm536WeeksForOverview();
+    const value=mode==='tasks'?tmState.weekId:tm536Selection.week;
+    const initial=mode==='overview'?'<option value="">Semua minggu</option>':'';
+    wk.innerHTML=initial+choices.map(w=>`<option value="${tmEsc(w.ID_Minggu)}">Minggu ${tmEsc(w.Minggu)} · ${tmEsc(w.Nama_Kumpulan)}</option>`).join('');
+    let next=choices.some(w=>w.ID_Minggu===value)?value:(mode==='tasks'?choices[0]?.ID_Minggu||'':'');
+    wk.value=next;
+    if(mode==='tasks'&&next&&next!==tmState.weekId){
+      tm$('tm51-week-select').value=next;tm51ChooseScheduleWeek(next);
+    }
+  }
+  if(isGroup){
+    const groups=Array.isArray(tm51.overview?.currentGroups)?tm51.overview.currentGroups:[];
+    const actor=String(tmState.data?.actor?.id||'');
+    const own=groups.find(g=>(g.members||[]).some(m=>String(m.id||'')===actor));
+    if(!tm536Selection.group||!groups.some(g=>String(g.id)===tm536Selection.group))
+      tm536Selection.group=String(own?.id||groups[0]?.id||'');
+    group.innerHTML=groups.length?groups.map(g=>`<option value="${tmEsc(g.id)}">${tmEsc(g.name||'Kumpulan '+g.id)}</option>`).join(''):'<option value="">Memuatkan senarai kumpulan…</option>';
+    group.value=tm536Selection.group;
+  }
+}
+function tm536TeacherName(id,original,short){
+  if(!tmPwaCompact())return original;
+  if(short&&String(short).trim())return String(short).trim();
+  const member=(tm51.schedule?.week?.members||[]).find(p=>String(p.id)===String(id));
+  const current=(tm51.overview?.currentGroups||[]).flatMap(g=>g.members||[]).find(p=>String(p.id)===String(id));
+  return String(member?.nickname||member?.shortName||current?.nickname||original||id);
+}
+function tmTab(name){
+  tmState.tab=name;
+  document.querySelectorAll('[data-tm-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tmTab===name));
+  document.querySelectorAll('[data-tm-panel]').forEach(x=>x.hidden=x.dataset.tmPanel!==name);
+  tm536Picker();
+}
+
 async function tm52BootstrapFast(){
   if(!tmState.user)return null;
   try{
@@ -674,7 +724,7 @@ async function tmBootstrap(){
   if(!weeks.some(x=>x.ID_Minggu===tmState.weekId)){
     const today=tmToday();tmState.weekId=(weeks.find(x=>x.Tempoh_Mula<=today&&today<=x.Tempoh_Tamat)||weeks[0])?.ID_Minggu||'';
   }
-  tmState.overviewMeta={};tmRenderOverview();tm525MembersRender();tmRenderSettings();tmState.tm4WeeksLoaded=false;
+  tmState.overviewMeta={};tmRenderOverview();tm525MembersRender();tm536Picker();tmRenderSettings();tmState.tm4WeeksLoaded=false;
   if(result.actor?.isAdmin&&tmState.tab==='smart'){await tm4LoadWeeks(false);tmState.tm4WeeksLoaded=true;}
   tmSignal('semakmur-tm-ready');
   // V5.1B: jadual diterbitkan terus melalui Firestore. Jangan memanggil
@@ -697,7 +747,7 @@ function tmPwaRenderWeeks(){
   const anchor=current||past[past.length-1]||null;
   const next=all.find(w=>tmPwaISO(w.Tempoh_Mula)>(anchor?tmPwaISO(anchor.Tempoh_Mula):today));
   const allowed=all.filter(w=>tmPwaISO(w.Tempoh_Mula)<=today||(next&&String(w.ID_Minggu)===String(next.ID_Minggu)));
-  const display=allowed.slice().sort((a,b)=>tmPwaISO(b.Tempoh_Mula).localeCompare(tmPwaISO(a.Tempoh_Mula)));
+  const display=allowed.filter(w=>!tmPwaCompact()||!tm536Selection.week||w.ID_Minggu===tm536Selection.week).slice().sort((a,b)=>tmPwaISO(b.Tempoh_Mula).localeCompare(tmPwaISO(a.Tempoh_Mula)));
   if(count)count.textContent=display.length+' minggu';
   const meta=tmState.overviewMeta||{};
   box.innerHTML=display.length?display.map(w=>{
@@ -828,7 +878,7 @@ function tmDutyClock(value){
   return ''; // Jangan papar tarikh 1899 atau nilai masa rosak kepada guru.
 }
 function tmDutyDateList(week,rows){
-  const start=tmPwaISO(week?.mula||week?.start||week?.Tempoh_Mula),stop=tmPwaISO(week?.tamat||week?.end||week?.Tempoh_Tamat);
+  const start=tmPwaISO(week?.mula||week?.start||week?.from||week?.Tempoh_Mula),stop=tmPwaISO(week?.tamat||week?.end||week?.to||week?.Tempoh_Tamat);
   if(/^20\d{2}-\d\d-\d\d$/.test(String(start||''))&&/^20\d{2}-\d\d-\d\d$/.test(String(stop||''))){
     const dates=[];
     for(let d=new Date(start+'T00:00:00Z'),last=new Date(stop+'T00:00:00Z');d<=last&&dates.length<7;d.setUTCDate(d.getUTCDate()+1)){
@@ -886,7 +936,7 @@ function tmRenderAssignments(){
     entries.forEach(x=>{
       const id=String(x.task||''),title=x.taskName||typeNames[id]||id||'Tugasan';
       if(!grouped.has(id))grouped.set(id,{title,staff:[]});
-      grouped.get(id).staff.push({id:String(x.staff||''),name:names[String(x.staff)]||String(x.staff||'Belum ditetapkan')});
+      grouped.get(id).staff.push({id:String(x.staff||''),name:tm536TeacherName(x.staff,names[String(x.staff)]||String(x.staff||'Belum ditetapkan'),x.shortName||x.nickname||x.alias)});
     });
     const sorted=[...grouped.values()].sort((a,b)=>a.title.localeCompare(b.title,'ms'));
     const content=sorted.length?sorted.map(item=>{
@@ -1317,6 +1367,7 @@ function tm51PopulateWeekSelector(){
   const selected=choices.some(w=>w.ID_Minggu===old)?old:(tmPwaCompact()?choices[0]?.ID_Minggu||'':'');
   el.value=selected;
   if(tmPwaCompact()&&selected&&selected!==old)tm51ChooseScheduleWeek(selected);
+  tm536Picker();
 }
 function tm51ChooseScheduleWeek(id){
   if(!id||!/^[A-Za-z0-9_-]{1,120}$/.test(id))return;
@@ -1333,7 +1384,7 @@ function tm51ApplyOverview(data){
   const mapped=new Map((data.weeks||[]).filter(w=>allowed.has(String(w.ID_Minggu))).map(w=>[String(w.ID_Minggu),w]));
   tmState.data.weeks=(tmState.data.weeks||[]).map(w=>({...w,...(mapped.get(String(w.ID_Minggu))||{})}));
   tmState.overviewMeta=Object.fromEntries(Object.entries(data.metadata||{}).filter(([id])=>allowed.has(id)));
-  tmRenderOverview();tm525MembersRender();tm51PopulateWeekSelector();tm51SetStatus('Firestore · Langsung');
+  tmRenderOverview();tm525MembersRender();tm51PopulateWeekSelector();tm536Picker();tm51SetStatus('Firestore · Langsung');
   window.SeMAKMUR_TM5_UI?.notifyOverview?.(tmState.overviewMeta);
 }
 function tm51ListenOverview(){
@@ -1414,13 +1465,15 @@ function tm525MembersRender(){
       hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(iso));}catch(e){}
   stamp.textContent='Kemaskini pada: '+(updated||'Belum direkodkan');
   const total=groups.reduce((n,g)=>n+(Array.isArray(g.members)?g.members.length:0),0);
+  if(tmPwaCompact()&&tmState.tab==='members')tm536Picker();
+  const shown=tmPwaCompact()?groups.filter(g=>String(g.id)===tm536Selection.group):groups;
   out.innerHTML=`<div class="tm526-groups-intro"><strong>Keahlian kumpulan terkini</strong><span>${groups.length} kumpulan · ${total} ahli</span></div>`+
-    `<div class="tm526-groups-grid">${groups.map(g=>{
+    `<div class="tm526-groups-grid">${shown.map(g=>{
        const list=Array.isArray(g.members)?g.members:[];
        return `<section class="tm526-group" aria-label="${tmEsc(g.name||'Kumpulan '+g.id)}">
           <header class="tm526-group-head"><strong>${tmEsc(g.name||'Kumpulan '+g.id)}</strong><span>${list.length} ahli</span></header>
           <div class="tm526-group-members">${list.length?list.map((p,i)=>
-            `<div class="tm526-group-member"><span class="tm526-member-num">${i+1}.</span><span>${tmEsc(p.name||'')}</span></div>`
+            `<div class="tm526-group-member"><span class="tm526-member-num">${tmPwaCompact()?i+1:(i+1)+'.'}</span><span>${tmEsc(tmPwaCompact()?(p.nickname||p.shortName||p.name||''):(p.name||''))}</span></div>`
           ).join(''):'<p class="tm-empty">Tiada ahli aktif.</p>'}</div>
         </section>`;
     }).join('')}</div>`;
@@ -1441,6 +1494,16 @@ function tmListeners(){
     const cancel=e.target.closest('[data-tm47-cancel]');if(cancel){await tm47CancelAbsence(cancel.dataset.tm47Cancel);return;}
   });
   tm$('tm51-week-select').addEventListener('change',e=>tm51ChooseScheduleWeek(e.target.value));
+  tm$('tm536-week-select')?.addEventListener('change',e=>{
+    if(tmState.tab==='tasks'){
+      if(e.target.value){tm$('tm51-week-select').value=e.target.value;tm51ChooseScheduleWeek(e.target.value);}
+    }else if(tmState.tab==='overview'){
+      tm536Selection.week=e.target.value||'';tmPwaRenderWeeks();
+    }
+  });
+  tm$('tm536-group-select')?.addEventListener('change',e=>{
+    tm536Selection.group=e.target.value||'';tm525MembersRender();
+  });
   tm$('tm-pwa-day-select')?.addEventListener('change',e=>{if(e.target.value)tmDutySetFilter(e.target.value);});
   tm$('tm-year').addEventListener('change',async()=>{tm51StopListening();tmState.year=tm$('tm-year').value;tmState.weekId='';tm49.ready=false;tm51bReset();window.SeMAKMUR_TM5_UI?.clearCache?.();await tmBootstrap();
     if(tmState.tab==='report-studio')await window.SeMAKMUR_TM5_UI?.reload?.();});

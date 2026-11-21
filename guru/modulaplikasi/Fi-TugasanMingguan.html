@@ -11,11 +11,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('tm-embedded');</script>
   <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.3.3">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.3.5">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.3.6">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
   
-  <script src="Fi-TugasanMingguan.js?v=5.3.5" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=5.3.6" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
@@ -37,6 +37,17 @@
     <div class="tm-identity"><span id="tm-user">Mengesahkan akaun…</span><span class="tm-chip" id="tm-mode">OPERASI RASMI</span></div>
   </header>
   <div id="tm-notice" class="tm-notice" role="status" aria-live="polite" hidden></div>
+  <!-- V5.3.6 PWA: dropdown kontekstual tepat di bawah sticky header Dashboard. -->
+  <div id="tm536-top-filter" class="tm536-top-filter" hidden>
+    <label id="tm536-week-wrap" class="tm536-filter-label" for="tm536-week-select" hidden>
+      <span>Minggu &amp; Kumpulan</span>
+      <select id="tm536-week-select" aria-label="Pilih minggu dan kumpulan"><option value="">Memuatkan minggu…</option></select>
+    </label>
+    <label id="tm536-group-wrap" class="tm536-filter-label" for="tm536-group-select" hidden>
+      <span>Senarai Ahli Kumpulan</span>
+      <select id="tm536-group-select" aria-label="Pilih kumpulan bertugas"><option value="">Memuatkan kumpulan…</option></select>
+    </label>
+  </div>
   <nav class="tm-tabs" aria-label="Bahagian Tugasan Mingguan">
     <div class="tm-tab-links">
     <button type="button" class="active" data-tm-tab="overview">Minggu &amp; Kumpulan</button>
@@ -146,12 +157,13 @@
         <span class="tm51-sync-badge" id="tm51-sync-status" aria-live="polite">Data rasmi</span>
       </div>
       <div id="tm51-schedule-view">
-        <section class="tm-card tm-duty-schedule"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2></div><button type="button" class="tm-btn tm-outline" id="tm-print-schedule-live">Cetak Jadual</button></div>
-          <div id="tm-selection-tasks" class="tm-selection"></div>
+        <section class="tm-card tm-duty-schedule"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2></div>
           <div class="tm-pwa-day-picker" id="tm-pwa-day-picker">
             <label for="tm-pwa-day-select">Pilih Hari</label>
             <select id="tm-pwa-day-select" aria-label="Pilih hari jadual tugasan"><option value="">Memuatkan hari…</option></select>
           </div>
+          <button type="button" class="tm-btn tm-outline" id="tm-print-schedule-live">Cetak Jadual</button></div>
+          <div id="tm-selection-tasks" class="tm-selection"></div>
           <div id="tm-assignments" class="tm-duty-board" aria-live="polite"></div>
           <div id="tm-preflight-result"></div><button type="button" class="tm-btn tm-outline" id="tm-preflight" hidden>Semak Kesediaan Agihan (Admin)</button>
         </section>
