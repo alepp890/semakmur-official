@@ -603,6 +603,40 @@ async function tmAPI(op,extra={}){
   });
 }
 async function tmRun(action,after){if(tmState.busy)return;tmBusy(true);tmNotice('');try{return await action();}catch(e){console.error('[Smart Tugasan Mingguan]',e);tmNotice(e.message||String(e),true);tmSignal('semakmur-tm-error');return null;}finally{tmBusy(false);if(after)after();}}
+
+/* V5.3.5 — paparan PWA ringkas. Desktop kekal penuh. */
+function tmPwaCompact(){return window.matchMedia('(max-width:900px)').matches;}
+function tmPwaISO(value){
+  const v=String(value??'').trim();
+  if(/^20\d{2}-\d{2}-\d{2}$/.test(v))return v;
+  if(/^20\d{2}-\d{2}-\d{2}T/.test(v))return v.slice(0,10);
+  const d=new Date(v);if(!Number.isFinite(d.getTime()))return '';
+  const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kuala_Lumpur',day:'2-digit',month:'2-digit',year:'numeric'}).formatToParts(d);
+  const m=Object.fromEntries(parts.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));
+  return `${m.year}-${m.month}-${m.day}`;
+}
+function tmPwaDate(value){const v=tmPwaISO(value);return v?tmFmt(v):tmFmt(value);}
+function tmPwaWeekChoices(weeks,now=tmToday()){
+  const list=(weeks||[]).filter(w=>tmPwaISO(w.Tempoh_Mula)).slice()
+    .sort((a,b)=>tmPwaISO(a.Tempoh_Mula).localeCompare(tmPwaISO(b.Tempoh_Mula)));
+  const past=list.filter(w=>tmPwaISO(w.Tempoh_Mula)<=now);
+  return (past.length?past.slice(-3):list.slice(0,1)).reverse();
+}
+function tmPwaDefaultDutyDay(dates,now=tmToday()){
+  if(dates.includes(now))return now;
+  const weekday=new Date(now+'T12:00:00Z').getUTCDay();
+  const idx=weekday===0?4:Math.min(4,weekday-1);
+  return dates[Math.min(Math.max(idx,0),dates.length-1)]||'';
+}
+function tmPwaSetDayOptions(dates){
+  const select=tm$('tm-pwa-day-select');if(!select)return;
+  const prev=tmState.dutyFilter;
+  select.innerHTML=dates.map(date=>`<option value="${tmEsc(date)}">${tmEsc(tmDayName(date))} · ${tmPwaDate(date)}</option>`).join('');
+  const chosen=dates.includes(prev)?prev:tmPwaDefaultDutyDay(dates);
+  if(!dates.length){select.innerHTML='<option value="">Tiada hari tersedia</option>';select.disabled=true;return;}
+  select.disabled=false;select.value=chosen;
+}
+
 function tmTab(name){tmState.tab=name;document.querySelectorAll('[data-tm-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tmTab===name));document.querySelectorAll('[data-tm-panel]').forEach(x=>x.hidden=x.dataset.tmPanel!==name);}
 async function tm52BootstrapFast(){
   if(!tmState.user)return null;
@@ -655,21 +689,21 @@ async function tmBootstrap(){
 function tmPwaRenderWeeks(){
   const box=tm$('tm-pwa-week-cards'),shell=tm$('tm-pwa-weeks-shell'),count=tm$('tm-pwa-week-count');
   if(!box||!shell)return;
-  const all=(tmState.data?.weeks||[]).filter(w=>/^20\d{2}-\d{2}-\d{2}$/.test(String(w.Tempoh_Mula||'')))
-    .slice().sort((a,b)=>String(a.Tempoh_Mula).localeCompare(String(b.Tempoh_Mula)));
-  const today=tmToday(),current=all.find(w=>String(w.Tempoh_Mula)<=today&&today<=String(w.Tempoh_Tamat));
+  const all=(tmState.data?.weeks||[]).filter(w=>tmPwaISO(w.Tempoh_Mula))
+    .slice().sort((a,b)=>tmPwaISO(a.Tempoh_Mula).localeCompare(tmPwaISO(b.Tempoh_Mula)));
+  const today=tmToday(),current=all.find(w=>tmPwaISO(w.Tempoh_Mula)<=today&&today<=tmPwaISO(w.Tempoh_Tamat));
   // Jika tiada minggu sekolah semasa (cuti), gunakan minggu terdahulu paling dekat.
-  const past=all.filter(w=>String(w.Tempoh_Mula)<=today);
+  const past=all.filter(w=>tmPwaISO(w.Tempoh_Mula)<=today);
   const anchor=current||past[past.length-1]||null;
-  const next=all.find(w=>String(w.Tempoh_Mula)>(anchor?String(anchor.Tempoh_Mula):today));
-  const allowed=all.filter(w=>String(w.Tempoh_Mula)<=today||(next&&String(w.ID_Minggu)===String(next.ID_Minggu)));
-  const display=allowed.slice().sort((a,b)=>String(b.Tempoh_Mula).localeCompare(String(a.Tempoh_Mula)));
+  const next=all.find(w=>tmPwaISO(w.Tempoh_Mula)>(anchor?tmPwaISO(anchor.Tempoh_Mula):today));
+  const allowed=all.filter(w=>tmPwaISO(w.Tempoh_Mula)<=today||(next&&String(w.ID_Minggu)===String(next.ID_Minggu)));
+  const display=allowed.slice().sort((a,b)=>tmPwaISO(b.Tempoh_Mula).localeCompare(tmPwaISO(a.Tempoh_Mula)));
   if(count)count.textContent=display.length+' minggu';
   const meta=tmState.overviewMeta||{};
   box.innerHTML=display.length?display.map(w=>{
     const m=meta[w.ID_Minggu]||{};
-    const active=String(w.Tempoh_Mula)<=today&&today<=String(w.Tempoh_Tamat);
-    const future=String(w.Tempoh_Mula)>today;
+    const active=tmPwaISO(w.Tempoh_Mula)<=today&&today<=tmPwaISO(w.Tempoh_Tamat);
+    const future=tmPwaISO(w.Tempoh_Mula)>today;
     const status=future?'Akan datang':active?'Semasa':'Lepas';
     const tone=future?'upcoming':active?'current':'past';
     const rawWeek=String(w.Minggu||'').replace(/^Minggu\s*/i,'').trim();
@@ -679,7 +713,7 @@ function tmPwaRenderWeeks(){
     const gpk=String(m.gpkName||'Belum ditetapkan').trim();
     const safeRole=role?role+' · ':'GPK · ';
     return `<article class="tm-pwa-week tm-pwa-week-${tone}" aria-label="${tmEsc(weekLabel+' '+group+' '+status)}">
-      <div class="tm-pwa-week-top"><div><h3>${tmEsc(weekLabel)} <span>·</span> ${tmEsc(group)}</h3><p>${tmFmt(w.Tempoh_Mula)} – ${tmFmt(w.Tempoh_Tamat)}</p></div><span class="tm-pwa-week-status tm-pwa-status-${tone}">${status}</span></div>
+      <div class="tm-pwa-week-top"><div><h3>${tmEsc(weekLabel)} <span>·</span> ${tmEsc(group)}</h3><p>${tmPwaDate(w.Tempoh_Mula)} – ${tmPwaDate(w.Tempoh_Tamat)}</p></div><span class="tm-pwa-week-status tm-pwa-status-${tone}">${status}</span></div>
       <div class="tm-pwa-week-details"><div><span>Penyelia</span><strong>${tmEsc(safeRole+gpk)}</strong></div><div><span>Tema</span><strong>${tmEsc(m.theme||'Belum ditetapkan')}</strong></div><div><span>Tajuk Nilai Murni</span><strong>${tmEsc(m.nilaiTitle||'Belum ditetapkan')}</strong></div></div>
     </article>`;
   }).join(''):'<p class="tm-empty">Tiada minggu persekolahan yang tersedia.</p>';
@@ -794,7 +828,7 @@ function tmDutyClock(value){
   return ''; // Jangan papar tarikh 1899 atau nilai masa rosak kepada guru.
 }
 function tmDutyDateList(week,rows){
-  const start=week?.mula||week?.start,stop=week?.tamat||week?.end;
+  const start=tmPwaISO(week?.mula||week?.start||week?.Tempoh_Mula),stop=tmPwaISO(week?.tamat||week?.end||week?.Tempoh_Tamat);
   if(/^20\d{2}-\d\d-\d\d$/.test(String(start||''))&&/^20\d{2}-\d\d-\d\d$/.test(String(stop||''))){
     const dates=[];
     for(let d=new Date(start+'T00:00:00Z'),last=new Date(stop+'T00:00:00Z');d<=last&&dates.length<7;d.setUTCDate(d.getUTCDate()+1)){
@@ -822,12 +856,13 @@ function tmRenderAssignments(){
     ...raw.filter(a=>a.staff&&a.name).map(a=>({id:a.staff,name:a.name}))
   ].map(x=>[String(x.id),x.name]));
   const typeNames=Object.fromEntries(types.map(x=>[String(x.id),x.name]));
-  const week=published?.week||detail.week||{},dates=tmDutyDateList(week,raw);
+  const week=published?.week||detail.week||{},fallback=tmState.data?.weeks?.find(w=>w.ID_Minggu===tmState.weekId)||{};
+  const dates=tmDutyDateList(Object.keys(week).length?week:fallback,raw);
   const holder=tm$('tm-assignments');if(!holder)return;
   const calendarSource=published?.calendarDays||(tmState.calendar?.weekId===tmState.weekId?tmState.calendar.days:[]);
   const calDays=Array.isArray(calendarSource)?calendarSource:[];
   const calendar=new Map(calDays.map(d=>[String(d.date),d]));
-  if(!raw.length&&!calDays.length){holder.innerHTML='<div class="tm-duty-empty"><strong>Belum ada tugasan untuk minggu ini</strong></div>';return;}
+  if(!raw.length&&!calDays.length){tmPwaSetDayOptions(dates);holder.innerHTML='<div class="tm-duty-empty"><strong>Jadual rasmi belum tersedia untuk minggu ini.</strong></div>';return;}
   const valid=raw.filter(x=>x&&x.date),uniqueStaff=new Set(valid.map(x=>String(x.staff||'')).filter(Boolean));
   const byDate=new Map(dates.map(date=>[date,[]]));
   valid.forEach(x=>{if(!byDate.has(x.date))byDate.set(x.date,[]);byDate.get(x.date).push(x);});
@@ -868,7 +903,9 @@ function tmRenderAssignments(){
   holder.innerHTML=summary+tabs+'<div class="tm-duty-days">'+dayCards+'</div>';
   holder.querySelectorAll('[data-duty-filter]').forEach(btn=>btn.addEventListener('click',()=>tmDutySetFilter(btn.dataset.dutyFilter)));
   const validFilters=['ALL',...byDate.keys()];
-  tmDutySetFilter(validFilters.includes(tmState.dutyFilter)?tmState.dutyFilter:'ALL');
+  tmPwaSetDayOptions(dates);
+  const pwaChoice=tm$('tm-pwa-day-select')?.value||'';
+  tmDutySetFilter(tmPwaCompact()&&pwaChoice?pwaChoice:validFilters.includes(tmState.dutyFilter)?tmState.dutyFilter:'ALL');
 }
 function tmPrintDocumentHTML(title,inner){
   const old=document.getElementById('tm508-print-host');if(old)old.remove();
@@ -1272,14 +1309,18 @@ async function tm51InitFirestore(){
 function tm51PopulateWeekSelector(){
   const el=tm$('tm51-week-select');if(!el)return;
   const weeks=tm51.overview?.year===tmState.year?tm51.overview.weeks:(tmState.data?.weeks||[]);
+  const choices=tmPwaCompact()?tmPwaWeekChoices(weeks):(weeks||[]);
   const old=tmState.weekId;
-  el.innerHTML='<option value="">Pilih minggu</option>'+(weeks||[]).map(w=>
-    `<option value="${tmEsc(w.ID_Minggu)}">Minggu ${tmEsc(w.Minggu)} · ${tmEsc(w.Nama_Kumpulan)} · ${tmFmt(w.Tempoh_Mula)}</option>`
+  el.innerHTML='<option value="">Pilih minggu</option>'+choices.map(w=>
+    `<option value="${tmEsc(w.ID_Minggu)}">Minggu ${tmEsc(w.Minggu)} · ${tmEsc(w.Nama_Kumpulan)}${tmPwaCompact()?'':' · '+tmPwaDate(w.Tempoh_Mula)}</option>`
   ).join('');
-  el.value=(weeks||[]).some(w=>w.ID_Minggu===old)?old:'';
+  const selected=choices.some(w=>w.ID_Minggu===old)?old:(tmPwaCompact()?choices[0]?.ID_Minggu||'':'');
+  el.value=selected;
+  if(tmPwaCompact()&&selected&&selected!==old)tm51ChooseScheduleWeek(selected);
 }
 function tm51ChooseScheduleWeek(id){
   if(!id||!/^[A-Za-z0-9_-]{1,120}$/.test(id))return;
+  if(id!==tmState.weekId)tmState.dutyFilter='';
   tmState.weekId=id;tmState.detail=null;tmState.calendar=null;
   tm51.schedule=null;tm51.audit=null;tm51.weekKey='';
   const week=(tm51.overview?.weeks||tmState.data?.weeks||[]).find(w=>w.ID_Minggu===id);
@@ -1400,6 +1441,7 @@ function tmListeners(){
     const cancel=e.target.closest('[data-tm47-cancel]');if(cancel){await tm47CancelAbsence(cancel.dataset.tm47Cancel);return;}
   });
   tm$('tm51-week-select').addEventListener('change',e=>tm51ChooseScheduleWeek(e.target.value));
+  tm$('tm-pwa-day-select')?.addEventListener('change',e=>{if(e.target.value)tmDutySetFilter(e.target.value);});
   tm$('tm-year').addEventListener('change',async()=>{tm51StopListening();tmState.year=tm$('tm-year').value;tmState.weekId='';tm49.ready=false;tm51bReset();window.SeMAKMUR_TM5_UI?.clearCache?.();await tmBootstrap();
     if(tmState.tab==='report-studio')await window.SeMAKMUR_TM5_UI?.reload?.();});
   tm$('tm-refresh').addEventListener('click',()=>{tm51bReset();window.SeMAKMUR_TM5_UI?.clearCache?.();tmBootstrap();});

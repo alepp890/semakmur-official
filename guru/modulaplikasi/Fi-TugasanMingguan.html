@@ -11,11 +11,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('tm-embedded');</script>
   <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.3.3">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.3.4">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.3.5">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
   
-  <script src="Fi-TugasanMingguan.js?v=5.3.4r" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=5.3.5" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
@@ -39,7 +39,7 @@
   <div id="tm-notice" class="tm-notice" role="status" aria-live="polite" hidden></div>
   <nav class="tm-tabs" aria-label="Bahagian Tugasan Mingguan">
     <div class="tm-tab-links">
-    <button type="button" class="active" data-tm-tab="overview"><span class="tm-desktop-label">Minggu &amp; Kumpulan</span><span class="tm-mobile-label">Minggu</span></button>
+    <button type="button" class="active" data-tm-tab="overview">Minggu &amp; Kumpulan</button>
     <button type="button" data-tm-tab="tasks">Jadual Tugasan</button>
     <button type="button" data-tm-tab="report-studio">Laporan &amp; Cetakan</button>
     <button type="button" data-tm-tab="members">Senarai Ahli Kumpulan</button>
@@ -55,7 +55,7 @@
   <main class="tm-main">
     <section id="tm-panel-overview" data-tm-panel="overview">
       <div class="tm-pwa-weeks-shell" id="tm-pwa-weeks-shell" aria-label="Minggu bertugas" hidden>
-        <div class="tm-pwa-weeks-header"><div><span class="tm-pwa-kicker">SMART TUGASAN MINGGUAN</span><h2>Senarai Minggu Bertugas</h2><p>Minggu akan datang, semasa dan sejarah terdahulu.</p></div><span class="tm-pwa-count" id="tm-pwa-week-count">—</span></div>
+        <div class="tm-pwa-weeks-header"><div><h2>Minggu Giliran</h2></div><span class="tm-pwa-count" id="tm-pwa-week-count" hidden>—</span></div>
         <div id="tm-pwa-week-cards" class="tm-pwa-week-cards" aria-live="polite"><p class="tm-empty">Memuatkan maklumat minggu…</p></div>
       </div>
       <div class="tm-summary" id="tm-summary"></div>
@@ -148,6 +148,10 @@
       <div id="tm51-schedule-view">
         <section class="tm-card tm-duty-schedule"><div class="tm-section-title"><div><h2>Jadual Tugasan Harian</h2></div><button type="button" class="tm-btn tm-outline" id="tm-print-schedule-live">Cetak Jadual</button></div>
           <div id="tm-selection-tasks" class="tm-selection"></div>
+          <div class="tm-pwa-day-picker" id="tm-pwa-day-picker">
+            <label for="tm-pwa-day-select">Pilih Hari</label>
+            <select id="tm-pwa-day-select" aria-label="Pilih hari jadual tugasan"><option value="">Memuatkan hari…</option></select>
+          </div>
           <div id="tm-assignments" class="tm-duty-board" aria-live="polite"></div>
           <div id="tm-preflight-result"></div><button type="button" class="tm-btn tm-outline" id="tm-preflight" hidden>Semak Kesediaan Agihan (Admin)</button>
         </section>
