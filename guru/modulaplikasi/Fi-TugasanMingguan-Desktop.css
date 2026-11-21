@@ -729,3 +729,28 @@ html.tm-embedded .tm-tab-links>button{min-height:39px;padding:9px 12px;font-size
   #tm5-root .tm525-demo-directory{max-width:1100px}
   @media(max-width:1120px){.tm525-member-grid{grid-template-columns:1fr}}
 }
+
+
+/* V5.2.6 — Keahlian terkini: compact, 4 full groups, no staff IDs. Desktop only. */
+@media (min-width:901px){
+  #tm-panel-members .tm525-members-card{min-height:initial}
+  #tm-panel-members .tm526-members-updated{font-size:13px;font-weight:600;color:#476786;
+    border-radius:9px;background:#edf4fd;padding:9px 13px}
+  #tm-panel-members .tm526-groups-intro{display:flex;align-items:center;justify-content:space-between;
+    gap:15px;margin:14px 0 12px;color:#243e62;font-size:14px}
+  #tm-panel-members .tm526-groups-intro>span{font-size:12px;color:#627a98;font-weight:600}
+  #tm-panel-members .tm526-groups-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  #tm-panel-members .tm526-group{border:1px solid #d8e4f3;border-radius:13px;
+    background:#fff;overflow:hidden;min-width:0}
+  #tm-panel-members .tm526-group-head{display:flex;align-items:center;justify-content:space-between;
+    gap:12px;background:#f1f6fd;padding:10px 13px;color:#1e4777;font-size:14px}
+  #tm-panel-members .tm526-group-head span{font-size:12px;font-weight:600;color:#53708e}
+  #tm-panel-members .tm526-group-members{padding:3px 10px 8px}
+  #tm-panel-members .tm526-group-member{display:flex;align-items:center;gap:8px;min-height:36px;
+    padding:6px 6px;font-size:12.5px;color:#1f3e66;font-weight:600;line-height:1.35}
+  #tm-panel-members .tm526-group-member+.tm526-group-member{border-top:1px solid #eef2f8}
+  #tm-panel-members .tm526-member-num{flex:none;color:#6782a0;font-weight:600;font-size:11px;min-width:21px}
+}
+@media (max-width:1120px) and (min-width:901px){
+  #tm-panel-members .tm526-groups-grid{grid-template-columns:1fr}
+}

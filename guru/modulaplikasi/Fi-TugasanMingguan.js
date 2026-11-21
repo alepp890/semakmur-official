@@ -249,7 +249,10 @@ function tmDutySetFilter(date){
 function tmRenderAssignments(){
   const detail=tmState.detail||{},published=tm51.schedule?.published===true&&tm51.schedule?.weekId===tmState.weekId&&tm51.schedule?.year===tmState.year?tm51.schedule:null;
   const raw=published?.assignments||detail.assignments||[],types=tmState.data?.settings?.types||[];
-  const names=Object.fromEntries([...(detail.members||[]),...(published?.week?.members||[])].map(x=>[String(x.id),x.name]));
+  const names=Object.fromEntries([
+    ...(detail.members||[]),...(published?.week?.members||[]),
+    ...raw.filter(a=>a.staff&&a.name).map(a=>({id:a.staff,name:a.name}))
+  ].map(x=>[String(x.id),x.name]));
   const typeNames=Object.fromEntries(types.map(x=>[String(x.id),x.name]));
   const week=published?.week||detail.week||{},dates=tmDutyDateList(week,raw);
   const holder=tm$('tm-assignments');if(!holder)return;
@@ -552,7 +555,10 @@ function tm43DayCards(rows,week){
 }
 function tm4Render(schedule){
   tmState.tm4=schedule;
-  const rows=schedule?.assignments||[],members=schedule?.week?.members||[];
+  const members=schedule?.week?.members||[];
+  const yearNames=Object.fromEntries((tm51.overview?.weeks||[]).flatMap(w=>w.members||[]).map(m=>[String(m.id),String(m.name)]));
+  const rows=(schedule?.assignments||[]).map(x=>({...x,name:(x.name&&String(x.name)!==String(x.staff)?x.name:'')||
+    yearNames[String(x.staff)]||x.name||String(x.staff||'')}));
   const w=schedule?.week;
   tm48RenderMemberPicker(members,w);
   tmState.tm48Members={mode:tm4GetMode(),weekId:tm$('tm4-week').value,members};
@@ -768,7 +774,9 @@ function tm51RenderAudit(){
   if(!root||!fairEl)return;
   const schedule=tm51.schedule?.published&&tm51.schedule.weekId===tmState.weekId?tm51.schedule:null;
   const audit=tm51.audit?.published&&tm51.audit.weekId===tmState.weekId?tm51.audit:null;
-  const names=Object.fromEntries((schedule?.week?.members||[]).map(x=>[x.id,x.name]));
+  const names=Object.fromEntries([...(schedule?.week?.members||[]),
+    ...(schedule?.assignments||[]).filter(a=>a.staff&&a.name).map(a=>({id:a.staff,name:a.name}))]
+    .map(x=>[x.id,x.name]));
   const fairness=schedule?.fairness||{};
   fairEl.innerHTML=Object.entries(fairness).sort((a,b)=>(Number(a[1]?.weight)||0)-(Number(b[1]?.weight)||0)).map(([id,v])=>
     `<div class="tm4-fair"><span>${tmEsc(names[id]||id)}</span><strong>${Number(v.weight)||0} mata</strong><small>Rehat: ${Number(v.rest)||0} · Pagi: ${Number(v.morning)||0} · Berat: ${Number(v.heavy)||0} · Ringan: ${Number(v.light)||0} · Jumlah: ${Number(v.all)||0}</small></div>`
@@ -780,24 +788,33 @@ function tm51RenderAudit(){
   tm47RenderAudit(audit);
 }
 
-/* V5.2.5 — Senarai Ahli daripada Firestore overview, tanpa request ketika tukar tab. */
+/* V5.2.6 — Empat kumpulan TERKINI sahaja, bukan sejarah mingguan. */
 function tm525MembersRender(){
-  const select=tm$('tm525-member-week'),out=tm$('tm525-members-content');if(!select||!out)return;
-  const weeks=(tmState.data?.weeks||[]).slice().sort((a,b)=>String(a.Tempoh_Mula).localeCompare(String(b.Tempoh_Mula)));
-  const old=select.value||tmState.weekId;
-  select.innerHTML=weeks.map(w=>`<option value="${tmEsc(w.ID_Minggu)}">Minggu ${tmEsc(w.Minggu)} · ${tmEsc(w.Nama_Kumpulan||('Kumpulan '+w.ID_Kumpulan))} · ${tmFmt(w.Tempoh_Mula)}</option>`).join('');
-  const now=tmToday(),week=weeks.find(w=>String(w.ID_Minggu)===old)||weeks.find(w=>w.Tempoh_Mula<=now&&now<=w.Tempoh_Tamat)||weeks[0];
-  if(!week){out.innerHTML='<p class="tm-empty">Takwim minggu belum tersedia.</p>';return;}
-  select.value=week.ID_Minggu;
-  const official=tm51.overview?.weeks?.find(w=>String(w.ID_Minggu)===String(week.ID_Minggu));
-  const list=official?.members||week.members||(
-    tm51.schedule?.weekId===week.ID_Minggu?tm51.schedule.week?.members:null)||
-    (tmState.detail?.week?.id===week.ID_Minggu?tmState.detail.members:null)||[];
-  const people=Array.isArray(list)?list:[];
-  const leaderId=String(week.pelan?.leader||week.ID_Ketua_Cadangan||'');
-  out.innerHTML=`<div class="tm525-members-heading"><div><strong>Minggu ${tmEsc(week.Minggu)} · ${tmEsc(week.Nama_Kumpulan||'Kumpulan '+week.ID_Kumpulan)}</strong><span>${tmFmt(week.Tempoh_Mula)} – ${tmFmt(week.Tempoh_Tamat)}</span></div><span>${people.length} ahli</span></div>`+
-    (people.length?`<div class="tm525-member-grid">${people.map((p,i)=>`<div class="tm525-member-row"><span class="tm525-member-number">${i+1}</span><div><strong>${tmEsc(p.name||p.nama||p.id)}</strong><small>${tmEsc(p.id||'')}</small></div>${String(p.id)===leaderId?'<span class="tm525-leader">Ketua</span>':''}</div>`).join('')}</div>`:
-    '<p class="tm-empty">Senarai ahli belum tersedia dalam Firestore. Jalankan penyegerakan V5.1 selepas pemasangan backend baharu.</p>');
+  const out=tm$('tm525-members-content'),stamp=tm$('tm526-members-updated');
+  if(!out||!stamp)return;
+  const overview=tm51.overview?.year===tmState.year?tm51.overview:null;
+  const groups=Array.isArray(overview?.currentGroups)?overview.currentGroups:[];
+  if(!groups.length){
+    stamp.textContent='Menunggu penyegerakan terkini · Firestore 15 minit';
+    out.innerHTML='<p class="tm-empty">Senarai terkini belum tersedia di Firestore. Senarai sejarah minggu tidak digunakan untuk paparan ini.</p>';
+    return;
+  }
+  const iso=String(overview?.updatedAt||'');
+  let updated='';try{if(iso&&!Number.isNaN(new Date(iso).getTime()))
+    updated=new Intl.DateTimeFormat('ms-MY',{timeZone:'Asia/Kuala_Lumpur',day:'2-digit',month:'2-digit',year:'numeric',
+      hour:'numeric',minute:'2-digit',hour12:true}).format(new Date(iso));}catch(e){}
+  stamp.textContent='Kemaskini pada: '+(updated||'Belum direkodkan');
+  const total=groups.reduce((n,g)=>n+(Array.isArray(g.members)?g.members.length:0),0);
+  out.innerHTML=`<div class="tm526-groups-intro"><strong>Keahlian kumpulan terkini</strong><span>${groups.length} kumpulan · ${total} ahli</span></div>`+
+    `<div class="tm526-groups-grid">${groups.map(g=>{
+       const list=Array.isArray(g.members)?g.members:[];
+       return `<section class="tm526-group" aria-label="${tmEsc(g.name||'Kumpulan '+g.id)}">
+          <header class="tm526-group-head"><strong>${tmEsc(g.name||'Kumpulan '+g.id)}</strong><span>${list.length} ahli</span></header>
+          <div class="tm526-group-members">${list.length?list.map((p,i)=>
+            `<div class="tm526-group-member"><span class="tm526-member-num">${i+1}.</span><span>${tmEsc(p.name||'')}</span></div>`
+          ).join(''):'<p class="tm-empty">Tiada ahli aktif.</p>'}</div>
+        </section>`;
+    }).join('')}</div>`;
 }
 function tmListeners(){
   document.addEventListener('click',async e=>{
@@ -815,7 +832,6 @@ function tmListeners(){
     const cancel=e.target.closest('[data-tm47-cancel]');if(cancel){await tm47CancelAbsence(cancel.dataset.tm47Cancel);return;}
   });
   tm$('tm51-week-select').addEventListener('change',e=>tm51ChooseScheduleWeek(e.target.value));
-  tm$('tm525-member-week').addEventListener('change',()=>tm525MembersRender());
   tm$('tm-year').addEventListener('change',async()=>{tm51StopListening();tmState.year=tm$('tm-year').value;tmState.weekId='';tm49.ready=false;tm51bReset();window.SeMAKMUR_TM5_UI?.clearCache?.();await tmBootstrap();
     if(tmState.tab==='report-studio')await window.SeMAKMUR_TM5_UI?.reload?.();});
   tm$('tm-refresh').addEventListener('click',()=>{tm51bReset();window.SeMAKMUR_TM5_UI?.clearCache?.();tmBootstrap();});
@@ -1402,11 +1418,11 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
     const w=S.week||{};
     if(S.actor?.isGPK){
       return w.status==='MENUNGGU_GPK'?'Laporan diterima untuk semakan GPK Penyelia.':
-        w.status==='MENUNGGU_GB'?'Semakan GPK selesai. Laporan sedang menunggu pengesahan Guru Besar.':
+        w.status==='MENUNGGU_GB'?(w.gbPendingAppointment?'Semakan GPK selesai. Menunggu pelantikan Guru Besar atau Pemangku GB yang sah.':'Semakan GPK selesai. Laporan sedang menunggu pengesahan Guru Besar.'):
         w.status==='DISAHKAN'?'Laporan telah disahkan Guru Besar.':'Laporan Ketua Kumpulan belum dihantar untuk semakan GPK Penyelia.';
     }
     if(S.actor?.isGB){
-      return w.status==='MENUNGGU_GB'?'Laporan telah disokong GPK Penyelia dan menunggu pengesahan Guru Besar.':
+      return w.status==='MENUNGGU_GB'?(w.gbPendingAppointment?'Laporan telah disokong GPK. Menunggu pelantikan Guru Besar atau Pemangku GB yang sah.':'Laporan telah disokong GPK Penyelia dan menunggu pengesahan Guru Besar.'):
         w.status==='DISAHKAN'?'Laporan telah disahkan Guru Besar.':
         'Laporan belum dihantar oleh Ketua Kumpulan atau belum disokong GPK Penyelia.';
     }
@@ -1434,7 +1450,7 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
         ${canSend?'<div class="tm5-row"><button id="tm5-draft">Simpan Ulasan</button><button id="tm5-submit" class="primary">Hantar kepada GPK</button></div>':''}`
        :`<p class="tm5-readonly">${esc(w.summary||'Tiada ulasan.')}</p><p class="tm5-readonly">${esc(w.followup||'')}</p>`}</section>`:'';
     const statusDisplay=sent?`<section class="tm5-card tm524-submitted"><div class="tm524-status-symbol" aria-hidden="true">✓</div>
-      <h3>${w.status==='DISAHKAN'?'Laporan telah disahkan oleh Guru Besar.':w.status==='MENUNGGU_GB'?'Laporan telah dihantar dan menunggu pengesahan Guru Besar.':'Laporan telah dihantar dan sedang menunggu semakan GPK Penyelia.'}</h3>
+      <h3>${w.status==='DISAHKAN'?'Laporan telah disahkan oleh Guru Besar.':w.status==='MENUNGGU_GB'?(w.gbPendingAppointment?'Menunggu pelantikan Guru Besar atau Pemangku GB yang sah.':'Laporan telah dihantar dan menunggu pengesahan Guru Besar.'):'Laporan telah dihantar dan sedang menunggu semakan GPK Penyelia.'}</h3>
       <p>${w.status==='MENUNGGU_GPK'?'Laporan boleh disemak. Guru Laporan atau Ketua boleh memohon pindaan sebelum GPK membuat keputusan.':w.status==='MENUNGGU_GB'?'Semakan GPK selesai. Semua laporan harian boleh dibaca sahaja.':'Laporan lengkap dan telah disahkan. Semua hari boleh dibuka untuk semakan sahaja.'}</p>
       ${editSent?`<div class="tm525-sent-edit">${tm525SentTabs()}<button id="tm524-amend-submission" type="button" class="primary">Edit Laporan</button></div>`:''}</section>`:'';
     slot().innerHTML=`<section class="tm5-card tm5-report-banner"><div><h2>Minggu ${esc(w.label)} · Kumpulan ${esc(w.group)}</h2>
