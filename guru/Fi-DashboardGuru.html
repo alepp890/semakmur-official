@@ -18,7 +18,7 @@
 <!-- FontAwesome Icons -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
 <!-- Styles dashboard dimuatkan selepas gaya asas untuk keutamaan CSS V3. -->
-<link href="Fi-DashboardGuru-PWA.css?v=tm5-theme-2" rel="stylesheet">
+<link href="Fi-DashboardGuru-PWA.css?v=gpkgb2" rel="stylesheet">
 
 
 
@@ -28,7 +28,7 @@
 
 
 <!-- Tema SeMAKMUR Clean Teal V3 — Desktop sahaja; semua fungsi Fi kekal. -->
-<link href="Fi-DashboardGuru-Desktop.css?v=tm5-theme-2" rel="stylesheet">
+<link href="Fi-DashboardGuru-Desktop.css?v=6.7.0" rel="stylesheet">
 <!-- OfficeFlow-inspired management desktop only. PWA CSS tidak disentuh. -->
 
 
@@ -137,6 +137,19 @@
 <div class="fi-kehadiran-controls"><button type="button" id="fi-relief-retry" hidden onclick="retryReliefWorkspace()">Cuba Lagi</button><button type="button" onclick="closeReliefWorkspace()">Kembali ke Dashboard</button></div>
 </div></div>
 </section>
+<!-- Smart Tugasan Mingguan PWA V5.3.4: iframe sepadan e-Relief / e-Keberadaan. -->
+<section aria-label="Ruang kerja e-Tugasan Mingguan" class="erph-workspace" hidden id="tugasan-workspace">
+  <div class="erph-workspace-toolbar"><button type="button" onclick="closeTugasanWorkspace()">← Kembali</button><strong>e-Tugasan Mingguan</strong><span class="erph-workspace-subtitle">SeMAKMUR</span></div>
+  <div class="fi-keberadaan-frame-wrap">
+    <iframe id="tugasan-workspace-frame" loading="eager" referrerpolicy="same-origin" title="Modul Smart Tugasan Mingguan"></iframe>
+    <div aria-live="polite" class="fi-kehadiran-loading" hidden id="fi-tugasan-loading" role="status">
+      <div aria-hidden="true" class="fi-kehadiran-spinner"></div>
+      <strong id="fi-tugasan-loading-title">Membuka e-Tugasan Mingguan…</strong>
+      <p id="fi-tugasan-loading-message">Mengesahkan sesi dan menyediakan maklumat minggu.</p>
+      <div class="fi-kehadiran-controls"><button type="button" id="fi-tugasan-retry" hidden onclick="retryTugasanWorkspace()">Cuba Lagi</button><button type="button" onclick="closeTugasanWorkspace()">Kembali ke Dashboard</button></div>
+    </div>
+  </div>
+</section>
 <!-- V6.5: e-Keberadaan dalam ruang Dashboard Fi, tanpa halaman baharu. -->
 <section aria-label="Ruang kerja e-Keberadaan" class="erph-workspace" hidden="" id="keberadaan-workspace">
 <div class="erph-workspace-toolbar" id="kb-extra-toolbar">
@@ -162,11 +175,6 @@
 <div class="erph-workspace-toolbar"><button type="button" onclick="closePengurusanMuridWorkspace()">← Kembali</button><strong>Pengurusan Murid</strong><span class="erph-workspace-subtitle">SeMAKMUR · HEM</span></div>
 <div class="fi-keberadaan-frame-wrap"><iframe id="pengurusan-murid-workspace-frame" loading="eager" referrerpolicy="same-origin" title="Modul Pengurusan Murid"></iframe></div>
 </section>
-<!-- Smart Tugasan Mingguan V5 · iframe dalam Dashboard Guru -->
-<section aria-label="Ruang kerja Smart Tugasan Mingguan" class="erph-workspace" hidden id="tugasan-mingguan-workspace">
-  <div class="erph-workspace-toolbar"><button type="button" onclick="closeTugasanMingguanWorkspace()">← Kembali</button><strong>Smart Tugasan Mingguan</strong><span class="erph-workspace-subtitle">SeMAKMUR</span></div>
-  <div class="fi-keberadaan-frame-wrap"><iframe id="tugasan-mingguan-workspace-frame" loading="eager" referrerpolicy="same-origin" title="Modul Smart Tugasan Mingguan"></iframe></div>
-</section>
 <div aria-live="polite" class="v4-launch" id="v4-launch" role="status">
 <div class="v4-launch-logo">S</div><strong>SeMAKMUR</strong>
 <span>Digital Dashboard</span><div class="v4-launch-track"><i></i></div>
@@ -190,18 +198,18 @@
 <section aria-labelledby="fi-v6-access-title" class="fi-v6-home-section fi-v6-shortcuts-section">
 <div class="fi-v6-section-line"><h2 id="fi-v6-access-title"><i class="fa-solid fa-bolt"></i> Pautan Pantas</h2></div>
 <div class="fi-v6-app-grid" id="fi-v6-app-grid">
-<button class="fi-v6-app-button app-green" data-module="kehadiran" type="button"><i class="fa-solid fa-users"></i><span>Kehadiran</span></button>
-<button class="fi-v6-app-button app-blue" data-module="erph" type="button"><i class="fa-solid fa-book-open"></i><span>e-RPH</span></button>
-<button class="fi-v6-app-button app-purple" onclick="fiV6OpenSchedule()" type="button"><i class="fa-solid fa-calendar-days"></i><span>Jadual</span></button>
-<button class="fi-v6-app-button app-orange" data-module="epbd" type="button"><i class="fa-solid fa-chart-column"></i><span>PBD</span></button>
-<button class="fi-v6-app-button app-pink" data-module="eopr" type="button"><i class="fa-solid fa-file-lines"></i><span>Laporan</span></button>
-<button class="fi-v6-app-button app-cyan" data-module="keberadaan" type="button"><i class="fa-solid fa-clipboard-user"></i><span>Keberadaan</span></button>
+<button class="fi-v6-app-button app-green" data-module="kehadiran" type="button"><i class="fa-solid fa-users"></i><span>e-Kehadiran</span></button>
+<button class="fi-v6-app-button app-blue" data-module="keberadaan" type="button"><i class="fa-solid fa-clipboard-user"></i><span>e-Keberadaan</span></button>
+<button class="fi-v6-app-button app-purple" data-module="relief" type="button"><i class="fa-solid fa-person-chalkboard"></i><span>e-Relief</span></button>
+<button class="fi-v6-app-button app-orange" data-module="bertugas" type="button"><i class="fa-solid fa-clipboard-check"></i><span>e-Tugasan Mingguan</span></button>
+<button class="fi-v6-app-button app-pink" onclick="fiV6OpenSchedule()" type="button"><i class="fa-solid fa-calendar-days"></i><span>e-Jadual Waktu</span></button>
+<button class="fi-v6-app-button app-cyan" data-module="erph" type="button"><i class="fa-solid fa-book-open"></i><span>e-RPH</span></button>
 </div>
 </section>
 <section aria-labelledby="fi-v6-info-title" class="fi-v6-home-section fi-v6-info-section">
 <h2 id="fi-v6-info-title"><i class="fa-solid fa-clipboard-list"></i> Ringkasan Hari Ini</h2>
 <div class="fi-v6-info-card fi-v65-relief-card"><span class="fi-v6-info-icon relief"><i class="fa-solid fa-person-chalkboard"></i></span><div class="fi-v65-relief-body"><div class="fi-v65-relief-heading"><strong>Relief Saya Hari Ini</strong><button class="fi-v6-view-link fi-v65-relief-link" type="button" data-module="relief" aria-label="Lihat penuh jadual e-Relief saya">Lihat Penuh <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div><div id="fi-v6-relief-value" aria-live="polite">Menyemak tugasan saya…</div></div></div>
-<div class="fi-v6-info-card"><span class="fi-v6-info-icon duty"><i class="fa-solid fa-user-group"></i></span><div><strong>Minggu Bertugas</strong><div id="fi-v6-duty-value">Menyemak maklumat…</div></div></div>
+<div class="fi-v6-info-card fi-v65-relief-card fi-v534-duty-card"><span class="fi-v6-info-icon duty"><i class="fa-solid fa-user-group"></i></span><div class="fi-v65-relief-body"><div class="fi-v65-relief-heading"><strong>Minggu Bertugas</strong><button class="fi-v6-view-link fi-v65-relief-link" type="button" data-module="bertugas" aria-label="Lihat penuh modul e-Tugasan Mingguan">Lihat Penuh <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button></div><div id="fi-v6-duty-value" aria-live="polite">Menyemak tugasan saya…</div></div></div>
 <div class="fi-v6-info-card"><span class="fi-v6-info-icon action"><i class="fa-solid fa-list-check"></i></span><div><strong>Tindakan</strong><div id="fi-v6-actions-value">Menyemak maklumat…</div></div></div>
 </section>
 <section aria-labelledby="fi-v6-schedule-title" class="fi-v6-home-section fi-v6-schedule-summary">
@@ -325,7 +333,8 @@
 
 
 
-<script defer src="Fi-DashboardGuru.js?v=tm5-theme-2"></script>
+<script defer src="Fi-DashboardGuru.js?v=tm534r"></script>
+
 
 <!-- Tema dan susun atur admin desktop dikendalikan berasingan. -->
 
