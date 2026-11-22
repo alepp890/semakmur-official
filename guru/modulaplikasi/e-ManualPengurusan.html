@@ -38,6 +38,7 @@
   
   <link rel="stylesheet" href="e-ManualPengurusan-Desktop.css?v=dg1">
   <link rel="stylesheet" href="e-ManualPengurusan-V6-Guard.css?v=uat1">
+  <link rel="stylesheet" href="e-ManualPengurusan-V6-Impact.css?v=uat2">
 </head>
 <body class="min-h-screen flex text-slate-800 bg-slate-100">
 
@@ -125,7 +126,7 @@
         <section class="mv6-panel">
           <div class="flex flex-wrap justify-between items-center gap-3">
             <div><h2 class="mv6-heading">Kesihatan Data Pusat & Mod Ujian Pentadbir</h2>
-              <p class="mv6-sub">V6.0 Fasa 1 — audit struktur dan hubungan master secara baca sahaja. Ujian perubahan menggunakan data contoh rekaan, bukan rekod sekolah.</p></div>
+              <p class="mv6-sub">V6.1 Fasa 2 — audit master, simulasi dummy dan semakan kebergantungan data sebenar secara baca sahaja.</p></div>
             <span class="mv6-badge mv6-badge-warn">UAT · Tiada Simpanan</span>
           </div>
           <div class="mv6-alert mv6-warn"><strong>Perlindungan:</strong> Butang di bawah tidak membuat perubahan pada Sheets, Firestore, jawatankuasa, takwim atau jadual rasmi. Pengesahan simpan rasmi V6 belum diaktifkan.</div>
@@ -142,6 +143,30 @@
           </div>
           <div class="mv6-tabs"><button id="mv6BtnUat" type="button" class="mv6-button" onclick="v6GuardSimulate()"><i class="fa-solid fa-flask mr-1"></i> Uji Perubahan</button></div>
           <div id="mv6UatResult"><p class="mv6-note">Klik Uji Perubahan untuk melihat keputusan dan kesan kepada modul lain.</p></div>
+        </section>
+        <!-- V6.1 FASA 2 — Semak kesan pada data SEBENAR, tanpa simpanan. -->
+        <section class="mv6-panel" id="mv6iPanel">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div><h2 class="mv6-heading">Semak Kesan Perubahan — Data Sebenar</h2>
+              <p class="mv6-sub">Pratonton baca sahaja daripada Manual, Generator, Smart Tugasan Mingguan dan sumber Keberadaan/e-Relief jika boleh dicapai.</p></div>
+            <span class="mv6-badge mv6-badge-warn">V6.1-UAT-2 · Tiada Simpanan</span>
+          </div>
+          <div class="mv6i-banner mt-3"><strong>Bukan borang simpan.</strong> Gunakan hanya untuk menyemak risiko perubahan. Keputusan SELAMAT_DALAM_SKOP tidak bermaksud semua modul termasuk Firestore telah disahkan. Jika bacaan gagal, jangan teruskan perubahan rasmi.</div>
+          <div class="mv6-grid mt-4">
+            <label class="mv6-field">Jenis data pusat
+              <select id="mv6iEntity" onchange="mv6iEntityChange()"></select></label>
+            <div class="mv6-field"><span>Senarai rekod</span><button type="button" id="mv6iLoad" class="mv6-button secondary" onclick="mv6iLoad()"><i class="fa-solid fa-rotate mr-1"></i> Muat Rekod Sebenar</button>
+              <span id="mv6iSource" class="mv6i-help">Rekod sebenar belum dimuatkan</span></div>
+            <label class="mv6-field">Rekod yang hendak diuji
+              <select id="mv6iRecord"><option value="">Klik Muat Rekod dahulu</option></select></label>
+            <label class="mv6-field">Medan yang hendak diubah
+              <select id="mv6iField"><option value="">Pilih rekod dahulu</option></select></label>
+            <label class="mv6-field mv6i-wide">Nilai baharu untuk SIMULASI sahaja
+              <input id="mv6iValue" maxlength="140" type="text" autocomplete="off" placeholder="Contoh: Nama baharu, Kod baharu, Tidak Aktif, atau tarikh YYYY-MM-DD" />
+              <span class="mv6i-help">Tiada data Google Sheets atau Firestore akan disimpan.</span></label>
+          </div>
+          <div class="mv6-tabs"><button type="button" id="mv6iCheck" class="mv6-button" onclick="mv6iCheck()"><i class="fa-solid fa-shield-halved mr-1"></i> Semak Kesan Perubahan</button></div>
+          <div id="mv6iResult"><p class="mv6-note">Pilih jenis data dan klik Muat Rekod Sebenar untuk bermula.</p></div>
         </section>
       </div>
 
@@ -962,5 +987,6 @@
 
   <script src="e-ManualPengurusan.js?v=merit-book-v6"></script>
   <script src="e-ManualPengurusan-V6-Guard.js?v=uat1"></script>
+  <script src="e-ManualPengurusan-V6-Impact.js?v=uat2"></script>
 </body>
 </html>
