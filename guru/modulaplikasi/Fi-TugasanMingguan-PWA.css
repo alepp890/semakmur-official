@@ -928,3 +928,195 @@
     background:linear-gradient(110deg,#128bbb,#215cad)!important;
     font:800 13px 'Plus Jakarta Sans',Arial,sans-serif!important;cursor:pointer!important;}
 }
+
+
+/* ============================================================
+   SeMAKMUR TM V5.3.17 · PWA ONLY
+   - Halaman pembetulan berasingan + hari terpilih berbeza jelas.
+   - Direktori disahkan -> paparan bacaan mingguan, bukan A4.
+   - Desktop CSS, enjin A4 dan backend tidak diubah.
+   ============================================================ */
+@media(max-width:900px){
+  html #tm-panel-report-studio .tm5317-return-page,
+  html #tm-panel-report-studio .tm5317-read-report{
+    min-width:0!important;max-width:100%!important;width:100%!important;
+    box-sizing:border-box!important;overflow-x:hidden!important;
+    color:#173d70!important;font-family:'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5317-return-page{display:block!important;}
+  html #tm-panel-report-studio .tm5317-return-card{
+    background:#fff!important;border:1px solid #dbe6f4!important;border-radius:17px!important;
+    padding:17px 14px 20px!important;margin:12px 0 18px!important;
+    box-shadow:0 4px 16px rgba(27,73,122,.06)!important;
+  }
+  html #tm-panel-report-studio .tm5317-kicker{
+    display:block!important;font:800 10px/1.5 'Plus Jakarta Sans',sans-serif!important;
+    color:#2084b5!important;letter-spacing:.7px!important;margin-bottom:7px!important;
+  }
+  html #tm-panel-report-studio .tm5317-return-card h2{
+    font:800 17px/1.45 'Plus Jakarta Sans',sans-serif!important;color:#163c70!important;
+    margin:0 0 8px!important;
+  }
+  html #tm-panel-report-studio .tm5317-help{
+    margin:0 0 17px!important;font:500 12px/1.6 'Plus Jakarta Sans',sans-serif!important;
+    color:#607b99!important;
+  }
+  html #tm-panel-report-studio .tm5317-return-options{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;margin-bottom:11px!important;
+  }
+  html #tm-panel-report-studio .tm5317-return-day{
+    display:flex!important;align-items:center!important;justify-content:space-between!important;
+    gap:5px!important;min-width:0!important;min-height:72px!important;
+    text-align:left!important;border:1px solid #d7e4f3!important;border-radius:12px!important;
+    background:#f7faff!important;padding:11px 10px!important;box-shadow:none!important;
+    color:#26517d!important;position:relative!important;cursor:pointer!important;
+    transition:background .14s,border-color .14s,box-shadow .14s!important;
+  }
+  html #tm-panel-report-studio .tm5317-return-day span:first-child{min-width:0!important;}
+  html #tm-panel-report-studio .tm5317-return-day strong{
+    display:block!important;font:800 13px/1.4 'Plus Jakarta Sans',sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5317-return-day small{
+    display:block!important;font:500 10px/1.4 'Plus Jakarta Sans',sans-serif!important;
+    color:#6b86a3!important;margin-top:4px!important;
+  }
+  html #tm-panel-report-studio .tm5317-day-check{
+    display:grid!important;place-items:center!important;flex:none!important;
+    width:22px!important;height:22px!important;border-radius:7px!important;
+    background:#e7eff8!important;color:transparent!important;
+    border:1px solid #d1deef!important;font-size:13px!important;
+  }
+  html #tm-panel-report-studio .tm5317-return-day.is-selected,
+  html #tm-panel-report-studio .tm5317-return-day[aria-pressed="true"]{
+    background:#e7f4ff!important;border:2px solid #2186c1!important;
+    padding:10px 9px!important;box-shadow:0 0 0 2px #1783c41a!important;
+    color:#135a91!important;
+  }
+  html #tm-panel-report-studio .tm5317-return-day.is-selected .tm5317-day-check{
+    background:#1d80be!important;color:white!important;border-color:#1d80be!important;
+  }
+  html #tm-panel-report-studio .tm5317-count{
+    margin:0 0 17px!important;font:700 11px/1.5 'Plus Jakarta Sans',sans-serif!important;
+    color:#3979a5!important;
+  }
+  html #tm-panel-report-studio .tm5317-note-label{
+    display:block!important;font:750 12px/1.6 'Plus Jakarta Sans',sans-serif!important;
+    color:#284b79!important;
+  }
+  html #tm-panel-report-studio .tm5317-note-label textarea{
+    width:100%!important;min-height:132px!important;resize:vertical!important;
+    display:block!important;box-sizing:border-box!important;
+    margin:7px 0 12px!important;padding:12px!important;border:1px solid #cbdcef!important;
+    border-radius:11px!important;background:#fff!important;color:#244a70!important;
+    font:500 12px/1.65 'Plus Jakarta Sans',sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5317-error{
+    color:#a43d45!important;font:700 11px/1.5 'Plus Jakarta Sans',sans-serif!important;
+    margin:0 0 10px!important;
+  }
+  html #tm-panel-report-studio .tm5317-error[hidden]{display:none!important;}
+  html #tm-panel-report-studio .tm5317-submit{
+    width:100%!important;min-height:43px!important;border-radius:10px!important;
+    font:800 12px 'Plus Jakarta Sans',sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5317-review-actions{
+    display:flex!important;flex-wrap:wrap!important;gap:9px!important;margin-top:14px!important;
+  }
+  html #tm-panel-report-studio .tm5317-review-actions button{
+    min-height:42px!important;padding:10px 12px!important;border-radius:10px!important;
+    font:750 12px/1.4 'Plus Jakarta Sans',sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm538-day-row.tm5317-fix-target{
+    border:1px solid #e9b977!important;border-left:4px solid #e49a30!important;
+    background:#fff7e9!important;border-radius:11px!important;
+    padding-left:10px!important;margin:5px 0!important;
+  }
+  html #tm-panel-report-studio .tm538-day-row.tm5317-fix-target strong{color:#925619!important;}
+  html #tm-panel-report-studio .tm5317-read-report{padding:0 0 32px!important;}
+  html #tm-panel-report-studio .tm5317-read-actions{
+    display:flex!important;align-items:center!important;justify-content:space-between!important;
+    gap:9px!important;margin:1px 0 12px!important;
+  }
+  html #tm-panel-report-studio .tm5317-read-actions button{
+    min-height:40px!important;border:1px solid #cddff2!important;border-radius:10px!important;
+    background:#fff!important;color:#265c91!important;padding:10px 12px!important;
+    font:750 11px/1.4 'Plus Jakarta Sans',sans-serif!important;cursor:pointer!important;
+  }
+  html #tm-panel-report-studio .tm5317-read-actions button.primary{
+    flex:none!important;background:linear-gradient(120deg,#168ec8,#245cb4)!important;
+    color:white!important;border-color:#267dbb!important;padding:10px 16px!important;
+  }
+  html #tm-panel-report-studio .tm5317-read-head,
+  html #tm-panel-report-studio .tm5317-read-section,
+  html #tm-panel-report-studio .tm5317-read-day{
+    border:1px solid #d9e7f6!important;background:#fff!important;border-radius:15px!important;
+    padding:17px 15px!important;margin:0 0 12px!important;
+    box-shadow:0 3px 13px rgba(19,69,117,.045)!important;
+    box-sizing:border-box!important;max-width:100%!important;min-width:0!important;
+  }
+  html #tm-panel-report-studio .tm5317-read-head{
+    background:linear-gradient(135deg,#f7fbff,#eaf4fc)!important;
+    border-color:#cddff1!important;padding:19px 16px!important;
+  }
+  html #tm-panel-report-studio .tm5317-read-head h2{
+    font:800 22px/1.25 'Plus Jakarta Sans',sans-serif!important;color:#163e74!important;margin:1px 0 4px!important;
+  }
+  html #tm-panel-report-studio .tm5317-read-head h3{
+    font:800 15px/1.4 'Plus Jakarta Sans',sans-serif!important;color:#265c91!important;margin:0 0 10px!important;
+  }
+  html #tm-panel-report-studio .tm5317-read-head>p{
+    font:500 11px/1.5 'Plus Jakarta Sans',sans-serif!important;color:#6c85a0!important;margin:0 0 14px!important;
+  }
+  html #tm-panel-report-studio .tm5317-people{display:grid!important;grid-template-columns:1fr!important;gap:9px!important;}
+  html #tm-panel-report-studio .tm5317-people>div{padding:9px 10px!important;border:1px solid #dfebf5!important;border-radius:10px!important;background:#fff!important;min-width:0!important;}
+  html #tm-panel-report-studio .tm5317-people small{display:block!important;font:700 10px/1.35 'Plus Jakarta Sans',sans-serif!important;color:#7490a8!important;}
+  html #tm-panel-report-studio .tm5317-people strong{display:block!important;font:800 12px/1.5 'Plus Jakarta Sans',sans-serif!important;color:#254a75!important;margin-top:2px!important;overflow-wrap:anywhere!important;}
+  html #tm-panel-report-studio .tm5317-read-day .tm5-doc-day,
+  html #tm-panel-report-studio .tm5317-read-day .tm524-day-document{border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;margin:0!important;min-width:0!important;max-width:100%!important;}
+  html #tm-panel-report-studio .tm5317-read-day h3,
+  html #tm-panel-report-studio .tm5317-read-section>h3{
+    font:800 15px/1.45 'Plus Jakarta Sans',sans-serif!important;color:#194b82!important;
+    margin:0 0 12px!important;padding-bottom:10px!important;border-bottom:1px solid #dbe8f5!important;
+    overflow-wrap:anywhere!important;
+  }
+  html #tm-panel-report-studio .tm5317-reporter,
+  html #tm-panel-report-studio .tm5317-meta{
+    margin:4px 0 12px!important;font:500 11px/1.65 'Plus Jakarta Sans',sans-serif!important;
+    color:#567590!important;overflow-wrap:anywhere!important;
+  }
+  html #tm-panel-report-studio .tm5317-reporter strong,
+  html #tm-panel-report-studio .tm5317-meta strong{color:#254e7e!important;font-weight:800!important;}
+  html #tm-panel-report-studio .tm5317-read-report .tm5-doc-grid{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+    min-width:0!important;max-width:100%!important;gap:0!important;
+  }
+  html #tm-panel-report-studio .tm5317-read-report .tm5-doc-cell{
+    min-width:0!important;max-width:100%!important;
+    background:transparent!important;border:0!important;border-bottom:1px solid #ebf0f7!important;
+    padding:10px 0!important;margin:0!important;box-sizing:border-box!important;
+    overflow-wrap:anywhere!important;
+  }
+  html #tm-panel-report-studio .tm5317-read-report .tm5-doc-cell:last-child{border-bottom:0!important;}
+  html #tm-panel-report-studio .tm5317-read-report .tm5-doc-cell b{
+    display:block!important;color:#496e94!important;margin:0 0 4px!important;
+    font:750 11px/1.5 'Plus Jakarta Sans',sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5317-read-report .tm5-doc-cell p{
+    display:block!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;
+    word-break:break-word!important;color:#284762!important;margin:0!important;
+    font:500 12px/1.65 'Plus Jakarta Sans',sans-serif!important;
+  }
+}
+/* V5.3.17: tindakan pembetulan kekal jelas walaupun tema butang umum menindih .primary */
+@media(max-width:900px){
+  html #tm-panel-report-studio .tm5317-return-page button.tm5317-submit{
+    background:linear-gradient(120deg,#168ec8,#245cb4)!important;
+    border:1px solid #246fb4!important;color:#fff!important;
+    box-shadow:0 4px 11px #226aa923!important;
+  }
+  html #tm-panel-report-studio .tm5317-return-day:focus-visible,
+  html #tm-panel-report-studio .tm5317-read-actions button:focus-visible{
+    outline:3px solid #5db0df!important;outline-offset:2px!important;
+  }
+}
