@@ -21,7 +21,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   const MODULES={
     erph:{title:'e-RPH Digital',icon:'fa-book-open',tone:'green',url:'modulaplikasi/ErphGuru.html'},
     manual:{title:'e-Manual Pengurusan',icon:'fa-book-bookmark',tone:'blue',url:'modulaplikasi/e-ManualPengurusan.html'},
-    jadual:{title:'Jadual Waktu',icon:'fa-calendar-days',tone:'blue',url:'modulaplikasi/JadualWaktu.html'},
+    jadual:{title:'Fi-JadualWaktu',icon:'fa-calendar-days',tone:'green',url:'modulaplikasi/Fi-JadualWaktu.html'},
     ssdm:{title:'SSDM Disiplin',icon:'fa-shield-halved',tone:'orange',url:'https://ssdm.moe.gov.my'},
     splkpm:{title:'SPLKPM Latihan',icon:'fa-graduation-cap',tone:'purple',url:'https://splkpm.moe.gov.my'},
     pajsk:{title:'PAJSK Kokurikulum',icon:'fa-trophy',tone:'green',url:null},
@@ -118,7 +118,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   }
   function bolehUrusJadual(){
     // Tiada sesi Apps Script untuk Fi.
-    if(currentUser && currentUser.is_admin===true)return true;
+    if(fiManualAccessAllowed || (currentUser && currentUser.is_admin===true))return true;
     const roles=dashboardData?.peranan||[];
     return roles.some(r=>/penyelaras\s+jadual\s+waktu/i.test([r.peranan,r.jawatankuasa,r.skop].filter(Boolean).join(' ')));
   }
@@ -201,7 +201,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       showInfo('Akses Dashboard sedang disahkan. Sila cuba sebentar lagi.');return;
     }
     closeErphWorkspace(true);
-    closeKeberadaanWorkspace(true);closeReliefWorkspace(true);closeTugasanWorkspace(true);closePengurusanMuridWorkspace(true);
+    closeKeberadaanWorkspace(true);closeReliefWorkspace(true);closeTugasanWorkspace(true);closeFiJadualWorkspace(true);closePengurusanMuridWorkspace(true);
     closeMobileMenu();
     const pane=$('kehadiran-workspace'),frame=$('kehadiran-workspace-frame');
     if(!pane||!frame)return;
@@ -259,7 +259,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       showInfo('Akses Dashboard sedang disahkan. Sila cuba sebentar lagi.');return;
     }
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
-    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);closeTugasanWorkspace(true);closeMobileMenu();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeReliefWorkspace(true);closePengurusanMuridWorkspace(true);closeTugasanWorkspace(true);closeFiJadualWorkspace(true);closeMobileMenu();
     const pane=$('keberadaan-workspace'),frame=$('keberadaan-workspace-frame');
     if(!pane||!frame)return;
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
@@ -303,7 +303,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   function openReliefWorkspace(){
     if(!dashboardAuthenticated||!window.FiAuthenticatedUser){showInfo('Akses Dashboard belum disahkan.');return;}
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
-    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);closePengurusanMuridWorkspace(true);closeTugasanWorkspace(true);closeMobileMenu();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);closePengurusanMuridWorkspace(true);closeTugasanWorkspace(true);closeFiJadualWorkspace(true);closeMobileMenu();
     const pane=$('relief-workspace'),frame=$('relief-workspace-frame');if(!pane||!frame)return;
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
     rememberWorkspace('relief');
@@ -356,12 +356,49 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   }
   window.closeTugasanWorkspace=closeTugasanWorkspace;
   window.retryTugasanWorkspace=retryTugasanWorkspace;
+  // Fi-JadualWaktu — navigasi selaras e-Tugasan, tanpa tab baharu.
+  function fiJadualWorkspaceStatus(title,msg,isError=false){
+    const overlay=$('fi-jadual-loading');if(!overlay)return;
+    overlay.hidden=false;overlay.classList.toggle('is-error',isError);
+    $('fi-jadual-loading-title').textContent=title;
+    $('fi-jadual-loading-message').textContent=msg;
+    $('fi-jadual-retry').hidden=!isError;
+  }
+  function openFiJadualWorkspace(){
+    if(!dashboardAuthenticated||!window.FiAuthenticatedUser){showInfo('Akses Fi belum disahkan.');return;}
+    if(!bolehUrusJadual()){showInfo('Anda tidak mempunyai peranan pentadbir untuk Generator.');return;}
+    if(fiV6ScheduleOpen)fiV6CloseSchedule();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);
+    closeReliefWorkspace(true);closeTugasanWorkspace(true);closePengurusanMuridWorkspace(true);closeMobileMenu();
+    const pane=$('fi-jadual-workspace'),frame=$('fi-jadual-workspace-frame');if(!pane||!frame)return;
+    $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
+    rememberWorkspace('jadual');
+    if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#fi-jadual');
+    if(frame.dataset.fiReady==='1')$('fi-jadual-loading').hidden=true;
+    else fiJadualWorkspaceStatus('Membuka Fi-JadualWaktu…','Mengesahkan pentadbir dan membuka salinan jadual UAT.');
+    if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-JadualWaktu.html?embed=1&v=1.0.0';
+    fiV6Header();
+  }
+  function closeFiJadualWorkspace(keepHash){
+    const pane=$('fi-jadual-workspace');if(!pane||pane.hidden)return;
+    pane.hidden=true;pane.classList.remove('is-open');$('page-scroll').classList.remove('hidden');
+    if(!keepHash){rememberWorkspace('laman_utama');
+      if(location.hash==='#fi-jadual'&&history.replaceState)history.replaceState(null,'',location.pathname+location.search);}
+    fiV6Header();
+  }
+  function retryFiJadualWorkspace(){
+    const frame=$('fi-jadual-workspace-frame');if(!frame)return;
+    frame.dataset.fiReady='0';fiJadualWorkspaceStatus('Muat semula Fi-JadualWaktu…','Menyemak sesi pentadbir Fi.');
+    frame.src='modulaplikasi/Fi-JadualWaktu.html?embed=1&v=1.0.0&retry='+Date.now();
+  }
+  window.closeFiJadualWorkspace=closeFiJadualWorkspace;
+  window.retryFiJadualWorkspace=retryFiJadualWorkspace;
   // HEM V2: iframe same-origin dalam Dashboard, tidak membuka tab baharu.
   function openPengurusanMuridWorkspace(){
     const pane=$('pengurusan-murid-workspace'),frame=$('pengurusan-murid-workspace-frame');
     if(!pane||!frame){showInfo('Ruang Pengurusan Murid belum dipasang dalam HTML Dashboard.');return;}
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
-    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);closeReliefWorkspace(true);closeTugasanWorkspace(true);closeMobileMenu();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);closeReliefWorkspace(true);closeTugasanWorkspace(true);closeFiJadualWorkspace(true);closeMobileMenu();
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
     rememberWorkspace('pengurusan_murid');
     if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#pengurusan-murid');
@@ -377,6 +414,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   }
   window.closePengurusanMuridWorkspace=closePengurusanMuridWorkspace;
   async function openModule(id){const m=MODULES[id];if(!m)return;
+    if(id==='jadual'){if(!dashboardAuthenticated||!bolehUrusJadual()){showInfo('Sila sahkan akses pentadbir Fi dahulu.');return;}openFiJadualWorkspace();return;}
     // Kehadiran dibuka serta-merta. Jangan tunggu ensureOfficial() sebelum memaparkan ruang.
     if(id==='kehadiran'){openKehadiranWorkspace();return;}
     if(id==='keberadaan'){openKeberadaanWorkspace();return;}
@@ -398,7 +436,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     }
     if(!await window.FiDashboard?.ensureOfficial()){showInfo('Modul ini masih menggunakan sistem lama dan belum dipindahkan ke Fi.');return;}
     if(!dashboardAuthenticated){showInfo('Akses sedang disahkan. Sila cuba sebentar lagi.');return;}
-    if(id==='jadual'&&!bolehUrusJadual()){showInfo('Akses modul ini terhad kepada pentadbir dan penyelaras jadual waktu.');return;}
+    if(id==='jadual'){if(!bolehUrusJadual()){showInfo('Akses pengurusan jadual terhad kepada pentadbir Fi.');return;}openFiJadualWorkspace();return;}
     if(!m.url)return;
     if(id==='erph'){openErphWorkspace();return;}
     window.open(m.url,'_blank','noopener');
@@ -525,11 +563,12 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     const keberadaan=!$('keberadaan-workspace').hidden;
     const relief=!$('relief-workspace').hidden;
     const tugasan=!$('tugasan-workspace').hidden;
+    const fiJadual=!$('fi-jadual-workspace').hidden;
     const hemMurid=!$('pengurusan-murid-workspace').hidden;
     const back=$('v4-back');
     if(!fiV6Mobile()){back.hidden=true;return;}
-    back.hidden=!(fiV6ScheduleOpen||attendance||keberadaan||relief||tugasan||hemMurid);
-    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':fiV8AttendanceSection==='semakan'?'Semakan Kehadiran':'Kehadiran Kelas'):keberadaan?'e-Keberadaan':relief?'e-Relief':tugasan?'e-Tugasan Mingguan':hemMurid?'Pengurusan Murid':'SeMAKMUR Smart System';
+    back.hidden=!(fiV6ScheduleOpen||attendance||keberadaan||relief||tugasan||fiJadual||hemMurid);
+    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':fiV8AttendanceSection==='semakan'?'Semakan Kehadiran':'Kehadiran Kelas'):keberadaan?'e-Keberadaan':relief?'e-Relief':tugasan?'e-Tugasan Mingguan':fiJadual?'Fi-JadualWaktu':hemMurid?'Pengurusan Murid':'SeMAKMUR Smart System';
     document.body.classList.toggle('fi-v6-on-schedule',fiV6ScheduleOpen);
     document.body.classList.toggle('fi-v6-on-attendance',attendance);
     document.body.classList.toggle('fi-v6-on-keberadaan',keberadaan);
@@ -572,6 +611,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(!$('keberadaan-workspace').hidden){closeKeberadaanWorkspace();return;}
     if(!$('relief-workspace').hidden){closeReliefWorkspace();return;}
     if(!$('tugasan-workspace').hidden){closeTugasanWorkspace();return;}
+    if(!$('fi-jadual-workspace').hidden){closeFiJadualWorkspace();return;}
     if(!$('pengurusan-murid-workspace').hidden){closePengurusanMuridWorkspace();return;}
     switchMainMenu('laman_utama');
   }
@@ -876,8 +916,8 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     document.body.classList.add('v4-on-home');
     updateClock();setInterval(updateClock,30000);
     $('greeting-text').textContent='Selamat Datang';
-    document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){if(module.dataset.module==='jadual'){if(fiV6Mobile())fiV6OpenSchedule();else switchMainMenu('kurikulum');return;}openModule(module.dataset.module);return;}
-      const page=e.target.closest('[data-page]');if(page){fiV6CloseSchedule();closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closeTugasanWorkspace();closePengurusanMuridWorkspace();switchMainMenu(page.dataset.page);rememberWorkspace(page.dataset.page);return;}
+    document.addEventListener('click',e=>{const module=e.target.closest('[data-module]');if(module){if(module.dataset.module==='jadual'){if(bolehUrusJadual())openModule('jadual');else if(fiV6Mobile())fiV6OpenSchedule();else showInfo('Modul Generator untuk pentadbir; jadual peribadi tersedia dalam paparan Jadual Waktu Hari Ini.');return;}openModule(module.dataset.module);return;}
+      const page=e.target.closest('[data-page]');if(page){fiV6CloseSchedule();closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closeTugasanWorkspace();closePengurusanMuridWorkspace();closeFiJadualWorkspace();switchMainMenu(page.dataset.page);rememberWorkspace(page.dataset.page);return;}
       const day=e.target.closest('[data-day]');if(day){activeDay=day.dataset.day;renderTimetable();}
     });
     $('kehadiran-workspace-frame').addEventListener('load',fiKehadiranFrameReady);
@@ -897,6 +937,14 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
         $('fi-tugasan-loading').hidden=true;
       }else if(e.data?.type==='semakmur-tm-error'){
         tugasanWorkspaceStatus('e-Tugasan Mingguan belum dapat dibuka','Semak sesi dan sambungan Firebase.',true);
+      }
+    });
+    window.addEventListener('message',e=>{
+      if(e.origin!==location.origin||e.source!==$('fi-jadual-workspace-frame')?.contentWindow)return;
+      if(e.data?.type==='semakmur-fi-jw-ready'){
+        $('fi-jadual-workspace-frame').dataset.fiReady='1';$('fi-jadual-loading').hidden=true;
+      }else if(e.data?.type==='semakmur-fi-jw-error'){
+        fiJadualWorkspaceStatus('Fi-JadualWaktu belum tersedia',String(e.data.message||'Sila semak akses Fi-Sync.'),true);
       }
     });
     $('keberadaan-workspace-frame').addEventListener('load',()=>{
@@ -944,7 +992,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     });
     $('profile-form').addEventListener('submit',saveProfile);
     $('profile-modal').addEventListener('click',e=>{if(e.target===$('profile-modal'))closeProfile();});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closeTugasanWorkspace();closePengurusanMuridWorkspace();closeProfile();closeMobileMenu();}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closeTugasanWorkspace();closePengurusanMuridWorkspace();closeFiJadualWorkspace();closeProfile();closeMobileMenu();}});
     window.addEventListener('resize',()=>{fitName();if(window.innerWidth>=768){$('sidebar-container').classList.remove('-translate-x-full');$('sidebar-backdrop').classList.remove('active');}else{$('sidebar-container').classList.add('-translate-x-full');}});
     showInstantShell();
     fiV6Header();
