@@ -637,3 +637,65 @@
   html #tm-panel-report-studio .tm533-return-modal{max-width:97vw!important;max-height:90dvh!important;overflow:auto!important;box-sizing:border-box!important;}
 }
 @media(min-width:901px){#tm5311-demo-rolebar,#tm5311-pwa-local-toggle{display:none!important;}}
+
+/* ================================================================
+   V5.3.12 — PWA MOD UJIAN: SENARAI STATUS = PWA RASMI
+   Gunakan kelas asal V5.3.8 (tm538-day-row, tm538-mobile-page).
+   Perubahan visual sahaja; tiada kesan kepada desktop atau cetakan A4.
+   ================================================================ */
+@media(max-width:900px){
+  html #tm-panel-report-studio .tm5312-pwa-demo{min-width:0!important;width:100%!important;}
+  html #tm-panel-report-studio .tm5312-demo-week{
+    display:flex!important;flex-direction:column!important;gap:10px!important;
+    margin:0 0 12px!important;padding:15px 14px!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-week .tm5-banner-right{align-self:flex-start!important;margin:0!important;}
+  html #tm-panel-report-studio .tm5312-demo-utilities{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;width:100%!important;padding-top:10px!important;
+    border-top:1px solid #e7eef8!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-utilities button{
+    min-width:0!important;width:100%!important;min-height:37px!important;
+    padding:8px 7px!important;white-space:normal!important;
+    font:700 11px/1.3 'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+  /* Senarai status 1 baris bagi setiap hari: teks, tarikh dan badge sama seperti laporan rasmi. */
+  html #tm-panel-report-studio .tm5312-pwa-demo .tm538-daylist{padding:12px 11px 6px!important;}
+  html #tm-panel-report-studio .tm5312-pwa-demo .tm538-day-row{
+    display:flex!important;flex-direction:row!important;align-items:center!important;
+    justify-content:space-between!important;min-height:54px!important;
+  }
+  html #tm-panel-report-studio .tm5312-pwa-demo .tm538-day-row .tm538-day-info{flex:1;min-width:0!important;}
+  html #tm-panel-report-studio .tm5312-pwa-demo .tm538-day-status{flex:none!important;}
+  /* Halaman borang: bukan di bawah senarai, bukan tab lain atau laman luar. */
+  html #tm-panel-report-studio .tm5312-demo-mobile-page{min-width:0!important;padding:12px 0 20px!important;}
+  html #tm-panel-report-studio .tm5312-demo-page-status{
+    display:flex!important;align-items:center!important;justify-content:space-between!important;
+    gap:9px!important;margin:0 1px 12px!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-page-status>span:last-child{
+    text-align:right!important;color:#7289a4!important;
+    font:500 10px/1.35 'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-form-card,
+  html #tm-panel-report-studio .tm5312-demo-day-document{
+    min-width:0!important;width:100%!important;box-sizing:border-box!important;
+    padding:14px 12px!important;margin:0!important;
+    border:1px solid #d9e5f4!important;border-radius:14px!important;background:#fff!important;
+  }
+  html #tm-panel-report-studio .tm5312-page-actions{
+    display:flex!important;gap:8px!important;flex-wrap:wrap!important;
+    padding-top:12px!important;margin-top:14px!important;border-top:1px solid #e5edf7!important;
+  }
+  html #tm-panel-report-studio .tm5312-page-actions button{
+    flex:1 1 150px!important;min-height:40px!important;
+    font:700 12px/1.35 'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-directory{
+    padding:12px!important;margin-top:11px!important;
+    font:500 12px/1.45 'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-directory strong{display:block!important;font-size:13px!important;color:#214b78!important;}
+  html #tm-panel-report-studio .tm5312-demo-directory p{margin:6px 0 9px!important;}
+}
