@@ -11,15 +11,21 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('tm-embedded');</script>
   <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.3.3">
-  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.3.9">
+  <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.3.11">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
   
-  <script src="Fi-TugasanMingguan.js?v=5.3.8" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=5.3.11" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
   #tm-panel-daily,#tm-panel-weekly{display:none!important}
+  [hidden]{display:none!important}
+  @media(min-width:901px){
+    #tm-panel-report-studio .tm5311-desktop-demo-control{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:8px 0 10px}
+    #tm-panel-report-studio #tm52-demo-toggle:not([hidden]){display:inline-flex;align-items:center;justify-content:center;min-height:37px;padding:8px 15px;border:1px solid #bad4ec;border-radius:10px;background:#f0f6ff;color:#244d79;font:700 12px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
+    #tm-panel-report-studio #tm52-demo-toggle[aria-pressed="true"]{background:linear-gradient(115deg,#168ec8,#245cb4);border-color:#226eaf;color:#fff}
+  }
   </style>
 </head>
 <body>
@@ -37,6 +43,22 @@
     <div class="tm-identity"><span id="tm-user">Mengesahkan akaun…</span><span class="tm-chip" id="tm-mode">OPERASI RASMI</span></div>
   </header>
   <div id="tm-notice" class="tm-notice" role="status" aria-live="polite" hidden></div>
+  <!-- V5.3.11: Kawalan simulasi PWA (hanya pentadbir). Pilihan peranan di bawah header induk. -->
+  <div id="tm5311-pwa-local-toggle" class="tm5311-pwa-local-toggle" hidden>
+    <button type="button" id="tm5311-local-demo-switch" class="tm5311-switch" role="switch" aria-checked="false" aria-label="Hidupkan Mod Ujian Pentadbir" title="Mod Ujian Pentadbir"><span class="tm5311-switch-track"><span class="tm5311-switch-knob"></span></span></button>
+  </div>
+  <div id="tm5311-demo-rolebar" class="tm5311-demo-rolebar" hidden>
+    <label for="tm5311-demo-role"><span>Mod Ujian</span>
+      <select id="tm5311-demo-role" aria-label="Pilih peranan untuk Mod Ujian Pentadbir">
+        <option value="GURU">Guru Isnin</option>
+        <option value="SELASA">Guru Selasa</option>
+        <option value="KETUA">Ketua Kumpulan</option>
+        <option value="GPK">GPK Penyelia</option>
+        <option value="GB">Guru Besar</option>
+        <option value="LUAR">Guru Tidak Bertugas</option>
+      </select>
+    </label>
+  </div>
   <!-- V5.3.7 PWA: penapis atas hanya untuk Jadual Tugasan dan Senarai Ahli. -->
   <div id="tm536-top-filter" class="tm536-top-filter" hidden>
     <label id="tm536-week-wrap" class="tm536-filter-label" for="tm536-week-select" hidden>

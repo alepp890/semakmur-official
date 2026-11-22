@@ -1951,7 +1951,7 @@ function tm533BindClear(root){
   function chrome(){root.innerHTML=`<div class="tm5-toolbar-card tm538-nav-shell"><div class="tm5-report-actions tm538-attached-tabs" role="group" aria-label="Menu laporan">
     <button type="button" id="tm5-fill-tab" class="tm5-action current" aria-pressed="true">Isi Laporan</button>
     <button type="button" id="tm5-directory-tab" class="tm5-action" aria-pressed="false">Direktori Program</button>
-  </div><div id="tm5-message" role="status" aria-live="polite"></div></div><div id="tm5-content"></div>`;
+  </div><div class="tm5311-desktop-demo-control"><button type="button" id="tm52-demo-toggle" aria-pressed="false" hidden>Mod Ujian Pentadbir: OFF</button></div><div id="tm5-message" role="status" aria-live="polite"></div></div><div id="tm5-content"></div>`;
     root.querySelector('#tm5-fill-tab').onclick=guard(()=>{
       if(window.SeMAKMUR_TM52_DEMO?.isOn()){setTab('fill');return window.SeMAKMUR_TM52_DEMO.show?.(slot());}
       if(S.mobileDetail&&!tm53Desktop()){if(S.dirty&&!confirm('Borang belum disimpan. Kembali ke senarai dan buang perubahan?'))return;S.dirty=false;S.mobileDetail=false;renderEditorLegacyMobile();return;}
@@ -2606,14 +2606,101 @@ function tm533BindClear(root){
   }
   // P1: jangan mengambil direktori/laporan ketika tab laporan tidak dibuka.
   // `openPrimary` atau `openFromOverview` akan memuat sekali ketika pengguna memerlukan data.
-  function init(){chrome();document.addEventListener('semakmur-tm-auth-ready',()=>{
-      const btn=root.querySelector('#tm52-demo-toggle');if(!btn)return;
-      btn.hidden=!(tmState.data?.actor?.isAdmin===true);
-      btn.onclick=()=>{if(S.dirty&&!confirm('Borang belum disimpan. Buka mod ujian?'))return;
-        if(window.SeMAKMUR_TM52_DEMO?.isOn()){window.SeMAKMUR_TM52_DEMO.off();btn.textContent='Mod Ujian Pentadbir: OFF';S.screen='fill';openPrimary();}
-        else{window.SeMAKMUR_TM52_DEMO?.on(slot());btn.textContent='Mod Ujian Pentadbir: ON';}
+  // V5.3.11: satu enjin Mod Ujian untuk desktop dan PWA, akses hanya pentadbir.
+  // PWA menggunakan header dashboard induk apabila iframe berasal dari domain sama.
+  // Jika header induk tidak boleh dicapai, switch fallback kekal dalam iframe.
+  let parentDemoSwitch=null,parentDemoStyle=null,hostObserver=null,hostFrame=null;
+  const pwaView=()=>window.matchMedia('(max-width:900px)').matches;
+  const demoActive=()=>window.SeMAKMUR_TM52_DEMO?.isOn()===true;
+  function unmountParentSwitch(){
+    hostObserver?.disconnect();hostObserver=null;
+    parentDemoSwitch?.remove();parentDemoSwitch=null;
+    parentDemoStyle?.remove();parentDemoStyle=null;
+    hostFrame=null;
+  }
+  function mountParentSwitch(){
+    if(!pwaView()||!tmManager()||window.parent===window){unmountParentSwitch();return false;}
+    try{
+      const doc=window.parent.document;
+      const header=doc.querySelector('#v4-mobile-head');
+      const actions=header?.querySelector('.v4-head-actions');
+      if(!header||!actions){unmountParentSwitch();return false;}
+      if(parentDemoSwitch?.isConnected)return true;
+      unmountParentSwitch();
+      parentDemoStyle=doc.createElement('style');parentDemoStyle.id='tm5311-demo-host-style';
+      parentDemoStyle.textContent=`@media(max-width:900px){
+        #v4-mobile-head #tm5311-header-demo-switch{border:0;background:transparent;padding:5px 2px;display:inline-flex;align-items:center;justify-content:center;flex:none;cursor:pointer;order:-1}
+        #v4-mobile-head #tm5311-header-demo-switch .tm5311-switch-track{display:block;position:relative;width:42px;height:24px;background:#ffffff42;border:1px solid #ffffff80;border-radius:999px;transition:background .15s}
+        #v4-mobile-head #tm5311-header-demo-switch .tm5311-switch-knob{position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;box-shadow:0 1px 3px #153d65a8;transition:transform .15s}
+        #v4-mobile-head #tm5311-header-demo-switch[aria-checked="true"] .tm5311-switch-track{background:#28ae82;border-color:#d5ffe9}
+        #v4-mobile-head #tm5311-header-demo-switch[aria-checked="true"] .tm5311-switch-knob{transform:translateX(17px)}
+        #v4-mobile-head:has(#tm5311-header-demo-switch) #v4-header-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      }`;
+      doc.head.appendChild(parentDemoStyle);
+      parentDemoSwitch=doc.createElement('button');
+      parentDemoSwitch.id='tm5311-header-demo-switch';parentDemoSwitch.type='button';
+      parentDemoSwitch.setAttribute('role','switch');parentDemoSwitch.setAttribute('aria-checked','false');
+      parentDemoSwitch.setAttribute('aria-label','Hidupkan Mod Ujian Pentadbir');
+      parentDemoSwitch.title='Mod Ujian Pentadbir';
+      parentDemoSwitch.innerHTML='<span class="tm5311-switch-track"><span class="tm5311-switch-knob"></span></span>';
+      parentDemoSwitch.addEventListener('click',toggleDemo);
+      actions.insertBefore(parentDemoSwitch,actions.firstChild);
+      hostFrame=window.frameElement;
+      // Elak switch modul tertinggal apabila pengguna membuka modul lain dalam dashboard.
+      const updateHostVisibility=()=>{
+        if(!parentDemoSwitch?.isConnected)return;
+        const visible=!!hostFrame?.isConnected&&hostFrame.getClientRects().length>0;
+        if(parentDemoSwitch.hidden===visible)parentDemoSwitch.hidden=!visible;
+        const intended=visible?'':'none';
+        if(parentDemoSwitch.style.display!==intended)parentDemoSwitch.style.display=intended;
       };
-    });}
+      hostObserver=new MutationObserver(updateHostVisibility);
+      hostObserver.observe(doc.body,{subtree:true,attributes:true,attributeFilter:['hidden','class','style']});
+      updateHostVisibility();
+      return true;
+    }catch(e){unmountParentSwitch();return false;}
+  }
+  function syncDemoControls(){
+    const admin=tmManager(),on=demoActive(),pwa=pwaView();
+    if(!admin&&on)window.SeMAKMUR_TM52_DEMO?.off();
+    const active=admin&&demoActive();
+    document.documentElement.classList.toggle('tm5311-demo-on',active&&pwa);
+    const desktop=root.querySelector('#tm52-demo-toggle');
+    if(desktop){desktop.hidden=!admin;desktop.textContent='Mod Ujian Pentadbir: '+(active?'ON':'OFF');desktop.setAttribute('aria-pressed',String(active));}
+    const rolebar=document.getElementById('tm5311-demo-rolebar');
+    if(rolebar){rolebar.hidden=!(admin&&active&&pwa);const sel=document.getElementById('tm5311-demo-role');if(sel)sel.value=window.SeMAKMUR_TM52_DEMO?.getRole?.()||'GURU';}
+    if(admin&&pwa)mountParentSwitch();else unmountParentSwitch();
+    const local=document.getElementById('tm5311-pwa-local-toggle');
+    if(local)local.hidden=!(admin&&pwa&&!parentDemoSwitch);
+    for(const el of [parentDemoSwitch,document.getElementById('tm5311-local-demo-switch')]){
+      if(!el)continue;el.setAttribute('aria-checked',String(active));el.setAttribute('aria-label',(active?'Matikan':'Hidupkan')+' Mod Ujian Pentadbir');
+    }
+  }
+  async function toggleDemo(){
+    if(!tmManager())return;
+    if(S.dirty&&!confirm('Borang belum disimpan. Tukar Mod Ujian?'))return;
+    if(demoActive()){
+      window.SeMAKMUR_TM52_DEMO.off();S.mobileDetail=false;S.dirty=false;S.screen='fill';
+      syncDemoControls();if(tmState.tab==='report-studio')await guard(openPrimary)();
+    }else{
+      S.mobileDetail=false;S.dirty=false;
+      tmTab('report-studio');setTab('fill');
+      window.SeMAKMUR_TM52_DEMO?.on(slot());syncDemoControls();
+    }
+  }
+  function init(){
+    chrome();
+    root.addEventListener('click',e=>{if(e.target.closest('#tm52-demo-toggle'))toggleDemo();});
+    document.getElementById('tm5311-local-demo-switch')?.addEventListener('click',toggleDemo);
+    document.getElementById('tm5311-demo-role')?.addEventListener('change',e=>{
+      if(!tmManager()||!demoActive())return;
+      window.SeMAKMUR_TM52_DEMO?.setRole?.(e.target.value);
+    });
+    document.addEventListener('semakmur-tm-auth-ready',syncDemoControls);
+    window.addEventListener('semakmur-tm52-demo-changed',syncDemoControls);
+    window.addEventListener('pagehide',unmountParentSwitch);
+    window.addEventListener('resize',syncDemoControls,{passive:true});
+  }
   function resume(){
     if(window.SeMAKMUR_TM52_DEMO?.isOn())return Promise.resolve();
     // Satu sesi: kembali ke tab yang sedang terbuka tanpa sync semula.
@@ -2642,7 +2729,7 @@ function tm533BindClear(root){
   init();
 })();
 
-/* V5.2 — Pentadbir Ujian: simulator is local to browser session, NEVER writes to production. */
+/* V5.3.11 — Pentadbir Ujian: simulator is local to browser session, NEVER writes to production. */
 (()=>{'use strict';
  const D={on:false,root:null,role:'GURU',phase:'BELUM_DIHANTAR',index:1,days:[],popup:null,
    summary:'',followup:'',gpkNote:'',gbNote:'',returnNote:'',week:null};
@@ -2664,7 +2751,8 @@ function tm533BindClear(root){
       status:holiday?'CUTI':'BELUM_DIISI',data:{speech:'',clean:'',discipline:'',program:window.matchMedia('(min-width: 901px)').matches?'':'ADA',activities:'',visitors:'',activity_status:''}});
   }return days;
  }
- const desktopDemo=()=>window.matchMedia('(min-width: 901px)').matches;
+ // V5.3.11: Mod Ujian PWA dan desktop menggunakan borang dan aliran desktop yang sama.
+ const desktopDemo=()=>true;
  const demoPairs=[['speech_gb','Ucapan Guru Besar / Pentadbir','speech'],['speech_duty','Ucapan Guru Bertugas','speech'],['speech_discipline','Ucapan Guru Disiplin','speech'],
    ['clean_student','Tandas Murid','clean'],['clean_teacher','Tandas Guru','clean'],['clean_hall','Dewan Sri Makmur','clean'],['clean_ground','Persekitaran Sekolah','clean'],
    ['discipline_assembly','Waktu Perhimpunan','discipline'],['discipline_break','Waktu Rehat','discipline'],['discipline_exit','Waktu Pulang','discipline']];
@@ -2870,7 +2958,7 @@ function tm533BindClear(root){
    D.root.querySelectorAll('[data-dem-action]').forEach(el=>el.onclick=()=>action(el.dataset.demAction));
  }
 
- function render(){if(!desktopDemo())return renderLegacyMobile();if(!D.on||!D.root)return;
+ function render(){if(!D.on||!D.root)return;
    const d=D.days[D.index]||D.days[0],leaderReady=D.role==='KETUA'&&complete()&&!demoSent();
    const outside=D.role==='LUAR',sent=demoSent(),isReviewer=['GPK','GB'].includes(D.role),isLeader=D.role==='KETUA';
    const writable=editable(d),readonly=d.status==='LENGKAP';
@@ -2925,6 +3013,7 @@ function tm533BindClear(root){
    });
    D.root.querySelectorAll('[data-dem-action]').forEach(el=>el.onclick=()=>action(el.dataset.demAction));
    if(D.popup)showDemoModal();
+   window.dispatchEvent(new CustomEvent('semakmur-tm52-demo-changed',{detail:{on:D.on,role:D.role,phase:D.phase}}));
  }
  function bindDemoForm(container){
    const toggle=()=>{container.querySelectorAll('[data-dem-pair]').forEach(p=>{const v=p.querySelector('select').value,k=p.dataset.demPair;
@@ -3105,7 +3194,11 @@ function tm533BindClear(root){
    }
  }
  function demoDocument(){if(D.phase!=='DISAHKAN')return;showDemoPrintPreview(true);}
- window.SeMAKMUR_TM52_DEMO={isOn:()=>D.on,show:root=>{D.root=root;render();},directory:demoDirectory,on:root=>{D.on=true;D.root=root;D.week=selectedWeek();D.days=makeDays();D.index=D.days.findIndex(d=>!d.holiday);if(D.index<0)D.index=0;
+ window.SeMAKMUR_TM52_DEMO={isOn:()=>D.on,getRole:()=>D.role,
+  setRole:role=>{if(!D.on||!Object.hasOwn(roleText,role))return;
+    if(!D.popup)collect();D.popup=null;D.role=role;render();},
+  show:root=>{D.root=root;render();},directory:demoDirectory,
+  on:root=>{D.on=true;D.root=root;D.week=selectedWeek();D.days=makeDays();D.index=D.days.findIndex(d=>!d.holiday);if(D.index<0)D.index=0;
    D.phase='BELUM_DIHANTAR';D.role='GURU';D.popup=null;D.summary='';D.followup='';render();},
-  off:()=>{D.on=false;D.root=null;D.days=[];}};
+  off:()=>{D.on=false;D.root=null;D.days=[];window.dispatchEvent(new CustomEvent('semakmur-tm52-demo-changed',{detail:{on:false}}));}};
 })();

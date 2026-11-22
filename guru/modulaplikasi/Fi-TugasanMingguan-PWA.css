@@ -597,3 +597,43 @@
     color:#7a8da3!important;
   }
 }
+
+
+/* ================================================================
+   V5.3.11 — MOD UJIAN PENTADBIR (PWA SAHAJA)
+   Header induk: switch sahaja. Di bawahnya: Mod Ujian | Peranan.
+   Form & validasi: komponen simulator desktop yang sama.
+   ================================================================ */
+@media(max-width:900px){
+  html #tm5311-pwa-local-toggle:not([hidden]){display:flex!important;align-items:center;justify-content:flex-end;margin:8px 12px 0!important;padding:4px 10px!important;background:linear-gradient(115deg,#0c2c68,#0a66ad)!important;border-radius:10px;min-height:42px;}
+  html .tm5311-switch{background:transparent;border:0;padding:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;}
+  html .tm5311-switch-track{display:block;position:relative;width:42px;height:24px;border:1px solid #ffffff8c;border-radius:999px;background:#ffffff40;}
+  html .tm5311-switch-knob{display:block;position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;box-shadow:0 1px 3px #124d93a9;transition:transform .15s;}
+  html .tm5311-switch[aria-checked="true"] .tm5311-switch-track{background:#29a97d;border-color:#d8f7e8;}
+  html .tm5311-switch[aria-checked="true"] .tm5311-switch-knob{transform:translateX(17px);}
+  html #tm5311-demo-rolebar:not([hidden]){display:flex!important;align-items:center!important;width:auto!important;margin:12px 12px 0!important;padding:11px 13px!important;border:1px solid #bdd7f0!important;border-radius:14px!important;background:linear-gradient(115deg,#f8fbff,#edf6ff)!important;box-shadow:0 3px 12px rgba(24,70,128,.09)!important;}
+  html #tm5311-demo-rolebar>label{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:9px!important;width:100%!important;min-width:0!important;}
+  html #tm5311-demo-rolebar>label>span{color:#355e87!important;font:500 12px/1.4 'Plus Jakarta Sans',Arial,sans-serif!important;white-space:nowrap!important;}
+  html #tm5311-demo-role{box-sizing:border-box!important;width:174px!important;min-width:0!important;max-width:63%!important;height:38px!important;min-height:38px!important;margin:0!important;padding:6px 10px!important;background:#fff!important;border:1px solid #c7dcf4!important;border-radius:11px!important;color:#23486d!important;font:400 12px/1.35 'Plus Jakarta Sans',Arial,sans-serif!important;}
+  html.tm5311-demo-on .tm536-top-filter{display:none!important;}
+  html #tm-panel-report-studio .tm5311-desktop-demo-control{display:none!important;}
+  html #tm-panel-report-studio .tm52-demo-nav{display:none!important;}
+  html #tm-panel-report-studio .tm52-demo{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;overflow-wrap:anywhere!important;}
+  html #tm-panel-report-studio .tm52-demo-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important;max-width:100%!important;}
+  html #tm-panel-report-studio .tm52-demo-card{min-width:0!important;max-width:100%!important;box-sizing:border-box!important;}
+  html #tm-panel-report-studio .tm53-field-grid,
+  html #tm-panel-report-studio .tm53-repeat-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;}
+  html #tm-panel-report-studio .tm53-demo-form,
+  html #tm-panel-report-studio .tm53-form-section,
+  html #tm-panel-report-studio .tm53-field{min-width:0!important;max-width:100%!important;box-sizing:border-box!important;}
+  html #tm-panel-report-studio .tm53-demo-form input,
+  html #tm-panel-report-studio .tm53-demo-form textarea,
+  html #tm-panel-report-studio .tm53-demo-form select{box-sizing:border-box!important;max-width:100%!important;width:100%!important;font-family:'Plus Jakarta Sans',Arial,sans-serif!important;font-size:12px!important;}
+  html #tm-panel-report-studio .tm52-demo-actions{display:flex!important;flex-wrap:wrap!important;gap:8px!important;}
+  html #tm-panel-report-studio .tm52-demo-actions button{min-height:36px!important;white-space:normal!important;}
+  html #tm-panel-report-studio .tm525-day-row{max-width:100%!important;min-width:0!important;}
+  html #tm-panel-report-studio .tm524-demo-header{max-width:100%!important;}
+  html #tm-panel-report-studio .tm524-demo-modal{width:min(97vw,640px)!important;max-height:90dvh!important;overflow-y:auto!important;box-sizing:border-box!important;}
+  html #tm-panel-report-studio .tm533-return-modal{max-width:97vw!important;max-height:90dvh!important;overflow:auto!important;box-sizing:border-box!important;}
+}
+@media(min-width:901px){#tm5311-demo-rolebar,#tm5311-pwa-local-toggle{display:none!important;}}
