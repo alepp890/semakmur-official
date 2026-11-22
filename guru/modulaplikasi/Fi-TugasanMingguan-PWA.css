@@ -1120,3 +1120,22 @@
     outline:3px solid #5db0df!important;outline-offset:2px!important;
   }
 }
+
+
+/* V5.3.18 — Dialog rasmi SeMAKMUR di dalam PWA, bukan dialog pelayar. */
+@media (max-width:900px){
+  .tm5318-overlay{position:fixed!important;inset:0!important;z-index:2147483001!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:18px!important;background:rgba(13,38,72,.57)!important;box-sizing:border-box!important;}
+  .tm5318-dialog{box-sizing:border-box!important;width:min(380px,100%)!important;max-height:min(88dvh,650px)!important;overflow-y:auto!important;border-radius:18px!important;border:1px solid #d8e7f5!important;background:#fff!important;box-shadow:0 22px 65px rgba(10,39,78,.27)!important;padding:25px 22px 21px!important;color:#20436d!important;text-align:center!important;font-family:'Plus Jakarta Sans',Arial,sans-serif!important;}
+  .tm5318-mark{display:grid!important;place-items:center!important;width:53px!important;height:53px!important;margin:0 auto 13px!important;border-radius:50%!important;background:#e8f3fc!important;color:#166f9f!important;font:800 26px/1 'Plus Jakarta Sans',Arial,sans-serif!important;}
+  .tm5318-dialog h3{font:800 16px/1.4 'Plus Jakarta Sans',Arial,sans-serif!important;margin:0 0 9px!important;color:#20436d!important;}
+  .tm5318-dialog #tm5318-message{font:500 12px/1.65 'Plus Jakarta Sans',Arial,sans-serif!important;color:#536e89!important;margin:0 0 20px!important;white-space:pre-line!important;overflow-wrap:anywhere!important;}
+  .tm5318-actions{display:flex!important;align-items:center!important;gap:9px!important;justify-content:center!important;}
+  .tm5318-actions button{flex:1!important;min-width:0!important;min-height:44px!important;border-radius:11px!important;font:800 12px 'Plus Jakarta Sans',Arial,sans-serif!important;cursor:pointer!important;}
+  .tm5318-actions .tm5318-cancel{border:1px solid #c9dbea!important;background:#fff!important;color:#315478!important;}
+  .tm5318-actions .tm5318-ok{border:0!important;background:linear-gradient(110deg,#138bbd,#205cab)!important;color:#fff!important;}
+  .tm5318-input-label{display:block!important;text-align:left!important;color:#3d5978!important;font:700 11px 'Plus Jakarta Sans',Arial,sans-serif!important;margin-bottom:7px!important;}
+  .tm5318-dialog textarea{box-sizing:border-box!important;display:block!important;width:100%!important;min-height:86px!important;padding:11px!important;border:1px solid #bed4e9!important;border-radius:10px!important;background:#fff!important;color:#20436d!important;resize:vertical!important;font:500 12px/1.5 'Plus Jakarta Sans',Arial,sans-serif!important;margin-bottom:8px!important;}
+  .tm5318-dialog textarea:focus{outline:2px solid #5aadd8!important;outline-offset:2px!important;}
+  .tm5318-input-error{font:600 11px/1.5 'Plus Jakarta Sans',Arial,sans-serif!important;color:#b22b42!important;text-align:left!important;margin:0 0 12px!important;}
+  .tm5318-dialog :focus-visible{outline:2px solid #2b81bf!important;outline-offset:2px!important;}
+}
