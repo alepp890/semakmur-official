@@ -717,20 +717,28 @@
   }
   @keyframes tm5313-section-in {from{opacity:.72;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
   html #tm-panel-report-studio .tm5313-wizard-footer {
-    position:sticky!important;
-    bottom:76px!important;
-    z-index:14!important;
+    /* V5.3.15: navigasi berada selepas seksyen borang dan ikut aliran skrol. */
+    position:static!important;
+    top:auto!important;
+    bottom:auto!important;
+    left:auto!important;
+    right:auto!important;
+    transform:none!important;
+    z-index:auto!important;
     display:flex!important;
     flex-wrap:wrap!important;
     justify-content:space-between!important;
     align-items:center!important;
     gap:8px!important;
-    margin:18px -8px 4px!important;
+    box-sizing:border-box!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:16px 0 2px!important;
     padding:10px 11px!important;
     border:1px solid #c7ddf1!important;
     border-radius:13px!important;
     background:#f7fbff!important;
-    box-shadow:0 5px 19px rgba(25,76,138,.13)!important;
+    box-shadow:0 3px 10px rgba(25,76,138,.09)!important;
   }
   html #tm-panel-report-studio .tm5313-wizard-counter{
     color:#42668b!important;font:600 11px/1.35 'Plus Jakarta Sans',Arial,sans-serif!important;
@@ -817,34 +825,10 @@
 }
 
 
-/* V5.3.14 — Pembetulan rakaman 22 Nov:
-   1. Wizard bukan lagi sticky di tengah borang ketika menatal.
-      Ia dipasang di bawah viewport, tepat di atas navigasi PWA,
-      dengan ruang skrol tambahan supaya medan terakhir boleh dicapai.
-   2. Hari lengkap GPK/GB dibaca pada halaman PWA khas yang sama
-      seperti guru, bukannya modal mentah di bawah senarai.
-   Hanya PWA; desktop dan template cetakan rasmi tidak terjejas. */
+/* V5.3.15 — Sebelum/Seterusnya mengikut skrol, selepas borang seksyen.
+   Pembetulan bacaan GPK/GB daripada V5.3.14 dikekalkan di bawah.
+   Ruang bawah halaman kembali ke nilai PWA biasa untuk menu bawah. */
 @media (max-width:900px){
-  html #tm-panel-report-studio .tm5313-wizard-footer{
-    position:fixed!important;
-    top:auto!important;
-    bottom:calc(75px + env(safe-area-inset-bottom, 0px))!important;
-    left:50%!important;
-    right:auto!important;
-    transform:translateX(-50%)!important;
-    margin:0!important;
-    width:calc(100vw - 24px)!important;
-    max-width:550px!important;
-    box-sizing:border-box!important;
-    z-index:48!important;
-    border:1px solid #caddef!important;
-    background:rgba(248,252,255,.98)!important;
-    box-shadow:0 5px 16px #173f6920!important;
-  }
-  html #tm-panel-report-studio .tm5312-demo-mobile-page:has(.tm5313-wizard-footer),
-  html #tm-panel-report-studio .tm538-mobile-page:has(.tm5313-wizard-footer){
-    padding-bottom:230px!important;
-  }
   html #tm-panel-report-studio .tm5313-wizard-footer .tm5313-last-actions{
     max-width:100%!important;min-width:0!important;
   }
