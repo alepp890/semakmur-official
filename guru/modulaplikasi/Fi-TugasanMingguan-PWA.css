@@ -699,3 +699,119 @@
   html #tm-panel-report-studio .tm5312-demo-directory strong{display:block!important;font-size:13px!important;color:#214b78!important;}
   html #tm-panel-report-studio .tm5312-demo-directory p{margin:6px 0 9px!important;}
 }
+
+/* ==============================================================
+   V5.3.13 — PWA sahaja: borang enam seksyen + status semakan.
+   Desktop CSS asal dan semua template cetakan tidak diubah.
+   ============================================================== */
+@media (max-width:900px) {
+  html #tm-panel-report-studio .tm53-form-section[hidden],
+  html #tm-panel-report-studio .tm5313-wizard-footer [hidden],
+  html #tm-panel-report-studio .tm5313-last-actions[hidden] {
+    display:none!important;
+  }
+  html #tm-panel-report-studio .tm53-demo-form[data-tm5313-wizard="1"]>.tm53-form-section:not([hidden]),
+  html #tm-panel-report-studio .tm53-official-form[data-tm5313-wizard="1"]>.tm53-form-section:not([hidden]) {
+    display:block!important;
+    animation:tm5313-section-in .14s ease-out both;
+  }
+  @keyframes tm5313-section-in {from{opacity:.72;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+  html #tm-panel-report-studio .tm5313-wizard-footer {
+    position:sticky!important;
+    bottom:76px!important;
+    z-index:14!important;
+    display:flex!important;
+    flex-wrap:wrap!important;
+    justify-content:space-between!important;
+    align-items:center!important;
+    gap:8px!important;
+    margin:18px -8px 4px!important;
+    padding:10px 11px!important;
+    border:1px solid #c7ddf1!important;
+    border-radius:13px!important;
+    background:#f7fbff!important;
+    box-shadow:0 5px 19px rgba(25,76,138,.13)!important;
+  }
+  html #tm-panel-report-studio .tm5313-wizard-counter{
+    color:#42668b!important;font:600 11px/1.35 'Plus Jakarta Sans',Arial,sans-serif!important;
+    flex:1 0 100%!important;text-align:center!important;
+  }
+  html #tm-panel-report-studio .tm5313-wizard-footer>.tm5313-wizard-back,
+  html #tm-panel-report-studio .tm5313-wizard-footer>.tm5313-wizard-next{
+    display:inline-flex;align-items:center;justify-content:center;
+    flex:1 1 105px;min-height:42px!important;
+    padding:10px 13px!important;border-radius:10px!important;
+    font:700 12px/1.3 'Plus Jakarta Sans',Arial,sans-serif!important;
+    cursor:pointer;
+  }
+  html #tm-panel-report-studio .tm5313-wizard-footer>.tm5313-wizard-back{
+    color:#23578b!important;background:#fff!important;border:1px solid #bad2ea!important;
+  }
+  html #tm-panel-report-studio .tm5313-wizard-footer>.tm5313-wizard-next{
+    color:#fff!important;background:linear-gradient(110deg,#128ebd,#245cb4)!important;border:1px solid #2577ae!important;
+  }
+  html #tm-panel-report-studio .tm5313-last-actions:not([hidden]) {
+    display:flex!important;flex-wrap:wrap!important;gap:7px!important;flex:2 1 190px!important;
+    margin:0!important;padding:0!important;
+  }
+  html #tm-panel-report-studio .tm5313-last-actions button{
+    min-height:42px!important;flex:1 1 115px!important;font-size:12px!important;
+  }
+  html #tm-panel-report-studio .tm5313-view-actions{display:flex!important;justify-content:flex-end!important;margin:14px 0 3px!important;}
+  html #tm-panel-report-studio .tm5313-view-actions button,
+  html #tm-panel-report-studio .tm5313-reviewer-summary button{
+    min-height:38px!important;border:1px solid #c1d8ef!important;border-radius:10px!important;
+    background:#eff7ff!important;color:#21568f!important;
+    padding:8px 14px!important;font:700 12px 'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5313-reviewer-notice {
+    display:flex!important;align-items:center!important;gap:12px!important;
+    margin:12px 0!important;padding:13px 14px!important;
+    border:1px solid #bfd9f0!important;border-left:4px solid #2693b8!important;
+    border-radius:13px!important;background:linear-gradient(110deg,#f3f9ff,#e9f5fc)!important;
+    color:#1c4874!important;box-shadow:0 2px 8px #153c5f0b!important;
+  }
+  html #tm-panel-report-studio .tm5313-reviewer-icon,
+  html #tm-panel-report-studio .tm5312-pwa-demo>.tm525-role-notice .tm532-state-icon{
+    flex:none!important;display:grid!important;place-items:center!important;
+    width:36px!important;height:36px!important;border-radius:10px!important;
+    background:#dceff9!important;color:#19749a!important;font-size:18px!important;
+  }
+  html #tm-panel-report-studio .tm5313-reviewer-notice strong,
+  html #tm-panel-report-studio .tm5312-pwa-demo>.tm525-role-notice strong{
+    display:block!important;font:750 12px/1.55 'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5313-reviewer-notice small,
+  html #tm-panel-report-studio .tm5312-pwa-demo>.tm525-role-notice p{
+    display:block!important;margin:4px 0 0!important;color:#68839c!important;
+    font:500 11px/1.4 'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5312-pwa-demo>.tm525-role-notice{
+    display:flex!important;gap:11px!important;align-items:flex-start!important;
+    margin:12px 0!important;padding:13px!important;
+    background:#f1f8ff!important;border:1px solid #bfd9f0!important;border-left:4px solid #2693b8!important;
+    border-radius:13px!important;box-shadow:0 2px 8px #153c5f0b!important;
+  }
+  html #tm-panel-report-studio .tm5313-reviewer-summary{
+    margin:12px 0!important;border:1px solid #d4e5f4!important;border-radius:13px!important;
+    padding:14px!important;background:white!important;
+  }
+  html #tm-panel-report-studio .tm5313-reviewer-summary h3{
+    margin:0 0 8px!important;font:800 13px/1.4 'Plus Jakarta Sans',Arial,sans-serif!important;color:#204a7b!important;
+  }
+  html #tm-panel-report-studio .tm5313-reviewer-summary h4{
+    margin:12px 0 6px!important;font:750 12px/1.4 'Plus Jakarta Sans',Arial,sans-serif!important;color:#2b5881!important;
+  }
+  html #tm-panel-report-studio .tm5313-reviewer-summary p{
+    white-space:pre-wrap!important;margin:0!important;font:500 12px/1.6 'Plus Jakarta Sans',Arial,sans-serif!important;color:#425b73!important;
+  }
+  html #tm-panel-report-studio .tm5312-pwa-demo .tm5312-demo-directory{display:none!important;}
+  html #tm-panel-report-studio .tm538-mobile-page,
+  html #tm-panel-report-studio .tm5312-demo-mobile-page{padding-bottom:110px!important;}
+}
+
+@media (max-width:900px){
+  html #tm-panel-report-studio .tm5313-wizard-footer>.tm5313-wizard-back[hidden],
+  html #tm-panel-report-studio .tm5313-wizard-footer>.tm5313-wizard-next[hidden],
+  html #tm-panel-report-studio .tm5313-wizard-footer>.tm5313-last-actions[hidden]{display:none!important;}
+}
