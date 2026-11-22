@@ -884,3 +884,47 @@
     min-width:0!important;overflow-wrap:anywhere!important;
   }
 }
+
+/* V5.3.16: status dihantar / disokong / disahkan sebelum senarai hari, gaya seragam.
+   Navigasi wizard kekal dalam aliran dokumen, tidak fixed atau sticky. */
+@media (max-width:900px){
+  html #tm-panel-report-studio .tm538-mobile-page,
+  html #tm-panel-report-studio .tm5312-demo-mobile-page {scroll-margin-top:10px!important;}
+  html #tm-panel-report-studio .tm5316-status-card{
+    display:flex!important;gap:12px!important;align-items:flex-start!important;
+    margin:12px 0 14px!important;padding:14px!important;
+    border:1px solid #b9daec!important;border-left:4px solid #218cae!important;
+    border-radius:14px!important;background:linear-gradient(115deg,#f4fbff,#eaf5fd)!important;
+    box-shadow:0 3px 12px rgba(23,82,135,.07)!important;color:#214e78!important;
+  }
+  html #tm-panel-report-studio .tm5316-status-mark{
+    flex:none!important;display:grid!important;place-items:center!important;
+    width:33px!important;height:33px!important;border-radius:10px!important;
+    background:#d9f1e9!important;color:#16765b!important;font:800 19px/1 'Plus Jakarta Sans',Arial,sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5316-status-card strong{
+    display:block!important;margin:0!important;font:800 13px/1.5 'Plus Jakarta Sans',Arial,sans-serif!important;
+    overflow-wrap:anywhere!important;
+  }
+  html #tm-panel-report-studio .tm5316-status-card p{
+    margin:6px 0 0!important;font:500 11px/1.55 'Plus Jakarta Sans',Arial,sans-serif!important;
+    color:#53718e!important;overflow-wrap:anywhere!important;
+  }
+  .tm5316-success-overlay{position:fixed!important;inset:0!important;z-index:2147483000!important;
+    display:flex!important;align-items:center!important;justify-content:center!important;
+    background:rgba(14,36,63,.55)!important;padding:18px!important;box-sizing:border-box!important;}
+  .tm5316-success-dialog{width:min(360px,100%)!important;box-sizing:border-box!important;
+    background:#fff!important;border:1px solid #d5e5f3!important;border-radius:18px!important;
+    box-shadow:0 18px 60px rgba(15,43,76,.25)!important;padding:26px 22px 20px!important;
+    text-align:center!important;color:#1d426c!important;font-family:'Plus Jakarta Sans',Arial,sans-serif!important;}
+  .tm5316-success-icon{display:grid!important;place-items:center!important;margin:0 auto 12px!important;
+    width:53px!important;height:53px!important;border-radius:50%!important;background:#e0f5ee!important;
+    color:#178363!important;font-size:28px!important;font-weight:800!important;}
+  .tm5316-success-dialog h3{margin:0 0 9px!important;font:800 16px/1.45 'Plus Jakarta Sans',Arial,sans-serif!important;}
+  .tm5316-success-dialog p{margin:0 0 20px!important;color:#54708b!important;
+    font:500 12px/1.6 'Plus Jakarta Sans',Arial,sans-serif!important;}
+  .tm5316-success-dialog .tm5316-success-ok{min-height:43px!important;width:100%!important;
+    border:0!important;border-radius:11px!important;color:#fff!important;
+    background:linear-gradient(110deg,#128bbb,#215cad)!important;
+    font:800 13px 'Plus Jakarta Sans',Arial,sans-serif!important;cursor:pointer!important;}
+}

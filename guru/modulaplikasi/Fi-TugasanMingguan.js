@@ -2148,7 +2148,17 @@ function tm533BindClear(root){
     }
     const reviewerNotice=(S.actor?.isGPK||S.actor?.isGB)?`<section class="tm5313-reviewer-notice"><span class="tm5313-reviewer-icon" aria-hidden="true">${S.actor?.isGPK?'▣':'◈'}</span><div><strong>${esc(tm525RoleNotice())}</strong><small>${esc(S.actor?.isGPK?'GPK Penyelia':'Guru Besar')}</small></div></section>`:'';
     const reviewerSummary=(S.actor?.isGPK||S.actor?.isGB)&&['MENUNGGU_GPK','MENUNGGU_GB','DISAHKAN'].includes(w.status)&&w.summary?`<section class="tm5-card tm5313-reviewer-summary"><h3>Ulasan Ketua Kumpulan</h3><p>${esc(w.summary)}</p>${w.followup?`<h4>Cadangan / Tindakan Susulan</h4><p>${esc(w.followup)}</p>`:''}</section>`:'';
-    slot().innerHTML=`${banner}${reviewerNotice}
+    const submitted=tm524Sent();
+    const statusTitle=(S.actor?.isGPK||S.actor?.isGB)?tm525RoleNotice():
+      w.status==='DISAHKAN'?'Laporan telah disahkan oleh Guru Besar.':
+      w.status==='MENUNGGU_GB'?'Laporan telah disokong GPK dan menunggu pengesahan Guru Besar.':
+      'Laporan telah dihantar dan menunggu semakan GPK Penyelia.';
+    const statusDetail=w.status==='MENUNGGU_GPK'?'Guru yang ditugaskan atau Ketua boleh membuat pindaan sebelum keputusan GPK.':
+      w.status==='MENUNGGU_GB'?'Laporan dalam proses pengesahan Guru Besar.':
+      'Laporan telah selesai melalui proses pengesahan.';
+    const statusTop=submitted?`<section class="tm5316-status-card" role="status"><span class="tm5316-status-mark" aria-hidden="true">✓</span><div><strong>${esc(statusTitle)}</strong><p>${esc(statusDetail)}</p></div></section>`:
+      reviewerNotice;
+    slot().innerHTML=`${banner}${statusTop}
       <div class="tm5-editor-layout tm538-list-layout"><aside class="tm5-card tm5-daylist tm538-daylist"><h3 class="tm538-list-heading"><span class="tm538-heading-icon" aria-hidden="true">▦</span> Status Laporan Harian</h3>
       ${S.days.map((d,i)=>`<button type="button" class="tm538-day-row" data-day-index="${i}" ${!d.available&&!d.holiday&&d.status!=='LENGKAP'?'disabled':''}>
         <span class="tm538-day-info"><strong>${esc(d.day)}</strong><small>${showDate(d.date)}</small></span>
@@ -2364,6 +2374,12 @@ function tm533BindClear(root){
     await call({op:isGpk?'tm5GpkReview':'tm5GBReview',...common(),decision,note:isGpk||!tm53Desktop()?(slot().querySelector('#tm5-review-note')?.value||''):'',corrections});
     S.returnRoot?.remove();S.returnRoot=null;
     await loadWeek({weekId:S.week.id,year:S.week.year,from:S.week.from},false,S.current?.date);
+    if(!tm53Desktop()){
+      const title=decision==='RETURN'?'Laporan dipulangkan untuk pembetulan':isGpk?'Semakan GPK berjaya dihantar':'Laporan berjaya disahkan';
+      const detail=decision==='RETURN'?'Arahan pembetulan telah dihantar kepada guru berkaitan.':isGpk?
+        'Laporan telah disokong dan dihantar untuk pengesahan Guru Besar.':'Pengesahan Guru Besar telah direkodkan.';
+      tm5316Success(title,detail,()=>tm5316ScrollTop(root.querySelector('.tm538-week-banner')||root));
+    }
   }
   async function saveWeek(submit){
     if(submit&&tm53Desktop()){
@@ -2373,7 +2389,12 @@ function tm533BindClear(root){
     }
     if(submit&&!confirm('Hantar laporan kepada GPK?'))return;
     await call({op:'tm5SaveWeek',...common(),summary:slot().querySelector('#tm5-summary').value,
-      followup:slot().querySelector('#tm5-followup').value,submit});await loadWeek({weekId:S.week.id,year:S.week.year,from:S.week.from},false,S.current?.date);}
+      followup:slot().querySelector('#tm5-followup').value,submit});
+    await loadWeek({weekId:S.week.id,year:S.week.year,from:S.week.from},false,S.current?.date);
+    if(submit&&!tm53Desktop())tm5316Success('Laporan berjaya dihantar',
+      'Laporan mingguan telah dihantar kepada GPK Penyelia untuk semakan.',
+      ()=>tm5316ScrollTop(root.querySelector('.tm538-week-banner')||root));
+  }
   // Desktop-only layout: PWA uses the existing one-column report form.
   function tm53Desktop(){return window.matchMedia('(min-width: 901px)').matches;}
   function field(key,title,options,value){const o=value||{},v=String(o.status||''),desktop=tm53Desktop();return `<div class="tm5-field" data-pair="${key}">
@@ -2725,6 +2746,35 @@ function tm533BindClear(root){
 })();
 
 
+/* V5.3.16 — Navigasi PWA: selepas bertukar seksyen, bawa skrol ke atas borang.
+   Dialog kejayaan hanya muncul selepas tindakan berjaya dalam Mod Ujian atau backend rasmi. */
+function tm5316ScrollTop(element){
+  if(!element||window.matchMedia('(min-width: 901px)').matches)return;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    try{element.scrollIntoView({behavior:'auto',block:'start'});}catch(_){ }
+  }));
+}
+function tm5316Success(title,description,afterClose){
+  if(window.matchMedia('(min-width: 901px)').matches)return;
+  document.querySelector('.tm5316-success-overlay')?.remove();
+  const overlay=document.createElement('div');
+  overlay.className='tm5316-success-overlay';
+  overlay.innerHTML=`<section class="tm5316-success-dialog" role="alertdialog" aria-modal="true" aria-labelledby="tm5316-success-title" aria-describedby="tm5316-success-message" tabindex="-1">
+    <span class="tm5316-success-icon" aria-hidden="true">✓</span>
+    <h3 id="tm5316-success-title"></h3>
+    <p id="tm5316-success-message"></p>
+    <button type="button" class="tm5316-success-ok primary">OK</button>
+  </section>`;
+  overlay.querySelector('#tm5316-success-title').textContent=title;
+  overlay.querySelector('#tm5316-success-message').textContent=description;
+  document.body.append(overlay);
+  const ok=overlay.querySelector('.tm5316-success-ok');
+  const close=()=>{overlay.remove();document.removeEventListener('keydown',onKey);if(typeof afterClose==='function')afterClose();};
+  const onKey=e=>{if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();close();}};
+  document.addEventListener('keydown',onKey);
+  ok.addEventListener('click',close,{once:true});ok.focus();
+}
+
 /* V5.3.13 — Borang enam seksyen untuk PWA rasmi dan Mod Ujian.
    Seksyen disembunyikan (tidak dikeluarkan daripada DOM); input kekal untuk simpan/validasi. */
 function tm5313Wizard(form){
@@ -2744,16 +2794,17 @@ function tm5313Wizard(form){
   if(oldActions){oldActions.classList.add('tm5313-last-actions');nav.append(oldActions);}
   form.insertAdjacentElement('afterend',nav);
   let current=0;
-  const display=i=>{
+  const display=(i,scroll=true)=>{
     current=Math.max(0,Math.min(steps.length-1,i));
     steps.forEach((step,index)=>{step.hidden=index!==current;step.setAttribute('aria-hidden',String(index!==current));});
     progress.textContent=`Seksyen ${current+1} daripada ${steps.length}`;
     back.hidden=current===0;next.hidden=current===steps.length-1;
     if(oldActions)oldActions.hidden=current!==steps.length-1;
+    if(scroll)tm5316ScrollTop(form.closest('.tm538-mobile-page')||card||form);
   };
   form.tm5313GoTo=display;
   back.onclick=()=>display(current-1);next.onclick=()=>display(current+1);
-  display(0);
+  display(0,false);
 }
 function tm5313RevealInvalid(control){
  const step=control?.closest?.('.tm53-form-section');
@@ -3055,7 +3106,16 @@ function tm5313RevealInvalid(control){
            <button type="button" data-dem-action="reset">Mula Semula</button>
          </div>
        </section>`;
-     const reviewerTop=ctx.isReviewer?ctx.reviewerNotice:'';
+     const statusVisible=demoSent()||D.phase==='DIPULANGKAN';
+     const statusTitle=D.phase==='DISAHKAN'?'Laporan telah disahkan oleh Guru Besar.':
+       D.phase==='MENUNGGU_GB'?(D.role==='GPK'?'Semakan GPK selesai. Menunggu pengesahan Guru Besar.':'Laporan telah disokong GPK dan menunggu pengesahan Guru Besar.'):
+       D.phase==='MENUNGGU_GPK'?'Laporan telah dihantar dan menunggu semakan GPK Penyelia.':
+       'Laporan telah dipulangkan untuk pembetulan.';
+     const statusDetail=D.phase==='MENUNGGU_GPK'?'Guru yang ditugaskan atau Ketua boleh membuat pindaan sebelum semakan GPK.':
+       D.phase==='MENUNGGU_GB'?'Semakan telah selesai dan laporan dihantar kepada Guru Besar.':
+       D.phase==='DISAHKAN'?'Laporan telah selesai dan disahkan.':'Hanya hari yang memerlukan pembetulan perlu dikemas kini.';
+     const reviewerTop=statusVisible?`<section class="tm5316-status-card" role="status"><span class="tm5316-status-mark" aria-hidden="true">✓</span><div><strong>${E(statusTitle)}</strong><p>${E(statusDetail)}</p></div></section>`:
+       ctx.isReviewer?ctx.reviewerNotice:'';
      const reviewerReadout=ctx.isReviewer&&demoSent()?`<section class="tm5-card tm5313-reviewer-summary"><h3>Ulasan Ketua Kumpulan</h3><p>${E(D.summary||'Belum diisi.')}</p><h4>Cadangan / Tindakan Susulan</h4><p>${E(D.followup||'—')}</p></section>`:'';
      const list=outside?`<section class="tm5-card tm524-not-assigned"><span aria-hidden="true">▣</span><h3>Kumpulan anda tidak bertugas pada minggu ini.</h3><p>Tiada borang atau status laporan harian dipaparkan.</p></section>`:
        `<div class="tm5-editor-layout tm538-list-layout">
@@ -3063,7 +3123,7 @@ function tm5313RevealInvalid(control){
           ${D.days.map((x,i)=>`<button type="button" class="tm538-day-row" data-dem-day="${i}">
             <span class="tm538-day-info"><strong>${E(x.day)}</strong><small>${show(x.date)}</small></span>${badge(x)}</button>`).join('')}
          </aside>
-         <div class="tm5-report-right tm538-summary-area">${ctx.isReviewer?reviewerReadout:ctx.sentInfo}
+         <div class="tm5-report-right tm538-summary-area">${reviewerReadout}
            ${ctx.leaderReady?ctx.leaderForm:''}${ctx.gpkReview}${ctx.gbReview}
          </div></div>
          `;
@@ -3208,8 +3268,11 @@ function tm5313RevealInvalid(control){
      if(!note.value.trim()){error.textContent='Sila isi catatan pembetulan.';error.hidden=false;note.focus();return;}
      D.returnNotes=D.returnNotes||{};
      for(const date of selected){const day=D.days.find(d=>d.date===date);if(day){day.status='PEMBETULAN';D.returnNotes[date]=note.value.trim();}}
-     D.returnNote=note.value.trim();D.phase='DIPULANGKAN';D.role='GURU';D.index=Math.max(0,D.days.findIndex(d=>selected.has(d.date)));
+     D.returnNote=note.value.trim();D.phase='DIPULANGKAN';D.role=window.matchMedia('(min-width:901px)').matches?'GURU':'GPK';D.index=Math.max(0,D.days.findIndex(d=>selected.has(d.date)));
      close();render();
+     if(window.matchMedia('(max-width:900px)').matches)tm5316Success('Arahan pembetulan berjaya dihantar',
+       'Hari terpilih telah dipulangkan untuk pembetulan.',
+       ()=>tm5316ScrollTop(D.root.querySelector('.tm5312-demo-week')||D.root));
    };
    overlay.querySelector('.tm533-return-modal').focus();
  }
@@ -3247,23 +3310,39 @@ function tm5313RevealInvalid(control){
      if(desktopDemo()&&followup&&!followup.value.trim()){tm533Invalid(D.root,followup,'Sila isi cadangan atau tindakan susulan.');return;}
      D.summary=summary?.value||'Semua guru telah melaksanakan tugasan mingguan.';
      D.followup=followup?.value||'';
-     D.phase='MENUNGGU_GPK';D.role='KETUA';D.popup=null;render();return;
+     D.phase='MENUNGGU_GPK';D.role='KETUA';D.popup=null;render();
+     if(window.matchMedia('(max-width:900px)').matches)tm5316Success('Laporan berjaya dihantar',
+       'Ulasan Ketua Kumpulan telah dihantar kepada GPK Penyelia untuk semakan.',
+       ()=>tm5316ScrollTop(D.root.querySelector('.tm5312-demo-week')||D.root));
+     return;
    }
    if(cmd==='gpk-ok'&&D.phase==='MENUNGGU_GPK'){
      const note=D.root.querySelector('#demo-review');
      if(desktopDemo()&&note&&!note.value.trim()){tm533Invalid(D.root,note,'Sila isi ulasan dan cadangan GPK sebelum menyokong laporan.');return;}
      D.gpkNote=note?.value||'Disokong oleh GPK.';
-     D.phase='MENUNGGU_GB';D.role='GPK';render();return;
+     D.phase='MENUNGGU_GB';D.role='GPK';render();
+     if(window.matchMedia('(max-width:900px)').matches)tm5316Success('Semakan GPK berjaya dihantar',
+       'Laporan telah disokong dan dihantar untuk pengesahan Guru Besar.',
+       ()=>tm5316ScrollTop(D.root.querySelector('.tm5312-demo-week')||D.root));
+     return;
    }
    if(cmd==='gb-ok'&&D.phase==='MENUNGGU_GB'){
      D.gbNote='Disahkan oleh Guru Besar.';
-     D.phase='DISAHKAN';D.role='GURU';render();return;
+     D.phase='DISAHKAN';D.role=window.matchMedia('(min-width:901px)').matches?'GURU':'GB';render();
+     if(window.matchMedia('(max-width:900px)').matches)tm5316Success('Laporan berjaya disahkan',
+       'Pengesahan Guru Besar telah direkodkan dalam Mod Ujian.',
+       ()=>tm5316ScrollTop(D.root.querySelector('.tm5312-demo-week')||D.root));
+     return;
    }
    if(cmd==='gpk-return'&&D.phase==='MENUNGGU_GPK'){
      if(desktopDemo()){tm533DemoReturnModal();return;}
      if(day.holiday)return alert('Hari cuti tidak boleh dipulangkan. Pilih hari persekolahan.');
      const note=prompt('Masukkan arahan pembetulan bagi '+day.day+':');if(!note?.trim())return;
-     day.status='PEMBETULAN';D.returnNote=note.trim();D.phase='DIPULANGKAN';D.role='GURU';render();return;
+     day.status='PEMBETULAN';D.returnNote=note.trim();D.phase='DIPULANGKAN';D.role='GPK';render();
+     tm5316Success('Arahan pembetulan berjaya dihantar',
+       'Laporan dipulangkan untuk pembetulan oleh guru berkaitan.',
+       ()=>tm5316ScrollTop(D.root.querySelector('.tm5312-demo-week')||D.root));
+     return;
    }
  }
  function demoDirectory(root){
