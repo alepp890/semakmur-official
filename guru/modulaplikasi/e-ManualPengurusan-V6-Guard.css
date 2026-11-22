@@ -1,0 +1,26 @@
+/* Manual Pengurusan V6 - tambahan desktop; reka bentuk asal tidak diubah. */
+.mv6-panel{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:22px;box-shadow:0 2px 10px rgba(15,23,42,.03)}
+.mv6-heading{font-family:Outfit,Inter,sans-serif;font-size:20px;font-weight:800;color:#172033}
+.mv6-sub{font-size:12px;line-height:1.7;color:#64748b;margin-top:5px}
+.mv6-tabs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:16px 0}
+.mv6-button{background:#9f1239;color:#fff;border:0;padding:10px 16px;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer}
+.mv6-button.secondary{background:#fff;border:1px solid #cbd5e1;color:#334155}
+.mv6-button:disabled{opacity:.55;cursor:wait}
+.mv6-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.mv6-field{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#475569}
+.mv6-field select,.mv6-field input{border:1px solid #cbd5e1;border-radius:11px;padding:11px 13px;font-size:13px;background:#fff;min-width:0;width:100%;color:#172033}
+.mv6-result-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.mv6-result-head strong{font-size:15px}.mv6-result-head small{display:block;font-size:11px;color:#64748b;margin-top:4px}
+.mv6-badge{font-size:10px;font-weight:800;padding:5px 9px;border-radius:999px;white-space:nowrap}
+.mv6-badge-ok{background:#dcfce7;color:#166534}.mv6-badge-warn{background:#fef3c7;color:#92400e}
+.mv6-badge-bad{background:#fee2e2;color:#b91c1c}.mv6-badge-muted{background:#f1f5f9;color:#475569}
+.mv6-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:11px 0 20px}
+.mv6-metrics>div{border:1px solid #e2e8f0;border-radius:11px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.mv6-metrics strong{font-size:24px;color:#172033;font-weight:800}.mv6-metrics span{font-size:11px;color:#64748b}
+.mv6-table{width:100%;border-collapse:collapse;text-align:left;font-size:12px}.mv6-table th,.mv6-table td{padding:10px 11px;border-bottom:1px solid #e2e8f0;vertical-align:top}.mv6-table th{background:#f8fafc;color:#475569;font-size:11px;white-space:nowrap}
+.mv6-table td div{font-size:11px;color:#64748b;line-height:1.5;margin-top:4px}.mv6-scroll{max-width:100%;overflow:auto;margin:9px 0 20px}
+.mv6-alert{border-radius:11px;padding:12px;font-size:12px;line-height:1.6;margin:12px 0}.mv6-ok{border:1px solid #bbf7d0;color:#166534;background:#f0fdf4}.mv6-warn{border:1px solid #fcd34d;color:#92400e;background:#fffbeb}.mv6-bad{border:1px solid #fecaca;color:#b91c1c;background:#fef2f2}
+.mv6-demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mv6-demo-grid div{display:flex;flex-direction:column;padding:12px;border:1px solid #e2e8f0;border-radius:10px;gap:5px}
+.mv6-demo-grid small{font-size:11px;color:#64748b}.mv6-demo-grid strong{font-size:12px;word-break:break-word}
+.mv6-panel h3{font-weight:800;font-size:13px;margin:16px 0 9px;color:#334155}.mv6-note{font-size:11px;color:#64748b;line-height:1.7;margin-top:10px}.mv6-findings{padding-left:18px;list-style:disc;font-size:12px;line-height:1.8;color:#334155}.mv6-loading{padding:17px;color:#475569;font-size:12px}
+@media (max-width:1030px){.mv6-grid{grid-template-columns:1fr}}

@@ -37,6 +37,7 @@
   <!-- V5.3: jadual takwim penuh tanpa tatal mendatar; komponen lain tidak disentuh -->
   
   <link rel="stylesheet" href="e-ManualPengurusan-Desktop.css?v=dg1">
+  <link rel="stylesheet" href="e-ManualPengurusan-V6-Guard.css?v=uat1">
 </head>
 <body class="min-h-screen flex text-slate-800 bg-slate-100">
 
@@ -117,6 +118,31 @@
           <div class="flex gap-3 flex-wrap items-center"><label class="font-bold text-xs">Status</label><select id="v5BookStatus" class="border rounded-lg p-2 text-xs"><option>Draf</option><option>Lengkap</option></select><button onclick="v5SaveBookSection()" class="ml-auto bg-emerald-700 text-white rounded-xl px-5 py-3 text-xs font-bold"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Kandungan</button></div>
           <p class="text-xs text-slate-500">Gambar yang dimuat naik disimpan secara peribadi dalam Google Drive sekolah dan dimasukkan ke pratonton cetakan. Kandungan yang berstatus <b>Lengkap</b> sahaja dicetak.</p>
         </div>
+      </div>
+
+      <!-- V6 DATA GUARD — real audit read-only + fake data UAT; never writes Sheets. -->
+      <div id="viewV6DataGuard" class="hidden space-y-5">
+        <section class="mv6-panel">
+          <div class="flex flex-wrap justify-between items-center gap-3">
+            <div><h2 class="mv6-heading">Kesihatan Data Pusat & Mod Ujian Pentadbir</h2>
+              <p class="mv6-sub">V6.0 Fasa 1 — audit struktur dan hubungan master secara baca sahaja. Ujian perubahan menggunakan data contoh rekaan, bukan rekod sekolah.</p></div>
+            <span class="mv6-badge mv6-badge-warn">UAT · Tiada Simpanan</span>
+          </div>
+          <div class="mv6-alert mv6-warn"><strong>Perlindungan:</strong> Butang di bawah tidak membuat perubahan pada Sheets, Firestore, jawatankuasa, takwim atau jadual rasmi. Pengesahan simpan rasmi V6 belum diaktifkan.</div>
+          <div class="mv6-tabs"><button id="mv6BtnHealth" type="button" class="mv6-button" onclick="v6GuardAudit()"><i class="fa-solid fa-shield-heart mr-1"></i> Semak Kesihatan Data Sebenar</button>
+            <button type="button" class="mv6-button secondary" onclick="v6GuardOpen()"><i class="fa-solid fa-rotate mr-1"></i> Papar Mod Ujian</button></div>
+          <div id="mv6HealthResult"><p class="mv6-note">Klik Semak Kesihatan untuk mengesahkan struktur, ID, pendua, status dan beberapa hubungan antara master. Audit ini tidak membetulkan data secara automatik.</p></div>
+        </section>
+        <section class="mv6-panel">
+          <h2 class="mv6-heading">Simulasi Kesan Perubahan (Data Dummy)</h2>
+          <p class="mv6-sub">Pilih kes ujian. Enjin backend akan memeriksa konflik ID, status, rujukan aktif, versi rekod dan versi grid. Semua nama serta ID adalah rekaan.</p>
+          <div class="mv6-grid mt-4">
+            <label class="mv6-field">Senario<select id="mv6Case" onchange="v6GuardChangeCase()"></select></label>
+            <label class="mv6-field">Nilai ujian lain (pilihan)<input id="mv6Value" maxlength="120" placeholder="Kosongkan untuk guna nilai contoh" autocomplete="off" /></label>
+          </div>
+          <div class="mv6-tabs"><button id="mv6BtnUat" type="button" class="mv6-button" onclick="v6GuardSimulate()"><i class="fa-solid fa-flask mr-1"></i> Uji Perubahan</button></div>
+          <div id="mv6UatResult"><p class="mv6-note">Klik Uji Perubahan untuk melihat keputusan dan kesan kepada modul lain.</p></div>
+        </section>
       </div>
 
       <!-- SMART COMMAND CENTER -->
@@ -935,5 +961,6 @@
   
 
   <script src="e-ManualPengurusan.js?v=merit-book-v6"></script>
+  <script src="e-ManualPengurusan-V6-Guard.js?v=uat1"></script>
 </body>
 </html>

@@ -457,6 +457,9 @@ async function fiManualRequest(request) {
           <button onclick="v6OpenMerit()" id="sideMeritPelantikan" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 transition">
             <i class="fa-solid fa-scale-balanced w-4 text-center text-amber-400"></i><span>Mata Merit Pelantikan</span>
           </button>
+          <button type="button" onclick="v6GuardOpen()" id="sideV6DataGuard" class="nav-btn w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 transition">
+            <i class="fa-solid fa-shield-heart w-4 text-center text-emerald-400"></i><span>Kesihatan Data & Mod Ujian</span>
+          </button>
           <div class="pt-3 pb-1 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data Induk</div>
           
           <button onclick="showView('viewProfilStaf', event)" id="sideProfilStaf" class="nav-btn w-full flex items-center gap-3 px-3 py-2 rounded-xl text-slate-300 hover:bg-slate-800 transition">
@@ -1463,7 +1466,7 @@ async function fiManualRequest(request) {
     }
 
     function showView(viewId, evt = null) {
-      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print', 'viewV5BookEditor', 'viewDynamicGroups', 'viewMeritPelantikan', 'viewV65Blank'];
+      const views = ['viewDashboard', 'viewAuditPeranan', 'viewProfilStaf', 'viewPengurusanJawatankuasa', 'viewPengurusanSekolah', 'viewIndukOverview', 'viewSubJkDetail', 'viewV4Catalog', 'viewV4Order', 'viewV4Calendar', 'viewV4Print', 'viewV5BookEditor', 'viewDynamicGroups', 'viewMeritPelantikan', 'viewV65Blank', 'viewV6DataGuard'];
       views.forEach(v => {
         const el = document.getElementById(v);
         if (el) el.classList.add('hidden');
@@ -1488,6 +1491,7 @@ async function fiManualRequest(request) {
       else if (viewId === 'viewDynamicGroups') {bTxt.innerText='Tetapan Kumpulan Dinamik'; dgRender();}
       else if (viewId === 'viewMeritPelantikan') bTxt.innerText='Mata Merit Pelantikan';
       else if (viewId === 'viewV65Blank') bTxt.innerText='Borang Agihan JK (Kosong)';
+      else if (viewId === 'viewV6DataGuard') bTxt.innerText='Kesihatan Data & Mod Ujian V6';
       else if (viewId === 'viewPengurusanJawatankuasa') bTxt.innerText = 'Pengurusan Master Jawatankuasa';
       else if (viewId === 'viewPengurusanSekolah') bTxt.innerText = 'Pengurusan Sekolah';
       else if (viewId === 'viewIndukOverview') bTxt.innerText = `JK Induk ${activeCategoryInduk}`;
