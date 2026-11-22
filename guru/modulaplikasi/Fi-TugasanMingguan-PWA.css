@@ -1139,3 +1139,34 @@
   .tm5318-input-error{font:600 11px/1.5 'Plus Jakarta Sans',Arial,sans-serif!important;color:#b22b42!important;text-align:left!important;margin:0 0 12px!important;}
   .tm5318-dialog :focus-visible{outline:2px solid #2b81bf!important;outline-offset:2px!important;}
 }
+
+/* V5.3.19 — Medan wajib tidak lengkap: mesej merah dan ikon ! bulat.
+   PWA rasmi + Mod Ujian sahaja; desktop kekal. */
+@media (max-width:900px){
+  html #tm-panel-report-studio .tm53-official-form .tm533-invalid,
+  html #tm-panel-report-studio .tm53-demo-form .tm533-invalid{
+    border-color:#d03447!important;box-shadow:0 0 0 2px rgba(208,52,71,.12)!important;
+    background-color:#fffafb!important;outline-color:#d03447!important;
+  }
+  html #tm-panel-report-studio .tm53-official-form .tm5319-has-error>label,
+  html #tm-panel-report-studio .tm53-demo-form .tm5319-has-error>label{
+    color:#af2538!important;
+  }
+  html #tm-panel-report-studio .tm53-official-form .tm5319-step-error,
+  html #tm-panel-report-studio .tm53-demo-form .tm5319-step-error{
+    display:flex!important;align-items:flex-start!important;gap:7px!important;
+    margin:7px 0 11px!important;padding:0!important;
+    font:700 11px/1.5 'Plus Jakarta Sans',Arial,sans-serif!important;
+    color:#b42336!important;white-space:normal!important;
+  }
+  html #tm-panel-report-studio .tm5319-error-icon{
+    display:inline-flex!important;align-items:center!important;justify-content:center!important;
+    width:17px!important;height:17px!important;min-width:17px!important;
+    border:1.8px solid #c42d41!important;border-radius:50%!important;
+    color:#b42336!important;font:800 12px/1 Arial,sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm53-official-form .tm533-invalid-section,
+  html #tm-panel-report-studio .tm53-demo-form .tm533-invalid-section{
+    border-color:#ed9aa5!important;
+  }
+}

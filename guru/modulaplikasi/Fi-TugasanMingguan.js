@@ -2918,6 +2918,99 @@ function tm5316Success(title,description,afterClose){
   ok.addEventListener('click',close,{once:true});ok.focus();
 }
 
+/* V5.3.19 — Semakan wajib PER SEKSIEN bagi Mod Ujian dan PWA rasmi sahaja.
+   Menggunakan peraturan validasi akhir asal, tanpa mengubah tindakan Simpan Draf.
+   Jika ada ralat, kekal pada seksyen yang sama dan fokus medan pertama. */
+function tm5319ValidateWizardSection(step,form){
+  if(!step||!form)return true;
+  tm533ClearFieldErrors(step);
+  step.querySelectorAll('.tm5319-has-error').forEach(el=>el.classList.remove('tm5319-has-error'));
+  if(!form.dataset.tm5319ClearBound){
+    form.dataset.tm5319ClearBound='1';
+    const clear=(ev)=>{
+      const control=ev.target;
+      if(!control?.matches?.('select,input,textarea')||!control.classList.contains('tm533-invalid'))return;
+      control.classList.remove('tm533-invalid');control.removeAttribute('aria-invalid');
+      const label=control.closest('label');
+      const note=label?.nextElementSibling;
+      if(note?.classList.contains('tm5319-step-error'))note.remove();
+      const group=control.closest('[data-pair],[data-dem-pair],.tm53-field,.tm53-repeat-item,.tm5-field')||label||control.parentElement;
+      if(!group?.querySelector('.tm533-invalid'))group?.classList.remove('tm5319-has-error');
+    };
+    form.addEventListener('input',clear);
+    form.addEventListener('change',clear);
+  }
+  const demo=form.classList.contains('tm53-demo-form');
+  const issues=[];
+  const add=(control,message)=>{if(control&&!control.disabled)issues.push({control,message});};
+  const text=(selector)=>step.querySelector(selector)?.value?.trim()||'';
+  for(const pair of step.querySelectorAll(demo?'[data-dem-pair]':'[data-pair]')){
+    const select=pair.querySelector('select');
+    if(!select||select.disabled)continue;
+    const label=pair.querySelector('label')?.childNodes?.[0]?.textContent?.trim()||'medan laporan';
+    if(!select.value){add(select,`Sila pilih status bagi ${label}.`);continue;}
+    const note=pair.querySelector(demo?'[data-dem-note]':'[data-text]');
+    if(note&&(select.value==='ADA'||select.value==='PERLU_PERHATIAN')&&!note.value.trim())
+      add(note,`Sila lengkapkan huraian bagi ${label}.`);
+  }
+  const program=step.querySelector(demo?'#demo-program':'#tm5-program');
+  if(program){
+    if(!program.value)add(program,'Sila pilih status Program Makmur.');
+    else if(program.value==='BATAL'){
+      const reason=step.querySelector(demo?'#demo-program-reason':'#tm5-cancel');
+      if(reason&&!reason.value.trim())add(reason,'Sila nyatakan sebab pembatalan Program Makmur.');
+    }else if(program.value==='ADA'){
+      const note=step.querySelector(demo?'#demo-program-note':'#tm53-makmur-note');
+      if(note&&!note.value.trim())add(note,'Sila isi catatan pelaksanaan Program Makmur.');
+      if(!demo){const teacher=step.querySelector('#tm5-program-teacher');
+        if(teacher&&!teacher.value)add(teacher,'Sila pilih guru pengendali Program Makmur.');}
+    }
+  }
+  const activity=step.querySelector(demo?'#demo-activity-status':'#tm53-activities-status');
+  if(activity){
+    if(!activity.value)add(activity,'Sila pilih status Aktiviti / Program.');
+    else if(activity.value==='ADA'){
+      const rows=[...step.querySelectorAll(demo?'[data-demo-activity]':'[data-activity-item]')];
+      if(!rows.length)add(activity,'Sila tambah sekurang-kurangnya satu aktiviti.');
+      rows.forEach((row,i)=>{
+        const title=row.querySelector(demo?'[data-demo-title]':'[data-item-title]');
+        const desc=row.querySelector(demo?'[data-demo-summary]':'[data-item-desc]');
+        if(title&&!title.value.trim())add(title,`Sila isi tajuk Aktiviti ${i+1}.`);
+        if(desc&&!desc.value.trim())add(desc,`Sila isi ringkasan Aktiviti ${i+1}.`);
+      });
+    }
+  }
+  const visitors=[...step.querySelectorAll(demo?'[data-demo-visitor] input':'[data-visitor-item] input')];
+  if(visitors.some(el=>el.value.trim()))visitors.forEach(el=>{
+    if(!el.value.trim())add(el,'Sila isi nama pelawat atau buang baris kosong.');
+  });
+  // Future required controls should also be checked in the current section.
+  // Avoid duplicate messages for those already checked above.
+  for(const control of step.querySelectorAll('input[required],select[required],textarea[required]')){
+    if(control.disabled||control.type==='hidden'||issues.some(x=>x.control===control))continue;
+    if(!control.value?.trim())add(control,'Medan wajib ini perlu dilengkapkan.');
+  }
+  if(!issues.length)return true;
+  issues.forEach(({control,message})=>{
+    const group=control.closest('[data-pair],[data-dem-pair],.tm53-field,.tm53-repeat-item,.tm5-field')||control.closest('label')||control.parentElement;
+    const label=control.closest('label')||group;
+    control.classList.add('tm533-invalid');control.setAttribute('aria-invalid','true');
+    group?.classList.add('tm5319-has-error');
+    const note=document.createElement('p');
+    note.className='tm533-field-error tm5319-step-error';note.setAttribute('role','alert');
+    const icon=document.createElement('span');icon.className='tm5319-error-icon';icon.setAttribute('aria-hidden','true');icon.textContent='!';
+    const body=document.createElement('span');body.textContent=message;
+    note.append(icon,body);
+    (label||control).insertAdjacentElement('afterend',note);
+  });
+  const first=issues[0].control;
+  requestAnimationFrame(()=>{
+    try{first.scrollIntoView({behavior:'smooth',block:'center'});}catch(_){ }
+    try{first.focus({preventScroll:true});}catch(_){try{first.focus();}catch(__){ }}
+  });
+  return false;
+}
+
 /* V5.3.13 — Borang enam seksyen untuk PWA rasmi dan Mod Ujian.
    Seksyen disembunyikan (tidak dikeluarkan daripada DOM); input kekal untuk simpan/validasi. */
 function tm5313Wizard(form){
@@ -2946,7 +3039,8 @@ function tm5313Wizard(form){
     if(scroll)tm5316ScrollTop(form.closest('.tm538-mobile-page')||card||form);
   };
   form.tm5313GoTo=display;
-  back.onclick=()=>display(current-1);next.onclick=()=>display(current+1);
+  back.onclick=()=>display(current-1);
+  next.onclick=()=>{if(!tm5319ValidateWizardSection(steps[current],form))return;display(current+1);};
   display(0,false);
 }
 function tm5313RevealInvalid(control){
