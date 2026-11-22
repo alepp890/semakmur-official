@@ -145,6 +145,21 @@
           <div id="mv6UatResult"><p class="mv6-note">Klik Uji Perubahan untuk melihat keputusan dan kesan kepada modul lain.</p></div>
         </section>
         <!-- V6.1 FASA 2 — Semak kesan pada data SEBENAR, tanpa simpanan. -->
+        <section class="mv6-panel" id="mv62StaffExitPanel">
+          <div class="flex items-center justify-between gap-3 flex-wrap"><div>
+            <h2 class="mv6-heading">V6.2 — Simulasi Perpindahan & Kekosongan Jawatan</h2>
+            <p class="mv6-sub">Baca data pelantikan sebenar, tetapi hanya pratonton. Hari terakhir bertugas termasuk dalam tempoh pelantikan.</p>
+          </div><span class="mv6-badge mv6-badge-warn">UAT · BACA SAHAJA</span></div>
+          <div class="mv6-grid mt-4">
+            <label class="mv6-field">Guru yang hendak diuji<select id="mv62StaffSelect"><option value="">Klik Muat Senarai Guru</option></select></label>
+            <label class="mv6-field">Hari terakhir bertugas<input id="mv62ExitDate" type="date" /></label>
+          </div>
+          <div class="mv6-tabs mt-3">
+            <button type="button" class="mv6-button secondary" onclick="mv62LoadStaff()">Muat Senarai Guru</button>
+            <button type="button" id="mv62BtnPreview" class="mv6-button" onclick="mv62PreviewExit()">Uji Perpindahan</button>
+          </div>
+          <div id="mv62ExitResult"><p class="mv6-note">Pilih guru dan tarikh. Sistem akan memaparkan tugasan yang akan kosong tanpa mengubah rekod.</p></div>
+        </section>
         <section class="mv6-panel" id="mv6iPanel">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div><h2 class="mv6-heading">Semak Kesan Perubahan — Data Sebenar</h2>
@@ -962,8 +977,9 @@
           </div>
 
           <div id="v5ExitDateWrap" class="hidden">
-            <label class="block font-bold mb-1 text-rose-700">Tarikh Keluar <span class="text-rose-600">*</span></label>
+            <label class="block font-bold mb-1 text-rose-700">Tarikh Akhir Bertugas <span class="text-rose-600">*</span></label>
             <input type="date" id="inp_Tarikh_Keluar" class="w-full p-2.5 border border-rose-300 rounded-xl bg-rose-50 focus:outline-none" />
+            <p class="text-[11px] text-slate-500 mt-1">Guru kekal penyandang hingga tarikh ini. Pelantikan menjadi kosong pada hari berikutnya tanpa mewajibkan pengganti.</p>
           </div>
 
           <div>
@@ -988,5 +1004,6 @@
   <script src="e-ManualPengurusan.js?v=merit-book-v6"></script>
   <script src="e-ManualPengurusan-V6-Guard.js?v=uat1"></script>
   <script src="e-ManualPengurusan-V6-Impact.js?v=uat2"></script>
+  <script src="e-ManualPengurusan-V6-Perpindahan.js?v=uat3"></script>
 </body>
 </html>

@@ -388,56 +388,41 @@ async function fiManualRequest(request) {
     }
 
     function checkVacanciesReport() {
-      const box = document.getElementById('boxVacancyAlerts');
-      const badge = document.getElementById('badgeCountVacancies');
-      if (!box || !badge) return;
-
-      const inactiveStafIds = ALL_STAF.filter(s => String(s.Status || 'Aktif').trim().toLowerCase() !== 'aktif').map(s => s.ID_Staf);
-      const currentYear = document.getElementById('selTahunAktif')?.value || '2026';
-
-      const vacancies = [];
-
-      ALL_PERANAN.forEach(p => {
-        if (String(p.Tahun || '2027') !== currentYear) return;
-
-        const idS = p.ID_Staf || p.id_staf;
-        const roleName = p.Peranan || p.peranan;
-        const unitName = p.Nama_Jawatankuasa || p.nama_jawatankuasa;
-
-        if (inactiveStafIds.includes(idS)) {
-          const stafObj = ALL_STAF.find(s => s.ID_Staf === idS);
-          vacancies.push({
-            unit: unitName,
-            peranan: roleName,
-            sebab: `Guru Tidak Aktif (${stafObj ? stafObj.Nama_Penuh : idS})`
-          });
-        }
+      const box=document.getElementById('boxVacancyAlerts');
+      const badge=document.getElementById('badgeCountVacancies');
+      if(!box||!badge)return;
+      const year=document.getElementById('selTahunAktif')?.value || String(new Date().getFullYear());
+      const today=v5Today();
+      const date=String(year)===today.slice(0,4)?today:(String(year)<today.slice(0,4)?year+'-12-31':year+'-01-01');
+      const byId=new Map(ALL_STAF.map(s=>[String(s.ID_Staf),s]));
+      const k=r=>[r.Nama_Jawatankuasa,r.Peranan,r.Skop_Tugas_Kelas].map(v=>String(v||'').trim().toLowerCase()).join('|');
+      const roles=ALL_PERANAN.filter(r=>String(r.Tahun||'')===String(year));
+      const active=roles.filter(r=>{
+        const st=byId.get(String(r.ID_Staf||''));
+        if(String(r.Status||'Aktif').toLowerCase()!=='aktif')return false;
+        const start=String(r.Tarikh_Mula||'').slice(0,10),end=String(r.Tarikh_Tamat||'').slice(0,10);
+        const endStaff=String(st?.Tarikh_Keluar||'').slice(0,10);
+        return (!start||start<=date)&&(!end||date<=end)&&(!endStaff||date<=endStaff)&&String(st?.Status||'Aktif').toLowerCase()==='aktif';
       });
-
-      badge.innerText = `${vacancies.length} Kekosongan`;
-
-      if (vacancies.length === 0) {
-        box.innerHTML = `
-          <div class="p-3 bg-emerald-50 text-emerald-700 font-bold rounded-xl border border-emerald-200 flex items-center gap-2">
-            <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
-            <span>Semua jawatan berdaftar diisi dengan guru aktif. Tiada kekosongan dikesan.</span>
-          </div>
-        `;
+      const vacancies=[];const seen=new Set();
+      roles.forEach(r=>{
+        const st=byId.get(String(r.ID_Staf||''));
+        const end=String(r.Tarikh_Tamat||'').slice(0,10),endStaff=String(st?.Tarikh_Keluar||'').slice(0,10);
+        const retired=String(r.Status||'Aktif').toLowerCase()!=='aktif'||String(st?.Status||'Aktif').toLowerCase()!=='aktif';
+        if(!retired||(!end&&!endStaff))return; // legacy tidak lengkap: jangan buat dakwaan kosong palsu
+        if(end&&end>=date)return;
+        if(!end&&endStaff&&endStaff>=date)return;
+        if(active.some(x=>k(x)===k(r)))return; // sudah ada penyandang aktif bagi jawatan/skop
+        const key=k(r);
+        if(seen.has(key))return;seen.add(key);
+        vacancies.push({unit:r.Nama_Jawatankuasa||'—',peranan:r.Peranan||'—',skop:r.Skop_Tugas_Kelas||'',bekas:st?.Nama_Penuh||r.ID_Staf||'—',ajk:/^AJK/i.test(r.Peranan||'')});
+      });
+      badge.innerText=vacancies.length+' Kekosongan';
+      if(!vacancies.length){
+        box.innerHTML='<div class="p-3 bg-emerald-50 text-emerald-700 font-bold rounded-xl border border-emerald-200 flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-600"></i><span>Tiada kekosongan dikenal pasti daripada rekod pelantikan yang telah tamat. Jawatan yang belum pernah diwujudkan tidak termasuk semakan ini.</span></div>';
         return;
       }
-
-      box.innerHTML = '';
-      vacancies.forEach((v, i) => {
-        box.innerHTML += `
-          <div class="flex items-center justify-between p-3 bg-rose-50 rounded-xl border border-rose-200">
-            <div class="space-y-0.5">
-              <p class="font-extrabold text-slate-800">${v.unit} &bull; <span class="text-rose-600">${v.peranan}</span></p>
-              <p class="text-[10px] text-rose-500 font-bold"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Punca: ${v.sebab}</p>
-            </div>
-            <span class="px-2.5 py-1 text-[10px] bg-rose-600 text-white font-extrabold rounded-lg">Perlu Diisi</span>
-          </div>
-        `;
-      });
+      box.innerHTML=vacancies.map(v=>'<div class="flex items-center justify-between gap-3 p-3 bg-rose-50 rounded-xl border border-rose-200"><div class="space-y-0.5"><p class="font-extrabold text-slate-800">'+manualV3Escape(v.unit)+' · <span class="text-rose-600">'+manualV3Escape(v.peranan)+'</span></p><p class="text-[10px] text-slate-600">'+manualV3Escape(v.skop)+' · Penyandang terdahulu: '+manualV3Escape(v.bekas)+'</p>'+(v.ajk?'<p class="text-[10px] text-amber-700">Semak bilangan ahli AJK; sistem belum mempunyai ID kerusi khusus bagi setiap ahli.</p>':'')+'</div><span class="px-2.5 py-1 text-[10px] bg-rose-600 text-white font-extrabold rounded-lg">Perlu Diisi</span></div>').join('');
     }
 
     function renderSidebarMenu(mode, katName = '') {
@@ -1992,7 +1977,7 @@ async function fiManualRequest(request) {
           const defaultDate=newStaf.Tarikh_Keluar||v5Today();
           const names=roles.map(x=>`<li>${manualV3Escape(x.Tahun)} · ${manualV3Escape(x.Nama_Jawatankuasa)} — ${manualV3Escape(x.Peranan)}</li>`).join('');
           const ans=await Swal.fire({title:'Staf masih mempunyai pelantikan aktif',icon:'warning',width:620,
-            html:`<p class="text-xs text-slate-600">Menukar staf kepada Tidak Aktif akan menamatkan <strong>${roles.length}</strong> pelantikan ini tanpa memadam sejarah.</p><ul class="text-left text-xs list-disc pl-6 my-3 max-h-40 overflow-auto">${names}</ul><label class="block text-left text-xs font-bold">Tarikh kuat kuasa</label><input id="v4-staff-end" type="date" value="${defaultDate}" class="w-full p-2 border rounded-lg"/><label class="block text-left text-xs font-bold mt-2">Sebab</label><input id="v4-staff-reason" value="Berpindah / tamat perkhidmatan" class="w-full p-2 border rounded-lg"/>`,
+            html:`<p class="text-xs text-slate-600">Menukar staf kepada Tidak Aktif akan menamatkan <strong>${roles.length}</strong> pelantikan ini tanpa memadam sejarah.</p><ul class="text-left text-xs list-disc pl-6 my-3 max-h-40 overflow-auto">${names}</ul><p class="text-xs text-slate-600 mt-2 mb-2">Tarikh yang diisi ialah <strong>hari terakhir bertugas, termasuk hari tersebut</strong>. Semua pelantikan menjadi kosong mulai hari berikutnya. Sejarah dikekalkan dan pengganti tidak diwajibkan.</p><label class="block text-left text-xs font-bold">Tarikh akhir bertugas</label><input id="v4-staff-end" type="date" value="${defaultDate}" class="w-full p-2 border rounded-lg"/><label class="block text-left text-xs font-bold mt-2">Sebab</label><input id="v4-staff-reason" value="Berpindah / tamat perkhidmatan" class="w-full p-2 border rounded-lg"/>`,
             showCancelButton:true,confirmButtonText:'Tamatkan semua tugasan & simpan',cancelButtonText:'Batal',
             preConfirm:()=>{const date=document.getElementById('v4-staff-end')?.value,reason=document.getElementById('v4-staff-reason')?.value||'';if(!date){Swal.showValidationMessage('Tarikh diperlukan.');return false;}return {date,reason};}});
           if(!ans.isConfirmed)return;
@@ -2000,6 +1985,9 @@ async function fiManualRequest(request) {
         }
       }
       if(String(newStaf.Status).toLowerCase()!=='aktif'&&!newStaf.Tarikh_Keluar){Swal.fire('Tarikh Keluar wajib','Pilih Tarikh Keluar sebelum simpan.','warning');return;}
+      if(String(newStaf.Status).toLowerCase()!=='aktif'&&newStaf.Tarikh_Keluar>=v5Today()){
+        Swal.fire('Tarikh belum berlalu','Guru hanya boleh ditandakan Tidak Aktif selepas hari terakhir bertugas. Masukkan tarikh sebelum hari ini.','warning');return;
+      }
       closeTambahGuruModal();
       showLoader('Menyimpan rekod Staf...');
 
