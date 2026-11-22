@@ -815,3 +815,88 @@
   html #tm-panel-report-studio .tm5313-wizard-footer>.tm5313-wizard-next[hidden],
   html #tm-panel-report-studio .tm5313-wizard-footer>.tm5313-last-actions[hidden]{display:none!important;}
 }
+
+
+/* V5.3.14 — Pembetulan rakaman 22 Nov:
+   1. Wizard bukan lagi sticky di tengah borang ketika menatal.
+      Ia dipasang di bawah viewport, tepat di atas navigasi PWA,
+      dengan ruang skrol tambahan supaya medan terakhir boleh dicapai.
+   2. Hari lengkap GPK/GB dibaca pada halaman PWA khas yang sama
+      seperti guru, bukannya modal mentah di bawah senarai.
+   Hanya PWA; desktop dan template cetakan rasmi tidak terjejas. */
+@media (max-width:900px){
+  html #tm-panel-report-studio .tm5313-wizard-footer{
+    position:fixed!important;
+    top:auto!important;
+    bottom:calc(75px + env(safe-area-inset-bottom, 0px))!important;
+    left:50%!important;
+    right:auto!important;
+    transform:translateX(-50%)!important;
+    margin:0!important;
+    width:calc(100vw - 24px)!important;
+    max-width:550px!important;
+    box-sizing:border-box!important;
+    z-index:48!important;
+    border:1px solid #caddef!important;
+    background:rgba(248,252,255,.98)!important;
+    box-shadow:0 5px 16px #173f6920!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-mobile-page:has(.tm5313-wizard-footer),
+  html #tm-panel-report-studio .tm538-mobile-page:has(.tm5313-wizard-footer){
+    padding-bottom:230px!important;
+  }
+  html #tm-panel-report-studio .tm5313-wizard-footer .tm5313-last-actions{
+    max-width:100%!important;min-width:0!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-day-document,
+  html #tm-panel-report-studio .tm5312-demo-day-document .tm524-day-document,
+  html #tm-panel-report-studio .tm538-mobile-page #tm5-detail .tm5-day-view,
+  html #tm-panel-report-studio .tm538-mobile-page .tm5-doc-day,
+  html #tm-panel-report-studio .tm538-mobile-page .tm5-doc-grid,
+  html #tm-panel-report-studio .tm5312-demo-day-document .tm5-doc-grid{
+    min-width:0!important;max-width:100%!important;width:100%!important;
+    box-sizing:border-box!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-day-document .tm524-day-document{
+    display:block!important; padding:0!important;margin:0!important;
+    background:transparent!important;border:0!important;box-shadow:none!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-day-document .tm524-day-document>h3,
+  html #tm-panel-report-studio .tm538-mobile-page .tm5-doc-day>h3{
+    margin:0 0 12px!important;padding:0 0 10px!important;
+    border-bottom:1px solid #dfeaf7!important;
+    color:#1f4e82!important;
+    font:800 14px/1.45 'Plus Jakarta Sans',sans-serif!important;
+    white-space:normal!important;overflow-wrap:anywhere!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-day-document .tm5-doc-grid,
+  html #tm-panel-report-studio .tm538-mobile-page .tm5-doc-grid{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+    gap:0!important;overflow:visible!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-day-document .tm5-doc-cell,
+  html #tm-panel-report-studio .tm538-mobile-page .tm5-doc-cell{
+    min-width:0!important;max-width:100%!important;
+    border:0!important;border-bottom:1px solid #e7eef7!important;
+    border-radius:0!important;background:transparent!important;
+    margin:0!important;padding:11px 2px!important;
+    overflow-wrap:anywhere!important;white-space:normal!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-day-document .tm5-doc-cell b,
+  html #tm-panel-report-studio .tm538-mobile-page .tm5-doc-cell b{
+    display:block!important;margin-bottom:4px!important;
+    color:#375e85!important;font:700 11px/1.5 'Plus Jakarta Sans',sans-serif!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-day-document .tm5-doc-cell p,
+  html #tm-panel-report-studio .tm538-mobile-page .tm5-doc-cell p{
+    margin:0!important;color:#25435f!important;
+    font:500 12px/1.65 'Plus Jakarta Sans',sans-serif!important;
+    white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:break-word!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-mobile-page .tm538-back-button{
+    max-width:100%!important;white-space:normal!important;
+  }
+  html #tm-panel-report-studio .tm5312-demo-mobile-page .tm538-mobile-page-heading>div{
+    min-width:0!important;overflow-wrap:anywhere!important;
+  }
+}

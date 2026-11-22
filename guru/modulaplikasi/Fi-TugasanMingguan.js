@@ -3006,7 +3006,7 @@ function tm5313RevealInvalid(control){
        PEMBETULAN:['!','Perlu pembetulan','fix'],BELUM_DIISI:['○','Belum diisi','pending']};
      const [icon,label,tone]=options[state]||options.BELUM_DIISI;
      return `<span class="tm538-day-status ${tone}"><span class="tm538-status-icon" aria-hidden="true">${icon}</span>${E(label)}</span>`;};
-   const page=!!D.mobilePage&&!outside&&!['GPK','GB'].includes(D.role);
+   const page=!!D.mobilePage&&!outside; // V5.3.14: penyelia juga membuka halaman bacaan, bukan popup dalam senarai.
    if(page){
      const editableNow=editable(d);
      const view=d.holiday?`<section class="tm5-card tm52-holiday-card"><h3>Tiada laporan diperlukan</h3><p>${E(d.holidayTitle||'Cuti Persekolahan')}</p></section>`:
@@ -3072,7 +3072,9 @@ function tm5313RevealInvalid(control){
      D.root.querySelectorAll('[data-dem-day]').forEach(btn=>btn.onclick=()=>{
        const next=D.days[Number(btn.dataset.demDay)];if(!next)return;
        D.index=Number(btn.dataset.demDay);
-       if(ctx.isReviewer){D.popup={date:next.date,mode:'view'};showDemoModal();return;}
+       if(ctx.isReviewer&&!next.holiday&&next.status!=='LENGKAP'){
+          alert('Laporan harian ini belum lengkap. Tiada laporan untuk disemak.');return;
+        }
        if(!next.holiday&&next.status!=='LENGKAP'&&!assigned(next)){alert('Anda tidak bertugas untuk mengisi laporan pada hari ini.');return;}
        D.popup=null;D.mobilePage=true;D.mobileDirty=false;render();
        try{D.root.scrollIntoView({block:'start'});}catch(_){}
