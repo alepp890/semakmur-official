@@ -1,0 +1,133 @@
+body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #334155; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .nav-tab.active { background-color: #0284c7; color: #ffffff; font-weight: 700; }
+    .table-cell-std { padding: 0.5rem 0.625rem; font-size: 0.75rem; line-height: 1rem; border-bottom: 1px solid #e2e8f0; }
+    
+    /* aSc Print Grid Styles */
+    .asc-grid-th { background-color: #0f172a; color: #ffffff; text-align: center; font-size: 10px; padding: 5px 2px; border: 1px solid #334155; }
+    .asc-grid-td { text-align: center; font-size: 11px; padding: 4px 2px; border: 1px solid #000000; vertical-align: middle; min-width: 60px; height: 46px; word-wrap: break-word; }
+    .asc-rehat-cell { background-color: #fef3c7; color: #92400e; font-weight: 800; font-size: 10px; writing-mode: vertical-lr; transform: rotate(180deg); border: 1px solid #000; }
+    
+    /* Skrin peralihan: dipaparkan pada HTML pertama, sebelum permintaan data bermula. */
+    .jw-loading-overlay {
+      position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center;
+      justify-content: center; padding: 22px; overflow: auto; isolation: isolate;
+      background: linear-gradient(134deg,#071a32 0%,#0b3154 48%,#0d5069 100%);
+      color: #fff; opacity: 1; visibility: visible;
+      transition: opacity .42s ease, visibility .42s ease;
+    }
+    .jw-loading-overlay.jw-loader-leaving { opacity: 0; visibility: hidden; pointer-events: none; }
+    .jw-loading-overlay.hidden { display: none; }
+    .jw-loading-overlay::before, .jw-loading-overlay::after {
+      content: ''; position: absolute; z-index: -1; border-radius: 50%; pointer-events: none;
+      filter: blur(4px);
+    }
+    .jw-loading-overlay::before {
+      width: min(68vw,740px); aspect-ratio: 1; top: -49%; right: -12%;
+      background: radial-gradient(circle, rgba(26,183,204,.28), rgba(26,183,204,0) 67%);
+      animation: jw-ambient 9s ease-in-out infinite alternate;
+    }
+    .jw-loading-overlay::after {
+      width: min(80vw,840px); aspect-ratio: 1; bottom: -72%; left: -19%;
+      background: radial-gradient(circle, rgba(60,139,250,.22),rgba(60,139,250,0) 65%);
+      animation: jw-ambient 11s ease-in-out infinite alternate-reverse;
+    }
+    .jw-loader-card {
+      position: relative; width: min(100%,780px); display: grid; grid-template-columns: 1.16fr .84fr;
+      gap: 0; border-radius: 27px; overflow: hidden; background: rgba(255,255,255,.98);
+      border: 1px solid rgba(255,255,255,.32); box-shadow: 0 26px 110px rgba(1,17,37,.33),0 6px 30px rgba(0,0,0,.12);
+    }
+    .jw-loader-info { padding: clamp(28px,4.2vw,48px); color:#122b46; display:flex; flex-direction:column; min-width:0; }
+    .jw-loader-logo { display:flex; align-items:center; gap:12px; margin-bottom: clamp(30px,5vw,52px); }
+    .jw-loader-logo-icon { width:48px; height:48px; display:grid;place-items:center; border-radius:15px;
+      background:linear-gradient(140deg,#0284c7,#0e7490); color:#fff;box-shadow:0 12px 22px rgba(2,132,199,.22); font-size:19px; }
+    .jw-loader-brand {font-size:12px;font-weight:800;letter-spacing:.095em;color:#104a6e;text-transform:uppercase;line-height:1.45;}
+    .jw-loader-brand small {display:block;color:#8191a6;letter-spacing:0;font-size:11px;font-weight:600;text-transform:none;}
+    .jw-loader-pill {align-self:flex-start;display:inline-flex;align-items:center;gap:8px;background:#e7f7f5;
+      color:#0f766e;border:1px solid #ccece7;padding:7px 11px;border-radius:999px;font-size:11px;font-weight:800;margin-bottom:16px;}
+    .jw-loader-pill-dot {width:7px;height:7px;border-radius:50%;background:#10b981;animation:jw-breathe 1.7s ease-in-out infinite;}
+    .jw-loader-title {font-family:'Outfit','Inter',sans-serif;font-size:clamp(23px,3vw,32px);line-height:1.17;
+      font-weight:800;letter-spacing:-.04em;color:#0f2946;margin:0 0 13px;}
+    .jw-loader-description {font-size:13px;line-height:1.7;min-height:46px;color:#66788c;margin:0 0 32px;}
+    .jw-loader-track {position:relative;width:100%;height:6px;background:#e5edf5;border-radius:999px;overflow:hidden;}
+    .jw-loader-track span {position:absolute;top:0;left:0;height:100%;width:37%;border-radius:999px;
+      background:linear-gradient(90deg,#0ea5e9,#14b8a6);animation:jw-loader-slide 1.8s cubic-bezier(.35,0,.45,1) infinite;}
+    .jw-loader-footer {display:flex;align-items:center;justify-content:space-between;gap:12px;
+      margin-top:15px;color:#8ca0b4;font-size:10.5px;font-weight:650;}
+    .jw-loader-mark {display:flex;align-items:center;gap:6px;white-space:nowrap;}
+    .jw-loader-mark i {color:#0d9488;}
+    .jw-loader-art {position:relative;min-height:348px;padding:32px 24px;background:linear-gradient(155deg,#e8f6ff 0%,#d7f1f1 100%);
+      display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .jw-loader-art::before {content:'';position:absolute;inset:0;opacity:.38;
+      background-image:radial-gradient(#86b8c8 .9px,transparent .9px);background-size:21px 21px;}
+    .jw-preview-window {position:relative;width:100%;max-width:275px;padding:17px;background:#fff;border:1px solid #dcebf4;
+      border-radius:18px;box-shadow:0 22px 42px rgba(26,90,120,.14);transform:rotate(-3deg);animation:jw-window-float 5s ease-in-out infinite;}
+    .jw-preview-top {display:flex;align-items:center;justify-content:space-between;padding-bottom:15px;border-bottom:1px solid #edf2f7;}
+    .jw-preview-dots {display:flex;gap:5px;}.jw-preview-dots i {width:7px;height:7px;border-radius:50%;background:#d8e3ed;}
+    .jw-preview-dots i:first-child{background:#6ac8b9;}
+    .jw-preview-mini-title {width:72px;height:7px;border-radius:99px;background:#c4d9e6;}
+    .jw-preview-week {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:15px 0 10px;}
+    .jw-preview-day {font-weight:800;font-size:9px;text-align:center;color:#7090a4;}
+    .jw-preview-grid {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;}
+    .jw-preview-slot {height:31px;border-radius:7px;background:#edf5fa;position:relative;overflow:hidden;}
+    .jw-preview-slot::before{content:'';position:absolute;inset:0;opacity:0;border-radius:7px;background:#c2e8ed;
+      animation:jw-slot-highlight 3.2s ease-in-out infinite;animation-delay:var(--jw-delay,0s);}
+    .jw-preview-slot.jw-accent-blue::before{background:#bfe6ff;}
+    .jw-preview-slot.jw-accent-amber::before{background:#fce7be;}
+    .jw-preview-bottom {display:flex;align-items:center;justify-content:space-between;margin-top:14px;}
+    .jw-preview-bottom span:first-child {width:70px;height:7px;border-radius:99px;background:#e3eaf2;}
+    .jw-preview-bottom span:last-child {width:36px;height:16px;border-radius:99px;background:#d6f3e7;}
+    .jw-art-floating {position:absolute;right:10%;bottom:12%;width:55px;height:55px;border-radius:17px;display:grid;place-items:center;
+      color:#fff;background:linear-gradient(135deg,#0e7490,#14b8a6);font-size:21px;box-shadow:0 15px 35px #0f766e38;
+      animation:jw-window-float 4.7s ease-in-out infinite reverse;}
+    @keyframes jw-loader-slide {0%{transform:translateX(-120%)}50%{transform:translateX(115%)}100%{transform:translateX(290%)}}
+    @keyframes jw-window-float {0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-9px) rotate(-2deg)}}
+    @keyframes jw-slot-highlight {0%,17%{opacity:0}32%,62%{opacity:1}82%,100%{opacity:0}}
+    @keyframes jw-breathe {0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.75)}}
+    @keyframes jw-ambient{from{transform:translateY(-15px)}to{transform:translateY(26px)}}
+    @media (max-width:650px){
+      .jw-loader-card{grid-template-columns:1fr;max-width:420px;border-radius:23px;}
+      .jw-loader-info{padding:29px;}.jw-loader-logo{margin-bottom:27px;}
+      .jw-loader-art{display:none;}.jw-loader-description{margin-bottom:25px;}
+    }
+    @media (prefers-reduced-motion:reduce){
+      .jw-loading-overlay *, .jw-loading-overlay::before, .jw-loading-overlay::after {animation:none!important;transition:none!important;}
+      .jw-loader-track span{left:0;width:65%;}
+    }
+    
+    .sticky-col-guru {
+      position: sticky;
+      left: 0;
+      z-index: 20;
+      background-color: #ffffff;
+      box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.1);
+    }
+
+    @media print {
+      @page { size: A4 landscape; margin: 6mm; }
+      body { background: white !important; padding: 0 !important; }
+      #sidebar, header, .toolbar-no-print, .no-print, #global-loader { display: none !important; }
+      .container-print { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+      .asc-card-print { page-break-after: always; border: 2px solid #000 !important; margin-bottom: 0 !important; }
+    }
+/* Fi-JadualWaktu V1: native Fi identity, no additional CSS files */
+html,body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;min-width:0;}
+body{color:#24332f;background:#f5f8f6;}
+#sidebar{background:#193b35!important;border-color:#2e574c!important;}
+#sidebar .nav-tab.active{background:#29735c!important;color:#fff;}
+#sidebar .text-brand-400,.text-brand-600{color:#2f8067!important;}
+.bg-brand-600{background:#22765c!important;}
+.bg-brand-700{background:#19583f!important;}
+.fi-jw-status{display:inline-flex;margin-left:8px;border-radius:999px;padding:5px 9px;background:#f3ead9;color:#85601c;border:1px solid #e8d6ac;font-weight:800;font-size:10px;white-space:nowrap}
+.fi-jw-status.fi-jw-writable{background:#e7f3ea;color:#266c50;border-color:#c4e1cd}
+.fi-jw-year-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:#4f6e62;margin-left:auto}
+.fi-jw-year-label select{padding:7px 12px;border:1px solid #d2e2d9;border-radius:9px;color:#235b48;background:#fff;font:inherit}
+button[data-fi-jw-write]:disabled{opacity:.42!important;cursor:not-allowed!important;filter:grayscale(.6)}
+.fi-jw-embedded body{height:100vh;min-height:100vh;overflow:hidden}
+.fi-jw-embedded #sidebar{height:100vh;overflow:auto}
+.fi-jw-embedded .container-print{height:100vh;min-height:0;overflow:auto}
+.jw-loading-overlay{background:linear-gradient(135deg,#17382f 0%,#275f4e 55%,#43594b 100%)}
+.jw-loader-logo-icon{background:linear-gradient(130deg,#245f4e,#547c6d)}
+@media print{#fi-jw-uat-status,.fi-jw-year-label{display:none!important}}
