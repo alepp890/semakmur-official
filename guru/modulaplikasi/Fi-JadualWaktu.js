@@ -47,14 +47,23 @@ async function fiJWRequest(request){
     frame.setAttribute('sandbox','allow-forms allow-scripts allow-same-origin');
     const form=document.createElement('form');form.method='POST';form.action=fiJWApiUrl();form.target=frame.name;form.hidden=true;
     const field=document.createElement('input');field.type='hidden';field.name='payload';field.value=JSON.stringify(data);form.appendChild(field);
-    let done=false;const timeout=setTimeout(()=>settle(Error('Tiada respons Fi-Sync. Semak Apps Script Executions dan deployment.')),360000);
+    // Status/permulaan mesti gagal dengan mesej jelas; Jana/Shuffle boleh mengambil masa lebih lama.
+    const timeoutMs = ['fiJWStatus','getManualV2Data','getJWConstraints','getJadualWaktuHasil'].includes(String(request.action||'')) ? 60000 : 360000;
+    let done=false;const timeout=setTimeout(()=>settle(Error('Tiada respons Fi-Sync bagi tindakan '+String(request.action||'')+'. Semak URL deployment dan Apps Script Executions.')),timeoutMs);
     function cleanup(){clearTimeout(timeout);window.removeEventListener('message',onMessage);frame.remove();form.remove();}
     function settle(err,result){if(done)return;done=true;cleanup();err?reject(err):resolve(result);}
     function onMessage(event){
       if(!fiJWTrustedOrigin(event.origin))return;
       const msg=event.data;
       if(msg?.channel!=='semakmur-fi-doc-v1'||msg.nonce!==nonce)return;
-      if(msg.ok!==true)return settle(Error(msg.error||'Permintaan Fi ditolak.'));
+      if(msg.ok!==true){
+        const raw=String(msg.error||'Permintaan Fi ditolak.');
+        // Kod ralat ini datang daripada router Fi-Sync sebelum fiJWHandle_ dipanggil.
+        const message=/^Tindakan tidak disokong\.?$/i.test(raw.trim())
+          ? 'Fi-Sync pada URL semasa belum mengenali tindakan fiJW. Sila pasang Code.gs V1.0.2, deploy NEW VERSION pada deployment yang sama, kemudian semak Fi-APIConfig.js menunjuk URL /exec tersebut.'
+          : raw;
+        return settle(Error(message));
+      }
       settle(null,msg);
     }
     window.addEventListener('message',onMessage);
