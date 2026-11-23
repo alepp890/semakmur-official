@@ -121,7 +121,7 @@
           <div class="flex flex-wrap justify-between items-center gap-3">
             <div>
               <h2 class="font-display font-extrabold text-xl text-slate-800">Tetapan Grid Masa Pintar</h2>
-              <p class="text-xs text-slate-500 mt-1">Simpan pelbagai versi grid beserta Controller asal. Grid aktif tidak akan ditimpa apabila mencipta draf.</p>
+              <p class="text-xs text-slate-500 mt-1">Simpan versi bersama Controller asal. Pilih Grid Aktif untuk persediaan tanpa mengubah jadual hasil atau grid operasi lama.</p>
             </div>
             <div class="flex items-center gap-2 flex-wrap">
               <span id="jwGridSourceBadge" class="jw-grid-source">Semak sumber…</span>
@@ -134,6 +134,7 @@
             <button class="jw-grid-tab" data-tab="history" onclick="jwGridSetTab('history')">Sejarah & Panggil Semula</button>
           </div>
           <p id="jwGridStateMessage" class="jw-grid-message" role="status" aria-live="polite">Pilih tab untuk mengurus grid masa. Gunakan salinan UAT untuk simpan dan uji.</p>
+          <p id="jwGridActiveChoice" class="jw-grid-source" aria-live="polite">Belum memilih Grid Persediaan Aktif</p>
         </section>
 
         <!-- CONTROLLER — tempoh disimpan dan versi grid mengambil snapshotnya -->
@@ -179,7 +180,7 @@
               <p id="jwGridModeHint" class="text-xs text-slate-500 mt-1">Klik “Tambah Grid Masa” untuk membuat draf baharu.</p></div>
             <div class="flex gap-2 flex-wrap">
               <button onclick="simpanGridMasa()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-box-archive"></i> Simpan ke Sejarah</button>
-              <button onclick="jwGridApplyActive()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-shield-check"></i> Gunakan sebagai Grid Aktif (UAT)</button>
+              <button onclick="jwGridApplyActive()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-shield-check"></i> Aktifkan Grid Pilihan (UAT)</button>
             </div>
           </div>
           <div class="jw-grid-daybar">
@@ -208,9 +209,10 @@
             <p class="text-xs text-slate-500">Setiap versi menyimpan semua hari dan tetapan Controller pada masa itu, termasuk PdPc, rehat, karakter, perhimpunan, senggang dan jam mula.</p></div>
           <div class="jw-grid-historybar">
             <select id="jwGridPresetSelect" class="jw-grid-input" aria-label="Pilih sejarah grid"><option value="">— Pilih sejarah grid —</option></select>
-            <button onclick="jwGridRecall()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-clock-rotate-left"></i> Panggil Semula</button>
+            <button onclick="jwGridRecall()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-clock-rotate-left"></i> Panggil Semula</button>
+            <button onclick="jwGridActivateHistory()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-circle-check"></i> Aktifkan Pilihan</button>
           </div>
-          <p class="text-xs text-slate-500">Jumlah versi dipaparkan: <strong id="jwGridPresetCount">0</strong>. Panggil semula sebagai draf, bukan menimpa jadual aktif.</p>
+          <p class="text-xs text-slate-500">Jumlah versi dipaparkan: <strong id="jwGridPresetCount">0</strong>. Panggil Semula untuk sunting draf; Aktifkan Pilihan hanya menetapkan grid persediaan tanpa mengubah Jadual_Waktu_Hasil.</p>
         </section>
       </div>
 
@@ -404,6 +406,6 @@
   <!-- Penyambung portal Fi: identiti/endpoint sahaja; UI asal dikekalkan. -->
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js?v=fijw-1.0.3"></script>
-  <script src="Fi-JadualWaktu.js?v=2.1.0" defer></script>
+  <script src="Fi-JadualWaktu.js?v=2.2.0" defer></script>
 </body>
 </html>
