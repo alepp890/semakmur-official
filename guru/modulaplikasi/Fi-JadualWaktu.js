@@ -1,5 +1,4 @@
-/* SeMAKMUR Fi-JadualWaktu V1.0.1 UAT — pembetulan handshake iframe. */
-'use strict';
+/* Fi-JadualWaktu — fungsi asal JadualWaktu.html; perubahan hanya pada pengesahan & pengangkutan Fi-Sync. */
 let fiJWAuthContext = null;
 const FI_JW_LOGIN_PAGE = '../../Fi-LoginSession.html';
 function fiJWTrustedOrigin(origin) {
@@ -48,11 +47,7 @@ async function fiJWRequest(request){
     frame.setAttribute('sandbox','allow-forms allow-scripts allow-same-origin');
     const form=document.createElement('form');form.method='POST';form.action=fiJWApiUrl();form.target=frame.name;form.hidden=true;
     const field=document.createElement('input');field.type='hidden';field.name='payload';field.value=JSON.stringify(data);form.appendChild(field);
-    // Panggilan bacaan tidak sepatutnya menahan loading sehingga 6 minit.
-    // Penjanaan/penyimpanan UAT mengekalkan had panjang kerana boleh mengambil masa.
-    const readOnly=/^(fiJWStatus|getManualV2Data|getJWConstraints|getJadualWaktuHasil)$/.test(String(request.action||''));
-    const timeoutMs=readOnly?90000:360000;
-    let done=false;const timeout=setTimeout(()=>settle(Error('Fi-Sync tidak memberi respons dalam masa yang ditetapkan. Semak deployment, kebenaran akses dan Apps Script Executions.')),timeoutMs);
+    let done=false;const timeout=setTimeout(()=>settle(Error('Tiada respons Fi-Sync. Semak Apps Script Executions dan deployment.')),360000);
     function cleanup(){clearTimeout(timeout);window.removeEventListener('message',onMessage);frame.remove();form.remove();}
     function settle(err,result){if(done)return;done=true;cleanup();err?reject(err):resolve(result);}
     function onMessage(event){
@@ -66,21 +61,14 @@ async function fiJWRequest(request){
     document.body.append(frame,form);form.submit();
   });
 }
-function fiJWSetStatus(s){
-  fiJWServerStatus=s||fiJWServerStatus;
-  const el=document.getElementById('fi-jw-uat-status');
-  if(!el)return;
-  const ready=!!(s?.uatReady);
-  el.textContent=ready?'MOD UJIAN · SHEET TERASING':'MOD UJIAN · BACA SAHAJA';
-  el.title=ready?'Semua Simpan/Jana menggunakan salinan UAT.':'Jalankan FiJWSetupUAT() dalam Apps Script untuk membolehkan ujian simpan.';
-  el.classList.toggle('fi-jw-writable',ready);
-  document.querySelectorAll('[data-fi-jw-write]').forEach(btn=>{btn.disabled=!ready;btn.title=ready?'':'Sediakan salinan pangkalan data UAT dahulu.';});
-}
+
 function fiJWMessageParent(type,message){
   if(window.parent===window)return;
   try{window.parent.postMessage({type,message:String(message||'')},location.origin);}catch(_e){}
 }
-let STATE_GRID_MASA = [];
+
+
+    let STATE_GRID_MASA = [];
     let STATE_SUBJEK = [];
     let STATE_AGIHAN = [];
     let STATE_AGIHAN_GURU = [];
@@ -100,6 +88,10 @@ let STATE_GRID_MASA = [];
 
     window.currentOpenDropdownIdx = null;
 
+    const SCRIPT_TARGET_URL = (typeof WEB_APP_URL !== 'undefined' && WEB_APP_URL) 
+      ? WEB_APP_URL 
+      : 'https://script.google.com/macros/s/AKfycbzjOd3r_56-OkWFiYEyTWhyYdoEbA6MXi5fgfIMDIRHRDVe3hzNHxjYUuitWSX_04hL/exec';
+
     // Paparan sambutan sudah kelihatan sebelum JavaScript ini berjalan.
     // Kedua-dua bacaan awal dilakukan serentak supaya portal boleh dibuka lebih cepat.
     let JW_HASIL_VIEW_RENDERED = false;
@@ -111,14 +103,17 @@ let STATE_GRID_MASA = [];
     let JW_LOADER_SESSION = 0;
 
     window.addEventListener('DOMContentLoaded', async () => {
-      try {await fiJWEnsureAccess();fiJWSetStatus(fiJWServerStatus);const loaded=await initialiseJWPortal();
-        if(loaded)fiJWMessageParent('semakmur-fi-jw-ready');
-      } catch(err) { console.error('Fi-JadualWaktu:',err);
-        hideLoader();fiJWMessageParent('semakmur-fi-jw-error',err.message||err);
-        Swal.fire({icon:'error',title:'Akses jadual belum tersedia',text:String(err.message||err),confirmButtonText:'Faham'});
-        return;
+      // Sambungan Fi-Sync sahaja — kod fungsi jadual asal tidak diubah.
+      try {
+        await fiJWEnsureAccess();
+        await initialiseJWPortal();
+      } catch (error) {
+        console.error('Sambungan Fi-JadualWaktu:', error);
+        hideLoader();
+        fiJWMessageParent('semakmur-fi-jw-error', error && error.message || error);
+        Swal.fire({icon:'error',title:'Jadual Waktu tidak dapat dibuka',
+          text:String(error && error.message || error),confirmButtonText:'Faham'});
       }
-
 
       document.addEventListener('click', function(e) {
         if (!e.target.closest('.class-dropdown-container')) {
@@ -227,8 +222,6 @@ let STATE_GRID_MASA = [];
           })
         ]);
         if (!jwResult || !jwResult.success) throw new Error('Tetapan jadual tidak dapat dibaca.');
-        fiJWSetYears(jwResult.sessionYears, jwResult.activeYear);
-        fiJWSetStatus(jwResult);
         // Biarkan animasi dipaparkan satu bingkai sebelum kerja membina matriks bermula.
         await new Promise(resolve => requestAnimationFrame(resolve));
         applyJWConstraintsData(jwResult);
@@ -249,22 +242,20 @@ let STATE_GRID_MASA = [];
         JW_HASIL_VIEW_RENDERED = true;
         hideLoader();
         syncJwActionButtons();
-        // V1.0.1: Dashboard hanya menutup overlay apabila menerima mesej READY.
-        // V1.0 tidak return nilai kejayaan, menyebabkan spinner ibu kekal selama-lamanya.
-        return true;
+        fiJWMessageParent('semakmur-fi-jw-ready');
       } catch (error) {
         console.error('Gagal membuka portal jadual waktu:',error);
         hideLoader();
+        fiJWMessageParent('semakmur-fi-jw-error',error && error.message || error);
         setJwHasilStatus('error');
-        const message=String(error?.message||error||'Ralat memuatkan jadual waktu.');
-        fiJWMessageParent('semakmur-fi-jw-error',message);
-        if(window.Swal?.fire) Swal.fire({icon:'error',title:'Paparan belum tersedia',
-          text:message,confirmButtonText:'Faham'});
-        return false;
+        Swal.fire({icon:'error',title:'Paparan belum tersedia',
+          text:'Sila semak sambungan internet dan cuba muat semula halaman.',
+          confirmButtonText:'Faham'});
       }
     }
 
     async function postToBackend(payload) {
+      // Format request asal dikekalkan; cuma laluan HTTP kini melalui Fi-Sync.
       return fiJWRequest(payload);
     }
 
@@ -1587,7 +1578,7 @@ let STATE_GRID_MASA = [];
       syncJwActionButtons();
       showLoader('', 'shuffle');
       try {
-        const result = await postToBackend({action:'shuffleJadualWaktu',data:{tahun:fiJWYear()}});
+        const result = await postToBackend({action:'shuffleJadualWaktu',data:{tahun:'2026'}});
         if (result && result.success && result.saved) {
           const refreshed = await loadJadualHasil();
           await Swal.fire({icon:refreshed?'success':'info',
@@ -1623,7 +1614,7 @@ let STATE_GRID_MASA = [];
       syncJwActionButtons();
       showLoader('', 'generate');
       try {
-        const res = await postToBackend({ action: 'generateJadualWaktu', data: { tahun: fiJWYear() } });
+        const res = await postToBackend({ action: 'generateJadualWaktu', data: { tahun: '2026' } });
         hideLoader();
 
         if (res && res.success) {
@@ -2000,18 +1991,4 @@ let STATE_GRID_MASA = [];
 
       container.innerHTML = html;
     }
-function fiJWYear(){
-  return document.getElementById('fi-jw-year')?.value||
-   fiJWServerStatus?.activeYear||String(new Date().getFullYear());
-}
-function fiJWSetYears(years,defaultYear){
-  const el=document.getElementById('fi-jw-year');if(!el)return;
-  const all=[...new Set((years||[]).map(String).filter(x=>/^20\d{2}$/.test(x)))].sort();
-  if(!all.length)all.push(String(new Date().getFullYear()));
-  const preferred=sessionStorage.getItem('fiJWSelectedYear')||defaultYear||all[all.length-1];
-  if(!all.includes(String(preferred)))all.push(String(preferred));
-  el.replaceChildren(...all.sort().map(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;return o;}));
-  el.value=String(preferred);
-  el.addEventListener('change',()=>{sessionStorage.setItem('fiJWSelectedYear',el.value);loadAllJWData();},{once:false});
-}
-
+  

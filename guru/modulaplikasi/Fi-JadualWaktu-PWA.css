@@ -1,24 +1,6 @@
-/* Fi-JadualWaktu PWA — fourth and final module file */
-@media(max-width:767px){
-  html,body{min-height:100%;font-size:13px;overflow-x:hidden}
-  body{display:block!important}
-  #sidebar{position:fixed;top:0;bottom:0;left:0;width:min(290px,86vw)!important;z-index:70;display:none!important;box-shadow:15px 0 35px #172d2a2b}
-  #sidebar:not(.hidden){display:flex!important}
-  .container-print{height:auto!important;min-height:100dvh!important;overflow:visible!important;display:block}
-  header.toolbar-no-print{position:sticky;top:0;padding:9px 12px!important;z-index:40;gap:7px}
-  header.toolbar-no-print>div{flex-wrap:wrap;min-width:0}
-  header .fi-jw-status{font-size:9px;margin:3px 0 0 2px}
-  .fi-jw-year-label{font-size:11px;margin-left:0}
-  .fi-jw-year-label select{padding:6px}
-  main{padding:12px!important}
-  main>div>.bg-white,.bg-white.p-6{padding:13px!important;border-radius:14px!important}
-  .overflow-x-auto,.overflow-auto{max-width:100%;overscroll-behavior-x:contain}
-  table{max-width:none}
-  .jw-loader-card{grid-template-columns:1fr!important;max-width:430px}
-  .jw-loader-art{display:none!important}
-  .jw-loader-info{padding:28px!important}
-  button{min-height:34px}
-  .fi-jw-embedded body{overflow-y:auto!important}
-  .fi-jw-embedded .container-print{height:auto!important;min-height:100dvh!important;overflow-y:auto!important}
-}
-@media(min-width:768px){#sidebar{display:flex!important}}
+/* Peraturan responsif asal dari JadualWaktu.html. */
+    @media (max-width:650px){
+      .jw-loader-card{grid-template-columns:1fr;max-width:420px;border-radius:23px;}
+      .jw-loader-info{padding:29px;}.jw-loader-logo{margin-bottom:27px;}
+      .jw-loader-art{display:none;}.jw-loader-description{margin-bottom:25px;}
+    }

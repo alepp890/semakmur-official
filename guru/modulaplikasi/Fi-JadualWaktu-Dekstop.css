@@ -1,4 +1,6 @@
-body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #334155; }
+/* Kod CSS asal JadualWaktu.html — dipindahkan tanpa menukar peraturan. */
+
+    body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #334155; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -87,11 +89,7 @@ body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #3341
     @keyframes jw-slot-highlight {0%,17%{opacity:0}32%,62%{opacity:1}82%,100%{opacity:0}}
     @keyframes jw-breathe {0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.75)}}
     @keyframes jw-ambient{from{transform:translateY(-15px)}to{transform:translateY(26px)}}
-    @media (max-width:650px){
-      .jw-loader-card{grid-template-columns:1fr;max-width:420px;border-radius:23px;}
-      .jw-loader-info{padding:29px;}.jw-loader-logo{margin-bottom:27px;}
-      .jw-loader-art{display:none;}.jw-loader-description{margin-bottom:25px;}
-    }
+
     @media (prefers-reduced-motion:reduce){
       .jw-loading-overlay *, .jw-loading-overlay::before, .jw-loading-overlay::after {animation:none!important;transition:none!important;}
       .jw-loader-track span{left:0;width:65%;}
@@ -112,22 +110,4 @@ body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #3341
       .container-print { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
       .asc-card-print { page-break-after: always; border: 2px solid #000 !important; margin-bottom: 0 !important; }
     }
-/* Fi-JadualWaktu V1: native Fi identity, no additional CSS files */
-html,body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;min-width:0;}
-body{color:#24332f;background:#f5f8f6;}
-#sidebar{background:#193b35!important;border-color:#2e574c!important;}
-#sidebar .nav-tab.active{background:#29735c!important;color:#fff;}
-#sidebar .text-brand-400,.text-brand-600{color:#2f8067!important;}
-.bg-brand-600{background:#22765c!important;}
-.bg-brand-700{background:#19583f!important;}
-.fi-jw-status{display:inline-flex;margin-left:8px;border-radius:999px;padding:5px 9px;background:#f3ead9;color:#85601c;border:1px solid #e8d6ac;font-weight:800;font-size:10px;white-space:nowrap}
-.fi-jw-status.fi-jw-writable{background:#e7f3ea;color:#266c50;border-color:#c4e1cd}
-.fi-jw-year-label{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:#4f6e62;margin-left:auto}
-.fi-jw-year-label select{padding:7px 12px;border:1px solid #d2e2d9;border-radius:9px;color:#235b48;background:#fff;font:inherit}
-button[data-fi-jw-write]:disabled{opacity:.42!important;cursor:not-allowed!important;filter:grayscale(.6)}
-.fi-jw-embedded body{height:100vh;min-height:100vh;overflow:hidden}
-.fi-jw-embedded #sidebar{height:100vh;overflow:auto}
-.fi-jw-embedded .container-print{height:100vh;min-height:0;overflow:auto}
-.jw-loading-overlay{background:linear-gradient(135deg,#17382f 0%,#275f4e 55%,#43594b 100%)}
-.jw-loader-logo-icon{background:linear-gradient(130deg,#245f4e,#547c6d)}
-@media print{#fi-jw-uat-status,.fi-jw-year-label{display:none!important}}
+  
