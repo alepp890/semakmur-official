@@ -1025,7 +1025,7 @@ function fiJWMessageParent(type,message){
         Kategori_Tahap:r.querySelector('[data-target-field="Kategori_Tahap"]')?.value||'Y26',
         Jumlah_Waktu_Sasaran:Number(r.querySelector('[data-target-field="Jumlah_Waktu_Sasaran"]')?.value||0)
       }));
-      const errors=[],aggregate=new Map(),duplicates=new Map(),totals=new Map(),targetSeen=new Map();
+      const errors=[],aggregate=new Map(),duplicates=new Map(),totals=new Map(),coverage=new Map(),targetSeen=new Map();
       const flag=(rows,targetIndices,msg)=>{
         errors.push({rows:[...new Set(rows)],targets:[...new Set(targetIndices)],msg});
       };
@@ -1047,6 +1047,10 @@ function fiJWMessageParent(type,message){
           const gKey=`${masterId}|${y}`,old=aggregate.get(gKey)||{code,year:y,days:0,periods:0,rows:[]};
           old.days+=jwSubjectDayCount(r.Mode_Block,n);old.periods+=n;old.rows.push(i);aggregate.set(gKey,old);
           totals.set(y,(totals.get(y)||0)+n);
+          // Struktur ringkasan ikut kohort sebenar baris ini, bukan 3 kumpulan tetap.
+          // Setiap tahun menyimpan identiti baris yang terpakai kepadanya.
+          const applicable=coverage.get(y)||[];
+          applicable.push(i);coverage.set(y,applicable);
         });
       });
       aggregate.forEach(g=>{
@@ -1066,21 +1070,46 @@ function fiJWMessageParent(type,message){
           if(want!==got)flag(g?.rows||[],[i],`${code} Tahun ${y}: sasaran ${want} waktu, tetapan sebenar ${got} waktu.`);
         });
       });
-      return {errors,totals,aggregate};
+      return {errors,totals,aggregate,coverage};
     }
-    function jwSubjectRenderTotals(totals){
+    // V2.6.5: Nama mengikut tahun yang BETUL-BETUL mempunyai tetapan.
+    // Jangan anggap Tahun 1 ialah KP2027, atau Tahun 2-6 sentiasa KSSR.
+    function jwSubjectCohortLabel(years){
+      const a=years.join(',');
+      if(a==='1,2,3')return 'Tahap 1 · Tahun 1–3';
+      if(a==='2,3')return 'Tahap 1 · Tahun 2–3';
+      if(a==='4,5,6')return 'Tahap 2 · Tahun 4–6';
+      if(a==='1,2,3,4,5,6')return 'Semua Tahun 1–6';
+      if(a==='2,3,4,5,6')return 'Tahun 2–6';
+      if(years.length===1)return `Tahun ${years[0]}`;
+      const consecutive=years.every((y,i)=>i===0||y===years[i-1]+1);
+      return consecutive?`Tahun ${years[0]}–${years[years.length-1]}`:
+        'Tahun '+years.join(', ');
+    }
+    function jwSubjectRenderTotals(totals,coverage){
       const el=document.getElementById('jwSubjectCohortTotals');if(!el)return;
-      const groups=[{label:'Tahun 1 KP2027',years:[1]},
-        {label:'Tahap 1 · Tahun 2–3 KSSR',years:[2,3]},
-        {label:'Tahap 2 · Tahun 4–6 KSSR',years:[4,5,6]}];
-      el.innerHTML=groups.map(g=>{
-        const vals=g.years.map(y=>({y,n:totals.get(y)||0}));
-        const shared=vals.every(x=>x.n===vals[0].n);
-        const shown=shared?`${vals[0].n} waktu/minggu`:
-          vals.map(x=>`T${x.y}: ${x.n}`).join(' · ');
-        return `<div class="jw-subject-cohort-card"><strong>${jwSubjectEsc(g.label)}</strong>
-            <span>${jwSubjectEsc(shown)}</span></div>`;
-      }).join('');
+      // Sumber ialah borang Tetapan Subjek semasa; tiada angka contoh/preset.
+      // Dua tahun digabung hanya jika baris subjek yang terpakai sama,
+      // jumlah waktunya sama, dan tahun itu berjiran.
+      const present=[...totals.keys()].map(Number)
+        .filter(y=>Number.isInteger(y)&&y>=1&&y<=6)
+        .sort((a,b)=>a-b);
+      const groups=[];
+      for(const year of present){
+        const n=Number(totals.get(year))||0;
+        const signature=(coverage?.get(year)||[]).slice().sort((a,b)=>a-b).join(',');
+        const last=groups[groups.length-1];
+        if(last && last.years[last.years.length-1]===year-1 &&
+            last.signature===signature && last.n===n){
+          last.years.push(year);
+        }else{
+          groups.push({years:[year],n,signature});
+        }
+      }
+      el.innerHTML=groups.length?groups.map(g=>
+        `<div class="jw-subject-cohort-card"><strong>${jwSubjectEsc(jwSubjectCohortLabel(g.years))}</strong>`+
+        `<span>${g.n} waktu/minggu</span></div>`
+      ).join(''):'<div class="jw-subject-cohort-empty">Belum ada bilangan waktu yang boleh dikira daripada Tetapan Subjek.</div>';
     }
     function jwSubjectValidateAndRender(showAlert){
       const evaluated=jwSubjectEvaluate();JW_SUBJECT_ERRORS=evaluated.errors;
@@ -1098,7 +1127,7 @@ function fiJWMessageParent(type,message){
       if(note){note.hidden=!evaluated.errors.length;note.innerHTML=evaluated.errors.length?
         `<strong><i class="fa-solid fa-circle-exclamation"></i> ${evaluated.errors.length} isu perlu dibetulkan</strong>`+
         '<div>'+evaluated.errors.map(e=>`<p>${jwSubjectEsc(e.msg)}</p>`).join('')+'</div>':'';}
-      jwSubjectRenderTotals(evaluated.totals);
+      jwSubjectRenderTotals(evaluated.totals,evaluated.coverage);
       if(showAlert && evaluated.errors.length){
         const first=evaluated.errors[0],index=first.rows.length?first.rows[0]:null;
         const row=index!=null?document.querySelectorAll('#tbodyMasterSubjek tr[data-subject-index]')[index]:
