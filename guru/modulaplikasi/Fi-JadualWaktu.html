@@ -32,8 +32,8 @@
     }
   </script>
 
-  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=2.1.0" />
-  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=2.1.0" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=2.3.0" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=2.3.0" />
 </head>
 <body class="min-h-screen text-slate-800 bg-slate-100">
 
@@ -74,17 +74,7 @@
   <!-- NAVIGASI TAB UTAMA — gaya seperti Smart Tugasan Mingguan, tiada sidebar. -->
   <div class="jw-app-shell container-print">
     <div class="jw-topbar toolbar-no-print">
-      <header class="jw-module-header bg-white border-b border-slate-200 px-4 lg:px-8 py-3 flex items-center justify-between gap-3 shadow-xs">
-        <div class="flex items-center gap-2 text-xs text-slate-500 min-w-0">
-          <span class="jw-header-mark" aria-hidden="true"><i class="fa-solid fa-calendar-days"></i></span>
-          <span class="font-bold text-slate-800">Fi-JadualWaktu</span>
-          <span class="jw-breadcrumb-divider" aria-hidden="true">/</span>
-          <span id="txtBreadcrumb" class="text-teal-700 font-semibold truncate">Jana &amp; Jadual Penuh</span>
-        </div>
-        <button onclick="loadAllJWData()" type="button" class="jw-header-refresh px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5">
-          <i class="fa-solid fa-arrows-rotate text-teal-700" aria-hidden="true"></i> Muat Semula
-        </button>
-      </header>
+
 
       <!-- Tab navigasi satu baris yang boleh ditatal di PWA. Semua panel/onclick lama dikekalkan. -->
       <nav class="jw-module-navigation" aria-label="Bahagian Fi-JadualWaktu">
@@ -106,6 +96,9 @@
           </button>
         </div>
         <div class="jw-module-utilities">
+        <button onclick="loadAllJWData()" type="button" class="jw-header-refresh px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition flex items-center gap-1.5">
+          <i class="fa-solid fa-arrows-rotate text-teal-700" aria-hidden="true"></i> Muat Semula
+        </button>
           <button onclick="jalankanInitDatabase()" type="button" class="jw-reset-settings" title="Set semula tetapan melalui fungsi asal" aria-label="Set Semula Tetapan">
             <i class="fa-solid fa-rotate" aria-hidden="true"></i><span>Set Semula Tetapan</span>
           </button>
@@ -113,35 +106,29 @@
       </nav>
     </div>
 
-    <main class="jw-module-main p-4 lg:p-8 space-y-6">
+    <main class="jw-module-main p-3 lg:p-5 space-y-5">
 
       <!-- ================= 1. TETAPAN GRID MASA PINTAR V2 ================= -->
-      <div id="viewGridMasa" class="hidden space-y-5">
-        <section class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4 border-l-8 border-l-brand-600">
-          <div class="flex flex-wrap justify-between items-center gap-3">
-            <div>
-              <h2 class="font-display font-extrabold text-xl text-slate-800">Tetapan Grid Masa Pintar</h2>
-              <p class="text-xs text-slate-500 mt-1">Simpan versi bersama Controller asal. Pilih Grid Aktif untuk persediaan tanpa mengubah jadual hasil atau grid operasi lama.</p>
-            </div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span id="jwGridSourceBadge" class="jw-grid-source">Semak sumber…</span>
-              <button onclick="jwGridCreateNew()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-plus-circle"></i> Tambah Grid Masa</button>
-            </div>
-          </div>
+      <div id="viewGridMasa" class="hidden space-y-3">
+        <!-- Grid Studio: tab submodul dan tindakan di satu bar ringkas. Tiada banner besar. -->
+        <div class="jw-grid-compactbar" aria-label="Pilihan Tetapan Grid Masa">
           <div class="jw-grid-tabs" role="tablist" aria-label="Bahagian Tetapan Grid Masa">
             <button class="jw-grid-tab jw-grid-tab--active" data-tab="controller" onclick="jwGridSetTab('controller')">Controller</button>
             <button class="jw-grid-tab" data-tab="grid" onclick="jwGridSetTab('grid')">Penetapan Grid</button>
-            <button class="jw-grid-tab" data-tab="history" onclick="jwGridSetTab('history')">Sejarah & Panggil Semula</button>
+            <button class="jw-grid-tab" data-tab="history" onclick="jwGridSetTab('history')">Sejarah &amp; Panggil Semula</button>
           </div>
-          <p id="jwGridStateMessage" class="jw-grid-message" role="status" aria-live="polite">Pilih tab untuk mengurus grid masa. Gunakan salinan UAT untuk simpan dan uji.</p>
-          <p id="jwGridActiveChoice" class="jw-grid-source" aria-live="polite">Belum memilih Grid Persediaan Aktif</p>
-        </section>
+          <div class="jw-grid-compact-actions">
+            <span id="jwGridSourceBadge" class="jw-grid-source" aria-label="Sumber data">Semak sumber…</span>
+            <span id="jwGridActiveChoice" class="jw-grid-active-inline" aria-live="polite">Belum memilih Grid Persediaan Aktif</span>
+            <button onclick="jwGridCreateNew()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-plus-circle" aria-hidden="true"></i> Tambah Grid Masa</button>
+          </div>
+        </div>
+        <p id="jwGridStateMessage" class="jw-grid-message jw-grid-message--quiet" role="status" aria-live="polite"></p>
 
         <!-- CONTROLLER — tempoh disimpan dan versi grid mengambil snapshotnya -->
-        <section id="jwGridPanel_controller" class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <section id="jwGridPanel_controller" class="bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
           <div class="flex flex-wrap justify-between gap-3">
-            <div><h3 class="font-extrabold text-lg text-slate-800">Controller Grid Masa</h3>
-            <p class="text-xs text-slate-500">Ubah tempoh dan jenis slot di sini sahaja. Jam Tamat setiap slot dikira dan dikunci secara automatik.</p></div>
+            <div><h3 class="font-extrabold text-lg text-slate-800">Controller Grid Masa</h3></div>
             <button onclick="jwGridSaveController()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-floppy-disk"></i> Simpan Controller</button>
           </div>
           <div class="jw-grid-controller-stats">
@@ -159,7 +146,6 @@
               <label>Khamis<input id="jwCtrlStart_Khamis" type="time" class="jw-grid-input" /></label>
               <label>Jumaat<input id="jwCtrlStart_Jumaat" type="time" class="jw-grid-input" /></label>
             </div>
-            <p class="text-xs text-slate-500">Kosong = gunakan jam mula lalai di atas.</p>
           </details>
           <div class="overflow-x-auto"><table class="jw-grid-table">
             <thead><tr><th>ID jenis (tetap)</th><th>Nama jenis slot</th><th>Tempoh (minit)</th><th>Kira waktu?</th><th>Aktif?</th><th>Tempoh Grid</th></tr></thead>
@@ -168,16 +154,14 @@
           <div class="flex items-center justify-between gap-3 flex-wrap">
             <button onclick="jwGridNewType()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-plus"></i> Tambah Jenis Slot</button>
             <button onclick="jwGridUseLatestController()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-arrow-right-arrow-left"></i> Terapkan Controller pada Draf</button>
-            <span class="text-xs text-slate-500"><i class="fa-solid fa-lock"></i> Tempoh di Grid sentiasa terkunci. Simpan Controller selepas mengubah.</span>
           </div>
         </section>
 
         <!-- GRID HARI — hanya kohort dan jenis slot diedit -->
-        <section id="jwGridPanel_grid" class="hidden bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <section id="jwGridPanel_grid" class="hidden bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
           <div class="flex justify-between gap-3 items-start flex-wrap">
             <div><h3 class="font-extrabold text-lg text-slate-800">Penetapan Grid Mengikut Hari</h3>
-              <p id="jwGridWorkingLabel" class="text-xs font-bold text-brand-700 mt-1">Grid aktif sedia ada · baca sahaja</p>
-              <p id="jwGridModeHint" class="text-xs text-slate-500 mt-1">Klik “Tambah Grid Masa” untuk membuat draf baharu.</p></div>
+              <p id="jwGridWorkingLabel" class="text-xs font-bold text-brand-700 mt-1">Grid aktif sedia ada · baca sahaja</p></div>
             <div class="flex gap-2 flex-wrap">
               <button onclick="simpanGridMasa()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-box-archive"></i> Simpan ke Sejarah</button>
               <button onclick="jwGridApplyActive()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-shield-check"></i> Aktifkan Grid Pilihan (UAT)</button>
@@ -200,19 +184,17 @@
             </tr></thead>
             <tbody id="tbodyGridMasa"></tbody>
           </table></div>
-          <p class="text-xs text-slate-500">Slot ID dijana automatik dan disembunyikan. Rehat tidak dikira sebagai waktu; Perhimpunan dan Pembentukan Karakter dikira satu waktu masing-masing.</p>
         </section>
 
         <!-- SEJARAH — snapshot merangkumi semua hari dan Controller -->
-        <section id="jwGridPanel_history" class="hidden bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-          <div><h3 class="font-extrabold text-lg text-slate-800">Sejarah Grid Masa</h3>
-            <p class="text-xs text-slate-500">Setiap versi menyimpan semua hari dan tetapan Controller pada masa itu, termasuk PdPc, rehat, karakter, perhimpunan, senggang dan jam mula.</p></div>
+        <section id="jwGridPanel_history" class="hidden bg-white p-4 lg:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+          <div><h3 class="font-extrabold text-lg text-slate-800">Sejarah Grid Masa</h3></div>
           <div class="jw-grid-historybar">
             <select id="jwGridPresetSelect" class="jw-grid-input" aria-label="Pilih sejarah grid"><option value="">— Pilih sejarah grid —</option></select>
             <button onclick="jwGridRecall()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-clock-rotate-left"></i> Panggil Semula</button>
             <button onclick="jwGridActivateHistory()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-circle-check"></i> Aktifkan Pilihan</button>
           </div>
-          <p class="text-xs text-slate-500">Jumlah versi dipaparkan: <strong id="jwGridPresetCount">0</strong>. Panggil Semula untuk sunting draf; Aktifkan Pilihan hanya menetapkan grid persediaan tanpa mengubah Jadual_Waktu_Hasil.</p>
+          <span id="jwGridPresetCount" class="jw-accessible-only">0</span>
         </section>
       </div>
 
@@ -406,6 +388,6 @@
   <!-- Penyambung portal Fi: identiti/endpoint sahaja; UI asal dikekalkan. -->
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js?v=fijw-1.0.3"></script>
-  <script src="Fi-JadualWaktu.js?v=2.2.0" defer></script>
+  <script src="Fi-JadualWaktu.js?v=2.3.0" defer></script>
 </body>
 </html>

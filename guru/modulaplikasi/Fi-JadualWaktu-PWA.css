@@ -39,3 +39,20 @@
   .jw-module-tab{padding:9px 10px;font-size:11px}
   .jw-reset-settings{padding:8px 9px;font-size:10px}
 }
+
+
+/* Fi-JadualWaktu V2.3 — compact grid on phone, no sticky tabs. */
+@media (max-width:767px){
+  .jw-topbar{position:static!important;top:auto!important}
+  .jw-module-navigation{padding:7px 9px!important}
+  .jw-module-utilities{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+  .jw-module-utilities .jw-header-refresh,.jw-module-utilities .jw-reset-settings{padding:6px 9px!important;font-size:10px!important;min-height:31px}
+  .jw-module-main{padding:10px!important}
+  .jw-grid-compactbar{align-items:stretch;padding:7px 8px;gap:7px}
+  .jw-grid-compactbar .jw-grid-tabs{flex:1 0 100%;display:flex;overflow-x:auto;flex-wrap:nowrap;white-space:nowrap}
+  .jw-grid-compactbar .jw-grid-tab{min-width:max-content;font-size:11px;padding:8px 10px}
+  .jw-grid-compact-actions{flex:1 0 100%;justify-content:space-between;gap:6px}
+  .jw-grid-active-inline{order:3;flex:1 0 100%;max-width:100%;font-size:10px}
+  .jw-grid-compact-actions .jw-grid-source{padding:6px 8px}
+  .jw-grid-compact-actions .jw-grid-button{min-height:32px;padding:7px 10px}
+}

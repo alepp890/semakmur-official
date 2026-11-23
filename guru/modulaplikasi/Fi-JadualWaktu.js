@@ -585,7 +585,7 @@ function fiJWMessageParent(type,message){
     function jwGridStart(day){return JW_GRID_WORK_CTRL.startByDay?.[day]||JW_GRID_WORK_CTRL.start||'07:40';}
     function jwGridColorMessage(message,isError){
       const el=document.getElementById('jwGridStateMessage');if(!el)return;
-      el.textContent=message;el.className='jw-grid-message '+(isError?'jw-grid-message--error':'');
+      el.textContent=message;el.className='jw-grid-message '+(isError?'jw-grid-message--error':'jw-grid-message--quiet');
     }
     function jwGridReadController(){
       const start=document.getElementById('jwCtrlStart');if(start?.value)JW_GRID_CTRL.start=start.value;

@@ -181,3 +181,33 @@
   .jw-topbar{display:none!important}
   .jw-module-main{padding:0!important;max-width:100%!important}
 }
+
+
+/* ===== Fi-JadualWaktu V2.3 — susun atur padat tanpa header bertindih ===== */
+/* Navigasi bergerak bersama halaman; tidak melekat pada skrin semasa scroll. */
+.jw-topbar{position:static!important;top:auto!important;z-index:auto;box-shadow:none!important}
+.jw-module-navigation{padding:8px 18px!important;border-top:0;background:#fff}
+.jw-module-utilities{gap:8px}
+.jw-module-utilities .jw-header-refresh{min-height:36px;border:1px solid #e2e8f0;border-radius:9px;font-size:11px;padding:8px 11px!important;background:#f8fafc}
+.jw-module-main{max-width:none!important}
+/* Toolbar Grid: replaces tall 3-row banner; keeps actions and source visibility. */
+.jw-grid-compactbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:8px 12px;background:#fff;border:1px solid #e2e8f0;border-radius:12px}
+.jw-grid-compactbar .jw-grid-tabs{padding:0;background:transparent;gap:4px;flex:1 1 auto;min-width:0}
+.jw-grid-compactbar .jw-grid-tab{padding:9px 12px;white-space:nowrap}
+.jw-grid-compact-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;min-width:0}
+.jw-grid-active-inline{font-size:11px;font-weight:750;color:#115e59;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jw-grid-compact-actions .jw-grid-source{white-space:nowrap;padding:7px 9px}
+.jw-grid-compact-actions .jw-grid-button{white-space:nowrap;min-height:36px}
+/* Status notifications are accessible but don't occupy space except for genuine errors. */
+.jw-grid-message--quiet,.jw-accessible-only{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+#viewGridMasa>.jw-grid-message--error{display:block;margin:0;border-radius:9px;padding:8px 12px}
+#viewGridMasa #jwGridPanel_controller>div:first-child p,
+#viewGridMasa #jwGridPanel_grid>div:first-child p:not(#jwGridWorkingLabel),
+#viewGridMasa #jwGridPanel_history>div:first-child p{display:none}
+/* Status bar belongs to content rather than a new large header. */
+#jwGridWorkingLabel{font-size:11px;line-height:1.35}
+@media (max-width:1300px){
+  .jw-grid-compact-actions{justify-content:flex-start}
+  .jw-grid-active-inline{max-width:210px}
+}
+@media print{.jw-grid-compactbar{display:none!important}}
