@@ -157,3 +157,27 @@
 .jw-grid-daycount{font-size:11px;font-weight:700;color:#64748b}
 .jw-grid-historybar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;max-width:780px}
 @media (max-width:800px){.jw-grid-day-overrides{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* ===== Fi-JadualWaktu V2.1 — top tabs seperti Smart Tugasan Mingguan ===== */
+.jw-app-shell{width:100%;min-width:0;min-height:100vh;display:flex;flex-direction:column}
+.jw-topbar{position:sticky;top:0;z-index:45;background:#fff;box-shadow:0 2px 10px rgba(15,23,42,.035)}
+.jw-module-header{min-height:58px}
+.jw-header-mark{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:10px;background:#e8f6f2;color:#0f766e;font-size:14px}
+.jw-breadcrumb-divider{color:#cbd5e1}
+.jw-module-navigation{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:7px 20px;background:#fff;border-bottom:1px solid #e2e8f0;min-width:0}
+.jw-module-tabs{display:flex;align-items:center;gap:5px;min-width:0;flex:1;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent;padding:2px 2px 5px;white-space:nowrap}
+.jw-module-tabs::-webkit-scrollbar{height:3px}
+.jw-module-tab{border:0;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;flex:0 0 auto;padding:10px 13px;border-radius:10px;color:#56677c;font-size:12px;font-weight:750;letter-spacing:-.01em;line-height:1.2;min-height:39px;background:transparent;cursor:pointer;transition:background .16s,color .16s,box-shadow .16s}
+.jw-module-tab i{font-size:13px;opacity:.85}
+.jw-module-tab:hover{background:#eff6f5;color:#134e4a}
+.jw-module-tab.active,.nav-tab.jw-module-tab.active{background:#e5f5f1!important;color:#115e59!important;font-weight:800;box-shadow:inset 0 -2px #0f766e;}
+.jw-module-tab:focus-visible,.jw-reset-settings:focus-visible{outline:2px solid #0f766e;outline-offset:2px}
+.jw-module-utilities{display:flex;align-items:center;flex:0 0 auto;padding-left:12px;border-left:1px solid #e2e8f0}
+.jw-reset-settings{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid #e2e8f0;border-radius:9px;background:#fff;color:#64748b;font-size:11px;font-weight:800;min-height:36px;padding:8px 11px;white-space:nowrap;transition:background .16s}
+.jw-reset-settings:hover{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+.jw-module-main{flex:1;min-width:0;width:100%;max-width:1600px;margin:0 auto}
+@media print{
+  .jw-topbar{display:none!important}
+  .jw-module-main{padding:0!important;max-width:100%!important}
+}

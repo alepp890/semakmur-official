@@ -19,3 +19,23 @@
   .jw-grid-historybar .jw-grid-button{width:100%}
   .jw-grid-daybar select{max-width:200px}
 }
+
+
+/* ===== V2.1: tab atas PWA sama seperti desktop, boleh tatal mendatar ===== */
+@media (max-width:767px){
+  .jw-topbar{top:0}
+  .jw-module-header{padding:9px 12px!important;min-height:52px}
+  .jw-header-mark{width:27px;height:27px}
+  .jw-module-navigation{padding:7px 10px 5px;gap:5px;display:block}
+  .jw-module-tabs{display:flex;gap:5px;padding:1px 0 6px;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+  .jw-module-tab{font-size:11px;min-height:37px;padding:9px 11px;gap:7px;scroll-snap-align:start}
+  .jw-module-utilities{padding:2px 0 0;border:0;display:flex;justify-content:flex-end}
+  .jw-reset-settings{min-height:30px;padding:5px 9px;font-size:10px}
+  .jw-module-main{padding:12px!important}
+  .jw-header-refresh{font-size:11px!important;padding:7px 9px!important}
+}
+@media (min-width:768px) and (max-width:1100px){
+  .jw-module-navigation{padding:7px 12px;gap:5px}
+  .jw-module-tab{padding:9px 10px;font-size:11px}
+  .jw-reset-settings{padding:8px 9px;font-size:10px}
+}

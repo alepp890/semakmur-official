@@ -280,21 +280,35 @@ function fiJWMessageParent(type,message){
       return fiJWRequest(payload);
     }
 
+    // Pengekalan nama fungsi untuk keserasian kod asal; navigasi kini menggunakan tab.
     function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('hidden');
+      const tabs = document.getElementById('jw-main-tablist');
+      if (tabs) tabs.scrollIntoView({block:'nearest',behavior:'smooth'});
     }
 
     function switchView(viewId, btnEl) {
-      ['viewGridMasa', 'viewMasterSubjek', 'viewAgihanTugas', 'viewGuruConstraints', 'viewGeneratorConsole'].forEach(id => {
+      const views = ['viewGridMasa', 'viewMasterSubjek', 'viewAgihanTugas', 'viewGuruConstraints', 'viewGeneratorConsole'];
+      // Abaikan ID yang tidak wujud: tiada perubahan pada panel lain.
+      if (!views.includes(viewId)) return;
+      views.forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.classList.add('hidden');
+        if (el) { el.classList.toggle('hidden',id !== viewId); el.setAttribute('aria-hidden', id === viewId ? 'false' : 'true'); }
       });
 
-      document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active', 'bg-brand-600', 'text-white'));
-      if (btnEl) btnEl.classList.add('active');
-
-      const target = document.getElementById(viewId);
-      if (target) target.classList.remove('hidden');
+      const currentTab = btnEl?.matches?.('[data-jw-view="'+viewId+'"]') ? btnEl
+        : document.querySelector('.jw-module-tab[data-jw-view="'+viewId+'"]');
+      document.querySelectorAll('.jw-module-tab').forEach(b => {
+        const isActive = b === currentTab;
+        b.classList.toggle('active',isActive);
+        b.classList.remove('bg-brand-600','text-white');
+        b.setAttribute('aria-selected',isActive ? 'true' : 'false');
+        b.tabIndex = isActive ? 0 : -1;
+      });
+      const labels = {viewGridMasa:'Grid Masa',viewMasterSubjek:'Tetapan Subjek',
+        viewAgihanTugas:'Agihan Guru',viewGuruConstraints:'Had & Pelepasan',
+        viewGeneratorConsole:'Jana & Jadual Penuh'};
+      const bread = document.getElementById('txtBreadcrumb');
+      if (bread) bread.textContent = labels[viewId];
       if (viewId === 'viewGeneratorConsole' && !JW_HASIL_VIEW_RENDERED) {
         if (STATE_HASIL_JADUAL.length) {
           renderJadualHasilView();
@@ -306,6 +320,20 @@ function fiJWMessageParent(type,message){
         }
       }
     }
+
+    // Navigasi papan kekunci sama seperti komponen tab: anak panah kiri/kanan, Home, End.
+    document.addEventListener('keydown', function(event) {
+      const tab = event.target.closest?.('.jw-module-tab');
+      if (!tab || !['ArrowLeft','ArrowRight','Home','End'].includes(event.key)) return;
+      const items = [...document.querySelectorAll('.jw-module-tab')];
+      const at = items.indexOf(tab);
+      if (at < 0) return;
+      event.preventDefault();
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1
+        : (at + (event.key === 'ArrowRight' ? 1 : -1) + items.length) % items.length;
+      items[next].focus();
+      switchView(items[next].dataset.jwView,items[next]);
+    });
 
     async function loadMasterPangkalanData() {
       try {
