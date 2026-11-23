@@ -545,6 +545,7 @@ function fiJWMessageParent(type,message){
     ]};
     let JW_GRID_WORK_CTRL = jwGridClone(JW_GRID_CTRL); // snapshot milik grid sedang dilihat/diedit
     let JW_GRID_CTRL_VERSION = 0;
+    let JW_GRID_CTRL_SAVED = jwGridClone(JW_GRID_CTRL); // Controller CORE terakhir yang sudah disimpan
     let JW_GRID_PRESETS = [];
     let JW_GRID_SELECTED = null; // Pilihan persediaan (bukan jadual hasil)
     let JW_GRID_VIEW_ID = ''; // ID snapshot yang sedang dipaparkan
@@ -552,6 +553,7 @@ function fiJWMessageParent(type,message){
     let JW_GRID_SOURCE = 'ASAL_BACA_SAHAJA';
     let JW_GRID_DIRTY = false;
     let JW_GRID_LOADED = false;
+    const JW_GRID_SYSTEM_TYPES = ['PDP','REHAT','PERHIMPUNAN','KARAKTER'];
     const JW_GRID_DAYS = ['Isnin','Selasa','Rabu','Khamis','Jumaat'];
     const JW_GRID_COHORTS = [
       {value:'ALL',label:'Semua Tahun 1–6',years:[1,2,3,4,5,6]},
@@ -624,7 +626,7 @@ function fiJWMessageParent(type,message){
         <td class="jw-grid-td"><input data-ctrl="duration" type="number" min="5" max="240" step="1" value="${t.duration}" class="jw-grid-input jw-grid-input--short" aria-label="Tempoh ${jwGridEsc(t.name)} dalam minit" /></td>
         <td class="jw-grid-td jw-grid-center"><input data-ctrl="counts" type="checkbox" ${t.counts?'checked':''} aria-label="Kira nombor waktu ${jwGridEsc(t.name)}" /></td>
         <td class="jw-grid-td jw-grid-center"><input data-ctrl="active" type="checkbox" ${t.active?'checked':''} aria-label="Jenis ${jwGridEsc(t.name)} aktif" /></td>
-        <td class="jw-grid-td jw-grid-center"><i class="fa-solid fa-lock text-slate-400" title="Tempoh grid terkunci; ubah melalui Controller"></i></td>
+        <td class="jw-grid-td jw-grid-center">${JW_GRID_SYSTEM_TYPES.includes(t.id)?'<i class="fa-solid fa-lock text-slate-400" title="Kategori sistem tidak boleh dipadam"></i>':`<button type="button" class="jw-grid-icon jw-grid-icon--delete" onclick="jwGridDeleteType(${i})" title="Padam jenis slot" aria-label="Padam jenis slot ${jwGridEsc(t.name)}"><i class="fa-solid fa-trash"></i></button>`}</td>
       </tr>`).join('');
       jwGridRenderPresets();
     }
@@ -635,6 +637,16 @@ function fiJWMessageParent(type,message){
       jwGridRenderController();
       jwGridColorMessage('Jenis slot baharu ditambah pada draf Controller. Klik Simpan Controller untuk merekodkannya.');
     }
+    async function jwGridDeleteType(index){
+      try{jwGridReadController();}catch(e){return Swal.fire('Controller',e.message,'error');}
+      const item=JW_GRID_CTRL.types[index];if(!item)return;
+      if(JW_GRID_SYSTEM_TYPES.includes(item.id))return Swal.fire('Kategori asas','Jenis slot sistem tidak boleh dipadam. Nyahaktifkan jika perlu.','info');
+      if(STATE_GRID_MASA.some(r=>r.Jenis_ID===item.id))return Swal.fire('Jenis sedang digunakan','Kategori ini digunakan oleh grid yang sedang dipaparkan. Tukar jenis slot itu dahulu.','warning');
+      const q=await Swal.fire({title:'Padam jenis slot?',html:'<b>'+jwGridEsc(item.name)+'</b><p class="mt-2 text-sm">Jika kategori pernah digunakan dalam Grid tersimpan, backend tidak membenarkan pemadaman. Nyahaktifkan untuk menyimpan sejarah.</p>',icon:'warning',showCancelButton:true,confirmButtonText:'Padam daripada Controller',cancelButtonText:'Batal'});
+      if(!q.isConfirmed)return;
+      JW_GRID_CTRL.types.splice(index,1);jwGridRenderController();
+      jwGridColorMessage('Jenis slot dibuang daripada borang Controller. Tekan Simpan Controller untuk mengesahkannya.');
+    }
     function jwGridSetTab(tab){
       if(tab!=='controller')try{jwGridReadController();}catch(e){jwGridColorMessage(e.message,true);}
       document.querySelectorAll('.jw-grid-tab').forEach(el=>el.classList.toggle('jw-grid-tab--active',el.dataset.tab===tab));
@@ -644,7 +656,7 @@ function fiJWMessageParent(type,message){
       try{
         const res=await postToBackend({action:'fiJWGridStudioGet'});
         if(!res?.success)throw Error(res?.error||'Studio Grid tidak tersedia');
-        JW_GRID_CTRL=res.controller;JW_GRID_WORK_CTRL=jwGridClone(res.controller);JW_GRID_CTRL_VERSION=res.controllerVersion||0;
+        JW_GRID_CTRL=res.controller;JW_GRID_CTRL_SAVED=jwGridClone(res.controller);JW_GRID_WORK_CTRL=jwGridClone(res.controller);JW_GRID_CTRL_VERSION=res.controllerVersion||0;
         JW_GRID_PRESETS=res.presets||[];JW_GRID_SOURCE=res.source;
         JW_GRID_SELECTED=res.selected||null;
         JW_GRID_LOADED=true;
@@ -655,6 +667,7 @@ function fiJWMessageParent(type,message){
           JW_GRID_VIEW_ID=res.selected.id;
           JW_GRID_MODE='selected';JW_GRID_DIRTY=false;
         }else if(JW_GRID_MODE!=='draft'&&JW_GRID_MODE!=='recall'){
+          STATE_GRID_MASA=(res.grid||[]).map(r=>({...r,__legacy:true}));
           JW_GRID_VIEW_ID='';JW_GRID_MODE='legacy';
         }
         jwGridRenderController();jwGridRenderMode();renderGridMasaTable();
@@ -663,10 +676,10 @@ function fiJWMessageParent(type,message){
     }
     function jwGridRenderMode(){
       const el=document.getElementById('jwGridWorkingLabel');
-      if(el)el.textContent=JW_GRID_MODE==='selected'?'Grid persediaan aktif: '+(JW_GRID_SELECTED?.name||'Versi tersimpan')+' · baca sahaja':
-        JW_GRID_MODE==='legacy'?'Grid operasi asal · baca sahaja':JW_GRID_MODE==='draft'?'Grid baharu · belum disimpan':'Salinan versi tersimpan · boleh diubah';
+      if(el)el.textContent=JW_GRID_MODE==='selected'?'Grid persediaan aktif: '+(JW_GRID_SELECTED?.name||'Versi tersimpan')+' · klik Edit Grid untuk ubah':
+        JW_GRID_MODE==='legacy'?'Grid operasi asal · baca sahaja':JW_GRID_MODE==='draft'?'Grid baharu · belum disimpan':'Grid dipanggil · boleh edit dan simpan sebagai versi baharu';
       const hint=document.getElementById('jwGridModeHint');
-      if(hint)hint.textContent=JW_GRID_MODE==='selected'?'Aktif untuk PENYEDIAAN sahaja. Master_Grid_Masa dan Jadual_Waktu_Hasil tidak diubah. Panggil semula daripada Sejarah jika mahu mengedit.':
+      if(hint)hint.textContent=JW_GRID_MODE==='selected'?'Klik Edit Grid untuk menghasilkan salinan baharu; perubahan hanya aktif apabila disimpan lalu diaktifkan.':
         JW_GRID_MODE==='legacy'?'Klik “Tambah Grid Masa” untuk membuat draf baharu. Jadual sedia ada tidak berubah.':'ID slot dijana semasa simpan. Hanya kumpulan dan jenis slot perlu dipilih.';
       const active=document.getElementById('jwGridActiveChoice');
       if(active)active.textContent=JW_GRID_SELECTED?'Grid persediaan dipilih: '+JW_GRID_SELECTED.name:'Belum memilih Grid Persediaan Aktif';
@@ -677,6 +690,8 @@ function fiJWMessageParent(type,message){
       const old=select.value;
       select.innerHTML='<option value="">— Pilih sejarah grid —</option>'+JW_GRID_PRESETS.map(p=>`<option value="${jwGridEsc(p.id)}">${p.id===JW_GRID_SELECTED?.id?'✓ AKTIF · ':''}${jwGridEsc(p.name)} · ${jwGridEsc(String(p.createdAt).slice(0,16))}</option>`).join('');
       if(JW_GRID_PRESETS.some(p=>p.id===old))select.value=old;
+      const checked=document.getElementById('jwGridHistoryActiveCheck');
+      if(checked)checked.textContent=JW_GRID_SELECTED?'✓ GRID AKTIF: '+JW_GRID_SELECTED.name:'Belum ada Grid Aktif';
       const qty=document.getElementById('jwGridPresetCount');if(qty)qty.textContent=String(JW_GRID_PRESETS.length);
     }
     function jwGridEnsureDraft(){if(JW_GRID_MODE==='legacy'||JW_GRID_MODE==='selected')throw Error('Grid yang dipilih tidak boleh diedit terus. Panggil semula sebagai draf daripada Sejarah dahulu.');}
@@ -779,7 +794,7 @@ function fiJWMessageParent(type,message){
       const prepared=STATE_GRID_MASA.map(r=>({...r,__legacy:JW_GRID_MODE==='legacy'||(JW_GRID_MODE==='recall'&&!JW_GRID_DIRTY)}));
       const res=await postToBackend({action:'fiJWGridArchiveSave',data:{name,controller:JW_GRID_WORK_CTRL,grid:prepared}});
       if(!res?.success)throw Error(res?.error||'Gagal menyimpan versi.');
-      STATE_GRID_MASA=res.grid;JW_GRID_PRESETS=res.presets||[];JW_GRID_VIEW_ID=res.id;JW_GRID_DIRTY=false;
+      STATE_GRID_MASA=res.grid;JW_GRID_PRESETS=res.presets||[];JW_GRID_VIEW_ID=res.id;JW_GRID_MODE='recall';JW_GRID_DIRTY=false;
       jwGridRenderPresets();return res;
     }
     async function simpanGridMasa(){
@@ -790,28 +805,49 @@ function fiJWMessageParent(type,message){
         inputValue:'Grid '+new Date().toLocaleDateString('ms-MY')+' — '+(JW_GRID_MODE==='legacy'?'Sandaran Asal':'Versi Baharu'),
         inputPlaceholder:'Contoh: Grid 2027 — Tahun 1 Karakter',showCancelButton:true,confirmButtonText:'Simpan versi',cancelButtonText:'Batal',
         inputValidator:value=>!String(value||'').trim()?'Masukkan nama versi grid.':undefined});
-      if(!q.isConfirmed)return;
+      if(!q.isConfirmed)return false;
       showLoader('','save');try{
         const res=await jwGridSavePreset(q.value);hideLoader();
         jwGridColorMessage('Versi '+res.id+' telah disimpan bersama tetapan Controller.');
-        Swal.fire('Versi disimpan','Semua slot dan Controller disimpan sebagai rekod berstruktur dalam Google Sheets CORE. Pilihan grid aktif tidak berubah.','success');
-      }catch(e){hideLoader();Swal.fire('Belum disimpan',e.message,'error');}
+        await Swal.fire('Versi disimpan','Semua slot dan snapshot Controller disimpan dalam Google Sheets CORE. Grid Aktif tidak berubah.','success');
+        return true;
+      }catch(e){hideLoader();await Swal.fire('Belum disimpan',e.message,'error');return false;}
     }
     async function jwGridCreateNew(){
       if(!JW_GRID_LOADED)return Swal.fire('Sumber belum sedia','Studio Grid belum selesai dimuatkan.','warning');
+      const editing=JW_GRID_MODE==='draft'||JW_GRID_MODE==='recall';
+      const needsSave=editing&&JW_GRID_DIRTY&&STATE_GRID_MASA.length;
+      const q=await Swal.fire({title:'Tambah Grid Masa Baharu?',
+        text:needsSave?'Grid yang sedang diedit mempunyai perubahan belum disimpan. Simpan dahulu sebelum membuka grid kosong.':'Grid kosong akan dibuka. Grid Aktif dan semua versi Sejarah kekal.',
+        icon:'question',showCancelButton:true,confirmButtonText:needsSave?'Simpan & Tambah Baharu':'Tambah Grid Baharu',cancelButtonText:'Batal'});
+      if(!q.isConfirmed)return; // BATAL sentiasa tersedia
+      if(needsSave){const ok=await simpanGridMasa();if(!ok)return;}
       try{jwGridReadController();}catch(e){return Swal.fire('Controller',e.message,'error');}
-      if(STATE_GRID_MASA.length && JW_GRID_MODE!=='selected'){
-        const q=await Swal.fire({title:'Tambah Grid Masa Baharu',text:'Simpan grid semasa sebagai sejarah terlebih dahulu sebelum memulakan grid kosong?',
-          input:'text',inputValue:'Grid sebelum perubahan '+new Date().toLocaleDateString('ms-MY'),
-          showCancelButton:true,confirmButtonText:'Simpan & Tambah Baharu',cancelButtonText:'Batal',
-          inputValidator:value=>!String(value||'').trim()?'Nama sejarah diperlukan.':undefined});
-        if(!q.isConfirmed)return;
-        showLoader('','save');try{await jwGridSavePreset(q.value);}catch(e){hideLoader();return Swal.fire('Tidak dapat memulakan grid',e.message,'error');}hideLoader();
+      if(JSON.stringify(JW_GRID_CTRL)!==JSON.stringify(JW_GRID_CTRL_SAVED)){
+        const c=await Swal.fire({title:'Controller belum disimpan',text:'Grid baharu menggunakan Controller CORE terakhir yang disimpan. Simpan Controller dahulu jika mahu menggunakan perubahan baharu.',icon:'info',showCancelButton:true,confirmButtonText:'Guna Controller tersimpan',cancelButtonText:'Batal'});
+        if(!c.isConfirmed)return;
       }
-      JW_GRID_WORK_CTRL=jwGridClone(JW_GRID_CTRL);
+      JW_GRID_WORK_CTRL=jwGridClone(JW_GRID_CTRL_SAVED);
       STATE_GRID_MASA=[];JW_GRID_VIEW_ID='';JW_GRID_MODE='draft';JW_GRID_DIRTY=true;LAST_GRID_HARI='Isnin';
       document.getElementById('selHariGridMasa').value='Isnin';jwGridRenderMode();renderGridMasaTable();jwGridSetTab('grid');
-      jwGridColorMessage('Grid baharu kosong. Tekan + untuk slot pertama; masa mula diambil daripada Controller.');
+      jwGridColorMessage('Grid baharu kosong. Tekan + untuk slot pertama. Gunakan Batal untuk kembali tanpa menyimpan.');
+    }
+    /** Batal suntingan: tidak mengubah data dalam Sheets, pulang ke grid aktif. */
+    async function jwGridCancelEdit(){
+      if(JW_GRID_MODE!=='draft'&&JW_GRID_MODE!=='recall')return Swal.fire('Grid tidak diedit','Tiada perubahan untuk dibatalkan.','info');
+      const q=await Swal.fire({title:'Batal suntingan Grid?',text:'Perubahan yang belum disimpan akan dibuang. Grid dalam Sejarah dan Grid Aktif kekal.',icon:'warning',showCancelButton:true,confirmButtonText:'Ya, batal suntingan',cancelButtonText:'Teruskan edit'});
+      if(!q.isConfirmed)return;
+      JW_GRID_MODE='legacy';JW_GRID_DIRTY=false;JW_GRID_VIEW_ID='';
+      showLoader('','refresh');await jwGridStudioLoad();hideLoader();jwGridSetTab('grid');
+    }
+    /** Mengaktifkan mod suntingan tanpa mengubah rekod grid yang tersimpan. */
+    function jwGridEditAsCopy(){
+      if(!JW_GRID_LOADED)return Swal.fire('Sumber belum sedia','Muatkan Grid dahulu.','warning');
+      if(JW_GRID_MODE==='draft'||JW_GRID_MODE==='recall')return jwGridColorMessage('Grid ini sudah boleh diedit. Simpan Versi Grid apabila selesai.');
+      if(!STATE_GRID_MASA.length)return Swal.fire('Grid kosong','Panggil Grid daripada Sejarah atau tambah grid baharu.','info');
+      if(JW_GRID_MODE==='legacy')return Swal.fire('Grid operasi asal','Panggil versi Grid daripada Sejarah dahulu untuk menyunting.','info');
+      JW_GRID_MODE='recall';JW_GRID_DIRTY=false;jwGridRenderMode();renderGridMasaTable();
+      jwGridColorMessage('Salinan Grid Aktif boleh diedit. Simpan sebagai versi baharu sebelum mengaktifkannya.');
     }
     async function jwGridRecall(){
       const id=document.getElementById('jwGridPresetSelect')?.value;
@@ -821,20 +857,41 @@ function fiJWMessageParent(type,message){
       showLoader('','refresh');try{
         const res=await postToBackend({action:'fiJWGridArchiveRecall',data:{id}});
         if(!res?.success)throw Error(res?.error||'Versi tidak ditemui');
-        JW_GRID_CTRL=jwGridClone(res.controller);JW_GRID_WORK_CTRL=jwGridClone(res.controller);STATE_GRID_MASA=res.grid.map(r=>({...r,__legacy:true}));
-        JW_GRID_VIEW_ID=res.id;JW_GRID_MODE='recall';JW_GRID_DIRTY=false;jwGridRenderController();jwGridRenderMode();
+        JW_GRID_WORK_CTRL=jwGridClone(res.controller);STATE_GRID_MASA=res.grid.map(r=>({...r,__legacy:true}));
+        JW_GRID_VIEW_ID=res.id;JW_GRID_MODE='recall';JW_GRID_DIRTY=false;jwGridRenderMode();
         jwGridSetTab('grid');renderGridMasaTable();
         jwGridColorMessage('Versi '+res.name+' telah dipanggil sebagai draf dengan Controller asal. Tiada perubahan pada grid aktif.');
         hideLoader();
       }catch(e){hideLoader();Swal.fire('Gagal panggil semula',e.message,'error');}
     }
+    async function jwGridDeleteHistory(){
+      if(!JW_GRID_LOADED)return Swal.fire('Sumber belum sedia','Muatkan Sejarah Grid dahulu.','warning');
+      const id=document.getElementById('jwGridPresetSelect')?.value||'';
+      if(!id)return Swal.fire('Pilih Grid','Pilih versi yang hendak dipadam.','info');
+      if(id===JW_GRID_SELECTED?.id)return Swal.fire('Grid sedang aktif','Aktifkan Grid lain melalui Penetapan Grid dahulu sebelum memadam versi ini.','warning');
+      const preset=JW_GRID_PRESETS.find(p=>p.id===id);
+      if(!preset)return Swal.fire('Grid tidak ditemui','Muat semula Sejarah Grid.','warning');
+      const q=await Swal.fire({title:'Padam Grid daripada Sejarah?',html:'<b>'+jwGridEsc(preset.name)+'</b><p class="mt-2 text-sm">Grid akan dikeluarkan daripada senarai. Rekod asal dikekalkan untuk audit, bukan dipadam fizikal daripada Sheets.</p>',icon:'warning',showCancelButton:true,confirmButtonText:'Padam Grid',cancelButtonText:'Batal'});
+      if(!q.isConfirmed)return;
+      showLoader('','save');
+      try{
+        const res=await postToBackend({action:'fiJWGridArchiveDelete',data:{id}});
+        if(!res?.success)throw Error(res?.error||'Grid tidak dapat dipadam.');
+        JW_GRID_PRESETS=res.presets||JW_GRID_PRESETS.filter(p=>p.id!==id);
+        if(JW_GRID_VIEW_ID===id){JW_GRID_VIEW_ID='';JW_GRID_MODE='legacy';JW_GRID_DIRTY=false;}
+        const sel=document.getElementById('jwGridPresetSelect');if(sel)sel.value='';
+        jwGridRenderPresets();jwGridRenderMode();hideLoader();
+        if(JW_GRID_VIEW_ID==='')await jwGridStudioLoad();
+        await Swal.fire('Grid dikeluarkan',res.message||'Grid telah dikeluarkan daripada Sejarah.','success');
+      }catch(e){hideLoader();Swal.fire('Tidak dapat padam',e.message,'error');}
+    }
     async function jwGridUseLatestController(){
-      if(JW_GRID_MODE==='legacy')return Swal.fire('Grid aktif asal','Cipta draf baharu sebelum menerapkan Controller.','info');
+      if(JW_GRID_MODE==='legacy'||JW_GRID_MODE==='selected')return Swal.fire('Grid baca sahaja','Klik Edit Grid atau panggil versi dari Sejarah sebelum menerapkan Controller.','info');
       try{jwGridReadController();}catch(e){return Swal.fire('Controller tidak sah',e.message,'error');}
       const q=await Swal.fire({title:'Terapkan Controller ke draf?',text:'Tempoh dan jam mula akan dikira semula. Grid versi lama yang telah disimpan tidak berubah.',icon:'warning',showCancelButton:true,confirmButtonText:'Pratonton & Terap',cancelButtonText:'Batal'});
       if(!q.isConfirmed)return;
       const oldCtrl=jwGridClone(JW_GRID_WORK_CTRL),oldGrid=jwGridClone(STATE_GRID_MASA);
-      JW_GRID_WORK_CTRL=jwGridClone(JW_GRID_CTRL);
+      JW_GRID_WORK_CTRL=jwGridClone(JW_GRID_CTRL_SAVED);
       try{jwGridRecalculateAll();JW_GRID_DIRTY=true;renderGridMasaTable();jwGridColorMessage('Controller terkini diterapkan pada draf ini. Simpan versi baharu jika berpuas hati.');}
       catch(e){JW_GRID_WORK_CTRL=oldCtrl;STATE_GRID_MASA=oldGrid;Swal.fire('Tidak boleh terap',e.message,'warning');}
     }
@@ -846,7 +903,7 @@ function fiJWMessageParent(type,message){
       showLoader('','save');try{
         const res=await postToBackend({action:'fiJWGridControllerSave',data:{controller:JW_GRID_CTRL,expectedVersion:JW_GRID_CTRL_VERSION}});
         if(!res?.success)throw Error(res?.error||'Gagal simpan Controller');
-        JW_GRID_CTRL_VERSION=res.controllerVersion;JW_GRID_CTRL=res.controller;
+        JW_GRID_CTRL_VERSION=res.controllerVersion;JW_GRID_CTRL=res.controller;JW_GRID_CTRL_SAVED=jwGridClone(res.controller);
         jwGridRenderController();hideLoader();
         Swal.fire('Controller disimpan','Tetapan digunakan untuk pengisian baharu; grid lama tidak diubah.','success');
       }catch(e){hideLoader();Swal.fire('Controller tidak disimpan',e.message,'error');}
@@ -878,9 +935,6 @@ function fiJWMessageParent(type,message){
     async function jwGridApplyActive(){
       if(JW_GRID_DIRTY)return Swal.fire('Simpan perubahan dahulu','Grid yang diubah mesti disimpan sebagai versi Sejarah dahulu sebelum diaktifkan.','info');
       return jwGridSelectArchive_(JW_GRID_VIEW_ID);
-    }
-    async function jwGridActivateHistory(){
-      return jwGridSelectArchive_(document.getElementById('jwGridPresetSelect')?.value||'');
     }
 
 

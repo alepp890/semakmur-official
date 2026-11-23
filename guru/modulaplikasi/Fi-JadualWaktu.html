@@ -148,12 +148,12 @@
             </div>
           </details>
           <div class="overflow-x-auto"><table class="jw-grid-table">
-            <thead><tr><th>ID jenis (tetap)</th><th>Nama jenis slot</th><th>Tempoh (minit)</th><th>Kira waktu?</th><th>Aktif?</th><th>Tempoh Grid</th></tr></thead>
+            <thead><tr><th>ID jenis (tetap)</th><th>Nama jenis slot</th><th>Tempoh (minit)</th><th>Kira waktu?</th><th>Aktif?</th><th>Tindakan</th></tr></thead>
             <tbody id="jwCtrlTypeRows"></tbody>
           </table></div>
           <div class="flex items-center justify-between gap-3 flex-wrap">
             <button onclick="jwGridNewType()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-plus"></i> Tambah Jenis Slot</button>
-            <button onclick="jwGridUseLatestController()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-arrow-right-arrow-left"></i> Terapkan Controller pada Draf</button>
+            <button onclick="jwGridUseLatestController()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-arrow-right-arrow-left"></i> Terapkan Controller pada Grid yang Diedit</button>
           </div>
         </section>
 
@@ -163,8 +163,10 @@
             <div><h3 class="font-extrabold text-lg text-slate-800">Penetapan Grid Mengikut Hari</h3>
               <p id="jwGridWorkingLabel" class="text-xs font-bold text-brand-700 mt-1">Grid aktif sedia ada · baca sahaja</p></div>
             <div class="flex gap-2 flex-wrap">
-              <button onclick="simpanGridMasa()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-box-archive"></i> Simpan ke Sejarah</button>
-              <button onclick="jwGridApplyActive()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-shield-check"></i> Aktifkan Grid Pilihan (UAT)</button>
+              <button onclick="jwGridEditAsCopy()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-pen"></i> Edit Grid</button>
+              <button onclick="jwGridCancelEdit()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-xmark"></i> Batal</button>
+              <button onclick="simpanGridMasa()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-box-archive"></i> Simpan Versi Grid</button>
+              <button onclick="jwGridApplyActive()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-circle-check"></i> Aktifkan Grid</button>
             </div>
           </div>
           <div class="jw-grid-daybar">
@@ -192,9 +194,10 @@
           <div class="jw-grid-historybar">
             <select id="jwGridPresetSelect" class="jw-grid-input" aria-label="Pilih sejarah grid"><option value="">— Pilih sejarah grid —</option></select>
             <button onclick="jwGridRecall()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-clock-rotate-left"></i> Panggil Semula</button>
-            <button onclick="jwGridActivateHistory()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-circle-check"></i> Aktifkan Pilihan</button>
+            <button onclick="jwGridDeleteHistory()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-trash" aria-hidden="true"></i> Padam Grid</button>
           </div>
           <span id="jwGridPresetCount" class="jw-accessible-only">0</span>
+          <p id="jwGridHistoryActiveCheck" class="text-sm font-semibold text-teal-700" aria-live="polite"></p>
         </section>
       </div>
 
