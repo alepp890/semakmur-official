@@ -211,3 +211,15 @@
   .jw-grid-active-inline{max-width:210px}
 }
 @media print{.jw-grid-compactbar{display:none!important}}
+
+/* Fi-JadualWaktu V2.4 — sejarah subjek kompak, tanpa menukar saiz fon. */
+.jw-subject-compactbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px}
+.jw-subject-compactbar .jw-grid-tabs{background:transparent;padding:0;gap:4px}
+.jw-subject-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto}
+.jw-subject-status:empty{display:none}
+.jw-subject-status:not(:empty){font-size:12px;color:#475569;border:1px solid #e2e8f0;background:#f8fafc;padding:9px 12px;border-radius:9px}
+.jw-subject-status.is-error{color:#9f1239;background:#fff1f2;border-color:#fecdd3}
+.jw-subject-historybar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.jw-subject-historybar select{min-width:230px;max-width:420px;flex:1 1 230px}
+.jw-subject-metadata{font-size:12px;color:#64748b}
+.jw-subject-metadata:empty{display:none}

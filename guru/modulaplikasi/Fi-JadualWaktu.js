@@ -223,6 +223,8 @@ function fiJWMessageParent(type,message){
               ALL_STAF = res.staf || [];
               ALL_LOKASI = res.lokasi || [];
               ALL_MASTER_SUBJEK_LIST = res.subjek || [];
+              // Pilihan kod/nama subjek perlu dimuat semula setelah master tiba.
+              renderSubjekTable();
               if (JW_HASIL_VIEW_RENDERED && JW_AGIHAN_REVISION === 0 && !JW_AGIHAN_SAVING) {
                 // Data staf sampai selepas paparan dibuka: segarkan label dan pilihan yang diperlukan.
                 renderAgihanGuruMatrix();
@@ -498,6 +500,7 @@ function fiJWMessageParent(type,message){
       setAgihanSaveStatus('saved');
       renderGridMasaTable();
       renderSubjekTable();
+      void jwSubjectStudioLoad();
       renderAgihanGuruMatrix();
       renderGuruConstraintTable();
     }
@@ -878,13 +881,134 @@ function fiJWMessageParent(type,message){
       return jwGridSelectArchive_(document.getElementById('jwGridPresetSelect')?.value||'');
     }
 
+
+    // ===== TETAPAN SUBJEK V2.4: SEJARAH / PILIHAN PERSEDIAAN (UAT) =====
+    let JW_SUBJECT_PRESETS = [];
+    let JW_SUBJECT_SELECTED = null;
+    let JW_SUBJECT_SOURCE = '';
+    let JW_SUBJECT_LOADING = false;
+    let JW_SUBJECT_YEAR = new Date().getFullYear();
+    function jwSubjectEsc(s){return String(s??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+    function jwSubjectNotice(text,error=false){
+      const el=document.getElementById('jwSubjectStatus');if(!el)return;
+      el.textContent=String(text||'');el.classList.toggle('is-error',!!error);
+    }
+    function jwSubjectSetTab(tab){
+      const history=tab==='history';
+      document.getElementById('jwSubjectPanel_history')?.classList.toggle('hidden',!history);
+      document.getElementById('jwSubjectPanel_editor')?.classList.toggle('hidden',history);
+      document.querySelectorAll('[data-subject-tab]').forEach(b=>{
+        b.classList.toggle('jw-grid-tab--active',b.dataset.subjectTab===tab);
+        b.setAttribute('aria-selected',b.dataset.subjectTab===tab?'true':'false');
+      });
+    }
+    function jwSubjectRefreshOptions(){
+      const select=document.getElementById('jwSubjectPresetSelect');if(!select)return;
+      const was=select.value;
+      select.innerHTML='<option value="">— Pilih sejarah Tetapan Subjek —</option>'+JW_SUBJECT_PRESETS.map(p=>
+        `<option value="${jwSubjectEsc(p.id)}">${jwSubjectEsc(p.name)} · ${jwSubjectEsc(p.year)} · ${p.count} rekod</option>`).join('');
+      select.value=JW_SUBJECT_PRESETS.some(p=>p.id===was)?was:'';
+      const active=document.getElementById('jwSubjectSelectedLabel');
+      if(active)active.textContent=JW_SUBJECT_SELECTED?
+        `Aktif (persediaan): ${JW_SUBJECT_SELECTED.name} · ${JW_SUBJECT_SELECTED.year}`:'Belum memilih Tetapan Persediaan Aktif';
+      jwSubjectPresetInfo();
+    }
+    function jwSubjectPresetInfo(){
+      const id=document.getElementById('jwSubjectPresetSelect')?.value;
+      const preset=JW_SUBJECT_PRESETS.find(p=>p.id===id);
+      const target=document.getElementById('jwSubjectPresetDetails');if(!target)return;
+      target.textContent=preset?`${preset.count} rekod · Disimpan ${preset.createdAt} · Sesi ${preset.year}`:'';
+    }
+    async function jwSubjectStudioLoad(){
+      if(JW_SUBJECT_LOADING)return;
+      JW_SUBJECT_LOADING=true;
+      try{
+        const res=await postToBackend({action:'fiJWSubjectStudioGet'});
+        if(!res?.success)throw Error(res?.error||'Tetapan sejarah subjek tidak dapat dibaca.');
+        JW_SUBJECT_PRESETS=res.presets||[];JW_SUBJECT_SELECTED=res.selected||null;
+        JW_SUBJECT_SOURCE=String(res.source||'');jwSubjectRefreshOptions();
+        if(res.selectionWarning)jwSubjectNotice(res.selectionWarning,true);
+      }catch(err){jwSubjectNotice('Sejarah Tetapan Subjek belum tersedia: '+String(err.message||err),true);}
+      finally{JW_SUBJECT_LOADING=false;}
+    }
+    async function jwSubjectNew(){
+      syncSubjekDOM();
+      if(STATE_SUBJEK.length){
+        const answer=await Swal.fire({icon:'question',title:'Tambah Tetapan Subjek Baharu',
+          text:'Simpan semua tetapan semasa sebagai sejarah terlebih dahulu, kemudian buka set kosong.',
+          showCancelButton:true,confirmButtonText:'Simpan & Tambah Baharu',cancelButtonText:'Batal'});
+        if(!answer.isConfirmed)return;
+        const saved=await jwSubjectSavePreset();
+        if(!saved)return; // Jika batal/gagal simpan, jangan hilangkan editor.
+      }
+      STATE_SUBJEK=[];renderSubjekTable();jwSubjectSetTab('editor');
+      jwSubjectNotice('Set baharu kosong. Sejarah lama kekal dan Sheet semasa tidak diubah.');
+    }
+    async function jwSubjectSavePreset(){
+      syncSubjekDOM();
+      if(!STATE_SUBJEK.length){await Swal.fire('Tiada subjek','Tambah sekurang-kurangnya satu subjek dahulu.','warning');return false;}
+      const modal=await Swal.fire({title:'Simpan Versi Tetapan Subjek',html:
+        `<div style="text-align:left"><label style="font-size:12px;font-weight:700">Nama versi</label><input id="jw-subject-name" class="swal2-input" style="width:100%;margin:7px 0" placeholder="Contoh: Tahun 1 KP27 — Percubaan A"><label style="font-size:12px;font-weight:700">Sesi tahun</label><input id="jw-subject-year" class="swal2-input" style="width:100%;margin:7px 0" type="number" min="2020" max="2100" value="${JW_SUBJECT_YEAR}"></div>`,
+        showCancelButton:true,confirmButtonText:'Simpan ke Sejarah',cancelButtonText:'Batal',
+        preConfirm:()=>{const name=document.getElementById('jw-subject-name').value.trim();
+          const year=Number(document.getElementById('jw-subject-year').value);
+          if(name.length<2||name.length>90||!Number.isInteger(year)||year<2020||year>2100){Swal.showValidationMessage('Isi nama 2–90 aksara dan sesi tahun yang sah.');return false;}
+          return {name,year};}});
+      if(!modal.isConfirmed)return false;
+      try{
+        const res=await postToBackend({action:'fiJWSubjectArchiveSave',data:{...modal.value,data:STATE_SUBJEK}});
+        if(!res?.success)throw Error(res?.error||'Sejarah tidak berjaya disimpan.');
+        JW_SUBJECT_YEAR=Number(res.year);JW_SUBJECT_PRESETS=res.presets||[];
+        STATE_SUBJEK=res.data||STATE_SUBJEK;renderSubjekTable();jwSubjectRefreshOptions();
+        const sel=document.getElementById('jwSubjectPresetSelect');if(sel){sel.value=res.id;jwSubjectPresetInfo();}
+        jwSubjectNotice('Versi '+res.name+' telah disimpan ke Sejarah ('+res.count+' rekod). Sheet dan Agihan Guru tidak diubah.');
+        const warnings=(res.warnings||[]);
+        await Swal.fire({icon:warnings.length?'warning':'success',title:'Versi disimpan',
+          html: warnings.length?'Rekod sejarah selamat. Perkara perlu disemak sebelum rombakan Agihan:<div style="text-align:left;font-size:12px;margin-top:8px">'+warnings.map(x=>'<p>• '+jwSubjectEsc(x)+'</p>').join('')+'</div>':'Semua baris disimpan sebagai snapshot baharu.',confirmButtonText:'Faham'});
+        return true;
+      }catch(e){jwSubjectNotice(String(e.message||e),true);await Swal.fire('Tidak disimpan',String(e.message||e),'error');return false;}
+    }
+    async function jwSubjectRecall(){
+      const id=document.getElementById('jwSubjectPresetSelect')?.value;
+      if(!id){await Swal.fire('Pilih sejarah','Pilih versi sebelum Panggil Semula.','info');return;}
+      const confirm=await Swal.fire({icon:'question',title:'Panggil Semula Tetapan Subjek?',
+        text:'Editor semasa digantikan dengan salinan versi terpilih. Sejarah, Sheet, Agihan Guru dan jadual hasil tidak berubah.',
+        showCancelButton:true,confirmButtonText:'Panggil Semula',cancelButtonText:'Batal'});
+      if(!confirm.isConfirmed)return;
+      try{
+        const res=await postToBackend({action:'fiJWSubjectArchiveRecall',data:{id}});
+        if(!res?.success)throw Error(res?.error||'Snapshot tidak dapat dibaca.');
+        STATE_SUBJEK=JSON.parse(JSON.stringify(res.data));JW_SUBJECT_YEAR=Number(res.year)||JW_SUBJECT_YEAR;
+        renderSubjekTable();jwSubjectSetTab('editor');
+        jwSubjectNotice('Salinan '+res.name+' dibuka dalam editor. Belum diaktifkan dan belum menulis ke Sheet semasa.');
+      }catch(e){jwSubjectNotice(String(e.message||e),true);await Swal.fire('Gagal memanggil',String(e.message||e),'error');}
+    }
+    async function jwSubjectActivate(){
+      const id=document.getElementById('jwSubjectPresetSelect')?.value;
+      if(!id){await Swal.fire('Pilih sejarah','Pilih satu versi tetapan subjek.','info');return;}
+      const confirm=await Swal.fire({icon:'question',title:'Aktifkan untuk Persediaan?',
+        text:'Ini hanya menandakan pilihan tetapan. Tidak mengubah Master_Tetapan_Subjek, Agihan Guru atau Jadual Waktu Hasil.',
+        showCancelButton:true,confirmButtonText:'Aktifkan Pilihan',cancelButtonText:'Batal'});
+      if(!confirm.isConfirmed)return;
+      try{
+        const res=await postToBackend({action:'fiJWSubjectActiveSelect',data:{id}});
+        if(!res?.success)throw Error(res?.error||'Aktivasi gagal.');
+        JW_SUBJECT_SELECTED=res.selected;jwSubjectRefreshOptions();
+        jwSubjectNotice('Tetapan Persediaan Aktif: '+res.selected.name+'. Jana/Shuffle lama masih menggunakan Sheet semasa sehingga integrasi Generator dinaik taraf.');
+        await Swal.fire('Tetapan dipilih','Pilihan kekal selepas refresh dan tidak mengubah hasil jadual.','success');
+      }catch(e){jwSubjectNotice(String(e.message||e),true);await Swal.fire('Tidak berjaya',String(e.message||e),'error');}
+    }
+    document.addEventListener('change',e=>{if(e.target?.id==='jwSubjectPresetSelect')jwSubjectPresetInfo();});
+
     // ================= 2. SUBJEK =================
     function generateUniqueSubjekID(kodSubjek, kategoriTahap, idx) {
       if (!kodSubjek) return `SUBJ-${idx + 1}`;
       let tag = 'ALL';
       const k = String(kategoriTahap || '').toLowerCase();
       
-      if (k.includes('tahap 1') || k.includes('thp 1') || k.includes('tahun 1')) {
+      if (['y1','y23','t2','all','t1','y2','y3','y4','y5','y6','y26'].includes(k)) {
+        tag = k.toUpperCase();
+      } else if (k.includes('tahap 1') || k.includes('thp 1') || k.includes('tahun 1')) {
         tag = 'T1';
       } else if (k.includes('tahap 2') || k.includes('thp 2')) {
         tag = 'T2';
@@ -932,7 +1056,9 @@ function fiJWMessageParent(type,message){
               <select data-field="Kod_Subjek" onchange="onSelectMasterSubjekCode(this, ${idx})" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-emerald-800 bg-white">
                 ${optS}
               </select>
-              <input type="hidden" data-field="ID_Subjek" value="${row.ID_Subjek}">
+              <input type="hidden" data-field="ID_Subjek" value="${jwEscapeHtml(row.ID_Subjek)}">
+              <input type="hidden" data-field="ID_Tetapan_Subjek" value="${jwEscapeHtml(row.ID_Tetapan_Subjek || '')}">
+              <input type="hidden" data-field="ID_Subjek_Master" value="${jwEscapeHtml(row.ID_Subjek_Master || (ALL_MASTER_SUBJEK_LIST.find(m=>String(m.Kod_Subjek||'').trim()===String(selectedKod).trim())?.ID_Subjek||''))}">
             </td>
             <td class="p-1.5">
               <input type="text" data-field="Nama_Subjek" value="${row.Nama_Subjek || ''}" readonly class="w-full p-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 cursor-not-allowed">
@@ -943,15 +1069,19 @@ function fiJWMessageParent(type,message){
                 <option value="Tahap 1 (KSSR)" ${row.Kategori_Tahap === 'Tahap 1 (KSSR)' ? 'selected' : ''}>Tahap 1 (KSSR)</option>
                 <option value="Tahap 2 (KSSR)" ${row.Kategori_Tahap === 'Tahap 2 (KSSR)' ? 'selected' : ''}>Tahap 2 (KSSR)</option>
                 <option value="Tahun 1 (KP27)" ${row.Kategori_Tahap === 'Tahun 1 (KP27)' ? 'selected' : ''}>Tahun 1 (KP27)</option>
-                <option value="Tahap 1 (KP27)" ${row.Kategori_Tahap === 'Tahap 1 (KP27)' ? 'selected' : ''}>Tahap 1 (KP27)</option>
+                <option value="Tahap 1 (KP27)" ${row.Kategori_Tahap === 'Tahap 1 (KP27)' ? 'selected' : ''}>Tahap 1 (KP27) — Legasi</option>
+                <option value="Y1" ${row.Kategori_Tahap === 'Y1' ? 'selected' : ''}>Tahun 1 sahaja</option>
+                <option value="Y23" ${row.Kategori_Tahap === 'Y23' ? 'selected' : ''}>Tahun 2–3</option>
+                <option value="T2" ${row.Kategori_Tahap === 'T2' ? 'selected' : ''}>Tahun 4–6</option>
+                <option value="ALL" ${row.Kategori_Tahap === 'ALL' ? 'selected' : ''}>Semua Tahun 1–6</option>
               </select>
             </td>
             <td class="p-1.5"><input type="number" data-field="Bil_Waktu_Seminggu" value="${row.Bil_Waktu_Seminggu || 6}" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-center bg-white text-emerald-700"></td>
             <td class="p-1.5">
               <select data-field="Mode_Block" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
-                <option value="Double Slot (60 Minit)" ${modeBlokVal.includes('Double') || modeBlokVal === 'Double' ? 'selected' : ''}>Double Slot (60 Minit)</option>
-                <option value="Single Slot (30 Minit)" ${modeBlokVal.includes('Single') || modeBlokVal === 'Single' ? 'selected' : ''}>Single Slot (30 Minit)</option>
-                <option value="Hybrid (Auto 2+1 Masa)" ${modeBlokVal.includes('Hybrid') || modeBlokVal.includes('Auto') ? 'selected' : ''}>Hybrid (Auto 2+1 Masa)</option>
+                <option value="Double Slot (60 Minit)" ${modeBlokVal.includes('Double') || modeBlokVal === 'Double' ? 'selected' : ''}>Berganda (B2) — 2 waktu berturutan</option>
+                <option value="Single Slot (30 Minit)" ${modeBlokVal.includes('Single') || modeBlokVal === 'Single' ? 'selected' : ''}>Tunggal (B1) — 1 waktu sehari</option>
+                <option value="Hybrid (Auto 2+1 Masa)" ${modeBlokVal.includes('Hybrid') || modeBlokVal.includes('Auto') ? 'selected' : ''}>Campuran (B2+1) — 2+1 hari sama, berasingan</option>
               </select>
             </td>
             <td class="p-1.5 text-center">
@@ -975,6 +1105,7 @@ function fiJWMessageParent(type,message){
 
       STATE_SUBJEK[idx].Kod_Subjek = selectedKod;
       STATE_SUBJEK[idx].Nama_Subjek = nama;
+      STATE_SUBJEK[idx].ID_Subjek_Master = String(masterItem?.ID_Subjek||'');
       STATE_SUBJEK[idx].ID_Subjek = generateUniqueSubjekID(selectedKod, STATE_SUBJEK[idx].Kategori_Tahap, idx);
 
       const tr = el.closest('tr');
@@ -983,6 +1114,8 @@ function fiJWMessageParent(type,message){
         if (namaInput) namaInput.value = nama;
         const idInput = tr.querySelector('[data-field="ID_Subjek"]');
         if (idInput) idInput.value = STATE_SUBJEK[idx].ID_Subjek;
+        const masterInput = tr.querySelector('[data-field="ID_Subjek_Master"]');
+        if (masterInput) masterInput.value = STATE_SUBJEK[idx].ID_Subjek_Master;
       }
     }
 
@@ -1015,6 +1148,7 @@ function fiJWMessageParent(type,message){
         const kateg = s.Kategori_Tahap || 'Semua (KSSR)';
         return {
           ID_Subjek: generateUniqueSubjekID(kod, kateg, idx),
+          ID_Subjek_Master: String(s.ID_Subjek||''),
           Kod_Subjek: kod,
           Nama_Subjek: s['Nama_Subjek / Komponen'] || s.Nama_Subjek || s.Nama || '',
           Kategori_Tahap: kateg,
@@ -1039,6 +1173,8 @@ function fiJWMessageParent(type,message){
         const bilWaktu = r.querySelector('[data-field="Bil_Waktu_Seminggu"]')?.value || 6;
         const modeBlock = r.querySelector('[data-field="Mode_Block"]')?.value || 'Double Slot (60 Minit)';
         const flagCoTeaching = r.querySelector('[data-field="Flag_CoTeaching"]')?.value || 'FALSE';
+        const idTetapan = r.querySelector('[data-field="ID_Tetapan_Subjek"]')?.value || '';
+        const masterId = r.querySelector('[data-field="ID_Subjek_Master"]')?.value || '';
 
         let idSubjek = r.querySelector('[data-field="ID_Subjek"]')?.value || '';
         if (!idSubjek || idSubjek.trim() === '') {
@@ -1048,6 +1184,8 @@ function fiJWMessageParent(type,message){
         if (kodSubjek) {
           updated.push({
             ID_Subjek: idSubjek,
+            ID_Tetapan_Subjek: idTetapan,
+            ID_Subjek_Master: masterId,
             Kod_Subjek: kodSubjek,
             Nama_Subjek: namaSubjek,
             Kategori_Tahap: kategoriTahap,
@@ -1057,7 +1195,7 @@ function fiJWMessageParent(type,message){
           });
         }
       });
-      if (updated.length > 0) STATE_SUBJEK = updated;
+      STATE_SUBJEK = updated;
     }
 
     function tambahBarisSubjek() {
@@ -1082,6 +1220,10 @@ function fiJWMessageParent(type,message){
 
     async function simpanTetapanSubjek() {
       syncSubjekDOM();
+      const confirm=await Swal.fire({icon:'warning',title:'Simpan ke Sheet Semasa?',
+        text:'Tindakan lama ini menggantikan Master_Tetapan_Subjek dalam pangkalan data sasaran. Untuk sejarah yang tidak menjejaskan Agihan Guru, gunakan Simpan Versi dahulu.',
+        showCancelButton:true,confirmButtonText:'Ya, simpan ke Sheet',cancelButtonText:'Batal'});
+      if(!confirm.isConfirmed)return;
       showLoader('', 'save');
       try {
         const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'subjek', data: STATE_SUBJEK } });

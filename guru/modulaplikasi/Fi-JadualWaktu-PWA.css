@@ -56,3 +56,5 @@
   .jw-grid-compact-actions .jw-grid-source{padding:6px 8px}
   .jw-grid-compact-actions .jw-grid-button{min-height:32px;padding:7px 10px}
 }
+
+@media(max-width:720px){.jw-subject-compactbar{align-items:stretch}.jw-subject-compactbar .jw-grid-tabs{width:100%}.jw-subject-actions{margin:0;width:100%;justify-content:space-between}.jw-subject-historybar{align-items:stretch}.jw-subject-historybar select{max-width:none;flex:1 1 100%}}
