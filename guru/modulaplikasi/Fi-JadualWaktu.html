@@ -206,9 +206,9 @@
             <button class="jw-grid-tab" type="button" data-subject-tab="history" onclick="jwSubjectSetTab('history')">Sejarah &amp; Panggil Semula</button>
           </div>
           <div class="jw-subject-actions">
-            <span id="jwSubjectSelectedLabel" class="jw-grid-active-inline">Belum memilih Tetapan Persediaan Aktif</span>
+            <span id="jwSubjectSelectedLabel" class="jw-grid-active-inline">Belum ada Tetapan Subjek Aktif</span>
             <button type="button" class="jw-grid-button jw-grid-button--soft" onclick="jwSubjectNew()"><i class="fa-solid fa-plus-circle"></i> Tetapan Baharu</button>
-            <button type="button" class="jw-grid-button jw-grid-button--main" onclick="jwSubjectSavePreset()"><i class="fa-solid fa-floppy-disk"></i> Simpan Versi</button>
+            <button type="button" class="jw-grid-button jw-grid-button--main" onclick="jwSubjectSavePreset()"><i class="fa-solid fa-floppy-disk"></i> Simpan &amp; Aktifkan</button>
           </div>
         </div>
         <p id="jwSubjectStatus" class="jw-subject-status" role="status" aria-live="polite"></p>
@@ -225,7 +225,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h2 class="font-display font-extrabold text-xl text-slate-800">2. Tetapan Subjek & Bilangan Waktu Seminggu</h2>
-              <p class="text-xs text-slate-500">Master_Subjek ialah identiti rasmi; setiap baris ialah konfigurasi blok bagi kumpulan kelas.</p>
+              <p class="text-xs text-slate-500">Subjek dipautkan ke Master_Subjek. Set aktif disimpan dalam JW_Subjek_Baris.</p>
             </div>
             <div class="flex flex-wrap gap-2">
               <button onclick="tarikSemuaMasterSubjek()" class="px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-extrabold text-xs rounded-xl transition flex items-center gap-1 shadow-2xs">
@@ -233,9 +233,6 @@
               </button>
               <button onclick="tambahBarisSubjek()" class="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
                 <i class="fa-solid fa-plus"></i> + Subjek Baharu
-              </button>
-              <button onclick="simpanTetapanSubjek()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                <i class="fa-solid fa-floppy-disk"></i> Simpan ke Sheet Semasa
               </button>
             </div>
           </div>

@@ -90,6 +90,7 @@ function fiJWMessageParent(type,message){
 
     let STATE_GRID_MASA = [];
     let STATE_SUBJEK = [];
+    let JW_AGIHAN_SUBJEK = []; // Kekalkan paparan Agihan Lama sehingga migrasi Agihan V3.
     let STATE_AGIHAN = [];
     let STATE_AGIHAN_GURU = [];
     let STATE_GURU_CONSTRAINT = [];
@@ -492,7 +493,8 @@ function fiJWMessageParent(type,message){
     function applyJWConstraintsData(res) {
       STATE_GRID_MASA = res.timeGrid || [];
       if(JW_GRID_MODE==='legacy')JW_GRID_DIRTY=false;
-      STATE_SUBJEK = res.tetapanSubjek || [];
+      JW_AGIHAN_SUBJEK = res.tetapanSubjek || [];
+      STATE_SUBJEK = JSON.parse(JSON.stringify(JW_AGIHAN_SUBJEK));
       STATE_AGIHAN = res.agihanTugas || [];
       STATE_GURU_CONSTRAINT = res.guruConstraints || [];
       parseFlatAgihanToGuruView();
@@ -882,7 +884,7 @@ function fiJWMessageParent(type,message){
     }
 
 
-    // ===== TETAPAN SUBJEK V2.4: SEJARAH / PILIHAN PERSEDIAAN (UAT) =====
+    // ===== TETAPAN SUBJEK V2.5: SUMBER TERAS GOOGLE SHEETS BERSTRUKTUR =====
     let JW_SUBJECT_PRESETS = [];
     let JW_SUBJECT_SELECTED = null;
     let JW_SUBJECT_SOURCE = '';
@@ -907,10 +909,10 @@ function fiJWMessageParent(type,message){
       const was=select.value;
       select.innerHTML='<option value="">— Pilih sejarah Tetapan Subjek —</option>'+JW_SUBJECT_PRESETS.map(p=>
         `<option value="${jwSubjectEsc(p.id)}">${jwSubjectEsc(p.name)} · ${jwSubjectEsc(p.year)} · ${p.count} rekod</option>`).join('');
-      select.value=JW_SUBJECT_PRESETS.some(p=>p.id===was)?was:'';
+      select.value=JW_SUBJECT_PRESETS.some(p=>p.id===was)?was:(JW_SUBJECT_SELECTED?.id||'');
       const active=document.getElementById('jwSubjectSelectedLabel');
       if(active)active.textContent=JW_SUBJECT_SELECTED?
-        `Aktif (persediaan): ${JW_SUBJECT_SELECTED.name} · ${JW_SUBJECT_SELECTED.year}`:'Belum memilih Tetapan Persediaan Aktif';
+        `AKTIF: ${JW_SUBJECT_SELECTED.name} · ${JW_SUBJECT_SELECTED.year}`:'Belum ada Tetapan Subjek Aktif';
       jwSubjectPresetInfo();
     }
     function jwSubjectPresetInfo(){
@@ -927,6 +929,11 @@ function fiJWMessageParent(type,message){
         if(!res?.success)throw Error(res?.error||'Tetapan sejarah subjek tidak dapat dibaca.');
         JW_SUBJECT_PRESETS=res.presets||[];JW_SUBJECT_SELECTED=res.selected||null;
         JW_SUBJECT_SOURCE=String(res.source||'');jwSubjectRefreshOptions();
+        if(res.selected && Array.isArray(res.activeData) && res.activeData.length){
+          STATE_SUBJEK=JSON.parse(JSON.stringify(res.activeData));
+          JW_SUBJECT_YEAR=Number(res.selected.year)||JW_SUBJECT_YEAR;
+          renderSubjekTable();
+        }
         if(res.selectionWarning)jwSubjectNotice(res.selectionWarning,true);
       }catch(err){jwSubjectNotice('Sejarah Tetapan Subjek belum tersedia: '+String(err.message||err),true);}
       finally{JW_SUBJECT_LOADING=false;}
@@ -934,68 +941,79 @@ function fiJWMessageParent(type,message){
     async function jwSubjectNew(){
       syncSubjekDOM();
       if(STATE_SUBJEK.length){
-        const answer=await Swal.fire({icon:'question',title:'Tambah Tetapan Subjek Baharu',
-          text:'Simpan semua tetapan semasa sebagai sejarah terlebih dahulu, kemudian buka set kosong.',
-          showCancelButton:true,confirmButtonText:'Simpan & Tambah Baharu',cancelButtonText:'Batal'});
+        const answer=await Swal.fire({icon:'warning',title:'Mulakan Set Tetapan Baharu?',
+          text:'Editor akan dikosongkan. Semua set yang sudah disimpan dalam Google Sheets kekal. Perubahan belum disimpan akan hilang.',
+          showCancelButton:true,confirmButtonText:'Ya, Set Baharu',cancelButtonText:'Batal'});
         if(!answer.isConfirmed)return;
-        const saved=await jwSubjectSavePreset();
-        if(!saved)return; // Jika batal/gagal simpan, jangan hilangkan editor.
       }
       STATE_SUBJEK=[];renderSubjekTable();jwSubjectSetTab('editor');
-      jwSubjectNotice('Set baharu kosong. Sejarah lama kekal dan Sheet semasa tidak diubah.');
+      jwSubjectNotice('Editor kosong. Isi tetapan kemudian tekan Simpan & Aktifkan untuk menyimpan ke JW_Subjek_Baris.');
     }
     async function jwSubjectSavePreset(){
+      const incomplete=[...document.querySelectorAll('#tbodyMasterSubjek select[data-field="Kod_Subjek"]')]
+        .filter(el=>!el.value.trim());
+      if(incomplete.length){await Swal.fire('Baris belum lengkap',
+        'Terdapat '+incomplete.length+' baris yang belum dipilih mata pelajarannya. Lengkapkan atau padam dahulu.','warning');return false;}
       syncSubjekDOM();
       if(!STATE_SUBJEK.length){await Swal.fire('Tiada subjek','Tambah sekurang-kurangnya satu subjek dahulu.','warning');return false;}
-      const modal=await Swal.fire({title:'Simpan Versi Tetapan Subjek',html:
-        `<div style="text-align:left"><label style="font-size:12px;font-weight:700">Nama versi</label><input id="jw-subject-name" class="swal2-input" style="width:100%;margin:7px 0" placeholder="Contoh: Tahun 1 KP27 — Percubaan A"><label style="font-size:12px;font-weight:700">Sesi tahun</label><input id="jw-subject-year" class="swal2-input" style="width:100%;margin:7px 0" type="number" min="2020" max="2100" value="${JW_SUBJECT_YEAR}"></div>`,
-        showCancelButton:true,confirmButtonText:'Simpan ke Sejarah',cancelButtonText:'Batal',
+      const modal=await Swal.fire({title:'Simpan & Aktifkan Tetapan Subjek',html:
+        `<div style="text-align:left"><label style="font-size:12px;font-weight:700">Nama set</label><input id="jw-subject-name" class="swal2-input" style="width:100%;margin:7px 0" placeholder="Contoh: Tetapan Kurikulum 2027"><label style="font-size:12px;font-weight:700">Sesi tahun</label><input id="jw-subject-year" class="swal2-input" style="width:100%;margin:7px 0" type="number" min="2020" max="2100" value="${JW_SUBJECT_YEAR}"><p style="font-size:12px;margin:8px 0">Semua baris akan disimpan terus ke JW_Subjek_Baris dan set ini dijadikan aktif. Set terdahulu kekal dalam sejarah. Tidak menjana jadual.</p></div>`,
+        showCancelButton:true,confirmButtonText:'Simpan & Aktifkan',cancelButtonText:'Batal',
         preConfirm:()=>{const name=document.getElementById('jw-subject-name').value.trim();
           const year=Number(document.getElementById('jw-subject-year').value);
           if(name.length<2||name.length>90||!Number.isInteger(year)||year<2020||year>2100){Swal.showValidationMessage('Isi nama 2–90 aksara dan sesi tahun yang sah.');return false;}
           return {name,year};}});
       if(!modal.isConfirmed)return false;
       try{
-        const res=await postToBackend({action:'fiJWSubjectArchiveSave',data:{...modal.value,data:STATE_SUBJEK}});
-        if(!res?.success)throw Error(res?.error||'Sejarah tidak berjaya disimpan.');
+        const res=await postToBackend({action:'fiJWSubjectCoreSave',data:{...modal.value,data:STATE_SUBJEK}});
+        if(!res?.success)throw Error(res?.error||'Tetapan tidak berjaya disimpan.');
         JW_SUBJECT_YEAR=Number(res.year);JW_SUBJECT_PRESETS=res.presets||[];
-        STATE_SUBJEK=res.data||STATE_SUBJEK;renderSubjekTable();jwSubjectRefreshOptions();
+        JW_SUBJECT_SELECTED=res.selected||null;
+        STATE_SUBJEK=JSON.parse(JSON.stringify(res.data||STATE_SUBJEK));
+        renderSubjekTable();jwSubjectRefreshOptions();
         const sel=document.getElementById('jwSubjectPresetSelect');if(sel){sel.value=res.id;jwSubjectPresetInfo();}
-        jwSubjectNotice('Versi '+res.name+' telah disimpan ke Sejarah ('+res.count+' rekod). Sheet dan Agihan Guru tidak diubah.');
-        const warnings=(res.warnings||[]);
-        await Swal.fire({icon:warnings.length?'warning':'success',title:'Versi disimpan',
-          html: warnings.length?'Rekod sejarah selamat. Perkara perlu disemak sebelum rombakan Agihan:<div style="text-align:left;font-size:12px;margin-top:8px">'+warnings.map(x=>'<p>• '+jwSubjectEsc(x)+'</p>').join('')+'</div>':'Semua baris disimpan sebagai snapshot baharu.',confirmButtonText:'Faham'});
+        jwSubjectNotice('Set '+res.name+' AKTIF — '+res.count+' baris disimpan sebagai rekod teras Google Sheets.');
+        const warnings=res.warnings||[];
+        await Swal.fire({icon:warnings.length?'warning':'success',title:'Disimpan & Diaktifkan',
+          html:warnings.length?'<div style="text-align:left;font-size:12px">'+warnings.map(x=>'<p>• '+jwSubjectEsc(x)+'</p>').join('')+'</div>':'Tetapan Subjek telah disimpan dalam JW_Subjek_Set, JW_Subjek_Baris dan JW_Subjek_Aktif. Jadual hasil tidak berubah.',confirmButtonText:'OK'});
         return true;
-      }catch(e){jwSubjectNotice(String(e.message||e),true);await Swal.fire('Tidak disimpan',String(e.message||e),'error');return false;}
+      }catch(e){jwSubjectNotice(String(e.message||e),true);await Swal.fire('Gagal simpan',String(e.message||e),'error');return false;}
     }
     async function jwSubjectRecall(){
       const id=document.getElementById('jwSubjectPresetSelect')?.value;
-      if(!id){await Swal.fire('Pilih sejarah','Pilih versi sebelum Panggil Semula.','info');return;}
+      if(!id){await Swal.fire('Pilih sejarah','Pilih satu set sebelum Panggil Semula.','info');return;}
       const confirm=await Swal.fire({icon:'question',title:'Panggil Semula Tetapan Subjek?',
-        text:'Editor semasa digantikan dengan salinan versi terpilih. Sejarah, Sheet, Agihan Guru dan jadual hasil tidak berubah.',
+        text:'Set sejarah dibuka dalam editor. Set aktif di Google Sheets tidak berubah sehingga kamu klik Simpan & Aktifkan atau Aktifkan Pilihan.',
         showCancelButton:true,confirmButtonText:'Panggil Semula',cancelButtonText:'Batal'});
       if(!confirm.isConfirmed)return;
       try{
         const res=await postToBackend({action:'fiJWSubjectArchiveRecall',data:{id}});
-        if(!res?.success)throw Error(res?.error||'Snapshot tidak dapat dibaca.');
+        if(!res?.success)throw Error(res?.error||'Set tidak dapat dibaca.');
         STATE_SUBJEK=JSON.parse(JSON.stringify(res.data));JW_SUBJECT_YEAR=Number(res.year)||JW_SUBJECT_YEAR;
         renderSubjekTable();jwSubjectSetTab('editor');
-        jwSubjectNotice('Salinan '+res.name+' dibuka dalam editor. Belum diaktifkan dan belum menulis ke Sheet semasa.');
+        jwSubjectNotice('Set '+res.name+' dipanggil semula. Untuk ubah versi ini, tekan Simpan & Aktifkan (versi baharu).');
       }catch(e){jwSubjectNotice(String(e.message||e),true);await Swal.fire('Gagal memanggil',String(e.message||e),'error');}
     }
     async function jwSubjectActivate(){
       const id=document.getElementById('jwSubjectPresetSelect')?.value;
-      if(!id){await Swal.fire('Pilih sejarah','Pilih satu versi tetapan subjek.','info');return;}
-      const confirm=await Swal.fire({icon:'question',title:'Aktifkan untuk Persediaan?',
-        text:'Ini hanya menandakan pilihan tetapan. Tidak mengubah Master_Tetapan_Subjek, Agihan Guru atau Jadual Waktu Hasil.',
-        showCancelButton:true,confirmButtonText:'Aktifkan Pilihan',cancelButtonText:'Batal'});
+      if(!id){await Swal.fire('Pilih sejarah','Pilih satu set Tetapan Subjek.','info');return;}
+      const confirm=await Swal.fire({icon:'question',title:'Aktifkan Set Tetapan Subjek?',
+        text:'Set ini akan menjadi data teras aktif dalam Google Sheets. Agihan Guru dan Jadual_Waktu_Hasil sedia ada tidak diubah.',
+        showCancelButton:true,confirmButtonText:'Aktifkan Set',cancelButtonText:'Batal'});
       if(!confirm.isConfirmed)return;
       try{
         const res=await postToBackend({action:'fiJWSubjectActiveSelect',data:{id}});
         if(!res?.success)throw Error(res?.error||'Aktivasi gagal.');
-        JW_SUBJECT_SELECTED=res.selected;jwSubjectRefreshOptions();
-        jwSubjectNotice('Tetapan Persediaan Aktif: '+res.selected.name+'. Jana/Shuffle lama masih menggunakan Sheet semasa sehingga integrasi Generator dinaik taraf.');
-        await Swal.fire('Tetapan dipilih','Pilihan kekal selepas refresh dan tidak mengubah hasil jadual.','success');
+        const active=await postToBackend({action:'fiJWSubjectStudioGet'});
+        if(!active?.success)throw Error('Set telah diaktifkan tetapi bacaan semula gagal. Muat semula modul.');
+        JW_SUBJECT_SELECTED=active.selected||null;JW_SUBJECT_PRESETS=active.presets||[];
+        if(Array.isArray(active.activeData)&&active.activeData.length){
+          STATE_SUBJEK=JSON.parse(JSON.stringify(active.activeData));renderSubjekTable();
+          JW_SUBJECT_YEAR=Number(active.selected?.year)||JW_SUBJECT_YEAR;
+        }
+        jwSubjectRefreshOptions();
+        jwSubjectNotice('Tetapan AKTIF: '+JW_SUBJECT_SELECTED?.name+'. Semua data tersimpan dalam Google Sheets CORE.');
+        await Swal.fire('Set telah diaktifkan','Agihan Guru dan Jadual_Waktu_Hasil tidak diubah.','success');
       }catch(e){jwSubjectNotice(String(e.message||e),true);await Swal.fire('Tidak berjaya',String(e.message||e),'error');}
     }
     document.addEventListener('change',e=>{if(e.target?.id==='jwSubjectPresetSelect')jwSubjectPresetInfo();});
@@ -1042,6 +1060,9 @@ function fiJWMessageParent(type,message){
 
       STATE_SUBJEK.forEach((row, idx) => {
         const selectedKod = row.Kod_Subjek || row.ID_Subjek || '';
+        const aliases={'Tahap 1 & 2':'ALL','Tahap 2':'T2','Tahap 1':'T1',
+          'Tahun 1':'Y1','Tahun 2':'Y2','Tahun 3':'Y3','Tahun 4':'Y4','Tahun 5':'Y5','Tahun 6':'Y6'};
+        row.Kategori_Tahap=aliases[String(row.Kategori_Tahap||'').trim()]||row.Kategori_Tahap||'ALL';
         let optS = optMasterSubjek.replace(`value="${selectedKod}"`, `value="${selectedKod}" selected`);
         let modeBlokVal = row.Mode_Block || 'Double Slot (60 Minit)';
 
@@ -1071,17 +1092,18 @@ function fiJWMessageParent(type,message){
                 <option value="Tahun 1 (KP27)" ${row.Kategori_Tahap === 'Tahun 1 (KP27)' ? 'selected' : ''}>Tahun 1 (KP27)</option>
                 <option value="Tahap 1 (KP27)" ${row.Kategori_Tahap === 'Tahap 1 (KP27)' ? 'selected' : ''}>Tahap 1 (KP27) — Legasi</option>
                 <option value="Y1" ${row.Kategori_Tahap === 'Y1' ? 'selected' : ''}>Tahun 1 sahaja</option>
+                <option value="T1" ${row.Kategori_Tahap === 'T1' ? 'selected' : ''}>Tahap 1 (Tahun 1–3)</option>
                 <option value="Y23" ${row.Kategori_Tahap === 'Y23' ? 'selected' : ''}>Tahun 2–3</option>
                 <option value="T2" ${row.Kategori_Tahap === 'T2' ? 'selected' : ''}>Tahun 4–6</option>
                 <option value="ALL" ${row.Kategori_Tahap === 'ALL' ? 'selected' : ''}>Semua Tahun 1–6</option>
               </select>
             </td>
-            <td class="p-1.5"><input type="number" data-field="Bil_Waktu_Seminggu" value="${row.Bil_Waktu_Seminggu || 6}" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-center bg-white text-emerald-700"></td>
+            <td class="p-1.5"><input type="number" data-field="Bil_Waktu_Seminggu" value="${row.Bil_Waktu_Seminggu ?? 0}" min="1" max="40" step="1" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-center bg-white text-emerald-700"></td>
             <td class="p-1.5">
               <select data-field="Mode_Block" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
                 <option value="Double Slot (60 Minit)" ${modeBlokVal.includes('Double') || modeBlokVal === 'Double' ? 'selected' : ''}>Berganda (B2) — 2 waktu berturutan</option>
                 <option value="Single Slot (30 Minit)" ${modeBlokVal.includes('Single') || modeBlokVal === 'Single' ? 'selected' : ''}>Tunggal (B1) — 1 waktu sehari</option>
-                <option value="Hybrid (Auto 2+1 Masa)" ${modeBlokVal.includes('Hybrid') || modeBlokVal.includes('Auto') ? 'selected' : ''}>Campuran (B2+1) — 2+1 hari sama, berasingan</option>
+                <option value="Hybrid (Auto 2+1 Masa)" ${modeBlokVal.includes('Hybrid') || modeBlokVal.includes('Auto') || modeBlokVal === 'B2+1' ? 'selected' : ''}>Campuran (B2+1) — 2+1 hari sama, berasingan</option>
               </select>
             </td>
             <td class="p-1.5 text-center">
@@ -1145,14 +1167,17 @@ function fiJWMessageParent(type,message){
 
       STATE_SUBJEK = ALL_MASTER_SUBJEK_LIST.map((s, idx) => {
         const kod = s.Kod_Subjek || s.ID_Subjek || '';
-        const kateg = s.Kategori_Tahap || 'Semua (KSSR)';
+        const rawKategori=String(s.Kategori_Tahap||'').trim();
+        const kategoriMap={'Tahap 1 & 2':'ALL','Tahap 2':'T2','Tahap 1':'T1',
+          'Tahun 1':'Y1','Tahun 2':'Y2','Tahun 3':'Y3','Tahun 4':'Y4','Tahun 5':'Y5','Tahun 6':'Y6'};
+        const kateg=kategoriMap[rawKategori]||rawKategori||'ALL';
         return {
           ID_Subjek: generateUniqueSubjekID(kod, kateg, idx),
           ID_Subjek_Master: String(s.ID_Subjek||''),
           Kod_Subjek: kod,
           Nama_Subjek: s['Nama_Subjek / Komponen'] || s.Nama_Subjek || s.Nama || '',
           Kategori_Tahap: kateg,
-          Bil_Waktu_Seminggu: parseInt(s.Bil_Waktu_Seminggu || 6, 10),
+          Bil_Waktu_Seminggu: s.Bil_Waktu_Seminggu ? parseInt(s.Bil_Waktu_Seminggu, 10) : 0,
           Mode_Block: s.Mode_Block || 'Double Slot (60 Minit)',
           Flag_CoTeaching: s.Flag_CoTeaching || 'FALSE'
         };
@@ -1170,7 +1195,7 @@ function fiJWMessageParent(type,message){
         const kodSubjek = r.querySelector('[data-field="Kod_Subjek"]')?.value || '';
         const namaSubjek = r.querySelector('[data-field="Nama_Subjek"]')?.value || '';
         const kategoriTahap = r.querySelector('[data-field="Kategori_Tahap"]')?.value || 'Semua (KSSR)';
-        const bilWaktu = r.querySelector('[data-field="Bil_Waktu_Seminggu"]')?.value || 6;
+        const bilWaktu = r.querySelector('[data-field="Bil_Waktu_Seminggu"]')?.value ?? '0';
         const modeBlock = r.querySelector('[data-field="Mode_Block"]')?.value || 'Double Slot (60 Minit)';
         const flagCoTeaching = r.querySelector('[data-field="Flag_CoTeaching"]')?.value || 'FALSE';
         const idTetapan = r.querySelector('[data-field="ID_Tetapan_Subjek"]')?.value || '';
@@ -1205,7 +1230,7 @@ function fiJWMessageParent(type,message){
         Kod_Subjek: '',
         Nama_Subjek: '',
         Kategori_Tahap: 'Semua (KSSR)',
-        Bil_Waktu_Seminggu: 6,
+        Bil_Waktu_Seminggu: 0,
         Mode_Block: 'Double Slot (60 Minit)',
         Flag_CoTeaching: 'FALSE'
       });
@@ -1219,27 +1244,8 @@ function fiJWMessageParent(type,message){
     }
 
     async function simpanTetapanSubjek() {
-      syncSubjekDOM();
-      const confirm=await Swal.fire({icon:'warning',title:'Simpan ke Sheet Semasa?',
-        text:'Tindakan lama ini menggantikan Master_Tetapan_Subjek dalam pangkalan data sasaran. Untuk sejarah yang tidak menjejaskan Agihan Guru, gunakan Simpan Versi dahulu.',
-        showCancelButton:true,confirmButtonText:'Ya, simpan ke Sheet',cancelButtonText:'Batal'});
-      if(!confirm.isConfirmed)return;
-      showLoader('', 'save');
-      try {
-        const res = await postToBackend({ action: 'saveJWConstraints', data: { type: 'subjek', data: STATE_SUBJEK } });
-        hideLoader();
-        if (res && res.success) {
-          Swal.fire('Berjaya', 'Tetapan subjek telah disimpan.', 'success');
-          renderAgihanGuruMatrix();
-        } else {
-          console.warn('Simpan tetapan subjek gagal:',res?.error);
-          Swal.fire('Belum disimpan','Sila semak maklumat dan cuba lagi.','error');
-        }
-      } catch (err) {
-        hideLoader();
-        console.error(err);
-        Swal.fire('Sambungan terganggu','Sila cuba lagi.','error');
-      }
+      // Semua tindakan simpan Tetapan Subjek menggunakan sumber CORE berstruktur.
+      return jwSubjectSavePreset();
     }
 
     // ================= 3. AGIHAN TUGAS =================
@@ -1294,10 +1300,10 @@ function fiJWMessageParent(type,message){
       STATE_AGIHAN_GURU.forEach(row => {
         const selectedCount = (row.senaraiKelas || []).length;
         let sub = {};
-        if (row.subjekIndex !== undefined && row.subjekIndex !== null && STATE_SUBJEK[row.subjekIndex]) {
-          sub = STATE_SUBJEK[row.subjekIndex];
+        if (row.subjekIndex !== undefined && row.subjekIndex !== null && JW_AGIHAN_SUBJEK[row.subjekIndex]) {
+          sub = JW_AGIHAN_SUBJEK[row.subjekIndex];
         } else {
-          sub = STATE_SUBJEK.find(s => s.ID_Subjek === row.idSubjek || s.Kod_Subjek === row.idSubjek) || {};
+          sub = JW_AGIHAN_SUBJEK.find(s => s.ID_Subjek === row.idSubjek || s.Kod_Subjek === row.idSubjek) || {};
         }
         const bilWaktu = parseInt(sub.Bil_Waktu_Seminggu || 0, 10);
 
@@ -1323,10 +1329,10 @@ function fiJWMessageParent(type,message){
       STATE_AGIHAN_GURU.forEach(row => {
         if (row.idGuruUtama && row.idSubjek && row.senaraiKelas && row.senaraiKelas.length > 0) {
           let sub = {};
-          if (row.subjekIndex !== undefined && row.subjekIndex !== null && STATE_SUBJEK[row.subjekIndex]) {
-            sub = STATE_SUBJEK[row.subjekIndex];
+          if (row.subjekIndex !== undefined && row.subjekIndex !== null && JW_AGIHAN_SUBJEK[row.subjekIndex]) {
+            sub = JW_AGIHAN_SUBJEK[row.subjekIndex];
           } else {
-            sub = STATE_SUBJEK.find(s => s.ID_Subjek === row.idSubjek || s.Kod_Subjek === row.idSubjek) || {};
+            sub = JW_AGIHAN_SUBJEK.find(s => s.ID_Subjek === row.idSubjek || s.Kod_Subjek === row.idSubjek) || {};
           }
 
           const idSubjek = sub.ID_Subjek || row.idSubjek;
@@ -1395,11 +1401,11 @@ function fiJWMessageParent(type,message){
 
     function getSubjekForAgihanRow(row) {
       if (!row) return {};
-      if (Number.isInteger(row.subjekIndex) && STATE_SUBJEK[row.subjekIndex]) {
-        return STATE_SUBJEK[row.subjekIndex];
+      if (Number.isInteger(row.subjekIndex) && JW_AGIHAN_SUBJEK[row.subjekIndex]) {
+        return JW_AGIHAN_SUBJEK[row.subjekIndex];
       }
-      return STATE_SUBJEK.find(s => s.ID_Subjek === row.idSubjek) ||
-          STATE_SUBJEK.find(s => s.Kod_Subjek === row.idSubjek || s.Kod_Subjek === row.kodSubjek) || {};
+      return JW_AGIHAN_SUBJEK.find(s => s.ID_Subjek === row.idSubjek) ||
+          JW_AGIHAN_SUBJEK.find(s => s.Kod_Subjek === row.idSubjek || s.Kod_Subjek === row.kodSubjek) || {};
     }
 
     function setAgihanSaveStatus(status) {
@@ -1475,7 +1481,7 @@ function fiJWMessageParent(type,message){
       const optGuru = '<option value="">-- Pilih Guru --</option>' +
         semuaGuru.map(g => `<option value="${jwEscapeHtml(g)}">${jwEscapeHtml(g)}${masterNames.includes(g) ? '' : ' (semak status staf)'}</option>`).join('');
 
-      const sourceSubjek = (STATE_SUBJEK && STATE_SUBJEK.length > 0) ? STATE_SUBJEK : ALL_MASTER_SUBJEK_LIST;
+      const sourceSubjek = (JW_AGIHAN_SUBJEK && JW_AGIHAN_SUBJEK.length > 0) ? JW_AGIHAN_SUBJEK : ALL_MASTER_SUBJEK_LIST;
       const optSubjek = '<option value="">-- Pilih Subjek --</option>' +
         sourceSubjek.map((s, i) => `<option value="${jwEscapeHtml(`${s.ID_Subjek || s.Kod_Subjek}__${i}`)}">${jwEscapeHtml(formatSubjectDropdownLabel(s))}</option>`).join('');
 
@@ -1512,7 +1518,7 @@ function fiJWMessageParent(type,message){
           const rowHours = (row.senaraiKelas || []).length * (parseInt(sub.Bil_Waktu_Seminggu, 10) || 0);
           const optG1 = optGuru.replace(`value="${jwEscapeHtml(row.idGuruUtama)}"`, `value="${jwEscapeHtml(row.idGuruUtama)}" selected`);
           const optG2 = optGuru.replace(`value="${jwEscapeHtml(row.idGuruPair)}"`, `value="${jwEscapeHtml(row.idGuruPair)}" selected`);
-          const matchIndex = STATE_SUBJEK.findIndex(s => s.ID_Subjek === row.idSubjek || s.Kod_Subjek === row.idSubjek);
+          const matchIndex = JW_AGIHAN_SUBJEK.findIndex(s => s.ID_Subjek === row.idSubjek || s.Kod_Subjek === row.idSubjek);
           const currentSelectedVal = row.idSubjekUnique || (row.idSubjek && matchIndex >= 0 ? `${row.idSubjek}__${matchIndex}` : '');
           const optSub = optSubjek.replace(`value="${jwEscapeHtml(currentSelectedVal)}"`, `value="${jwEscapeHtml(currentSelectedVal)}" selected`);
           const classesDisplayHtml = (row.senaraiKelas || []).length
@@ -1583,7 +1589,7 @@ function fiJWMessageParent(type,message){
         row.subjekIndex = null;
       } else {
         const subIndex = parseInt(val.split('__').pop(), 10);
-        const subObj = STATE_SUBJEK[subIndex] || {};
+        const subObj = JW_AGIHAN_SUBJEK[subIndex] || {};
         row.idSubjek = subObj.ID_Subjek || val.split('__')[0];
         row.kodSubjek = subObj.Kod_Subjek || row.idSubjek;
         row.subjekIndex = subIndex;
@@ -1716,7 +1722,7 @@ function fiJWMessageParent(type,message){
       const match = className.match(/\d+/);
       const year = match ? parseInt(match[0], 10) : 0;
       // Logik kategori asal dikekalkan supaya status konsisten dengan tetapan sedia ada.
-      return (STATE_SUBJEK || []).filter(s => {
+      return (JW_AGIHAN_SUBJEK || []).filter(s => {
         const kateg = String(s.Kategori_Tahap || '').toLowerCase();
         if (kateg.includes('semua')) return true;
         if ((kateg.includes('tahap 1') || kateg.includes('thp 1')) && year >= 1 && year <= 3) return true;
