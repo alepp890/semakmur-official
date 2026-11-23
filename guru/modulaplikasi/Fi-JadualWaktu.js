@@ -1090,6 +1090,15 @@ function fiJWMessageParent(type,message){
       return `${kodSubjek}-${tag}`;
     }
 
+    // Corak kanonik berasingan untuk 2+1 hari sama dan 2+1 dua hari.
+    function jwSubjectModeKeyForUI(value) {
+      const s=String(value||'').trim().toUpperCase();
+      if(s==='B2+1-2H'||s==='B2+1-HB'||s==='B2+1-DIFF'||
+          s.includes('HARI BERASINGAN')||s.includes('HARI BERBEZA')||s.includes('HARI LAIN'))return 'B2+1-2H';
+      if(s==='B1'||s.includes('SINGLE')||s.includes('TUNGGAL'))return 'B1';
+      if(s==='B2+1'||s.includes('HYBRID')||s.includes('CAMPURAN')||s.includes('2+1'))return 'B2+1';
+      return 'B2';
+    }
     function renderSubjekTable() {
       const tbody = document.getElementById('tbodyMasterSubjek');
       if (!tbody) return;
@@ -1118,7 +1127,7 @@ function fiJWMessageParent(type,message){
           'Tahun 1':'Y1','Tahun 2':'Y2','Tahun 3':'Y3','Tahun 4':'Y4','Tahun 5':'Y5','Tahun 6':'Y6'};
         row.Kategori_Tahap=aliases[String(row.Kategori_Tahap||'').trim()]||row.Kategori_Tahap||'ALL';
         let optS = optMasterSubjek.replace(`value="${selectedKod}"`, `value="${selectedKod}" selected`);
-        let modeBlokVal = row.Mode_Block || 'Double Slot (60 Minit)';
+        const modeBlokKey=jwSubjectModeKeyForUI(row.Corak_Blok || row.Mode_Block || 'B2');
 
         if (!row.ID_Subjek) {
           row.ID_Subjek = generateUniqueSubjekID(selectedKod, row.Kategori_Tahap, idx);
@@ -1155,9 +1164,10 @@ function fiJWMessageParent(type,message){
             <td class="p-1.5"><input type="number" data-field="Bil_Waktu_Seminggu" value="${row.Bil_Waktu_Seminggu ?? 0}" min="1" max="40" step="1" class="w-full p-1.5 border rounded-lg text-xs font-extrabold text-center bg-white text-emerald-700"></td>
             <td class="p-1.5">
               <select data-field="Mode_Block" class="w-full p-1.5 border rounded-lg text-xs font-bold bg-white">
-                <option value="Double Slot (60 Minit)" ${modeBlokVal.includes('Double') || modeBlokVal === 'Double' ? 'selected' : ''}>Berganda (B2) — 2 waktu berturutan</option>
-                <option value="Single Slot (30 Minit)" ${modeBlokVal.includes('Single') || modeBlokVal === 'Single' ? 'selected' : ''}>Tunggal (B1) — 1 waktu sehari</option>
-                <option value="Hybrid (Auto 2+1 Masa)" ${modeBlokVal.includes('Hybrid') || modeBlokVal.includes('Auto') || modeBlokVal === 'B2+1' ? 'selected' : ''}>Campuran (B2+1) — 2+1 hari sama, berasingan</option>
+                <option value="B2" ${modeBlokKey==='B2' ? 'selected' : ''}>Berganda (B2) — 2 waktu berturutan</option>
+                <option value="B1" ${modeBlokKey==='B1' ? 'selected' : ''}>Tunggal (B1) — 1 waktu sehari</option>
+                <option value="B2+1" ${modeBlokKey==='B2+1' ? 'selected' : ''}>Campuran (B2+1) — 2 berturut + 1 terpisah, hari sama</option>
+                <option value="B2+1-2H" ${modeBlokKey==='B2+1-2H' ? 'selected' : ''}>2+1 Hari Berasingan — B2 satu hari, B1 hari lain</option>
               </select>
             </td>
             <td class="p-1.5 text-center">
