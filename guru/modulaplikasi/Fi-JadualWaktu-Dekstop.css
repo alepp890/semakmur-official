@@ -111,3 +111,49 @@
       .asc-card-print { page-break-after: always; border: 2px solid #000 !important; margin-bottom: 0 !important; }
     }
   
+
+/* ===== Fi-JadualWaktu Grid Studio V2 — tambahan kepada gaya asal ===== */
+.jw-grid-tabs{display:flex;gap:6px;flex-wrap:wrap;padding:5px;border-radius:12px;background:#f1f5f9}
+.jw-grid-tab{border:0;border-radius:9px;padding:9px 14px;font-size:12px;font-weight:800;color:#475569;transition:background .18s}
+.jw-grid-tab:hover{background:#e2e8f0}
+.jw-grid-tab--active{background:white!important;color:#0f766e!important;box-shadow:0 1px 6px #0f172a13}
+.jw-grid-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid transparent;border-radius:10px;padding:10px 13px;font-size:12px;font-weight:800;line-height:1.3;min-height:36px;cursor:pointer;transition:background .17s}
+.jw-grid-button--main{background:linear-gradient(120deg,#115e59,#0f766e);color:white}
+.jw-grid-button--main:hover{background:#134e4a}
+.jw-grid-button--soft{color:#115e59;background:#e8f6f2;border-color:#c9e7de}
+.jw-grid-button--soft:hover{background:#d5eee5}
+.jw-grid-source{font-size:11px;letter-spacing:.1px;font-weight:700;background:#f0fdfa;border:1px solid #c6ece1;color:#155e54;padding:7px 10px;border-radius:99px}
+.jw-grid-message{font-size:12px;color:#475569;padding:10px 12px;border:1px solid #e2e8f0;background:#f8fafc;border-radius:9px}
+.jw-grid-message--error{color:#9f1239;background:#fff1f2;border-color:#fecdd3}
+.jw-grid-input{width:100%;min-width:105px;border:1px solid #cbd5e1;border-radius:9px;background:white;padding:9px 10px;font-size:12px;font-weight:650;line-height:1.25;color:#1e293b}
+.jw-grid-input:disabled{background:#f1f5f9;color:#475569}
+.jw-grid-input--short{max-width:100px;min-width:75px}
+.jw-grid-controller-stats{display:grid;grid-template-columns:repeat(2,minmax(0,240px));gap:12px}
+.jw-grid-controller-stats label,.jw-grid-day-overrides label{display:grid;gap:5px;font-size:11px;font-weight:750;color:#334155}
+.jw-grid-details{padding:12px;border-radius:10px;border:1px solid #e2e8f0;background:#fbfdff}
+.jw-grid-details summary{font-size:12px;font-weight:800;cursor:pointer;color:#155e54}
+.jw-grid-day-overrides{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:12px 0}
+.jw-grid-table{width:100%;min-width:685px;border-collapse:collapse;text-align:left;font-size:12px}
+.jw-grid-table th{padding:12px 10px;background:#f1f5f9;border-bottom:1px solid #dce3eb;font-size:11px;font-weight:800;color:#334155;white-space:nowrap}
+.jw-grid-td{padding:9px 10px;border-bottom:1px solid #edf2f7;vertical-align:middle}
+.jw-grid-row:hover{background:#f9fafb}
+.jw-grid-table input[type="checkbox"]{width:16px;height:16px;accent-color:#0f766e}
+.jw-grid-center{text-align:center}
+.jw-grid-muted{color:#94a3b8;font-weight:700}
+.jw-grid-code{display:inline-block;border:1px solid #e2e8f0;background:#f8fafc;padding:6px 8px;border-radius:7px;font-family:ui-monospace,Consolas,monospace;font-size:11px;font-weight:800;color:#475569}
+.jw-grid-day{font-weight:800;color:#0f766e}
+.jw-grid-time{font-variant-numeric:tabular-nums;font-weight:800;color:#334155;white-space:nowrap}
+.jw-grid-lock{margin-left:4px;font-size:10px;color:#94a3b8}
+.jw-grid-actions{display:flex;align-items:center;justify-content:center;gap:7px}
+.jw-grid-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:99px;border:1px solid transparent;font-size:12px;cursor:pointer}
+.jw-grid-icon--add{background:#dcfce7;border-color:#bbf7d0;color:#15803d}
+.jw-grid-icon--delete{background:#fff1f2;border-color:#ffe4e6;color:#e11d48}
+.jw-grid-icon:disabled{opacity:.4;cursor:not-allowed}
+.jw-grid-empty{text-align:center;color:#64748b;font-size:12px;padding:18px}
+.jw-grid-empty .jw-grid-icon{margin-left:12px;vertical-align:middle}
+.jw-grid-daybar{display:flex;gap:10px;align-items:center;padding:12px;background:#f0fdfa;border:1px solid #ccfbf1;border-radius:12px;flex-wrap:wrap}
+.jw-grid-daybar label{font-size:12px;font-weight:850;color:#155e54}
+.jw-grid-daybar select{max-width:175px;min-width:130px}
+.jw-grid-daycount{font-size:11px;font-weight:700;color:#64748b}
+.jw-grid-historybar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;max-width:780px}
+@media (max-width:800px){.jw-grid-day-overrides{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -32,8 +32,8 @@
     }
   </script>
 
-  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=original-1" />
-  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=original-1" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=2.0.0" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=2.0.0" />
 </head>
 <body class="min-h-screen flex text-slate-800 bg-slate-100">
 
@@ -142,54 +142,103 @@
 
     <main class="p-4 lg:p-8 space-y-6">
 
-      <!-- ================= 1. TETAPAN GRID MASA ================= -->
-      <div id="viewGridMasa" class="hidden space-y-6">
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-brand-600">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+      <!-- ================= 1. TETAPAN GRID MASA PINTAR V2 ================= -->
+      <div id="viewGridMasa" class="hidden space-y-5">
+        <section class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4 border-l-8 border-l-brand-600">
+          <div class="flex flex-wrap justify-between items-center gap-3">
             <div>
-              <h2 class="font-display font-extrabold text-xl text-slate-800">1. Tetapan Grid Masa Mengikut Hari</h2>
-              <p class="text-xs text-slate-500">Uruskan slot masa mengikut hari secara khusus (PdP 30m, Rehat 20m, PEMK 15m, Perhimpunan 30m).</p>
+              <h2 class="font-display font-extrabold text-xl text-slate-800">Tetapan Grid Masa Pintar</h2>
+              <p class="text-xs text-slate-500 mt-1">Simpan pelbagai versi grid beserta Controller asal. Grid aktif tidak akan ditimpa apabila mencipta draf.</p>
             </div>
-            <div class="flex gap-2">
-              <button onclick="tambahBarisGridMasa()" class="px-3 py-2 bg-brand-50 hover:bg-brand-100 text-brand-700 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
-                <i class="fa-solid fa-plus"></i> + Slot Masa
-              </button>
-              <button onclick="simpanGridMasa()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                <i class="fa-solid fa-floppy-disk"></i> Simpan Grid Masa
-              </button>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="jwGridSourceBadge" class="jw-grid-source">Semak sumber…</span>
+              <button onclick="jwGridCreateNew()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-plus-circle"></i> Tambah Grid Masa</button>
             </div>
           </div>
+          <div class="jw-grid-tabs" role="tablist" aria-label="Bahagian Tetapan Grid Masa">
+            <button class="jw-grid-tab jw-grid-tab--active" data-tab="controller" onclick="jwGridSetTab('controller')">Controller</button>
+            <button class="jw-grid-tab" data-tab="grid" onclick="jwGridSetTab('grid')">Penetapan Grid</button>
+            <button class="jw-grid-tab" data-tab="history" onclick="jwGridSetTab('history')">Sejarah & Panggil Semula</button>
+          </div>
+          <p id="jwGridStateMessage" class="jw-grid-message" role="status" aria-live="polite">Pilih tab untuk mengurus grid masa. Gunakan salinan UAT untuk simpan dan uji.</p>
+        </section>
 
-          <div class="flex items-center gap-3 bg-brand-50/50 p-3 rounded-xl border border-brand-200/60">
-            <label class="text-xs font-bold text-brand-900 shrink-0"><i class="fa-solid fa-calendar-day text-brand-600 mr-1"></i> Pilih Hari Grid Masa:</label>
-            <select id="selHariGridMasa" onchange="onHariGridMasaChange()" class="p-2 border border-brand-300 rounded-lg bg-white font-extrabold text-xs text-brand-900 focus:outline-none shrink-0 min-w-[160px]">
-              <option value="Isnin">Isnin</option>
-              <option value="Selasa">Selasa</option>
-              <option value="Rabu">Rabu</option>
-              <option value="Khamis">Khamis</option>
-              <option value="Jumaat">Jumaat</option>
+        <!-- CONTROLLER — tempoh disimpan dan versi grid mengambil snapshotnya -->
+        <section id="jwGridPanel_controller" class="bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div class="flex flex-wrap justify-between gap-3">
+            <div><h3 class="font-extrabold text-lg text-slate-800">Controller Grid Masa</h3>
+            <p class="text-xs text-slate-500">Ubah tempoh dan jenis slot di sini sahaja. Jam Tamat setiap slot dikira dan dikunci secara automatik.</p></div>
+            <button onclick="jwGridSaveController()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-floppy-disk"></i> Simpan Controller</button>
+          </div>
+          <div class="jw-grid-controller-stats">
+            <label>Jam mula persekolahan (lalai)
+              <input id="jwCtrlStart" type="time" value="07:40" class="jw-grid-input" /></label>
+            <label>Unit senggang guru (minit)
+              <input id="jwCtrlGap" type="number" min="5" max="180" value="30" class="jw-grid-input" /></label>
+          </div>
+          <details class="jw-grid-details">
+            <summary>Jam mula berlainan mengikut hari (pilihan)</summary>
+            <div class="jw-grid-day-overrides">
+              <label>Isnin<input id="jwCtrlStart_Isnin" type="time" class="jw-grid-input" /></label>
+              <label>Selasa<input id="jwCtrlStart_Selasa" type="time" class="jw-grid-input" /></label>
+              <label>Rabu<input id="jwCtrlStart_Rabu" type="time" class="jw-grid-input" /></label>
+              <label>Khamis<input id="jwCtrlStart_Khamis" type="time" class="jw-grid-input" /></label>
+              <label>Jumaat<input id="jwCtrlStart_Jumaat" type="time" class="jw-grid-input" /></label>
+            </div>
+            <p class="text-xs text-slate-500">Kosong = gunakan jam mula lalai di atas.</p>
+          </details>
+          <div class="overflow-x-auto"><table class="jw-grid-table">
+            <thead><tr><th>ID jenis (tetap)</th><th>Nama jenis slot</th><th>Tempoh (minit)</th><th>Kira waktu?</th><th>Aktif?</th><th>Tempoh Grid</th></tr></thead>
+            <tbody id="jwCtrlTypeRows"></tbody>
+          </table></div>
+          <div class="flex items-center justify-between gap-3 flex-wrap">
+            <button onclick="jwGridNewType()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-plus"></i> Tambah Jenis Slot</button>
+            <button onclick="jwGridUseLatestController()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-arrow-right-arrow-left"></i> Terapkan Controller pada Draf</button>
+            <span class="text-xs text-slate-500"><i class="fa-solid fa-lock"></i> Tempoh di Grid sentiasa terkunci. Simpan Controller selepas mengubah.</span>
+          </div>
+        </section>
+
+        <!-- GRID HARI — hanya kohort dan jenis slot diedit -->
+        <section id="jwGridPanel_grid" class="hidden bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div class="flex justify-between gap-3 items-start flex-wrap">
+            <div><h3 class="font-extrabold text-lg text-slate-800">Penetapan Grid Mengikut Hari</h3>
+              <p id="jwGridWorkingLabel" class="text-xs font-bold text-brand-700 mt-1">Grid aktif sedia ada · baca sahaja</p>
+              <p id="jwGridModeHint" class="text-xs text-slate-500 mt-1">Klik “Tambah Grid Masa” untuk membuat draf baharu.</p></div>
+            <div class="flex gap-2 flex-wrap">
+              <button onclick="simpanGridMasa()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-box-archive"></i> Simpan ke Sejarah</button>
+              <button onclick="jwGridApplyActive()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-shield-check"></i> Gunakan sebagai Grid Aktif (UAT)</button>
+            </div>
+          </div>
+          <div class="jw-grid-daybar">
+            <label for="selHariGridMasa">Pilih hari:</label>
+            <select id="selHariGridMasa" onchange="onHariGridMasaChange()" class="jw-grid-input">
+              <option value="Isnin">Isnin</option><option value="Selasa">Selasa</option><option value="Rabu">Rabu</option>
+              <option value="Khamis">Khamis</option><option value="Jumaat">Jumaat</option>
             </select>
+            <span id="jwGridDayCount" class="jw-grid-daycount">0 slot</span>
           </div>
+          <div class="overflow-x-auto"><table class="jw-grid-table jw-grid-table--editor">
+            <thead><tr>
+              <th class="jw-grid-center">Bil.</th><th>Kumpulan Murid / Kohort</th><th class="jw-grid-center">Hari</th>
+              <th class="jw-grid-center">No. Waktu</th><th class="jw-grid-center">Jam Mula</th>
+              <th class="jw-grid-center">Jam Tamat <i class="fa-solid fa-lock" title="Automatik"></i></th>
+              <th>Jenis Slot</th><th class="jw-grid-center">Tindakan</th>
+            </tr></thead>
+            <tbody id="tbodyGridMasa"></tbody>
+          </table></div>
+          <p class="text-xs text-slate-500">Slot ID dijana automatik dan disembunyikan. Rehat tidak dikira sebagai waktu; Perhimpunan dan Pembentukan Karakter dikira satu waktu masing-masing.</p>
+        </section>
 
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
-                <tr>
-                  <th class="table-cell-std w-12 text-center">BIL</th>
-                  <th class="table-cell-std w-36">Slot ID (Unik)</th>
-                  <th class="table-cell-std w-48">Tahap / Kohort</th>
-                  <th class="table-cell-std w-24 text-center">Hari</th>
-                  <th class="table-cell-std w-24 text-center">No. Waktu</th>
-                  <th class="table-cell-std w-32">Jam Mula</th>
-                  <th class="table-cell-std w-32">Jam Tamat</th>
-                  <th class="table-cell-std">Jenis Slot</th>
-                  <th class="table-cell-std w-16 text-center">Padam</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyGridMasa" class="divide-y divide-slate-100 font-medium"></tbody>
-            </table>
+        <!-- SEJARAH — snapshot merangkumi semua hari dan Controller -->
+        <section id="jwGridPanel_history" class="hidden bg-white p-5 lg:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div><h3 class="font-extrabold text-lg text-slate-800">Sejarah Grid Masa</h3>
+            <p class="text-xs text-slate-500">Setiap versi menyimpan semua hari dan tetapan Controller pada masa itu, termasuk PdPc, rehat, karakter, perhimpunan, senggang dan jam mula.</p></div>
+          <div class="jw-grid-historybar">
+            <select id="jwGridPresetSelect" class="jw-grid-input" aria-label="Pilih sejarah grid"><option value="">— Pilih sejarah grid —</option></select>
+            <button onclick="jwGridRecall()" class="jw-grid-button jw-grid-button--main"><i class="fa-solid fa-clock-rotate-left"></i> Panggil Semula</button>
           </div>
-        </div>
+          <p class="text-xs text-slate-500">Jumlah versi dipaparkan: <strong id="jwGridPresetCount">0</strong>. Panggil semula sebagai draf, bukan menimpa jadual aktif.</p>
+        </section>
       </div>
 
       <!-- ================= 2. TETAPAN SUBJEK ================= -->
@@ -381,7 +430,7 @@
 
   <!-- Penyambung portal Fi: identiti/endpoint sahaja; UI asal dikekalkan. -->
   <script src="../../firebase-pilot-config.js"></script>
-  <script src="../../Fi-APIConfig.js"></script>
-  <script src="Fi-JadualWaktu.js?v=1.0.2" defer></script>
+  <script src="../../Fi-APIConfig.js?v=fijw-1.0.3"></script>
+  <script src="Fi-JadualWaktu.js?v=2.0.0" defer></script>
 </body>
 </html>

@@ -4,3 +4,18 @@
       .jw-loader-info{padding:29px;}.jw-loader-logo{margin-bottom:27px;}
       .jw-loader-art{display:none;}.jw-loader-description{margin-bottom:25px;}
     }
+
+/* ===== Grid Studio V2 — paparan skrin kecil, tanpa mengubah gaya PWA modul lain ===== */
+@media (max-width:767px){
+  #viewGridMasa section{padding:14px!important;border-radius:14px}
+  .jw-grid-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+  .jw-grid-tab{font-size:10px;padding:9px 5px}
+  .jw-grid-button{font-size:11px;min-height:38px;padding:9px 10px}
+  .jw-grid-controller-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .jw-grid-input{font-size:11px;padding:8px;min-width:94px}
+  .jw-grid-table{min-width:680px}
+  .jw-grid-day-overrides{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .jw-grid-historybar{grid-template-columns:minmax(0,1fr)}
+  .jw-grid-historybar .jw-grid-button{width:100%}
+  .jw-grid-daybar select{max-width:200px}
+}
