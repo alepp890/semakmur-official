@@ -648,7 +648,7 @@ function fiJWMessageParent(type,message){
         JW_GRID_PRESETS=res.presets||[];JW_GRID_SOURCE=res.source;
         JW_GRID_SELECTED=res.selected||null;
         JW_GRID_LOADED=true;
-        const src=document.getElementById('jwGridSourceBadge');if(src)src.textContent=res.source==='SALINAN_UAT'?'Sumber: UAT':'Sumber: ASAL (baca sahaja)';
+        const src=document.getElementById('jwGridSourceBadge');if(src)src.textContent=res.source==='GOOGLE_SHEETS_TERAS'?'Sumber: Sheets CORE':res.source==='SALINAN_UAT'?'Sumber: UAT':'Sumber lama · jalankan Setup CORE';
         if(res.selected && Array.isArray(res.selectedGrid) && res.selectedController){
           STATE_GRID_MASA=res.selectedGrid.map(r=>({...r,__legacy:true}));
           JW_GRID_WORK_CTRL=jwGridClone(res.selectedController);
@@ -787,14 +787,14 @@ function fiJWMessageParent(type,message){
       // Simpan sebagai sejarah — tidak menimpa Master_Grid_Masa secara senyap.
       if(!STATE_GRID_MASA.length)return Swal.fire('Grid kosong','Tambah sekurang-kurangnya satu slot sebelum menyimpan.','warning');
       const q=await Swal.fire({title:'Simpan sejarah Grid Masa',input:'text',inputLabel:'Nama versi grid',
-        inputValue:'Grid '+new Date().toLocaleDateString('ms-MY')+' — '+(JW_GRID_MODE==='legacy'?'Sandaran Asal':'Draf'),
+        inputValue:'Grid '+new Date().toLocaleDateString('ms-MY')+' — '+(JW_GRID_MODE==='legacy'?'Sandaran Asal':'Versi Baharu'),
         inputPlaceholder:'Contoh: Grid 2027 — Tahun 1 Karakter',showCancelButton:true,confirmButtonText:'Simpan versi',cancelButtonText:'Batal',
         inputValidator:value=>!String(value||'').trim()?'Masukkan nama versi grid.':undefined});
       if(!q.isConfirmed)return;
       showLoader('','save');try{
         const res=await jwGridSavePreset(q.value);hideLoader();
         jwGridColorMessage('Versi '+res.id+' telah disimpan bersama tetapan Controller.');
-        Swal.fire('Versi disimpan','Grid dan Controller telah disimpan dalam sejarah UAT. Grid aktif tidak berubah.','success');
+        Swal.fire('Versi disimpan','Semua slot dan Controller disimpan sebagai rekod berstruktur dalam Google Sheets CORE. Pilihan grid aktif tidak berubah.','success');
       }catch(e){hideLoader();Swal.fire('Belum disimpan',e.message,'error');}
     }
     async function jwGridCreateNew(){
@@ -841,7 +841,7 @@ function fiJWMessageParent(type,message){
     async function jwGridSaveController(){
       if(!JW_GRID_LOADED)return Swal.fire('Sumber belum sedia','Studio Grid belum berjaya dimuatkan.','warning');
       try{jwGridReadController();}catch(e){return Swal.fire('Controller',e.message,'error');}
-      const q=await Swal.fire({title:'Simpan Controller?',text:'Tetapan baharu digunakan untuk draf seterusnya. Grid aktif dan sejarah lama tidak berubah.',showCancelButton:true,confirmButtonText:'Simpan Controller',cancelButtonText:'Batal'});
+      const q=await Swal.fire({title:'Simpan Controller?',text:'Controller disimpan sebagai baris berstruktur dalam Google Sheets CORE. Grid aktif dan sejarah lama tidak berubah.',showCancelButton:true,confirmButtonText:'Simpan Controller',cancelButtonText:'Batal'});
       if(!q.isConfirmed)return;
       showLoader('','save');try{
         const res=await postToBackend({action:'fiJWGridControllerSave',data:{controller:JW_GRID_CTRL,expectedVersion:JW_GRID_CTRL_VERSION}});
