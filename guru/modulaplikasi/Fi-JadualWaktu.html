@@ -32,8 +32,8 @@
     }
   </script>
 
-  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=2.4.0" />
-  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=2.4.0" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=2.6.4" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=2.6.4" />
 </head>
 <body class="min-h-screen text-slate-800 bg-slate-100">
 
@@ -240,6 +240,7 @@
             </div>
           </div>
 
+          <div id="jwSubjectErrors" class="jw-subject-errors" role="alert" hidden></div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
               <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
@@ -258,6 +259,31 @@
             </table>
           </div>
         </div>
+        <section class="jw-subject-totals-section bg-white rounded-2xl border border-slate-200" aria-label="Penetapan jumlah waktu mata pelajaran">
+          <div class="jw-subject-section-head">
+            <div>
+              <h3 class="font-extrabold text-lg text-slate-800">Penetapan Jumlah Waktu Keseluruhan Subjek</h3>
+              <p class="text-xs text-slate-500">Sasaran mengikut subjek dan kumpulan tahun. Disimpan bersama versi tetapan dalam Google Sheets CORE.</p>
+            </div>
+            <button type="button" onclick="jwSubjectAddTarget()" class="jw-grid-button jw-grid-button--soft"><i class="fa-solid fa-plus"></i> Tambah Sasaran Subjek</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200"><tr>
+                <th class="table-cell-std w-12 text-center">BIL</th>
+                <th class="table-cell-std">Subjek</th>
+                <th class="table-cell-std">Kohort / Tahun</th>
+                <th class="table-cell-std w-40 text-center">Sasaran Waktu / Minggu</th>
+                <th class="table-cell-std w-16 text-center">Padam</th>
+              </tr></thead>
+              <tbody id="jwSubjectTargetsBody"></tbody>
+            </table>
+          </div>
+        </section>
+        <section class="jw-subject-totals-section bg-white rounded-2xl border border-slate-200" aria-label="Ringkasan jumlah waktu mengikut tahun">
+          <div class="jw-subject-section-head"><h3 class="font-extrabold text-lg text-slate-800">Jumlah Waktu Seminggu Mengikut Kohort</h3></div>
+          <div id="jwSubjectCohortTotals" class="jw-subject-cohort-grid" aria-live="polite"></div>
+        </section>
         </section>
       </div>
 
@@ -410,6 +436,6 @@
   <!-- Penyambung portal Fi: identiti/endpoint sahaja; UI asal dikekalkan. -->
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js?v=fijw-1.0.3"></script>
-  <script src="Fi-JadualWaktu.js?v=2.4.0" defer></script>
+  <script src="Fi-JadualWaktu.js?v=2.6.4" defer></script>
 </body>
 </html>

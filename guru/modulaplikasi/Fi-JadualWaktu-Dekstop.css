@@ -223,3 +223,40 @@
 .jw-subject-historybar select{min-width:230px;max-width:420px;flex:1 1 230px}
 .jw-subject-metadata{font-size:12px;color:#64748b}
 .jw-subject-metadata:empty{display:none}
+
+
+/* V2.6.4 — Tetapan Subjek CORE: padanan gaya dialog rasmi Smart Tugasan Mingguan. */
+.jw-subject-errors {border:1px solid #f3b8ba;background:#fff5f4;border-radius:13px;padding:12px 15px;color:#9f292e;font:600 12px/1.6 'Plus Jakarta Sans',sans-serif}
+.jw-subject-errors[hidden]{display:none!important}
+.jw-subject-errors strong{display:block;font-weight:800;margin-bottom:4px}
+.jw-subject-errors p{margin:3px 0}
+#tbodyMasterSubjek .jw-subject-error-row,#jwSubjectTargetsBody .jw-subject-error-row{background:#fff0ee!important;box-shadow:inset 4px 0 0 #e15b5b}
+#tbodyMasterSubjek .jw-subject-error-row td,#jwSubjectTargetsBody .jw-subject-error-row td{border-bottom-color:#f2b3b1!important}
+#tbodyMasterSubjek .jw-subject-error-row select,#tbodyMasterSubjek .jw-subject-error-row input,#jwSubjectTargetsBody .jw-subject-error-row select,#jwSubjectTargetsBody .jw-subject-error-row input{border-color:#d65b56!important}
+.jw-subject-totals-section{padding:17px 20px;display:flex;flex-direction:column;gap:13px}
+.jw-subject-section-head{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.jw-subject-section-head h3{margin:0}
+.jw-subject-target-row td{vertical-align:middle;border-bottom:1px solid #edf1f3}
+.jw-subject-target-row select,.jw-subject-target-row input{min-width:110px;font-size:12px}
+.jw-subject-target-number{max-width:150px;text-align:center;font-weight:800}
+.jw-subject-delete{border:0;background:#fff0ee;color:#b84045;border-radius:9px;padding:8px 11px;cursor:pointer}
+.jw-subject-delete:hover{background:#fdd9d5}
+.jw-subject-empty-target{padding:18px;text-align:center;color:#6b7280;font-size:12px}
+.jw-subject-cohort-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.jw-subject-cohort-card{padding:15px;border-radius:13px;background:#f4f8f6;border:1px solid #dbe9e2;display:flex;flex-direction:column;gap:7px;min-width:0}
+.jw-subject-cohort-card strong{color:#3e6558;font-size:12px;font-weight:800}
+.jw-subject-cohort-card span{color:#20392f;font-size:18px;font-weight:800;overflow-wrap:anywhere}
+/* Popup rasmi: kad putih, sudut bulat, mesej bersih dan butang jelas. */
+.swal2-popup.jw-subject-swal{width:min(420px,calc(100vw - 32px))!important;border:1px solid #dce8e4!important;border-radius:20px!important;padding:25px 23px 22px!important;box-shadow:0 23px 70px rgba(28,54,46,.24)!important;color:#263e37!important;font-family:'Plus Jakarta Sans',sans-serif!important}
+.jw-subject-swal .swal2-icon{transform:scale(.78);margin:0 auto 11px!important}
+.jw-subject-swal .jw-subject-dialog-title{font:800 16px/1.45 'Plus Jakarta Sans',sans-serif!important;margin:0 0 8px!important;color:#25473d!important}
+.jw-subject-swal .jw-subject-dialog-body{font:500 12px/1.65 'Plus Jakarta Sans',sans-serif!important;color:#526b60!important;line-height:1.65!important;margin:0 0 10px!important;overflow-wrap:anywhere}
+.jw-subject-swal .swal2-actions{width:100%;margin-top:17px!important;gap:9px!important;justify-content:center}
+.jw-subject-swal .jw-subject-confirm,.jw-subject-swal .jw-subject-cancel{border:0;border-radius:10px;padding:12px 18px;min-height:43px;cursor:pointer;font:800 12px 'Plus Jakarta Sans',sans-serif!important}
+.jw-subject-swal .jw-subject-confirm{background:#216f5b;color:white;box-shadow:0 4px 12px rgba(33,111,91,.16)}
+.jw-subject-swal .jw-subject-cancel{background:#eef2f0;color:#33564c}
+.jw-subject-swal .jw-subject-confirm:focus-visible,.jw-subject-swal .jw-subject-cancel:focus-visible{outline:2px solid #55b99d;outline-offset:3px}
+.jw-subject-swal .swal2-input{font:500 13px 'Plus Jakarta Sans',sans-serif;border:1px solid #dce8e4;border-radius:10px;box-shadow:none}
+.jw-subject-popup-errors{text-align:left;max-height:40vh;overflow:auto}
+.jw-subject-popup-errors p{border-bottom:1px solid #e5ebe8;padding:6px 0;margin:0!important}
+@media(max-width:780px){.jw-subject-cohort-grid{grid-template-columns:1fr}.jw-subject-totals-section{padding:13px}.jw-subject-swal .swal2-actions{flex-wrap:wrap}}
