@@ -387,7 +387,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#fi-jadual');
     if(frame.dataset.fiReady==='1')$('fi-jadual-loading').hidden=true;
     else fiJadualWorkspaceStatus('Membuka Fi-JadualWaktu…','Mengesahkan pentadbir dan membuka salinan jadual UAT.');
-    if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-JadualWaktu.html?embed=1&v=1.0.1';
+    if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-JadualWaktu.html?embed=1&v=original-1';
     if(frame.dataset.fiReady!=='1')fiJadualStartWatchdog();
     fiV6Header();
   }
@@ -403,7 +403,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     const frame=$('fi-jadual-workspace-frame');if(!frame)return;
     frame.dataset.fiReady='0';fiJadualWorkspaceStatus('Muat semula Fi-JadualWaktu…','Menyemak sesi pentadbir Fi.');
     fiJadualStartWatchdog();
-    frame.src='modulaplikasi/Fi-JadualWaktu.html?embed=1&v=1.0.1&retry='+Date.now();
+    frame.src='modulaplikasi/Fi-JadualWaktu.html?embed=1&v=original-1&retry='+Date.now();
   }
   window.closeFiJadualWorkspace=closeFiJadualWorkspace;
   window.retryFiJadualWorkspace=retryFiJadualWorkspace;
