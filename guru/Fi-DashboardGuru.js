@@ -357,6 +357,17 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   window.closeTugasanWorkspace=closeTugasanWorkspace;
   window.retryTugasanWorkspace=retryTugasanWorkspace;
   // Fi-JadualWaktu — navigasi selaras e-Tugasan, tanpa tab baharu.
+  let fiJadualWatchdog=null;
+  function fiJadualStopWatchdog(){if(fiJadualWatchdog){clearTimeout(fiJadualWatchdog);fiJadualWatchdog=null;}}
+  function fiJadualStartWatchdog(){
+    fiJadualStopWatchdog();
+    fiJadualWatchdog=setTimeout(()=>{
+      const pane=$('fi-jadual-workspace'),frame=$('fi-jadual-workspace-frame');
+      if(pane?.hidden||frame?.dataset.fiReady==='1')return;
+      fiJadualWorkspaceStatus('Fi-JadualWaktu belum dapat dibuka',
+        'Modul tidak menghantar pengesahan siap. Semak sambungan Fi-Sync atau cuba muat semula.',true);
+    },110000);
+  }
   function fiJadualWorkspaceStatus(title,msg,isError=false){
     const overlay=$('fi-jadual-loading');if(!overlay)return;
     overlay.hidden=false;overlay.classList.toggle('is-error',isError);
@@ -376,11 +387,13 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#fi-jadual');
     if(frame.dataset.fiReady==='1')$('fi-jadual-loading').hidden=true;
     else fiJadualWorkspaceStatus('Membuka Fi-JadualWaktu…','Mengesahkan pentadbir dan membuka salinan jadual UAT.');
-    if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-JadualWaktu.html?embed=1&v=1.0.0';
+    if(!frame.getAttribute('src'))frame.src='modulaplikasi/Fi-JadualWaktu.html?embed=1&v=1.0.1';
+    if(frame.dataset.fiReady!=='1')fiJadualStartWatchdog();
     fiV6Header();
   }
   function closeFiJadualWorkspace(keepHash){
     const pane=$('fi-jadual-workspace');if(!pane||pane.hidden)return;
+    fiJadualStopWatchdog();
     pane.hidden=true;pane.classList.remove('is-open');$('page-scroll').classList.remove('hidden');
     if(!keepHash){rememberWorkspace('laman_utama');
       if(location.hash==='#fi-jadual'&&history.replaceState)history.replaceState(null,'',location.pathname+location.search);}
@@ -389,7 +402,8 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   function retryFiJadualWorkspace(){
     const frame=$('fi-jadual-workspace-frame');if(!frame)return;
     frame.dataset.fiReady='0';fiJadualWorkspaceStatus('Muat semula Fi-JadualWaktu…','Menyemak sesi pentadbir Fi.');
-    frame.src='modulaplikasi/Fi-JadualWaktu.html?embed=1&v=1.0.0&retry='+Date.now();
+    fiJadualStartWatchdog();
+    frame.src='modulaplikasi/Fi-JadualWaktu.html?embed=1&v=1.0.1&retry='+Date.now();
   }
   window.closeFiJadualWorkspace=closeFiJadualWorkspace;
   window.retryFiJadualWorkspace=retryFiJadualWorkspace;
@@ -567,7 +581,8 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     const hemMurid=!$('pengurusan-murid-workspace').hidden;
     const back=$('v4-back');
     if(!fiV6Mobile()){back.hidden=true;return;}
-    back.hidden=!(fiV6ScheduleOpen||attendance||keberadaan||relief||tugasan||fiJadual||hemMurid);
+    // Fi-JadualWaktu: tiada butang Kembali dalam header PWA; gunakan navigasi portal.
+    back.hidden=!(fiV6ScheduleOpen||attendance||keberadaan||relief||tugasan||hemMurid);
     $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':fiV8AttendanceSection==='semakan'?'Semakan Kehadiran':'Kehadiran Kelas'):keberadaan?'e-Keberadaan':relief?'e-Relief':tugasan?'e-Tugasan Mingguan':fiJadual?'Fi-JadualWaktu':hemMurid?'Pengurusan Murid':'SeMAKMUR Smart System';
     document.body.classList.toggle('fi-v6-on-schedule',fiV6ScheduleOpen);
     document.body.classList.toggle('fi-v6-on-attendance',attendance);
@@ -942,8 +957,10 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     window.addEventListener('message',e=>{
       if(e.origin!==location.origin||e.source!==$('fi-jadual-workspace-frame')?.contentWindow)return;
       if(e.data?.type==='semakmur-fi-jw-ready'){
+        fiJadualStopWatchdog();
         $('fi-jadual-workspace-frame').dataset.fiReady='1';$('fi-jadual-loading').hidden=true;
       }else if(e.data?.type==='semakmur-fi-jw-error'){
+        fiJadualStopWatchdog();
         fiJadualWorkspaceStatus('Fi-JadualWaktu belum tersedia',String(e.data.message||'Sila semak akses Fi-Sync.'),true);
       }
     });
