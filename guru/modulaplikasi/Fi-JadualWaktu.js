@@ -1,4 +1,4 @@
-/* SeMAKMUR Fi-JadualWaktu V1.0 UAT — exactly four frontend files. */
+/* SeMAKMUR Fi-JadualWaktu V1.0.1 UAT — pembetulan handshake iframe. */
 'use strict';
 let fiJWAuthContext = null;
 const FI_JW_LOGIN_PAGE = '../../Fi-LoginSession.html';
@@ -48,7 +48,11 @@ async function fiJWRequest(request){
     frame.setAttribute('sandbox','allow-forms allow-scripts allow-same-origin');
     const form=document.createElement('form');form.method='POST';form.action=fiJWApiUrl();form.target=frame.name;form.hidden=true;
     const field=document.createElement('input');field.type='hidden';field.name='payload';field.value=JSON.stringify(data);form.appendChild(field);
-    let done=false;const timeout=setTimeout(()=>settle(Error('Tiada respons Fi-Sync. Semak Apps Script Executions dan deployment.')),360000);
+    // Panggilan bacaan tidak sepatutnya menahan loading sehingga 6 minit.
+    // Penjanaan/penyimpanan UAT mengekalkan had panjang kerana boleh mengambil masa.
+    const readOnly=/^(fiJWStatus|getManualV2Data|getJWConstraints|getJadualWaktuHasil)$/.test(String(request.action||''));
+    const timeoutMs=readOnly?90000:360000;
+    let done=false;const timeout=setTimeout(()=>settle(Error('Fi-Sync tidak memberi respons dalam masa yang ditetapkan. Semak deployment, kebenaran akses dan Apps Script Executions.')),timeoutMs);
     function cleanup(){clearTimeout(timeout);window.removeEventListener('message',onMessage);frame.remove();form.remove();}
     function settle(err,result){if(done)return;done=true;cleanup();err?reject(err):resolve(result);}
     function onMessage(event){
@@ -245,13 +249,18 @@ let STATE_GRID_MASA = [];
         JW_HASIL_VIEW_RENDERED = true;
         hideLoader();
         syncJwActionButtons();
+        // V1.0.1: Dashboard hanya menutup overlay apabila menerima mesej READY.
+        // V1.0 tidak return nilai kejayaan, menyebabkan spinner ibu kekal selama-lamanya.
+        return true;
       } catch (error) {
         console.error('Gagal membuka portal jadual waktu:',error);
         hideLoader();
         setJwHasilStatus('error');
-        Swal.fire({icon:'error',title:'Paparan belum tersedia',
-          text:'Sila semak sambungan internet dan cuba muat semula halaman.',
-          confirmButtonText:'Faham'});
+        const message=String(error?.message||error||'Ralat memuatkan jadual waktu.');
+        fiJWMessageParent('semakmur-fi-jw-error',message);
+        if(window.Swal?.fire) Swal.fire({icon:'error',title:'Paparan belum tersedia',
+          text:message,confirmButtonText:'Faham'});
+        return false;
       }
     }
 
