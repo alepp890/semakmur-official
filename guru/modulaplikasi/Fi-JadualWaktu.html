@@ -32,8 +32,8 @@
     }
   </script>
 
-  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=3.0-UAT1" />
-  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=3.0-UAT1" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=3.0-UAT2" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=3.0-UAT2" />
 </head>
 <body class="min-h-screen text-slate-800 bg-slate-100">
 
@@ -176,7 +176,7 @@
               <option value="Khamis">Khamis</option><option value="Jumaat">Jumaat</option>
             </select>
             <span id="jwGridDayCount" class="jw-grid-daycount">0 slot</span>
-            <button id="jwGridAddPra" type="button" disabled onclick="tambahBarisGridMasa(true)" class="jw-grid-button jw-grid-button--soft">+ Slot Prasekolah</button>
+            <button id="jwGridAddPra" type="button" disabled onclick="tambahBarisGridMasa(true)" class="jw-grid-button jw-grid-button--soft">+ Slot Prasekolah</button><button id="jwGridRefPra" type="button" disabled onclick="jwGridBuildReferencePra()" class="jw-grid-button jw-grid-button--soft">Bina Slot PRA daripada Grid</button>
           </div>
           <p class="text-xs text-slate-500">Slot Prasekolah adalah pilihan masa tersedia sahaja. Jam mula boleh ditetapkan berasingan; baki waktu tidak perlu ditambah. Jam tamat ikut tempoh jenis slot Controller.</p>
           <div class="overflow-x-auto"><table class="jw-grid-table jw-grid-table--editor">
@@ -478,6 +478,6 @@
   <!-- Penyambung portal Fi: identiti/endpoint sahaja; UI asal dikekalkan. -->
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js?v=fijw-1.0.3"></script>
-  <script src="Fi-JadualWaktu.js?v=3.0-UAT1" defer></script>
+  <script src="Fi-JadualWaktu.js?v=3.0-UAT2" defer></script>
 </body>
 </html>
