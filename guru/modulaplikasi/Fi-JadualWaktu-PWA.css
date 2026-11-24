@@ -128,3 +128,20 @@
 .jw-agihan-panel{padding:11px}
 }
 @media(max-width:680px){.jw-agihan-core .jw-agihan-field>input,.jw-agihan-core .jw-agihan-field>select{font-size:13px}.jw-agihan-core .jw-agihan-btn{font-size:12px}.jw-agihan-core .jw-agihan-teacher-name{font-size:13px}}
+
+
+/* V2.8.0-F2A — Constraints CORE sahaja, susunan responsif. */
+@media(max-width:680px){
+#viewGuruConstraints .jw-agihan-toolbar .jw-agihan-field:first-child{min-width:0;flex:1 1 100%}
+#viewGuruConstraints .jw-agihan-toolbar .jw-agihan-year{flex:1 1 100%}
+#viewGuruConstraints .jw-con-limit-grid{grid-template-columns:1fr;gap:10px}
+#viewGuruConstraints .jw-con-limit-grid label{min-height:0}
+#viewGuruConstraints .jw-con-specific-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#viewGuruConstraints .jw-con-locked-grid{grid-template-columns:1fr}
+#viewGuruConstraints .jw-con-check{padding:10px 9px}
+#viewGuruConstraints .jw-agihan-tabs{flex-wrap:wrap;overflow:visible}
+#viewGuruConstraints .jw-agihan-tab{white-space:normal}
+#viewGuruConstraints .jw-agihan-history-item{align-items:flex-start}
+#viewGuruConstraints .jw-con-help,#viewGuruConstraints .jw-con-check small,#viewGuruConstraints .jw-con-info{font-size:12px}
+}
+@media(max-width:380px){#viewGuruConstraints .jw-con-specific-grid{grid-template-columns:1fr}}

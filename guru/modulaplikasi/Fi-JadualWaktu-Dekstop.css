@@ -356,3 +356,41 @@
 /* Kebolehbacaan: saiz teks input Agihan mengikut standard portal. */
 .jw-agihan-core .jw-agihan-field>input,.jw-agihan-core .jw-agihan-field>select,.jw-agihan-core .jw-agihan-history-actions select{font-size:13px}
 .jw-agihan-core .jw-agihan-check,.jw-agihan-core .jw-agihan-count{font-size:12px}
+
+
+/* V2.8.0-F2A — Constraints sahaja: guna komponen Agihan CORE yang sedia ada. */
+#viewGuruConstraints .jw-con-columns{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);gap:12px;align-items:start}
+#viewGuruConstraints .jw-con-panel{min-width:0}
+#viewGuruConstraints .jw-con-icon{color:#53806c;margin-right:7px;font-size:13px}
+#viewGuruConstraints .jw-con-inactive{background:#f0f2f1;color:#61736a;border-color:#dce5df}
+#viewGuruConstraints .jw-con-limit-grid,#viewGuruConstraints .jw-con-specific-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;align-items:start}
+#viewGuruConstraints .jw-con-limit-grid label{min-height:32px;display:flex;align-items:end}
+#viewGuruConstraints .jw-con-help{display:block;color:var(--a-muted);font-size:11px;line-height:1.55;font-weight:500;margin:0}
+#viewGuruConstraints .jw-con-checklist{display:grid;gap:7px;margin-top:12px}
+#viewGuruConstraints .jw-con-check{display:flex;align-items:flex-start;gap:9px;border:1px solid #dfe9e3;background:#f8faf8;border-radius:9px;padding:10px 11px;line-height:1.5;min-width:0}
+#viewGuruConstraints .jw-con-check input{flex:0 0 15px;margin:2px 0 0}
+#viewGuruConstraints .jw-con-check span{min-width:0}
+#viewGuruConstraints .jw-con-check strong{display:block;font-size:12px;color:#294a3b;font-weight:700}
+#viewGuruConstraints .jw-con-check small{display:block;font-size:11px;color:var(--a-muted);margin-top:2px;font-weight:500}
+#viewGuruConstraints .jw-con-info{display:flex;gap:8px;align-items:flex-start;font-size:11px;line-height:1.55;color:var(--a-muted);margin:11px 0 0}
+#viewGuruConstraints .jw-con-info i{margin-top:3px;color:#648675}
+#viewGuruConstraints .jw-con-link-flow{display:grid;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);gap:7px;align-items:center;text-align:center;margin:3px 0 10px}
+#viewGuruConstraints .jw-con-link-flow>div{border:1px solid #d9e7df;border-radius:9px;background:#f4f8f6;padding:10px 7px;min-width:0}
+#viewGuruConstraints .jw-con-link-flow strong{display:block;font-size:17px;color:#216653;font-weight:800}
+#viewGuruConstraints .jw-con-link-flow small{display:block;font-size:11px;color:var(--a-muted);overflow-wrap:anywhere}
+#viewGuruConstraints .jw-con-link-flow>i{color:#648675;font-size:12px}
+#viewGuruConstraints .jw-con-link-details{margin:8px 0 0;font-size:12px}
+#viewGuruConstraints .jw-con-link-details>div{display:flex;justify-content:space-between;gap:8px;padding:5px 2px;border-bottom:1px solid #edf2ee}
+#viewGuruConstraints .jw-con-link-details dt{color:var(--a-muted)}
+#viewGuruConstraints .jw-con-link-details dd{margin:0;color:var(--a-ink);font-weight:700;text-align:right}
+#viewGuruConstraints .jw-con-specific-list{display:grid;gap:9px;margin-top:10px}
+#viewGuruConstraints .jw-con-specific-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;font-size:12px}
+#viewGuruConstraints .jw-con-specific-head strong{font-weight:750}
+#viewGuruConstraints .jw-con-remove{color:#a9443c;background:#fff5f4;border-color:#f3d1cd;padding:6px 10px}
+#viewGuruConstraints .jw-con-locked-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#viewGuruConstraints .jw-con-locked-item{display:flex;align-items:center;gap:8px;border:1px solid #e0e9e3;background:#f8faf8;border-radius:8px;padding:9px 10px;font-size:12px;font-weight:600;line-height:1.5;min-width:0}
+#viewGuruConstraints .jw-con-locked-item i{color:#718779;font-size:11px;flex:none}
+#viewGuruConstraints .jw-con-locked-item span{min-width:0;overflow-wrap:anywhere}
+#viewGuruConstraints .jw-agihan-history-item>div{min-width:0;overflow-wrap:anywhere}
+#viewGuruConstraints .jw-agihan-field>input[readonly]{background:#f4f7f5;color:#60746a}
+@media(max-width:1000px){#viewGuruConstraints .jw-con-columns{grid-template-columns:1fr}#viewGuruConstraints .jw-con-locked-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
