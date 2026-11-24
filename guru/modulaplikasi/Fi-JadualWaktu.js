@@ -2944,32 +2944,105 @@ function jwAgihanRenderStats(){
     ['Beban mengajar anggaran',`${periods}${unknown?'+':''} waktu`]];
   el.innerHTML=cards.map(([title,value])=>`<div class="jw-agihan-stat"><span>${jwAgihanEscape(title)}</span><strong>${jwAgihanEscape(value)}</strong></div>`).join('');
 }
+// V2.8.0-F1B: read-only feasibility of teacher-class quotas, not timetable generation.
+// Each subject configuration is independent. Reserve fixed classes, then use integral
+// max flow for exact-year and flexible quotas. A teacher can occupy a class only once
+// per configuration; a class has one or two teacher positions as specified by CORE.
+function jwAgihanCoverageFlow(tasks,classes,capacity,occupied){
+  const graph=[];const node=()=>{graph.push([]);return graph.length-1;};
+  const edge=(a,b,c)=>{const e={to:b,rev:graph[b].length,cap:c,initial:c};graph[a].push(e);graph[b].push({to:a,rev:graph[a].length-1,cap:0,initial:0});return e;};
+  const source=node(),sink=node(),classNodes=new Map(),teacherClass=new Map(),links=[];
+  classes.forEach(c=>{const n=node();classNodes.set(c.id,n);edge(n,sink,Math.max(0,capacity.get(c.id)||0));});
+  tasks.forEach(t=>{const n=node();edge(source,n,t.count);
+    classes.filter(c=>t.years.includes(c.year)&&!occupied.get(c.id)?.has(t.teacherId)&&capacity.get(c.id)>0).forEach(c=>{
+      const key=JSON.stringify([t.teacherId,c.id]);let tc=teacherClass.get(key);
+      if(tc===undefined){tc=node();teacherClass.set(key,tc);edge(tc,classNodes.get(c.id),1);}
+      links.push({task:t,cls:c,edge:edge(n,tc,1)});
+    });
+  });
+  let flow=0;
+  for(;;){const prev=Array(graph.length).fill(null),queue=[source];prev[source]=[-1,-1];
+    for(let i=0;i<queue.length&&prev[sink]===null;i++){const u=queue[i];graph[u].forEach((e,j)=>{if(e.cap>0&&prev[e.to]===null){prev[e.to]=[u,j];queue.push(e.to);}});}
+    if(prev[sink]===null)break;
+    let inc=Infinity;for(let v=sink;v!==source;){const [u,j]=prev[v];inc=Math.min(inc,graph[u][j].cap);v=u;}
+    for(let v=sink;v!==source;){const [u,j]=prev[v],e=graph[u][j];e.cap-=inc;graph[v][e.rev].cap+=inc;v=u;}flow+=inc;
+  }
+  return {flow,matches:links.filter(x=>x.edge.initial-x.edge.cap>0).map(x=>({task:x.task,cls:x.cls}))};
+}
+function jwAgihanCoverageAudit(core){
+  const classMap=new Map(core.classes.map(c=>[c.id,c])),staff=new Set(core.staff.map(t=>t.id));
+  const groups=new Map(),invalid=[];
+  core.subjects.forEach(s=>{
+    if(!groups.has(s.id))groups.set(s.id,{id:s.id,label:s.label,subjectId:s.subjectId,years:new Map(),rows:[],issues:[]});
+    const g=groups.get(s.id),classes=core.classes.filter(c=>c.year===s.year);
+    g.years.set(s.year,{year:s.year,required:classes.length*Number(s.requiredTeachers),teachers:Number(s.requiredTeachers),classes,exact:0,matched:0,flex:0});
+  });
+  const seen=new Map();
+  core.rows.forEach((r,i)=>{
+    const g=groups.get(r.choiceId),years=jwAgihanYears(r.scope),count=Number(r.count),q=r.yearQuota||{},fixed=r.fixedClassIds||[],strategy=r.strategy||'AUTO';
+    const problem=[];
+    if(!g||g.subjectId!==r.subjectId||r.needsReview||!years.length||years.some(y=>!g?.years.has(y)))problem.push('konfigurasi/skop tidak sah');
+    if(!staff.has(r.teacherId))problem.push('guru tidak aktif');
+    if(!Number.isInteger(count)||count<1||count>20||count>core.classes.filter(c=>years.includes(c.year)).length)problem.push('bilangan kelas tidak sah');
+    if(!['AUTO','KEKAL','TETAP'].includes(strategy))problem.push('kaedah tidak sah');
+    if(Object.keys(q).length&&(Object.entries(q).some(([y,n])=>!years.includes(Number(y))||!Number.isInteger(Number(n))||Number(n)<0||Number(n)>core.classes.filter(c=>c.year===Number(y)).length)||Object.values(q).reduce((a,b)=>a+Number(b),0)!==count))problem.push('pecahan tahun tidak sah');
+    if(strategy==='TETAP'){
+      if(fixed.length!==count||new Set(fixed).size!==fixed.length||fixed.some(id=>!classMap.has(id)||!years.includes(classMap.get(id).year)))problem.push('kelas tetap tidak sah');
+      if(Object.keys(q).length&&years.some(y=>fixed.filter(id=>classMap.get(id)?.year===y).length!==Number(q[y]||0)))problem.push('kelas tetap tidak sepadan pecahan tahun');
+    }else if(fixed.length)problem.push('kelas tetap tidak dibenarkan dalam mod Auto/Kekal');
+    if(g)years.forEach(y=>{const key=JSON.stringify([r.teacherId,r.choiceId,y]);if(seen.has(key)){problem.push('guru/subjek/tahun bertindih dengan baris '+(seen.get(key)+1));}else seen.set(key,i);});
+    if(problem.length){const msg='Baris '+(i+1)+': '+[...new Set(problem)].join(', ');invalid.push(msg);if(g)g.issues.push(msg);return;}
+    g.rows.push({teacherId:r.teacherId,years,count,q,fixed,strategy,index:i});
+  });
+  const result=[];
+  groups.forEach(g=>{
+    const years=[...g.years.values()].sort((a,b)=>a.year-b.year),classes=years.flatMap(y=>y.classes),capacity=new Map(),occupied=new Map(),tasks=[];
+    years.forEach(y=>y.classes.forEach(c=>{capacity.set(c.id,y.teachers);occupied.set(c.id,new Set());}));
+    const supplied=g.rows.reduce((n,r)=>n+r.count,0),required=years.reduce((n,y)=>n+y.required,0);
+    let fixedMatched=0;
+    g.rows.filter(r=>r.strategy==='TETAP').forEach(r=>r.fixed.forEach(id=>{
+      const c=classMap.get(id),y=g.years.get(c.year);y.exact++;
+      if(capacity.get(id)<=0||occupied.get(id).has(r.teacherId)){g.issues.push('Baris '+(r.index+1)+': konflik kelas tetap '+c.name);return;}
+      occupied.get(id).add(r.teacherId);capacity.set(id,capacity.get(id)-1);y.matched++;fixedMatched++;
+    }));
+    g.rows.filter(r=>r.strategy!=='TETAP').forEach(r=>{
+      if(Object.keys(r.q).length){r.years.forEach(y=>{const n=Number(r.q[y]||0);g.years.get(y).exact+=n;if(n)tasks.push({teacherId:r.teacherId,years:[y],count:n,flex:false});});}
+      else if(r.years.length===1){g.years.get(r.years[0]).exact+=r.count;tasks.push({teacherId:r.teacherId,years:r.years,count:r.count,flex:false});}
+      else tasks.push({teacherId:r.teacherId,years:r.years,count:r.count,flex:true});
+    });
+    // Insert exact quotas first, but allow residual paths to rearrange allocations.
+    tasks.sort((a,b)=>Number(a.flex)-Number(b.flex));
+    const flow=jwAgihanCoverageFlow(tasks,classes,capacity,occupied);
+    flow.matches.forEach(m=>{const y=g.years.get(m.cls.year);y.matched++;if(m.task.flex)y.flex++;});
+    const matched=fixedMatched+flow.flow,shortage=Math.max(0,required-supplied),excess=Math.max(0,supplied-required),unmatched=supplied-matched;
+    const feasible=!g.issues.length&&matched===required&&matched===supplied;
+    const status=feasible?'lengkap':g.issues.length?'konflik':excess?'lebih':shortage?'kurang':'konflik';
+    result.push({id:g.id,label:g.label,years,required,supplied,matched,shortage,excess,unmatched,feasible,status,issues:g.issues,hasFlexible:tasks.some(t=>t.flex)});
+  });
+  return {groups:result.sort((a,b)=>a.label.localeCompare(b.label,'ms')),invalid};
+}
 function jwAgihanRenderCoverage(){
   const el=document.getElementById('jwAgihanCoverage');if(!el)return;
   if(!JW_AGIHAN_CORE.subjects.length){el.innerHTML='<div class="jw-agihan-empty">Aktifkan Tetapan Subjek CORE untuk menyemak kuota kelas.</div>';return;}
+  const audit=jwAgihanCoverageAudit(JW_AGIHAN_CORE),groups=audit.groups.filter(g=>g.required>0||g.supplied>0||g.issues.length);
+  const total=groups.reduce((n,g)=>n+g.required,0),supplied=groups.reduce((n,g)=>n+g.supplied,0),matched=groups.reduce((n,g)=>n+g.matched,0),complete=groups.filter(g=>g.feasible).length;
   const missingPra=JW_AGIHAN_CORE.subjects.some(s=>s.year===0)&&!jwAgihanYearClasses(0).length;
-  const catalog=JW_AGIHAN_CORE.subjects.filter(s=>jwAgihanYearClasses(s.year).length>0);
-  const results=catalog.map(s=>{
-    const required=jwAgihanYearClasses(s.year).length*s.requiredTeachers;
-    let exact=0,flex=0;
-    JW_AGIHAN_CORE.rows.filter(r=>r.choiceId===s.id&&r.subjectId===s.subjectId&&jwAgihanYears(r.scope).includes(s.year)).forEach(r=>{
-      const years=jwAgihanYears(r.scope),q=r.yearQuota||{};
-      if(r.strategy==='TETAP'&&(r.fixedClassIds||[]).length===Number(r.count))exact+=r.fixedClassIds.filter(id=>JW_AGIHAN_CORE.classes.some(c=>c.id===id&&c.year===s.year)).length;
-      else if(years.length===1)exact+=Number(r.count);
-      else if(Object.keys(q).length){exact+=Number(q[s.year]||0);
-        flex+=Math.max(0,Number(r.count)-Object.values(q).reduce((v,n)=>v+Number(n),0))/years.length;
-      }else flex+=Number(r.count)/years.length;
-    });
-    return {...s,required,exact,flex,status:exact>required?'lebih':exact===required&&flex===0?'lengkap':flex>0?'bebas':'kurang'};
-  });
-  let html='';for(let year=0;year<=6;year++){
-    const rows=results.filter(r=>r.year===year);if(!rows.length)continue;
-    const complete=rows.filter(r=>r.status==='lengkap').length,short=rows.filter(r=>r.status==='kurang').length;
-    html+=`<details class="jw-agihan-coverage-year" ${year===1?'open':''}><summary><strong>${jwYearLabel(year)}</strong><span>${complete}/${rows.length} lengkap · ${short} belum cukup · ${rows.filter(r=>r.status==='bebas').length} belum dipadankan</span></summary><div class="jw-agihan-coverage-list">`;
-    html+=rows.map(r=>`<div class="jw-agihan-coverage-item"><strong>${jwAgihanEscape(r.label)}</strong><span>${r.exact} ditetapkan${r.flex?' · ada kuota bebas':''} / ${r.required} penempatan guru-kelas</span><em class="jw-agihan-status is-${r.status}">${{lengkap:'Lengkap',kurang:'Kurang',lebih:'Lebihan',bebas:'Perlu Padanan'}[r.status]}</em></div>`).join('');
+  const ok=groups.length>0&&complete===groups.length&&!audit.invalid.length&&!missingPra;
+  const label={lengkap:'Mencukupi',kurang:'Kurang',lebih:'Lebihan',konflik:'Konflik skop / rekod'};
+  const css={lengkap:'lengkap',kurang:'kurang',lebih:'lebih',konflik:'kurang'};
+  let html=`<details class="jw-agihan-coverage-year" style="grid-column:1/-1" open><summary><strong>1. Kecukupan Kuota Mengikut Konfigurasi Subjek</strong><span>${complete}/${groups.length} konfigurasi mencukupi · ${supplied}/${total} kuota sah diisi · ${matched}/${total} boleh dipadankan${audit.invalid.length?' · '+audit.invalid.length+' baris perlu semakan':''}</span></summary><div class="jw-agihan-coverage-list"><div class="jw-agihan-muted">${ok?'Kuota mencukupi dan padanan kelas secara teori boleh dibuat.':'Semak kekurangan, lebihan atau konflik skop di bawah.'} Semakan ini tidak menetapkan kelas sebenar atau menjamin jadual bebas konflik masa / pairing tetap / pautan subjek.</div>`;
+  html+=groups.map(g=>`<div class="jw-agihan-coverage-item"><strong>${jwAgihanEscape(g.label)}</strong><span>${g.supplied}/${g.required} kuota · ${g.matched} boleh dipadankan${g.shortage?' · kurang '+g.shortage:''}${g.excess?' · lebih '+g.excess:''}${g.unmatched?' · '+g.unmatched+' tidak boleh dipadankan':''}${g.issues.length?' · '+jwAgihanEscape(g.issues[0]):''}</span><em class="jw-agihan-status is-${css[g.status]}">${label[g.status]}</em></div>`).join('');
+  if(audit.invalid.length)html+=`<div class="jw-agihan-muted">Baris tidak sah dikecualikan: ${audit.invalid.slice(0,8).map(jwAgihanEscape).join(' · ')}${audit.invalid.length>8?' · dan '+(audit.invalid.length-8)+' lagi':''}</div>`;
+  html+='</div></details>';
+  for(let year=0;year<=6;year++){
+    const rows=groups.flatMap(g=>g.years.filter(y=>y.year===year&&y.required>0).map(y=>({...y,g})));
+    if(!rows.length)continue;
+    const exact=rows.filter(r=>r.g.feasible&&r.flex===0).length,auto=rows.filter(r=>r.g.feasible&&r.flex>0).length,review=rows.length-exact-auto;
+    html+=`<details class="jw-agihan-coverage-year" ${year===1?'open':''}><summary><strong>${jwYearLabel(year)}</strong><span>${exact+auto}/${rows.length} kuota mencukupi · ${auto} Auto · ${review} perlu semakan</span></summary><div class="jw-agihan-coverage-list">`;
+    html+=rows.map(r=>{const ready=r.g.feasible,auto=r.flex>0;return `<div class="jw-agihan-coverage-item"><strong>${jwAgihanEscape(r.g.label)}</strong><span>${r.exact} kuota ditetapkan${auto?' · '+r.flex+' kuota Auto (contoh padanan)':''} · ${r.matched}/${r.required} boleh dipadankan${!ready?' · semak keseluruhan skop':''}</span><em class="jw-agihan-status is-${ready?'lengkap':'kurang'}">${ready?(auto?'Cukup · Auto':'Cukup'):'Semak'}</em></div>`;}).join('');
     html+='</div></details>';
   }
-  el.innerHTML=(missingPra?'<div class="jw-agihan-empty">Kelas Prasekolah aktif tidak dikesan. Semak nama, kategori dan ID dalam Master_Kelas_Bilik.</div>':'')+(html||'<div class="jw-agihan-empty">Tiada kelas aktif atau subjek untuk disemak.</div>');
+  el.innerHTML=(missingPra?'<div class="jw-agihan-empty">Kelas Prasekolah aktif tidak dikesan. Semak Master_Kelas_Bilik.</div>':'')+html;
 }
 function jwAgihanErrors(){
   const errors=[],bySub=new Map(JW_AGIHAN_CORE.subjects.map(s=>[s.id+'|'+s.year,s]));
