@@ -2771,6 +2771,8 @@ async function jwAgihanReload(quiet=false){
   if(!quiet&&JW_AGIHAN_CORE.dirty&&!(await jwAgihanConfirm('Perubahan belum disimpan',
     'Muat semula akan membuang perubahan Agihan yang belum disimpan.','Muat semula')))return;
   JW_AGIHAN_CORE.loading=true;
+  const activeLabel=document.getElementById('jwAgihanActiveLabel');
+  if(activeLabel)activeLabel.textContent='Menyemak set aktif…';
   try{
     const res=await jwAgihanRequest('fiJWAgihanStudioGet');jwAgihanCheckVersion(res);
     Object.assign(JW_AGIHAN_CORE,{loaded:true,staff:res.staff||[],historyStaff:res.historyStaff||[],classes:res.classes||[],
@@ -2783,7 +2785,11 @@ async function jwAgihanReload(quiet=false){
     const name=document.getElementById('jwAgihanSetName');if(name)name.value=res.selected?.name||'';
     document.getElementById('jwPlanYear').value=year.value;
     jwAgihanSetDirty(false);jwAgihanReviewNotice();jwAgihanRenderAll();
-  }catch(err){jwAgihanNotice(err.message,true);await jwAgihanDialog({title:'Agihan Guru belum dapat dibuka',text:err.message,icon:'error'});}
+  }catch(err){
+    if(activeLabel)activeLabel.textContent='Set aktif belum dapat disahkan';
+    jwAgihanNotice(err.message+' Data tidak dipadam oleh proses muat semula ini.',true);
+    await jwAgihanDialog({title:'Agihan Guru belum dapat dibuka',text:err.message,icon:'error'});
+  }
   finally{JW_AGIHAN_CORE.loading=false;}
 }
 function jwAgihanRenderAll(){jwAgihanRenderTeachers();jwAgihanRenderStats();jwAgihanRenderCoverage();jwAgihanRenderHistory();jwAgihanRenderTakeover();jwAgihanRenderPlan();}
