@@ -372,38 +372,29 @@
 
       <!-- ================= 4. HAD GURU ================= -->
       <div id="viewGuruConstraints" class="hidden space-y-6">
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-purple-600">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-            <div>
-              <h2 class="font-display font-extrabold text-xl text-slate-800">4. Had & Pelepasan Guru (Teacher Constraints)</h2>
-              <p class="text-xs text-slate-500">Maksimum waktu sehari, waktu berturut-turut, dan pelepasan pentadbiran.</p>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="tambahBarisGuruConstraint()" class="px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
-                <i class="fa-solid fa-plus"></i> + Had Guru
-              </button>
-              <button onclick="simpanGuruConstraints()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
-                <i class="fa-solid fa-floppy-disk"></i> Simpan Had
-              </button>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
-                <tr>
-                  <th class="table-cell-std w-12 text-center">BIL</th>
-                  <th class="table-cell-std w-64">Nama Guru (Dropdown Staf)</th>
-                  <th class="table-cell-std w-32 text-center">Max Sehari</th>
-                  <th class="table-cell-std w-32 text-center">Max Berturut</th>
-                  <th class="table-cell-std">Slot Dikunci / Pelepasan (e.g. Isnin-W1, Isnin-W2)</th>
-                  <th class="table-cell-std w-16 text-center">Padam</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyGuruConstraint" class="divide-y divide-slate-100 font-medium"></tbody>
-            </table>
-          </div>
+        <div class="jw-agihan-head">
+          <div><h2 class="font-display font-extrabold text-xl text-slate-800">4. Kekangan &amp; Peraturan CORE</h2><p class="text-xs text-slate-500">Fasa 1 — tetapan umum dan pautan PJ–PK. Enjin Generator V3 belum diaktifkan.</p></div>
+          <div class="jw-agihan-head-actions"><span id="jwConActive" class="jw-agihan-pill">Belum ada set aktif</span><button type="button" class="jw-agihan-btn jw-agihan-btn-light" onclick="jwConLoad(true)"><i class="fa-solid fa-rotate"></i> Muat Semula</button></div>
         </div>
+        <div id="jwConNotice" class="jw-agihan-notice hidden" role="status" aria-live="polite"></div>
+        <div class="flex flex-wrap gap-2"><button type="button" class="jw-agihan-btn jw-agihan-btn-outline" onclick="jwConTab('edit')">Penetapan Kekangan</button><button type="button" class="jw-agihan-btn jw-agihan-btn-outline" onclick="jwConTab('history')">Sejarah &amp; Panggil Semula</button></div>
+        <section id="jwConEdit" class="space-y-4">
+          <div class="jw-agihan-toolbar"><div class="jw-agihan-field"><label for="jwConName">Nama Set Kekangan</label><input id="jwConName" maxlength="100" placeholder="Kekangan Sesi 2027" oninput="jwConDirty()"></div><div class="jw-agihan-field jw-agihan-year"><label for="jwConYear">Sesi Tetapan Subjek aktif</label><input id="jwConYear" readonly type="number"></div><div class="jw-agihan-toolbar-buttons"><button class="jw-agihan-btn jw-agihan-btn-light" type="button" onclick="jwConNew()">+ Set Baharu</button><button class="jw-agihan-btn jw-agihan-btn-primary" type="button" onclick="jwConSave()">Simpan Versi</button><button id="jwConActivate" class="jw-agihan-btn jw-agihan-btn-outline" type="button" onclick="jwConActivate()" disabled>Aktifkan Set</button></div></div>
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+            <h3 class="font-display font-extrabold text-lg text-slate-800">Tetapan Umum Guru</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="jw-agihan-field"><label for="jwConRun">Maksimum waktu berturut-turut (Wajib)</label><input id="jwConRun" type="number" min="1" max="4" value="4" oninput="jwConDirty()"></div>
+              <div class="jw-agihan-field"><label for="jwConGap">Minimum senggang selepas had (waktu PdPc)</label><input id="jwConGap" type="number" min="1" max="4" value="1" oninput="jwConDirty()"></div>
+              <div class="jw-agihan-field"><label for="jwConDaily">Maksimum waktu sehari (0 = tiada had tambahan)</label><input id="jwConDaily" type="number" min="0" max="40" value="0" oninput="jwConDirty()"></div>
+            </div>
+            <label class="jw-agihan-check jw-agihan-linecheck"><input id="jwConBalance" type="checkbox" checked onchange="jwConDirty()"> Seimbangkan beban mengajar sepanjang minggu — Keutamaan sangat tinggi</label>
+            <label class="jw-agihan-check jw-agihan-linecheck"><input id="jwConCover" type="checkbox" checked onchange="jwConDirty()"> Minimum satu sesi setiap hari jika bilangan sesi dan kekangan wajib membenarkan</label>
+            <p class="text-xs text-slate-500">Contoh: 30 waktu / 5 hari = sasaran 6 waktu sehari. Jika sesi kurang daripada hari layak, maksimumkan liputan dan laporkan pengecualian. Semak mengikut masa sebenar; rehat kelas lain tidak bermaksud guru sedang berehat.</p>
+          </div>
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3"><h3 class="font-display font-extrabold text-lg text-slate-800">Pautan Agihan Subjek</h3><label class="jw-agihan-check jw-agihan-linecheck"><input id="jwConLink" type="checkbox" checked onchange="jwConDirty()"> PJ → PK: guru yang sama, kelas yang sama, waktu bebas (Wajib apabila aktif)</label><p class="text-xs text-slate-500">Digunakan semasa import contoh. Integrasi agihan manual dan pengecualian terpilih masih dalam pembangunan.</p></div>
+          <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3"><h3 class="font-display font-extrabold text-lg text-slate-800">Peraturan teras Generator (dikunci)</h3><div id="jwConLocked" class="space-y-2 text-sm"></div><p class="text-xs text-slate-500">Peraturan ini disimpan sebagai kontrak Generator V3, bukan pengesahan bahawa enjin telah dibina.</p></div>
+        </section>
+        <section id="jwConHistory" class="hidden bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-3"><div class="jw-agihan-field"><label for="jwConHistorySelect">Pilih Set Kekangan</label><select id="jwConHistorySelect"></select></div><button type="button" class="jw-agihan-btn jw-agihan-btn-outline" onclick="jwConRecall()">Panggil Semula</button><div id="jwConHistoryList" class="space-y-2"></div></section>
       </div>
 
       <!-- ================= 5. ENJIN GENERATOR & GRID ================= -->
@@ -461,6 +452,6 @@
   <!-- Penyambung portal Fi: identiti/endpoint sahaja; UI asal dikekalkan. -->
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js?v=fijw-1.0.3"></script>
-  <script src="Fi-JadualWaktu.js?v=2.7.3" defer></script>
+  <script src="Fi-JadualWaktu.js?v=2.8.0-F1" defer></script>
 </body>
 </html>

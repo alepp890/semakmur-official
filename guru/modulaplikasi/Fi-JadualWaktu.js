@@ -313,6 +313,7 @@ function fiJWMessageParent(type,message){
       const bread = document.getElementById('txtBreadcrumb');
       if (bread) bread.textContent = labels[viewId];
       if (viewId === 'viewAgihanTugas') void jwAgihanOpen();
+      if (viewId === 'viewGuruConstraints') void jwConLoad();
       if (viewId === 'viewGeneratorConsole' && !JW_HASIL_VIEW_RENDERED) {
         if (STATE_HASIL_JADUAL.length) {
           renderJadualHasilView();
@@ -3111,3 +3112,29 @@ async function jwAgihanSavePlan(){
   }catch(e){jwAgihanOpenError(e);}
 }
 
+
+// V2.8.0 Fasa 1 — Constraints CORE (versioned Controller, existing style)
+const JW_CON_F1={loaded:false,loading:false,dirty:false,id:'',data:null};
+const jwConEl=id=>document.getElementById(id);
+function jwConNotice(message,error=false){const el=jwConEl('jwConNotice');el.textContent=message;el.classList.toggle('hidden',!message);el.style.color=error?'#a33b32':'';}
+function jwConDirty(){JW_CON_F1.dirty=true;jwConEl('jwConActivate').disabled=true;}
+function jwConTab(tab){jwConEl('jwConEdit').classList.toggle('hidden',tab!=='edit');jwConEl('jwConHistory').classList.toggle('hidden',tab!=='history');}
+function jwConRules(){return {maxConsecutive:Number(jwConEl('jwConRun').value),minGapPeriods:Number(jwConEl('jwConGap').value),maxDaily:Number(jwConEl('jwConDaily').value),balanceDaily:jwConEl('jwConBalance').checked,coverEveryDay:jwConEl('jwConCover').checked,linkPJPK:jwConEl('jwConLink').checked};}
+function jwConApply(set){const d=JW_CON_F1.data,r=set?.rules||d.defaults;JW_CON_F1.id=set?.id||'';JW_CON_F1.dirty=false;
+  jwConEl('jwConName').value=set?.name||('Kekangan Sesi '+d.year);jwConEl('jwConYear').value=d.year;
+  jwConEl('jwConRun').value=r.maxConsecutive;jwConEl('jwConGap').value=r.minGapPeriods;jwConEl('jwConDaily').value=r.maxDaily;
+  jwConEl('jwConBalance').checked=r.balanceDaily;jwConEl('jwConCover').checked=r.coverEveryDay;jwConEl('jwConLink').checked=r.linkPJPK;
+  jwConEl('jwConActivate').disabled=!set?.id||set.id===d.active?.id;
+}
+function jwConMeta(d){JW_CON_F1.data=d;jwConEl('jwConActive').textContent=d.active?'Aktif: '+d.active.name:'Belum ada set aktif';
+  const select=jwConEl('jwConHistorySelect');select.replaceChildren(new Option('— Pilih Set —',''));const list=jwConEl('jwConHistoryList');list.replaceChildren();
+  d.sets.forEach(s=>{select.add(new Option(s.name+' · '+s.year+(s.id===d.active?.id?' · ✓ Aktif':''),s.id));const e=document.createElement('div');e.className='jw-agihan-coverage-item';e.textContent=s.name+' · '+s.savedAt+(s.id===d.active?.id?' · ✓ Aktif':'');list.appendChild(e);});
+  const locked=jwConEl('jwConLocked');locked.replaceChildren();const labels={TIADA_PERTINDIHAN_GURU:'Tiada pertindihan guru',TIADA_PERTINDIHAN_KELAS:'Tiada pertindihan kelas',TIADA_PERTINDIHAN_BILIK_MELEBIHI_KAPASITI:'Tiada pertindihan bilik melebihi kapasiti',CUKUP_WAKTU_SUBJEK:'Cukup waktu subjek',PATUH_CORAK_BLOK:'Patuh corak blok',BLOK_TIDAK_RENTAS_REHAT_ATAU_SLOT_BUKAN_PDPC:'Blok tidak merentasi rehat atau slot bukan PdPc',CO_TEACHING_SERENTAK:'Co-Teaching serentak',DALAM_GRID_MASA:'Dalam Grid Masa',PRA_SUBJEK_DITETAPKAN_SAHAJA:'Prasekolah: subjek yang ditetapkan sahaja'};
+  d.locked.forEach(k=>{const e=document.createElement('div');e.textContent='🔒 '+(labels[k]||k);locked.appendChild(e);});
+}
+async function jwConLoad(force=false){if(JW_CON_F1.loading||JW_CON_F1.loaded&&!force)return;if(JW_CON_F1.dirty&&!await jwAgihanConfirm('Muat semula?','Perubahan belum disimpan akan hilang.','Muat Semula'))return;JW_CON_F1.loading=true;
+  try{const d=await jwAgihanRequest('fiJWConstraintF1Get');if(d.version!=='V2.8.0-F1')throw Error('Backend Constraints belum versi Fasa 1.');jwConMeta(d);jwConApply(d.active);JW_CON_F1.loaded=true;jwConNotice('');}catch(e){jwConNotice(e.message,true);}finally{JW_CON_F1.loading=false;}}
+async function jwConNew(){if(!JW_CON_F1.data)return;if(JW_CON_F1.dirty&&!await jwAgihanConfirm('Set baharu?','Perubahan belum disimpan akan hilang.','Set Baharu'))return;jwConApply(null);jwConTab('edit');jwConDirty();}
+async function jwConRecall(){const d=JW_CON_F1.data,set=d?.sets.find(x=>x.id===jwConEl('jwConHistorySelect').value);if(!set)return jwConNotice('Pilih set dahulu.',true);if(JW_CON_F1.dirty&&!await jwAgihanConfirm('Panggil semula?','Perubahan belum disimpan akan hilang.','Panggil Semula'))return;jwConApply(set);jwConTab('edit');jwConNotice('Versi sejarah dibuka; belum diaktifkan.');}
+async function jwConSave(){if(!JW_CON_F1.data)return;try{const r=await jwAgihanRequest('fiJWConstraintF1Save',{year:JW_CON_F1.data.year,name:jwConEl('jwConName').value,rules:jwConRules()});const d=await jwAgihanRequest('fiJWConstraintF1Get');jwConMeta(d);jwConApply(d.sets.find(x=>x.id===r.id));jwConNotice('Versi disimpan. Klik Aktifkan Set jika mahu digunakan.');}catch(e){jwConNotice(e.message,true);}}
+async function jwConActivate(){if(JW_CON_F1.dirty||!JW_CON_F1.id)return;if(!await jwAgihanConfirm('Aktifkan Constraints?','Set ini digunakan untuk perancangan sahaja; jadual rasmi tidak disentuh.','Aktifkan'))return;try{await jwAgihanRequest('fiJWConstraintF1Activate',{id:JW_CON_F1.id});const d=await jwAgihanRequest('fiJWConstraintF1Get');jwConMeta(d);jwConApply(d.active);jwConNotice('Constraints aktif. Set agihan lama tidak diubah.');}catch(e){jwConNotice(e.message,true);}}
