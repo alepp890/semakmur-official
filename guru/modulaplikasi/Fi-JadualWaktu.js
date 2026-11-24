@@ -2717,7 +2717,7 @@ function jwAgihanSubjectIndex(){
   return [...out.values()].sort((a,b)=>a.code.localeCompare(b.code,'ms')||a.years[0]-b.years[0]||Number(b.coTeaching)-Number(a.coTeaching)||a.label.localeCompare(b.label,'ms'));
 }
 function jwAgihanPeriods(id,year){return JW_AGIHAN_CORE.subjects.find(s=>s.id===id&&s.year===year)?.periods||0;}
-function jwAgihanCheckVersion(res){if(res.version!=='V2.7.3')throw Error('Backend Agihan belum V2.7.3. Deploy FiJadualWaktu.gs versi baharu dahulu.');}
+function jwAgihanCheckVersion(res){if(res.version!=='V2.8.0-F2')throw Error('Backend Agihan belum V2.8.0-F2. Deploy FiJadualWaktu.gs versi baharu dahulu.');}
 function jwAgihanReviewNotice(){
   const ambiguous=JW_AGIHAN_CORE.rows.filter(r=>r.needsReview||!r.choiceId).length;
   if(ambiguous)jwAgihanNotice(`${ambiguous} baris lama perlu pilih konfigurasi Tetapan Subjek yang tepat. Kuota asal dikekalkan; sejarah tidak diubah.`,true);
@@ -2774,7 +2774,7 @@ async function jwAgihanReload(quiet=false){
   try{
     const res=await jwAgihanRequest('fiJWAgihanStudioGet');jwAgihanCheckVersion(res);
     Object.assign(JW_AGIHAN_CORE,{loaded:true,staff:res.staff||[],historyStaff:res.historyStaff||[],classes:res.classes||[],
-      subjects:res.subjects||[],subjectSet:res.subjectSet||null,roleData:res.roleData||{ok:false,roles:[]},selected:res.selected||null,
+      subjects:res.subjects||[],subjectSet:res.subjectSet||null,constraints:res.constraints||null,roleData:res.roleData||{ok:false,roles:[]},selected:res.selected||null,
       presets:res.presets||[],rows:JSON.parse(JSON.stringify(res.activeRows||[])),
       takeovers:res.takeovers||[],plans:res.plans||[],currentId:res.selected?.id||'',dirty:false,needsResave:!!res.needsResave});
     JW_AGIHAN_CORE.openTeachers.clear();
@@ -2855,6 +2855,7 @@ function jwAgihanRenderTeachers(){
   }).join('')||'<div class="jw-agihan-empty">Tiada guru sepadan dengan carian.</div>';
 }
 function jwAgihanRowHTML(r){
+  if(r.relation?.role==='SECOND')return jwF2SecondaryHTML(r);
   const years=jwAgihanYears(r.scope),available=JW_AGIHAN_CORE.classes.filter(c=>years.includes(c.year));
   const subjects=jwAgihanSubjectIndex();
   const choice=subjects.find(s=>s.id===r.choiceId&&s.subjectId===r.subjectId);
@@ -2882,7 +2883,7 @@ function jwAgihanRowHTML(r){
     ${!subjectValid&&r.subjectId?`<div class="jw-agihan-inline-error">${!choice?'Agihan lama '+jwAgihanEscape(r.code||r.subjectId)+' — pilih konfigurasi subjek yang tepat. Bilangan kelas asal dikekalkan.':'Skop tahun tidak sepadan dengan konfigurasi ini. Pilih skop yang sah.'}</div>`:''}
     ${choice?`<div class="jw-agihan-muted">${choice.coTeaching?'Co-Teaching · 2 guru pada kelas dan waktu sama':'Single · 1 guru setiap sesi'} · ${choice.years.includes(0)?'Prasekolah':'Tahun '+choice.years.join(', ')}</div>`:''}
     <div class="jw-agihan-quota-details">
-      ${yearControls}${quotas}${fixed}
+      ${jwF2RelationHTML(r,choice)}${yearControls}${quotas}${fixed}
       ${own.length||r.homeroom?`<label class="jw-agihan-check jw-agihan-linecheck"><input type="checkbox" ${r.homeroom?'checked':''} onchange="jwAgihanChangeRow(${r.index},'homeroom',this.checked)"> ${own.length?'Utamakan kelas sendiri ('+jwAgihanEscape(ownNames)+')':'Keutamaan lama tidak sepadan — nyahpilih atau semak sesi/skop'}</label>`:''}
       <span class="jw-agihan-hrs">${estimate===null?(!subjectValid?'Pilih konfigurasi dahulu':'Beban berubah ikut tahun'):estimate+' waktu/minggu (anggaran)'}</span>
     </div>
@@ -2897,7 +2898,9 @@ function jwAgihanAddRow(id){
   JW_AGIHAN_CORE.openTeachers.add(id);jwAgihanSetDirty(true);jwAgihanRenderTeachers();jwAgihanRenderStats();jwAgihanRenderCoverage();
 }
 function jwAgihanChangeRow(idx,field,value){
-  const r=JW_AGIHAN_CORE.rows[idx];if(!r)return;
+  const r=JW_AGIHAN_CORE.rows[idx];if(!r||r.relation?.role==='SECOND')return;
+  if(field==='choiceId'&&r.relation){jwAgihanNotice('Leraikan hubungan dahulu sebelum menukar subjek.',true);jwAgihanRenderTeachers();return;}
+  const before=JSON.parse(JSON.stringify(r));
   if(field==='choiceId'){
     const choice=jwAgihanSubjectIndex().find(s=>s.id===value),previousYears=jwAgihanYears(r.scope),wasLegacy=!!r.subjectId&&!r.choiceId||!!r.needsReview;
     r.choiceId=choice?.id||'';r.subjectId=choice?.subjectId||'';r.code=choice?.code||'';r.needsReview=false;
@@ -2913,25 +2916,28 @@ function jwAgihanChangeRow(idx,field,value){
   if(field==='scope'){r.yearQuota={};r.fixedClassIds=[];}
   if(field==='strategy'&&value!=='TETAP')r.fixedClassIds=[];
   if(field==='count'&&Object.keys(r.yearQuota||{}).length){/* Kekal pecahan; diperingatkan jika jumlah tidak sama. */}
+  if(!jwF2Sync(r)){Object.assign(r,before);jwAgihanNotice('Skop tidak sepadan dengan subjek pautan.',true);jwAgihanRenderTeachers();return;}
+  if(field==='choiceId'&&r.code==='PJ'&&!r.id&&!r.relation&&JW_AGIHAN_CORE.constraints?.rules?.linkPJPK&&!JW_AGIHAN_CORE.rows.some(x=>x!==r&&x.teacherId===r.teacherId&&x.code==='PK'&&jwAgihanYears(x.scope).some(y=>jwAgihanYears(r.scope).includes(y)))){jwF2Refresh();if(jwF2PK(r))jwF2CreateRelation(idx,'LINK','newPK',true);return;}
   jwAgihanSetDirty(true);jwAgihanRenderTeachers();jwAgihanRenderStats();jwAgihanRenderCoverage();
 }
 function jwAgihanToggleQuota(idx,checked){
   const r=JW_AGIHAN_CORE.rows[idx];if(!r)return;
-  r.yearQuota=checked?Object.fromEntries(jwAgihanYears(r.scope).map(y=>[y,0])):{};
+  r.yearQuota=checked?Object.fromEntries(jwAgihanYears(r.scope).map(y=>[y,0])):{};jwF2Sync(r);
   jwAgihanSetDirty(true);jwAgihanRenderTeachers();jwAgihanRenderStats();jwAgihanRenderCoverage();
 }
 function jwAgihanSetQuota(idx,year,value){
-  const r=JW_AGIHAN_CORE.rows[idx];if(!r)return;r.yearQuota[String(year)]=Math.max(0,Number(value)||0);
+  const r=JW_AGIHAN_CORE.rows[idx];if(!r)return;r.yearQuota[String(year)]=Math.max(0,Number(value)||0);jwF2Sync(r);
   jwAgihanSetDirty(true);jwAgihanRenderTeachers();jwAgihanRenderStats();jwAgihanRenderCoverage();
 }
 function jwAgihanFixedClass(idx,id,checked){
   const r=JW_AGIHAN_CORE.rows[idx];if(!r)return;
-  const set=new Set(r.fixedClassIds||[]);checked?set.add(id):set.delete(id);r.fixedClassIds=[...set];
+  const set=new Set(r.fixedClassIds||[]);checked?set.add(id):set.delete(id);r.fixedClassIds=[...set];jwF2Sync(r);
   jwAgihanSetDirty(true);jwAgihanRenderTeachers();jwAgihanRenderCoverage();
 }
 async function jwAgihanDeleteRow(idx){
-  if(!(await jwAgihanConfirm('Padam tugasan guru?','Baris ini akan dibuang daripada set kerja. Set sejarah tidak akan terpadam.','Padam Baris')))return;
-  JW_AGIHAN_CORE.rows.splice(idx,1);jwAgihanSetDirty(true);jwAgihanRenderTeachers();jwAgihanRenderStats();jwAgihanRenderCoverage();
+  const r=JW_AGIHAN_CORE.rows[idx];if(!r||r.relation?.role==='SECOND')return;
+  if(!(await jwAgihanConfirm('Padam tugasan guru?',r.relation?'Kedua-dua baris hubungan akan dibuang daripada set kerja. Sejarah kekal.':'Baris ini akan dibuang daripada set kerja. Set sejarah tidak akan terpadam.','Padam Baris')))return;
+  if(r.relation)JW_AGIHAN_CORE.rows=JW_AGIHAN_CORE.rows.filter(x=>x.relation?.id!==r.relation.id);else JW_AGIHAN_CORE.rows.splice(idx,1);jwAgihanSetDirty(true);jwAgihanRenderTeachers();jwAgihanRenderStats();jwAgihanRenderCoverage();
 }
 function jwAgihanRenderStats(){
   const el=document.getElementById('jwAgihanStats');if(!el)return;
@@ -2990,7 +2996,7 @@ function jwAgihanCoverageAudit(core){
       if(fixed.length!==count||new Set(fixed).size!==fixed.length||fixed.some(id=>!classMap.has(id)||!years.includes(classMap.get(id).year)))problem.push('kelas tetap tidak sah');
       if(Object.keys(q).length&&years.some(y=>fixed.filter(id=>classMap.get(id)?.year===y).length!==Number(q[y]||0)))problem.push('kelas tetap tidak sepadan pecahan tahun');
     }else if(fixed.length)problem.push('kelas tetap tidak dibenarkan dalam mod Auto/Kekal');
-    if(g)years.forEach(y=>{const key=JSON.stringify([r.teacherId,r.choiceId,y]);if(seen.has(key)){problem.push('guru/subjek/tahun bertindih dengan baris '+(seen.get(key)+1));}else seen.set(key,i);});
+    if(g)years.forEach(y=>{const key=JSON.stringify([r.teacherId,r.choiceId,y]);if(seen.has(key)&&!(r.relation?.type==='PAIR'&&core.rows[seen.get(key)].relation?.type==='PAIR')){problem.push('guru/subjek/tahun bertindih dengan baris '+(seen.get(key)+1));}else seen.set(key,i);});
     if(problem.length){const msg='Baris '+(i+1)+': '+[...new Set(problem)].join(', ');invalid.push(msg);if(g)g.issues.push(msg);return;}
     g.rows.push({teacherId:r.teacherId,years,count,q,fixed,strategy,index:i});
   });
@@ -3042,11 +3048,12 @@ function jwAgihanRenderCoverage(){
     html+=rows.map(r=>{const ready=r.g.feasible,auto=r.flex>0;return `<div class="jw-agihan-coverage-item"><strong>${jwAgihanEscape(r.g.label)}</strong><span>${r.exact} kuota ditetapkan${auto?' · '+r.flex+' kuota Auto (contoh padanan)':''} · ${r.matched}/${r.required} boleh dipadankan${!ready?' · semak keseluruhan skop':''}</span><em class="jw-agihan-status is-${ready?'lengkap':'kurang'}">${ready?(auto?'Cukup · Auto':'Cukup'):'Semak'}</em></div>`;}).join('');
     html+='</div></details>';
   }
+  html+=jwF2AuditHTML(JW_AGIHAN_CORE);
   el.innerHTML=(missingPra?'<div class="jw-agihan-empty">Kelas Prasekolah aktif tidak dikesan. Semak Master_Kelas_Bilik.</div>':'')+html;
 }
 function jwAgihanErrors(){
   const errors=[],bySub=new Map(JW_AGIHAN_CORE.subjects.map(s=>[s.id+'|'+s.year,s]));
-  const seen=new Set();
+  const seen=new Map();
   JW_AGIHAN_CORE.rows.forEach((r,i)=>{
     const issue=t=>errors.push({index:i,text:`Baris ${i+1}: ${t}`});
     const years=jwAgihanYears(r.scope),count=Number(r.count);
@@ -3061,7 +3068,7 @@ function jwAgihanErrors(){
     if(r.strategy==='TETAP'&&(r.fixedClassIds||[]).length!==count)issue(`Pilih ${count} kelas tetap.`);
     if(r.homeroom&&!jwAgihanEligibleHomerooms(r).length)issue('Keutamaan Guru Kelas tidak sepadan dengan sesi/skop/kuota/kelas tetap. Nyahpilih atau semak pelantikan.');
     years.forEach(y=>{const key=r.teacherId+'|'+r.choiceId+'|'+y;
-      if(seen.has(key))issue('Subjek dan tahun bertindih dengan baris guru ini yang lain.');seen.add(key);});
+      if(seen.has(key)&&!(r.relation?.type==='PAIR'&&seen.get(key)))issue('Subjek dan tahun bertindih dengan baris guru ini yang lain.');seen.set(key,r.relation?.type==='PAIR');});
   });return errors;
 }
 function jwAgihanErrorPopup(errors){
@@ -3088,7 +3095,7 @@ async function jwAgihanSave(){
   if(name.length<2||!JW_AGIHAN_CORE.rows.length)return jwAgihanDialog({title:'Agihan belum lengkap',text:'Isi nama set dan sekurang-kurangnya satu tugasan.',icon:'warning'});
   if(!(await jwAgihanConfirm('Simpan sebagai versi baharu?',`${JW_AGIHAN_CORE.rows.length} baris kuota akan disimpan di JW_Agihan_Baris. Jadual rasmi tidak berubah.`, 'Simpan Versi')))return;
   try{
-    const res=await jwAgihanRequest('fiJWAgihanCoreSave',{name,year,subjectSetId:JW_AGIHAN_CORE.subjectSet.id,rows:JW_AGIHAN_CORE.rows});
+    const res=await jwAgihanRequest('fiJWAgihanCoreSave',{name,year,clientVersion:'V2.8.0-F2',subjectSetId:JW_AGIHAN_CORE.subjectSet.id,rows:JW_AGIHAN_CORE.rows});
     JW_AGIHAN_CORE.currentId=res.id;JW_AGIHAN_CORE.dirty=false;JW_AGIHAN_CORE.needsResave=false;jwAgihanSetDirty(false);jwAgihanNotice('');
     await jwAgihanRefreshMetadata();
     await jwAgihanDialog({title:'Versi Agihan disimpan',text:'Set ini belum aktif. Klik Aktifkan Set untuk menjadikannya pilihan persediaan.',icon:'success'});
@@ -3096,7 +3103,7 @@ async function jwAgihanSave(){
 }
 async function jwAgihanRefreshMetadata(){
   const res=await jwAgihanRequest('fiJWAgihanStudioGet');jwAgihanCheckVersion(res);
-  JW_AGIHAN_CORE.presets=res.presets||[];JW_AGIHAN_CORE.selected=res.selected||null;JW_AGIHAN_CORE.roleData=res.roleData||{ok:false,roles:[]};
+  JW_AGIHAN_CORE.presets=res.presets||[];JW_AGIHAN_CORE.selected=res.selected||null;JW_AGIHAN_CORE.constraints=res.constraints||null;JW_AGIHAN_CORE.roleData=res.roleData||{ok:false,roles:[]};
   JW_AGIHAN_CORE.takeovers=res.takeovers||[];JW_AGIHAN_CORE.plans=res.plans||[];
   jwAgihanSetDirty(JW_AGIHAN_CORE.dirty);jwAgihanRenderTeachers();jwAgihanRenderHistory();jwAgihanRenderTakeover();jwAgihanRenderPlan();
 }
@@ -3130,7 +3137,7 @@ async function jwAgihanRecall(){
   if(JW_AGIHAN_CORE.dirty&&!(await jwAgihanConfirm('Panggil semula versi?', 'Perubahan set kerja yang belum disimpan akan hilang.','Panggil Semula')))return;
   try{
     const r=await jwAgihanRequest('fiJWAgihanCoreRecall',{id});
-    JW_AGIHAN_CORE.subjects=r.subjects||[];JW_AGIHAN_CORE.subjectSet=r.subjectSet||null;JW_AGIHAN_CORE.roleData=r.roleData||{ok:false,roles:[]};JW_AGIHAN_CORE.needsResave=!!r.needsResave;
+    JW_AGIHAN_CORE.subjects=r.subjects||[];JW_AGIHAN_CORE.subjectSet=r.subjectSet||null;JW_AGIHAN_CORE.constraints=r.constraints||null;JW_AGIHAN_CORE.roleData=r.roleData||{ok:false,roles:[]};JW_AGIHAN_CORE.needsResave=!!r.needsResave;
     JW_AGIHAN_CORE.rows=r.rows||[];JW_AGIHAN_CORE.currentId=id;JW_AGIHAN_CORE.openTeachers.clear();
     JW_AGIHAN_CORE.rows.filter(r=>r.needsReview).forEach(r=>JW_AGIHAN_CORE.openTeachers.add(r.teacherId));
     document.getElementById('jwAgihanSetName').value=r.name;
@@ -3192,11 +3199,12 @@ const jwConEl=id=>document.getElementById(id);
 function jwConNotice(message,error=false){const el=jwConEl('jwConNotice');el.textContent=message;el.classList.toggle('hidden',!message);el.style.color=error?'#a33b32':'';}
 function jwConDirty(){JW_CON_F1.dirty=true;jwConEl('jwConActivate').disabled=true;}
 function jwConTab(tab){jwConEl('jwConEdit').classList.toggle('hidden',tab!=='edit');jwConEl('jwConHistory').classList.toggle('hidden',tab!=='history');}
-function jwConRules(){return {maxConsecutive:Number(jwConEl('jwConRun').value),minGapPeriods:Number(jwConEl('jwConGap').value),maxDaily:Number(jwConEl('jwConDaily').value),balanceDaily:jwConEl('jwConBalance').checked,coverEveryDay:jwConEl('jwConCover').checked,linkPJPK:jwConEl('jwConLink').checked};}
+function jwConRules(){return {maxConsecutive:Number(jwConEl('jwConRun').value),minGapPeriods:Number(jwConEl('jwConGap').value),maxDaily:Number(jwConEl('jwConDaily').value),balanceDaily:jwConEl('jwConBalance').checked,coverEveryDay:jwConEl('jwConCover').checked,linkPJPK:jwConEl('jwConLink').checked,specific:JSON.parse(JSON.stringify(JW_CON_F1.specific||[]))};}
 function jwConApply(set){const d=JW_CON_F1.data,r=set?.rules||d.defaults;JW_CON_F1.id=set?.id||'';JW_CON_F1.dirty=false;
   jwConEl('jwConName').value=set?.name||('Kekangan Sesi '+d.year);jwConEl('jwConYear').value=d.year;
   jwConEl('jwConRun').value=r.maxConsecutive;jwConEl('jwConGap').value=r.minGapPeriods;jwConEl('jwConDaily').value=r.maxDaily;
   jwConEl('jwConBalance').checked=r.balanceDaily;jwConEl('jwConCover').checked=r.coverEveryDay;jwConEl('jwConLink').checked=r.linkPJPK;
+  JW_CON_F1.specific=JSON.parse(JSON.stringify(r.specific||[]));jwF2ConRender();
   jwConEl('jwConActivate').disabled=!set?.id||set.id===d.active?.id;
 }
 function jwConMeta(d){JW_CON_F1.data=d;jwConEl('jwConActive').textContent=d.active?'Aktif: '+d.active.name:'Belum ada set aktif';
@@ -3206,8 +3214,88 @@ function jwConMeta(d){JW_CON_F1.data=d;jwConEl('jwConActive').textContent=d.acti
   d.locked.forEach(k=>{const e=document.createElement('div');e.textContent='🔒 '+(labels[k]||k);locked.appendChild(e);});
 }
 async function jwConLoad(force=false){if(JW_CON_F1.loading||JW_CON_F1.loaded&&!force)return;if(JW_CON_F1.dirty&&!await jwAgihanConfirm('Muat semula?','Perubahan belum disimpan akan hilang.','Muat Semula'))return;JW_CON_F1.loading=true;
-  try{const d=await jwAgihanRequest('fiJWConstraintF1Get');if(d.version!=='V2.8.0-F1')throw Error('Backend Constraints belum versi Fasa 1.');jwConMeta(d);jwConApply(d.active);JW_CON_F1.loaded=true;jwConNotice('');}catch(e){jwConNotice(e.message,true);}finally{JW_CON_F1.loading=false;}}
+  try{const d=await jwAgihanRequest('fiJWConstraintF1Get');if(d.version!=='V2.8.0-F2')throw Error('Backend Constraints belum versi Fasa 2.');jwConMeta(d);jwConApply(d.active);JW_CON_F1.loaded=true;jwConNotice('');}catch(e){jwConNotice(e.message,true);}finally{JW_CON_F1.loading=false;}}
 async function jwConNew(){if(!JW_CON_F1.data)return;if(JW_CON_F1.dirty&&!await jwAgihanConfirm('Set baharu?','Perubahan belum disimpan akan hilang.','Set Baharu'))return;jwConApply(null);jwConTab('edit');jwConDirty();}
 async function jwConRecall(){const d=JW_CON_F1.data,set=d?.sets.find(x=>x.id===jwConEl('jwConHistorySelect').value);if(!set)return jwConNotice('Pilih set dahulu.',true);if(JW_CON_F1.dirty&&!await jwAgihanConfirm('Panggil semula?','Perubahan belum disimpan akan hilang.','Panggil Semula'))return;jwConApply(set);jwConTab('edit');jwConNotice('Versi sejarah dibuka; belum diaktifkan.');}
-async function jwConSave(){if(!JW_CON_F1.data)return;try{const r=await jwAgihanRequest('fiJWConstraintF1Save',{year:JW_CON_F1.data.year,name:jwConEl('jwConName').value,rules:jwConRules()});const d=await jwAgihanRequest('fiJWConstraintF1Get');jwConMeta(d);jwConApply(d.sets.find(x=>x.id===r.id));jwConNotice('Versi disimpan. Klik Aktifkan Set jika mahu digunakan.');}catch(e){jwConNotice(e.message,true);}}
-async function jwConActivate(){if(JW_CON_F1.dirty||!JW_CON_F1.id)return;if(!await jwAgihanConfirm('Aktifkan Constraints?','Set ini digunakan untuk perancangan sahaja; jadual rasmi tidak disentuh.','Aktifkan'))return;try{await jwAgihanRequest('fiJWConstraintF1Activate',{id:JW_CON_F1.id});const d=await jwAgihanRequest('fiJWConstraintF1Get');jwConMeta(d);jwConApply(d.active);jwConNotice('Constraints aktif. Set agihan lama tidak diubah.');}catch(e){jwConNotice(e.message,true);}}
+async function jwConSave(){if(!JW_CON_F1.data)return;try{const r=await jwAgihanRequest('fiJWConstraintF1Save',{year:JW_CON_F1.data.year,clientVersion:'V2.8.0-F2',name:jwConEl('jwConName').value,rules:jwConRules()});const d=await jwAgihanRequest('fiJWConstraintF1Get');jwConMeta(d);jwConApply(d.sets.find(x=>x.id===r.id));jwConNotice('Versi disimpan. Klik Aktifkan Set jika mahu digunakan.');}catch(e){jwConNotice(e.message,true);}}
+async function jwConActivate(){if(JW_CON_F1.dirty||!JW_CON_F1.id)return;if(!await jwAgihanConfirm('Aktifkan Constraints?','Set ini digunakan untuk perancangan sahaja; jadual rasmi tidak disentuh.','Aktifkan'))return;try{await jwAgihanRequest('fiJWConstraintF1Activate',{id:JW_CON_F1.id});const d=await jwAgihanRequest('fiJWConstraintF1Get');jwConMeta(d);jwConApply(d.active);if(typeof JW_AGIHAN_CORE!=='undefined')JW_AGIHAN_CORE.constraints=d.active;
+    jwConNotice('Constraints aktif. Set agihan lama tidak diubah.');}catch(e){jwConNotice(e.message,true);}}
+
+// F2 relationship editor. Existing independent rows never auto-merged by guessing.
+function jwF2Sig(r){return JSON.stringify([r.scope,Number(r.count),r.strategy,Object.entries(r.yearQuota||{}).map(([y,n])=>[y,Number(n)]).sort(),[...(r.fixedClassIds||[])].sort()]);}
+function jwF2Other(r,core=JW_AGIHAN_CORE){return r.relation?core.rows.find(x=>x!==r&&x.relation?.id===r.relation.id&&x.relation?.role!==r.relation.role):null;}
+function jwF2Name(id){return JW_AGIHAN_CORE.staff.find(t=>t.id===id)?.name||id;}
+function jwF2PK(r){const years=jwAgihanYears(r.scope);const a=jwAgihanSubjectIndex().filter(x=>x.code==='PK'&&!x.coTeaching&&years.every(y=>x.years.includes(y)));return a.length===1?a[0]:null;}
+function jwF2Sync(r){if(!r.relation)return true;const other=jwF2Other(r);if(!other||r.relation.role!=='MAIN')return false;
+  if(r.relation.type==='LINK'){const pk=jwF2PK(r);if(!pk)return false;Object.assign(other,{choiceId:pk.id,subjectId:pk.subjectId,code:pk.code,settingIds:pk.settingIds,configurationYears:pk.years,coTeaching:false});}
+  ['scope','count','strategy','yearQuota','fixedClassIds'].forEach(k=>other[k]=JSON.parse(JSON.stringify(r[k])));
+  // A priority may become invalid after changing the shared class scope. Do not silently erase it; existing validation will ask for review.
+  return true;
+}
+function jwF2RelationHTML(r,choice){
+  if(r.relation){const b=jwF2Other(JW_AGIHAN_CORE.rows[r.index]);return `<div class="jw-agihan-field"><label>${r.relation.type==='PAIR'?'Guru Pairing':'Subjek terikat'}</label><span class="jw-agihan-tag">${jwAgihanEscape(b?(r.relation.type==='PAIR'?jwF2Name(b.teacherId):b.code):'Hubungan tidak lengkap')}</span> <button type="button" class="jw-agihan-btn jw-agihan-btn-light" onclick="jwF2Unlink(${r.index})">Leraikan</button><span class="jw-agihan-muted">Edit kuota di baris induk sahaja.</span></div>`;}
+  if(!choice)return '';
+  const rows=JW_AGIHAN_CORE.rows,main=rows[r.index],type=choice.coTeaching?'PAIR':choice.code==='PJ'&&JW_AGIHAN_CORE.constraints?.rules?.linkPJPK?'LINK':'';if(!type)return '';
+  const pk=type==='LINK'?jwF2PK(r):null;
+  if(type==='LINK'&&!pk)return '<p class="jw-agihan-muted">Tiada konfigurasi PK tunggal sepadan dengan skop PJ.</p>';
+  const eligible=rows.map((x,i)=>({x,i})).filter(({x})=>x!==main&&!x.relation&&jwF2Sig(x)===jwF2Sig(main)&&(type==='PAIR'?x.choiceId===main.choiceId&&x.teacherId!==main.teacherId:x.choiceId===pk.id&&x.teacherId===main.teacherId));
+  const existing=eligible.map(({x,i})=>`<option value="row:${i}">Paut agihan sedia ada — ${jwAgihanEscape(type==='PAIR'?jwF2Name(x.teacherId):'PK')} (${x.count} kelas)</option>`).join('');
+  const fresh=type==='PAIR'?JW_AGIHAN_CORE.staff.filter(t=>t.id!==r.teacherId).map(t=>`<option value="new:${jwAgihanEscape(t.id)}">Tambah agihan — ${jwAgihanEscape(t.name)}</option>`).join(''):'<option value="newPK">Tambah PK automatik</option>';
+  return `<div class="jw-agihan-field"><label>${type==='PAIR'?'Guru Pairing — pilih atau paut agihan sedia ada':'Pautan PJ → PK'}</label><select id="jwF2Rel${r.index}"><option value="">— Pilih —</option>${existing?'<optgroup label="Agihan sepadan">'+existing+'</optgroup>':''}<optgroup label="Agihan baharu">${fresh}</optgroup></select><button type="button" class="jw-agihan-btn jw-agihan-btn-light" onclick="jwF2CreateRelation(${r.index},'${type}',document.getElementById('jwF2Rel${r.index}').value)">Pautkan</button><span class="jw-agihan-muted">${type==='PAIR'?'Pecahan pasangan: tambah baris bagi pasangan lain dengan kuota masing-masing.':'Pilih agihan sedia ada jika sudah diisi; elak kuota berganda.'}</span></div>`;
+}
+function jwF2SecondaryHTML(r){const main=jwF2Other(JW_AGIHAN_CORE.rows[r.index]),est=jwAgihanEstimate(r);return `<div class="jw-agihan-quota-row" data-quota-row="${r.index}"><strong>${jwAgihanEscape(jwAgihanSubjectIndex().find(s=>s.id===r.choiceId)?.label||r.code)} — ${r.relation.type==='PAIR'?'Guru Pairing':'Agihan berpaut'}</strong><div class="jw-agihan-muted">${jwAgihanEscape(jwAgihanScopeLabel(r.scope))} · ${r.count} kelas · ${est===null?'Beban ikut tahun':est+' waktu'} · Induk: ${jwAgihanEscape(main?jwF2Name(main.teacherId)+' / '+main.code:'Tidak ditemui')}</div>${jwAgihanEligibleHomerooms(r).length||r.homeroom?`<label class="jw-agihan-check jw-agihan-linecheck"><input type="checkbox" ${r.homeroom?'checked':''} onchange="jwF2SecondaryPriority(${r.index},this.checked)"> Utamakan kelas sendiri (${jwAgihanEscape(jwAgihanEligibleHomerooms(r).map(c=>c.className).join(', ')||'semak pelantikan')})</label>`:''}<button type="button" class="jw-agihan-btn jw-agihan-btn-light" onclick="jwF2Unlink(${r.index})">Leraikan hubungan (kekalkan kedua-dua agihan)</button></div>`;}
+function jwF2Refresh(){jwAgihanSetDirty(true);jwAgihanRenderTeachers();jwAgihanRenderStats();jwAgihanRenderCoverage();}
+async function jwF2CreateRelation(idx,type,value,auto=false){const rows=JW_AGIHAN_CORE.rows,a=rows[idx];if(!a||a.relation||!value)return;
+  let b,add=false;
+  if(type==='PAIR'&&!jwAgihanSubjectIndex().find(s=>s.id===a.choiceId)?.coTeaching)return;
+  if(type==='LINK'&&(a.code!=='PJ'||!JW_AGIHAN_CORE.constraints?.rules?.linkPJPK||!jwF2PK(a)))return;
+  if(value.startsWith('row:')){b=rows[Number(value.slice(4))];if(!b||b===a||b.relation||jwF2Sig(a)!==jwF2Sig(b)||!(type==='PAIR'?b.choiceId===a.choiceId&&b.teacherId!==a.teacherId:b.choiceId===jwF2PK(a).id&&b.teacherId===a.teacherId))return jwAgihanNotice('Agihan pasangan tidak sepadan.',true);}
+  else {add=true;b=JSON.parse(JSON.stringify(a));delete b.id;b.note='';b.homeroom=false;b.needsReview=false;
+    if(type==='PAIR'){b.teacherId=value.slice(4);if(b.teacherId===a.teacherId||!JW_AGIHAN_CORE.staff.some(t=>t.id===b.teacherId))return;}
+    else {const pk=jwF2PK(a);Object.assign(b,{choiceId:pk.id,subjectId:pk.subjectId,code:pk.code,settingIds:pk.settingIds,configurationYears:pk.years,coTeaching:false});}
+    if(rows.some(x=>x.teacherId===b.teacherId&&x.choiceId===b.choiceId&&!x.relation&&jwAgihanYears(x.scope).some(y=>jwAgihanYears(b.scope).includes(y))))return jwAgihanNotice('Guru/subjek ini sudah ada agihan bebas bertindih. Paut baris sedia ada yang sepadan atau pecahkan kuota dahulu.',true);
+  }
+  if(!auto&&!await jwAgihanConfirm('Paut agihan?',add?'Agihan pasangan baharu akan dikira dalam beban mengajar. Pastikan kuota tidak berganda.':'Kedua-dua baris sedia ada akan dipaut tanpa menambah kuota.','Pautkan'))return;
+  if(a.relation||b.relation||!rows.includes(a)||(!add&&!rows.includes(b)))return;
+  const id='REL-'+(globalThis.crypto?.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));a.relation={id,type,role:'MAIN'};b.relation={id,type,role:'SECOND'};if(add)rows.push(b);jwF2Refresh();
+}
+async function jwF2Unlink(idx){const r=JW_AGIHAN_CORE.rows[idx];if(!r?.relation)return;if(!await jwAgihanConfirm('Leraikan hubungan?','Kedua-dua agihan kekal sebagai baris bebas. Semak kuota dan pairing semula.','Leraikan'))return;const b=jwF2Other(r);if(b)b.relation=null;r.relation=null;jwF2Refresh();}
+function jwF2AuditHTML(core){const mains=core.rows.filter(r=>r.relation?.role==='MAIN'),unpaired=core.rows.filter(r=>core.subjects.some(s=>s.id===r.choiceId&&s.coTeaching)&&!r.relation),linkedRule=core.constraints?.rules?.linkPJPK,unlinked=linkedRule?core.rows.filter(r=>['PJ','PK'].includes(r.code)&&!r.relation):[];
+  const bad=mains.filter(r=>{const b=jwF2Other(r,core);return !b||jwF2Sig(r)!==jwF2Sig(b);});
+  // Fully paired groups require one pair task per class; existing independent quota audit is insufficient for shared-class matching.
+  const issues=[];const groups=[...new Set(mains.filter(r=>r.relation.type==='PAIR').map(r=>r.choiceId))];
+  for(const id of groups){const all=core.rows.filter(r=>r.choiceId===id);if(all.some(r=>!r.relation))continue;
+    const classes=core.classes.filter(c=>core.subjects.some(s=>s.id===id&&s.year===c.year));const cap=new Map(classes.map(c=>[c.id,1])),occupied=new Map(classes.map(c=>[c.id,new Set()])),tasks=[];
+    let ok=true;for(const r of all.filter(x=>x.relation.role==='MAIN')){if(r.strategy==='TETAP'){for(const cid of r.fixedClassIds||[]){if(cap.get(cid)!==1){ok=false;continue;}cap.set(cid,0);}}else if(Object.keys(r.yearQuota||{}).length){Object.entries(r.yearQuota).forEach(([y,n])=>{if(Number(n)>0)tasks.push({teacherId:r.relation.id,years:[Number(y)],count:Number(n)});});}else tasks.push({teacherId:r.relation.id,years:jwAgihanYears(r.scope),count:Number(r.count)});}
+    const need=tasks.reduce((n,t)=>n+t.count,0);if(!ok||jwAgihanCoverageFlow(tasks,classes,cap,occupied).flow!==need||need+[...cap.values()].filter(n=>n===0).length!==classes.length)issues.push(core.subjects.find(s=>s.id===id)?.label||id);
+  }
+  return `<div class="jw-agihan-muted"><strong>Semakan hubungan (berasingan daripada kuota)</strong><br>${mains.length} hubungan berpaut · ${unpaired.length} baris Co-Teaching belum ditetapkan pasangan · ${unlinked.length} baris PJ/PK belum dipaut${bad.length?' · '+bad.length+' hubungan tidak sepadan':''}${issues.length?' · Konflik pasangan: '+jwAgihanEscape(issues.join(', ')):''}. ${linkedRule?'Pautan PJ–PK aktif.':'Pautan PJ–PK belum aktif.'} Padanan masa belum diuji.</div>`;
+}
+// Constraints specific form, data is kept within the existing version JSON.
+const JW_F2_TYPES=[['TEACHER_LIMIT','Had guru / kategori'],['TEACHER_BLOCK','Pelepasan guru'],['SUBJECT_BLOCK','Larangan waktu subjek'],['SUBJECT_PREFER','Keutamaan waktu subjek'],['ROOM_BLOCK','Bilik tidak tersedia'],['ROOM_USE','Penggunaan bilik & kapasiti'],['LOCK_SESSION','Kunci sesi PdPc']];
+function jwF2ConOptions(arr,val){return '<option value="">— Pilih —</option>'+arr.map(x=>`<option value="${jwAgihanEscape(x.id)}" ${String(x.id)===String(val)?'selected':''}>${jwAgihanEscape(x.label||x.name||x.id)}</option>`).join('');}
+function jwF2ConRender(){const wrap=jwConEl('jwF2Specific');if(!wrap)return;const c=JW_CON_F1.data?.choices;if(!c)return;
+ const field=(label,html)=>`<div class="jw-agihan-field"><label>${label}</label>${html}</div>`;
+ wrap.innerHTML=(JW_CON_F1.specific||[]).map((r,i)=>{const input=(key,type='text',min='',max='')=>`<input type="${type}" ${min!==''?'min="'+min+'"':''} ${max!==''?'max="'+max+'"':''} value="${jwAgihanEscape(r[key]??'')}" onchange="jwF2ConChange(${i},'${key}',this.value)">`;
+ const sel=(key,options)=>`<select onchange="jwF2ConChange(${i},'${key}',this.value)">${jwF2ConOptions(options,r[key])}</select>`;
+ const t=r.type,targets=t==='TEACHER_LIMIT'&&r.targetType==='ROLE'?c.roles.map(x=>({id:x,name:x})):['TEACHER_LIMIT','TEACHER_BLOCK','LOCK_SESSION'].includes(t)?c.staff:t==='ROOM_BLOCK'?c.locations:c.subjects;
+ return `<div class="jw-agihan-quota-row space-y-2"><div class="grid grid-cols-1 sm:grid-cols-3 gap-3">${field('Kategori kekangan',sel('type',JW_F2_TYPES.map(([id,name])=>({id,name}))))}${t==='TEACHER_LIMIT'?field('Skop',sel('targetType',[{id:'STAFF',name:'Individu'},{id:'ROLE',name:'Kategori staf'}])):''}${field('Sasaran',sel('target',targets))}${field('Jenis',sel('strength',[{id:'HARD',name:'Wajib'},{id:'SOFT',name:'Keutamaan'}]))}${t==='TEACHER_LIMIT'?field('Maks. sehari (0 = tiada had)',input('maxDaily','number',0,40))+field('Maks. berturut',input('maxConsecutive','number',1,4))+field('Min. senggang',input('minGapPeriods','number',1,4)):t==='ROOM_USE'?field('Lokasi',sel('locationId',c.locations))+field('Kapasiti serentak',input('capacity','number',1,20)):field('Hari',sel('day',['Isnin','Selasa','Rabu','Khamis','Jumaat'].map((name,j)=>({id:String(j+1),name}))))+field('Mula',input('start','time'))+field('Tamat',input('end','time'))}${t==='LOCK_SESSION'?field('Subjek',sel('choiceId',c.subjects))+field('Kelas',sel('classId',c.classes)):''}${field('Catatan',input('note'))}</div><button type="button" class="jw-agihan-btn jw-agihan-btn-light" onclick="jwF2ConRemove(${i})">Padam peraturan draf</button></div>`;
+ }).join('')||'<p class="jw-agihan-muted">Tiada kekangan khusus. Tetapan umum masih terpakai.</p>';
+}
+function jwF2ConDefault(type='TEACHER_LIMIT'){return {type,target:'',targetType:'STAFF',strength:type==='SUBJECT_PREFER'?'SOFT':'HARD',maxDaily:0,maxConsecutive:4,minGapPeriods:1,day:'1',start:'07:30',end:'08:00',locationId:'',capacity:1,choiceId:'',classId:'',note:''};}
+function jwF2ConAdd(){if(!JW_CON_F1.data)return;JW_CON_F1.specific.push(jwF2ConDefault());jwConDirty();jwF2ConRender();}
+function jwF2ConChange(i,key,value){const r=JW_CON_F1.specific[i];if(!r)return;if(key==='type')JW_CON_F1.specific[i]=jwF2ConDefault(value);else {r[key]=value;if(key==='targetType')r.target='';}jwConDirty();if(['type','targetType'].includes(key))jwF2ConRender();}
+function jwF2ConRemove(i){JW_CON_F1.specific.splice(i,1);jwConDirty();jwF2ConRender();}
+
+function jwF2SecondaryPriority(i,checked){const r=JW_AGIHAN_CORE.rows[i];if(r?.relation?.role!=='SECOND')return;r.homeroom=checked;jwF2Refresh();}
+async function jwF2Suggest(){
+  const errors=jwAgihanErrors();if(errors.length)return jwAgihanErrorPopup(errors);
+  const core=JW_AGIHAN_CORE,snapshot=JSON.stringify(core.rows),id=core.currentId,year=jwAgihanSessionYear(),subjectSetId=core.subjectSet?.id;
+  try{const r=await jwAgihanRequest('fiJWF2Suggest',{rows:JSON.parse(snapshot),year,subjectSetId});
+    const detail=`Sumber ${r.sourceYear}: ${r.paired} pasangan Co-Teaching, ${r.linked} pautan PJ–PK boleh ditetapkan. ${r.unpaired} baris Co-Teaching dan ${r.unlinked} baris PJ/PK masih bebas. Tiada kuota guru ditambah/dibuang. ${r.notes.join(' | ')}`;
+    if(!r.paired&&!r.linked)return jwAgihanDialog({title:'Tiada pautan pasti',text:detail,icon:'info'});
+    if(!await jwAgihanConfirm('Gunakan cadangan pautan?',detail,'Gunakan dalam draf'))return;
+    if(snapshot!==JSON.stringify(core.rows)||id!==core.currentId||year!==jwAgihanSessionYear()||subjectSetId!==core.subjectSet?.id)return jwAgihanNotice('Set kerja berubah semasa semakan. Cuba semula.',true);
+    core.rows=r.rows;jwF2Refresh();jwAgihanNotice('Cadangan dimasukkan dalam draf sahaja. Semak dan Simpan Versi apabila bersedia.');
+  }catch(e){jwAgihanOpenError(e);}
+}
