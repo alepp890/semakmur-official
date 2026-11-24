@@ -32,8 +32,8 @@
     }
   </script>
 
-  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=2.7" />
-  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=2.7" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=2.7.2" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=2.7.2" />
 </head>
 <body class="min-h-screen text-slate-800 bg-slate-100">
 
@@ -176,7 +176,9 @@
               <option value="Khamis">Khamis</option><option value="Jumaat">Jumaat</option>
             </select>
             <span id="jwGridDayCount" class="jw-grid-daycount">0 slot</span>
+            <button id="jwGridAddPra" type="button" disabled onclick="tambahBarisGridMasa(true)" class="jw-grid-button jw-grid-button--soft">+ Slot Prasekolah</button>
           </div>
+          <p class="text-xs text-slate-500">Slot Prasekolah adalah pilihan masa tersedia sahaja. Jam mula boleh ditetapkan berasingan; baki waktu tidak perlu ditambah. Jam tamat ikut tempoh jenis slot Controller.</p>
           <div class="overflow-x-auto"><table class="jw-grid-table jw-grid-table--editor">
             <thead><tr>
               <th class="jw-grid-center">Bil.</th><th>Kumpulan Murid / Kohort</th><th class="jw-grid-center">Hari</th>
@@ -228,7 +230,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h2 class="font-display font-extrabold text-xl text-slate-800">2. Tetapan Subjek & Bilangan Waktu Seminggu</h2>
-              <p class="text-xs text-slate-500">Subjek dipautkan ke Master_Subjek. Set aktif disimpan dalam JW_Subjek_Baris.</p>
+              <p class="text-xs text-slate-500">Subjek dipautkan ke Master_Subjek. Set aktif disimpan dalam JW_Subjek_Baris. Prasekolah ialah kohort berasingan; tambah hanya subjek yang perlu dijana, contohnya PI 4 waktu.</p>
             </div>
             <div class="flex flex-wrap gap-2">
               <button onclick="tarikSemuaMasterSubjek()" class="px-3 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-extrabold text-xs rounded-xl transition flex items-center gap-1 shadow-2xs">
@@ -287,7 +289,7 @@
         </section>
       </div>
 
-      <!-- ================== 3. AGIHAN GURU CORE V2.7 ================== -->
+      <!-- ================== 3. AGIHAN GURU CORE V2.7.2 ================== -->
       <div id="viewAgihanTugas" class="hidden space-y-3 jw-agihan-core" aria-label="Agihan Guru CORE">
         <div class="jw-agihan-menubar">
           <div class="jw-agihan-tabs" role="tablist" aria-label="Bahagian Agihan Guru">
@@ -320,7 +322,7 @@
           </div>
           <div id="jwAgihanTeachers" class="jw-agihan-teacher-list" aria-live="polite"></div>
           <section class="jw-agihan-review">
-            <div class="jw-agihan-section-head"><h3>Semakan Kuota Mengikut Tahun &amp; Subjek</h3><span class="jw-agihan-muted">Berdasarkan kelas aktif dan Tetapan Subjek CORE</span></div>
+            <div class="jw-agihan-section-head"><h3>Semakan Kuota Mengikut Tahun &amp; Subjek</h3><span class="jw-agihan-muted">Berdasarkan kelas aktif dan Tetapan Subjek CORE · Co-Teaching memerlukan 2 penempatan guru-kelas</span></div>
             <div id="jwAgihanCoverage" class="jw-agihan-coverage"></div>
           </section>
         </section>
@@ -459,6 +461,6 @@
   <!-- Penyambung portal Fi: identiti/endpoint sahaja; UI asal dikekalkan. -->
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js?v=fijw-1.0.3"></script>
-  <script src="Fi-JadualWaktu.js?v=2.7" defer></script>
+  <script src="Fi-JadualWaktu.js?v=2.7.2" defer></script>
 </body>
 </html>

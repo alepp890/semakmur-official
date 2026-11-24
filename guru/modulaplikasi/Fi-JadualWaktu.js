@@ -557,6 +557,7 @@ function fiJWMessageParent(type,message){
     const JW_GRID_SYSTEM_TYPES = ['PDP','REHAT','PERHIMPUNAN','KARAKTER'];
     const JW_GRID_DAYS = ['Isnin','Selasa','Rabu','Khamis','Jumaat'];
     const JW_GRID_COHORTS = [
+      {value:'PRA',label:'Prasekolah',years:[0]},
       {value:'ALL',label:'Semua Tahun 1–6',years:[1,2,3,4,5,6]},
       {value:'Y1',label:'Tahun 1 sahaja',years:[1]},
       {value:'Y23',label:'Tahun 2–3',years:[2,3]},
@@ -570,6 +571,7 @@ function fiJWMessageParent(type,message){
       {value:'Y26',label:'Tahun 2–6',years:[2,3,4,5,6]}
     ];
     const JW_GRID_LEGACY_SCOPES = {
+      'Prasekolah':'PRA','Pra Sekolah':'PRA',
       'Semua (KSSR)':'ALL','Tahap 1 & 2':'ALL','Tahap 1 (KSSR)':'T1',
       'Tahap 2 (KSSR)':'T2','Tahun 1 (KP27)':'Y1','Tahap 1 (KP27)':'T1'
     };
@@ -587,7 +589,7 @@ function fiJWMessageParent(type,message){
           return false;
         })||JW_GRID_WORK_CTRL.types[0];
     }
-    function jwGridYears(scope){return (JW_GRID_COHORTS.find(c=>c.value===(JW_GRID_LEGACY_SCOPES[scope]||scope))||JW_GRID_COHORTS[0]).years;}
+    function jwGridYears(scope){return (JW_GRID_COHORTS.find(c=>c.value===(JW_GRID_LEGACY_SCOPES[scope]||scope))||JW_GRID_COHORTS.find(c=>c.value==='ALL')).years;}
     function jwGridClock(time){const [h,m]=String(time||'').split(':').map(Number);return Number.isFinite(h)&&Number.isFinite(m)?h*60+m:NaN;}
     function jwGridTime(n){return Number.isFinite(n)&&n>=0&&n<1440?`${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`:'—';}
     function jwGridStart(day){return JW_GRID_WORK_CTRL.startByDay?.[day]||JW_GRID_WORK_CTRL.start||'07:40';}
@@ -699,9 +701,9 @@ function fiJWMessageParent(type,message){
     function jwGridNextCohort(day){
       const d=STATE_GRID_MASA.filter(r=>r.Hari===day);
       const cursor=[1,2,3,4,5,6].map(year=>({year,time:jwGridClock(jwGridStart(day))}));
-      for(const r of d){for(const year of jwGridYears(r.Tahap))cursor[year-1].time=Math.max(cursor[year-1].time,jwGridClock(r.Jam_Tamat));}
+      for(const r of d){for(const year of jwGridYears(r.Tahap).filter(y=>y>0))cursor[year-1].time=Math.max(cursor[year-1].time,jwGridClock(r.Jam_Tamat));}
       const first=Math.min(...cursor.map(x=>x.time));const available=cursor.filter(x=>x.time===first).map(x=>x.year);
-      const found=JW_GRID_COHORTS.filter(c=>c.years.every(y=>available.includes(y)))
+      const found=JW_GRID_COHORTS.filter(c=>c.value!=='PRA'&&c.years.every(y=>available.includes(y)))
         .sort((a,b)=>b.years.length-a.years.length)[0];
       if(!found)throw Error('Tiada kohort tersedia untuk slot baharu.');
       return found.value;
@@ -712,7 +714,13 @@ function fiJWMessageParent(type,message){
       const cursors=Object.fromEntries([1,2,3,4,5,6].map(y=>[y,{minute:start,period:0}]));
       const rows=STATE_GRID_MASA.filter(r=>r.Hari===day);
       rows.forEach((r,i)=>{
-        const type=jwGridType(r),years=jwGridYears(r.Tahap),times=years.map(y=>cursors[y].minute);
+        const type=jwGridType(r),years=jwGridYears(r.Tahap);
+        if(years.includes(0)){
+          const begin=jwGridClock(r.Jam_Mula||jwGridStart(day)),finish=begin+Number(type.duration);
+          if(!Number.isInteger(begin)||begin<0||!Number.isInteger(finish)||finish>1439)throw Error('Jam mula/tamat Prasekolah tidak sah.');
+          r.Jam_Mula=jwGridTime(begin);r.Jam_Tamat=jwGridTime(finish);r.Jenis_ID=type.id;r.Jenis_Slot=type.legacy||type.name;return;
+        }
+        const times=years.map(y=>cursors[y].minute);
         if(new Set(times).size!==1)throw Error('Baris '+(i+1)+' menggabungkan kohort yang sudah mempunyai masa berlainan. Asingkan kohort sebelum menyimpan.');
         const counts=years.map(y=>cursors[y].period);
         if(type.counts && new Set(counts).size!==1)throw Error('Nombor waktu kohort tidak selaras pada baris '+(i+1)+'. Asingkan kumpulan.');
@@ -722,6 +730,10 @@ function fiJWMessageParent(type,message){
         r.No_Waktu=type.counts?String(counts[0]+1):'';
         r.Jenis_ID=type.id;r.Jenis_Slot=type.legacy||type.name;
         for(const y of years){cursors[y].minute=finish;if(type.counts)cursors[y].period++;}
+      });
+      let n=0,end=-1;rows.filter(r=>jwGridYears(r.Tahap).includes(0)).sort((a,b)=>jwGridClock(a.Jam_Mula)-jwGridClock(b.Jam_Mula)).forEach(r=>{
+        if(jwGridClock(r.Jam_Mula)<end)throw Error('Slot Prasekolah bertindih pada '+day+'.');
+        end=jwGridClock(r.Jam_Tamat);r.No_Waktu=jwGridType(r).counts?String(++n):'';
       });
     }
     function jwGridRecalculateAll(){for(const day of JW_GRID_DAYS)jwGridRecalculateDay(day);}
@@ -747,13 +759,14 @@ function fiJWMessageParent(type,message){
         <td class="jw-grid-td"><select class="jw-grid-input" aria-label="Kumpulan murid baris ${i+1}" ${disabled} onchange="jwGridEditRow(${i},'Tahap',this.value)">${jwGridScopeOptions(r.Tahap)}</select></td>
         <td class="jw-grid-td jw-grid-center jw-grid-day">${jwGridEsc(day)}</td>
         <td class="jw-grid-td jw-grid-center">${r.No_Waktu===''||r.No_Waktu===0||String(r.No_Waktu)==='0'?'—':jwGridEsc(r.No_Waktu)}</td>
-        <td class="jw-grid-td jw-grid-center jw-grid-time">${jwGridEsc(formatTimeString(r.Jam_Mula)||'—')}</td>
+        <td class="jw-grid-td jw-grid-center jw-grid-time">${edit&&jwGridYears(r.Tahap).includes(0)?`<input type="time" class="jw-grid-input" aria-label="Jam mula Prasekolah" value="${jwGridEsc(r.Jam_Mula)}" onchange="jwGridEditRow(${i},'Jam_Mula',this.value)">`:jwGridEsc(formatTimeString(r.Jam_Mula)||'—')}</td>
         <td class="jw-grid-td jw-grid-center jw-grid-time">${jwGridEsc(formatTimeString(r.Jam_Tamat)||'—')} <i class="fa-solid fa-lock jw-grid-lock" aria-hidden="true"></i></td>
         <td class="jw-grid-td"><select class="jw-grid-input" aria-label="Jenis slot baris ${i+1}" ${disabled} onchange="jwGridEditRow(${i},'Jenis_ID',this.value)">${jwGridTypeOptions(r)}</select></td>
         <td class="jw-grid-td jw-grid-center"><div class="jw-grid-actions"><button title="Padam slot" aria-label="Padam baris ${i+1}" ${disabled} onclick="padamBarisGridMasa(${i})" class="jw-grid-icon jw-grid-icon--delete"><i class="fa-solid fa-trash"></i></button>${edit&&i===rows.length-1?'<button title="Tambah slot" aria-label="Tambah slot seterusnya" onclick="tambahBarisGridMasa()" class="jw-grid-icon jw-grid-icon--add"><i class="fa-solid fa-plus"></i></button>':''}</div></td>
       </tr>`).join('');
       if(!rows.length)tbody.innerHTML=`<tr><td colspan="8" class="jw-grid-empty"><span>Belum ada slot ${jwGridEsc(day)}.</span> ${edit?'<button onclick="tambahBarisGridMasa()" class="jw-grid-icon jw-grid-icon--add" aria-label="Tambah slot pertama"><i class="fa-solid fa-plus"></i></button>':'<span>Klik “Tambah Grid Masa” untuk memulakan draf.</span>'}</td></tr>`;
       const count=document.getElementById('jwGridDayCount');if(count)count.textContent=rows.length+' slot';
+      const praButton=document.getElementById('jwGridAddPra');if(praButton)praButton.disabled=!edit;
     }
     function jwGridEditRow(index,field,value){
       if(JW_GRID_MODE==='legacy'||JW_GRID_MODE==='selected')return;
@@ -768,14 +781,16 @@ function fiJWMessageParent(type,message){
     }
     function onGridMasaTimeChange(){ /* Jam Tamat dikawal sepenuhnya oleh Controller. */ }
     function syncCurrentDayGridMasaDOM(){ /* Semua perubahan Grid V2 terus di STATE_GRID_MASA, tidak perlu baca DOM. */ }
-    function tambahBarisGridMasa(){
+    function tambahBarisGridMasa(pra=false){
       try{jwGridEnsureDraft();}catch(e){Swal.fire('Grid Masa',e.message,'warning');return;}
       const day=document.getElementById('selHariGridMasa')?.value||LAST_GRID_HARI||'Isnin';
-      let scope;try{scope=jwGridNextCohort(day);}catch(e){return Swal.fire('Kohort',e.message,'warning');}
+      let scope;try{scope=pra?'PRA':jwGridNextCohort(day);}catch(e){return Swal.fire('Kohort',e.message,'warning');}
       const type=JW_GRID_WORK_CTRL.types.find(t=>t.id==='PDP'&&t.active)||JW_GRID_WORK_CTRL.types.find(t=>t.active);
       if(!type)return Swal.fire('Controller','Tiada jenis slot yang Aktif.','warning');
       const old=jwGridClone(STATE_GRID_MASA);
-      STATE_GRID_MASA.push({Slot_ID:'',Tahap:scope,Hari:day,No_Waktu:'',Jam_Mula:'',Jam_Tamat:'',Jenis_ID:type.id,Jenis_Slot:type.legacy});
+      const praRows=STATE_GRID_MASA.filter(r=>r.Hari===day&&jwGridYears(r.Tahap).includes(0));
+      const praStart=praRows.length?jwGridTime(Math.max(...praRows.map(r=>jwGridClock(r.Jam_Tamat)))):jwGridStart(day);
+      STATE_GRID_MASA.push({Slot_ID:'',Tahap:scope,Hari:day,No_Waktu:'',Jam_Mula:pra?praStart:'',Jam_Tamat:'',Jenis_ID:type.id,Jenis_Slot:type.legacy});
       try{jwGridRecalculateDay(day);JW_GRID_DIRTY=true;jwGridColorMessage('Baris ditambah. Pilih kumpulan murid dan jenis slot jika perlu.');}
       catch(e){STATE_GRID_MASA=old;Swal.fire('Tidak dapat tambah slot',e.message,'warning');}
       renderGridMasaTable();
@@ -1043,7 +1058,7 @@ function fiJWMessageParent(type,message){
         years.forEach(y=>{
           const dupKey=`${masterId}|${y}|${jwSubjectModeKeyForUI(r.Mode_Block)}|${r.Flag_CoTeaching}`;
           if(duplicates.has(dupKey))flag([duplicates.get(dupKey),i],[],
-            `${code} Tahun ${y}: konfigurasi ${jwSubjectModeKeyForUI(r.Mode_Block)} / Co-Teaching ${r.Flag_CoTeaching} bertindih.`);
+            `${code} ${jwYearLabel(y)}: konfigurasi ${jwSubjectModeKeyForUI(r.Mode_Block)} / Co-Teaching ${r.Flag_CoTeaching} bertindih.`);
           else duplicates.set(dupKey,i);
           const gKey=`${masterId}|${y}`,old=aggregate.get(gKey)||{code,year:y,days:0,periods:0,rows:[]};
           old.days+=jwSubjectDayCount(r.Mode_Block,n);old.periods+=n;old.rows.push(i);aggregate.set(gKey,old);
@@ -1055,7 +1070,7 @@ function fiJWMessageParent(type,message){
         });
       });
       aggregate.forEach(g=>{
-        if(g.days>5)flag(g.rows,[],`${g.code} Tahun ${g.year}: ${g.days} sesi memerlukan lebih 5 hari sekolah.`);
+        if(g.days>5)flag(g.rows,[],`${g.code} ${jwYearLabel(g.year)}: ${g.days} sesi memerlukan lebih 5 hari sekolah.`);
       });
       targets.forEach((r,i)=>{
         const code=String(r.Kod_Subjek||'').trim().toUpperCase(),master=ALL_MASTER_SUBJEK_LIST.find(x=>String(x.Kod_Subjek||'').trim().toUpperCase()===code);
@@ -1065,10 +1080,10 @@ function fiJWMessageParent(type,message){
         }
         years.forEach(y=>{
           const k=`${master.ID_Subjek||code}|${y}`;
-          if(targetSeen.has(k))flag([],[targetSeen.get(k),i],`${code} Tahun ${y}: sasaran bertindih.`);
+          if(targetSeen.has(k))flag([],[targetSeen.get(k),i],`${code} ${jwYearLabel(y)}: sasaran bertindih.`);
           else targetSeen.set(k,i);
           const g=aggregate.get(k),got=g?.periods||0;
-          if(want!==got)flag(g?.rows||[],[i],`${code} Tahun ${y}: sasaran ${want} waktu, tetapan sebenar ${got} waktu.`);
+          if(want!==got)flag(g?.rows||[],[i],`${code} ${jwYearLabel(y)}: sasaran ${want} waktu, tetapan sebenar ${got} waktu.`);
         });
       });
       return {errors,totals,aggregate,coverage};
@@ -1077,6 +1092,7 @@ function fiJWMessageParent(type,message){
     // Jangan anggap Tahun 1 ialah KP2027, atau Tahun 2-6 sentiasa KSSR.
     function jwSubjectCohortLabel(years){
       const a=years.join(',');
+      if(a==='0')return 'Prasekolah';
       if(a==='1,2,3')return 'Tahap 1 · Tahun 1–3';
       if(a==='2,3')return 'Tahap 1 · Tahun 2–3';
       if(a==='4,5,6')return 'Tahap 2 · Tahun 4–6';
@@ -1093,14 +1109,14 @@ function fiJWMessageParent(type,message){
       // Dua tahun digabung hanya jika baris subjek yang terpakai sama,
       // jumlah waktunya sama, dan tahun itu berjiran.
       const present=[...totals.keys()].map(Number)
-        .filter(y=>Number.isInteger(y)&&y>=1&&y<=6)
+        .filter(y=>Number.isInteger(y)&&y>=0&&y<=6)
         .sort((a,b)=>a-b);
       const groups=[];
       for(const year of present){
         const n=Number(totals.get(year))||0;
         const signature=(coverage?.get(year)||[]).slice().sort((a,b)=>a-b).join(',');
         const last=groups[groups.length-1];
-        if(last && last.years[last.years.length-1]===year-1 &&
+        if(last && year>1 && last.years[last.years.length-1]===year-1 &&
             last.signature===signature && last.n===n){
           last.years.push(year);
         }else{
@@ -2670,35 +2686,51 @@ function fiJWMessageParent(type,message){
       container.innerHTML = html;
     }
   
-// ================== AGIHAN GURU CORE V2.7 ==================
+// ================== AGIHAN GURU CORE V2.7.1 ==================
 // UI persediaan — tidak memanggil enjin Jana lama dan tidak menyentuh jadual rasmi.
+function jwYearLabel(y){return Number(y)===0?'Prasekolah':'Tahun '+y;}
 const JW_AGIHAN_SCOPES=[
+  ['PRA','Prasekolah'],
   ['Y1','Tahun 1'],['Y2','Tahun 2'],['Y3','Tahun 3'],['Y4','Tahun 4'],['Y5','Tahun 5'],['Y6','Tahun 6'],
   ['Y23','Tahun 2–3'],['Y56','Tahun 5–6'],['T1','Tahap 1 (Tahun 1–3)'],
   ['T2','Tahap 2 (Tahun 4–6)'],['Y26','Tahun 2–6'],['ALL','Semua Tahun 1–6']
 ];
-const JW_AGIHAN_YEARS={Y1:[1],Y2:[2],Y3:[3],Y4:[4],Y5:[5],Y6:[6],Y23:[2,3],Y56:[5,6],T1:[1,2,3],T2:[4,5,6],Y26:[2,3,4,5,6],ALL:[1,2,3,4,5,6]};
+const JW_AGIHAN_YEARS={PRA:[0],Y1:[1],Y2:[2],Y3:[3],Y4:[4],Y5:[5],Y6:[6],Y23:[2,3],Y56:[5,6],T1:[1,2,3],T2:[4,5,6],Y26:[2,3,4,5,6],ALL:[1,2,3,4,5,6]};
 let JW_AGIHAN_CORE={loaded:false,loading:false,staff:[],historyStaff:[],classes:[],subjects:[],subjectSet:null,
   selected:null,presets:[],rows:[],takeovers:[],plans:[],currentId:'',dirty:false,
-  openTeachers:new Set(),lastError:''};
+  openTeachers:new Set(),lastError:'',needsResave:false};
 function jwAgihanEscape(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function jwAgihanYears(scope){return JW_AGIHAN_YEARS[String(scope||'').toUpperCase()]||[];}
+function jwAgihanYears(scope){const key=String(scope||'').toUpperCase();
+  if(JW_AGIHAN_YEARS[key])return JW_AGIHAN_YEARS[key];
+  if(/^YS[1-6](?:_[1-6]){0,5}$/.test(key)){const ys=key.slice(2).split('_').map(Number);if(ys.every((y,i)=>i===0||y>ys[i-1]))return ys;}return [];}
+function jwAgihanScopeKey(years){const ys=[...years].sort((a,b)=>a-b);return Object.keys(JW_AGIHAN_YEARS).find(k=>JW_AGIHAN_YEARS[k].join(',')===ys.join(','))||'YS'+ys.join('_');}
+function jwAgihanScopesFor(choice){if(!choice)return JW_AGIHAN_SCOPES;
+  const full=jwAgihanScopeKey(choice.years),existing=JW_AGIHAN_SCOPES.filter(([id])=>jwAgihanYears(id).every(y=>choice.years.includes(y)));
+  if(!existing.some(([id])=>id===full))existing.push([full,'Semua tahun terpakai ('+choice.years.join(', ')+')']);
+  return [existing.find(([id])=>id===full),...existing.filter(([id])=>id!==full)].filter(Boolean);
+}
 function jwAgihanYearClasses(year){return JW_AGIHAN_CORE.classes.filter(c=>c.year===year);}
 function jwAgihanScopeLabel(scope){return (JW_AGIHAN_SCOPES.find(x=>x[0]===scope)||['',scope])[1];}
 function jwAgihanSubjectIndex(){
-  const out=new Map();JW_AGIHAN_CORE.subjects.forEach(s=>{
-    if(!out.has(s.id))out.set(s.id,{id:s.id,code:s.code,name:s.name,years:[]});
-    out.get(s.id).years.push(s.year);
-  });return [...out.values()].sort((a,b)=>a.code.localeCompare(b.code,'ms'));
+  const out=new Map();JW_AGIHAN_CORE.subjects.forEach(s=>{if(!out.has(s.id))out.set(s.id,s);});
+  return [...out.values()].sort((a,b)=>a.code.localeCompare(b.code,'ms')||a.years[0]-b.years[0]||Number(b.coTeaching)-Number(a.coTeaching)||a.label.localeCompare(b.label,'ms'));
 }
 function jwAgihanPeriods(id,year){return JW_AGIHAN_CORE.subjects.find(s=>s.id===id&&s.year===year)?.periods||0;}
+function jwAgihanCheckVersion(res){if(res.version!=='V2.7.2')throw Error('Backend Agihan belum V2.7.2. Deploy FiJadualWaktu.gs versi baharu dahulu.');}
+function jwAgihanReviewNotice(){
+  const ambiguous=JW_AGIHAN_CORE.rows.filter(r=>r.needsReview||!r.choiceId).length;
+  if(ambiguous)jwAgihanNotice(`${ambiguous} baris lama perlu pilih konfigurasi Tetapan Subjek yang tepat. Kuota asal dikekalkan; sejarah tidak diubah.`,true);
+  else if(JW_AGIHAN_CORE.needsResave)jwAgihanNotice('Set lama / versi Subjek berbeza. Semak pilihan dan beban waktu, kemudian Simpan Versi baharu sebelum Aktifkan Set.',true);
+  else jwAgihanNotice('');
+}
+
 function jwAgihanSetDirty(dirty=true){
   JW_AGIHAN_CORE.dirty=dirty;
   const btn=document.getElementById('jwAgihanBtnActivate');
-  if(btn)btn.disabled=dirty||!JW_AGIHAN_CORE.currentId;
+  if(btn)btn.disabled=dirty||JW_AGIHAN_CORE.needsResave||!JW_AGIHAN_CORE.currentId;
   const el=document.getElementById('jwAgihanActiveLabel');
   if(el){const active=JW_AGIHAN_CORE.selected;
-    el.textContent=dirty?'Perubahan belum disimpan':active?'✓ Aktif: '+active.name:'Belum ada set aktif';
+    el.textContent=dirty?'Perubahan belum disimpan':JW_AGIHAN_CORE.needsResave?'Set kerja perlu disemak & disimpan':active?'✓ Aktif: '+active.name:'Belum ada set aktif';
     el.classList.toggle('is-dirty',dirty);
   }
 }
@@ -2738,16 +2770,17 @@ async function jwAgihanReload(quiet=false){
     'Muat semula akan membuang perubahan Agihan yang belum disimpan.','Muat semula')))return;
   JW_AGIHAN_CORE.loading=true;
   try{
-    const res=await jwAgihanRequest('fiJWAgihanStudioGet');
+    const res=await jwAgihanRequest('fiJWAgihanStudioGet');jwAgihanCheckVersion(res);
     Object.assign(JW_AGIHAN_CORE,{loaded:true,staff:res.staff||[],historyStaff:res.historyStaff||[],classes:res.classes||[],
       subjects:res.subjects||[],subjectSet:res.subjectSet||null,selected:res.selected||null,
       presets:res.presets||[],rows:JSON.parse(JSON.stringify(res.activeRows||[])),
-      takeovers:res.takeovers||[],plans:res.plans||[],currentId:res.selected?.id||'',dirty:false});
+      takeovers:res.takeovers||[],plans:res.plans||[],currentId:res.selected?.id||'',dirty:false,needsResave:!!res.needsResave});
     JW_AGIHAN_CORE.openTeachers.clear();
+    JW_AGIHAN_CORE.rows.filter(r=>r.needsReview).forEach(r=>JW_AGIHAN_CORE.openTeachers.add(r.teacherId));
     const year=document.getElementById('jwAgihanYear');if(year)year.value=res.selected?.year||res.subjectSet?.year||new Date().getFullYear();
     const name=document.getElementById('jwAgihanSetName');if(name)name.value=res.selected?.name||'';
     document.getElementById('jwPlanYear').value=year.value;
-    jwAgihanSetDirty(false);jwAgihanNotice('');jwAgihanRenderAll();
+    jwAgihanSetDirty(false);jwAgihanReviewNotice();jwAgihanRenderAll();
   }catch(err){jwAgihanNotice(err.message,true);await jwAgihanDialog({title:'Agihan Guru belum dapat dibuka',text:err.message,icon:'error'});}
   finally{JW_AGIHAN_CORE.loading=false;}
 }
@@ -2755,11 +2788,16 @@ function jwAgihanRenderAll(){jwAgihanRenderTeachers();jwAgihanRenderStats();jwAg
 function jwAgihanRowsFor(teacherId){return JW_AGIHAN_CORE.rows.map((r,i)=>({...r,index:i})).filter(r=>r.teacherId===teacherId);}
 function jwAgihanEstimate(row){
   const years=jwAgihanYears(row.scope);
+  if(!row.choiceId||!years.length||years.some(y=>!jwAgihanPeriods(row.choiceId,y)))return null;
+  if(row.strategy==='TETAP'&&(row.fixedClassIds||[]).length===Number(row.count)){
+    const classes=row.fixedClassIds.map(id=>JW_AGIHAN_CORE.classes.find(c=>c.id===id));
+    if(classes.every(c=>c&&years.includes(c.year)))return classes.reduce((n,c)=>n+jwAgihanPeriods(row.choiceId,c.year),0);
+  }
   const quotas=row.yearQuota||{};
-  if(years.length===1)return Number(row.count)*jwAgihanPeriods(row.subjectId,years[0]);
+  if(years.length===1)return Number(row.count)*jwAgihanPeriods(row.choiceId,years[0]);
   if(Object.values(quotas).reduce((s,n)=>s+Number(n),0)===Number(row.count))
-    return Object.entries(quotas).reduce((sum,[y,n])=>sum+Number(n)*jwAgihanPeriods(row.subjectId,Number(y)),0);
-  const periods=years.map(y=>jwAgihanPeriods(row.subjectId,y));
+    return Object.entries(quotas).reduce((sum,[y,n])=>sum+Number(n)*jwAgihanPeriods(row.choiceId,Number(y)),0);
+  const periods=years.map(y=>jwAgihanPeriods(row.choiceId,y));
   return periods.every(n=>n===periods[0])?Number(row.count)*periods[0]:null;
 }
 function jwAgihanTeacherOrder(a,b){
@@ -2773,7 +2811,9 @@ function jwAgihanRenderTeachers(){
   const activeIds=new Set(JW_AGIHAN_CORE.staff.map(t=>t.id));
   const inactive=JW_AGIHAN_CORE.historyStaff.filter(t=>!activeIds.has(t.id)&&JW_AGIHAN_CORE.rows.some(r=>r.teacherId===t.id))
     .map(t=>({...t,role:'Tidak aktif — semak penugasan',inactive:true}));
-  const teachers=[...JW_AGIHAN_CORE.staff,...inactive].sort(jwAgihanTeacherOrder).filter(t=>{
+  const known=new Set([...activeIds,...inactive.map(t=>t.id)]);
+  const missing=[...new Set(JW_AGIHAN_CORE.rows.map(r=>r.teacherId))].filter(id=>!known.has(id)).map(id=>({id,name:id,role:'Tiada dalam Master_Staf — semak',inactive:true}));
+  const teachers=[...JW_AGIHAN_CORE.staff,...inactive,...missing].sort(jwAgihanTeacherOrder).filter(t=>{
     const rows=jwAgihanRowsFor(t.id);
     return (!query||(t.name+' '+t.id).toLowerCase().includes(query))&&
       (filter==='all'||(filter==='assigned'&&rows.length)||(filter==='empty'&&!rows.length));
@@ -2800,17 +2840,19 @@ function jwAgihanRenderTeachers(){
 function jwAgihanRowHTML(r){
   const years=jwAgihanYears(r.scope),available=JW_AGIHAN_CORE.classes.filter(c=>years.includes(c.year));
   const subjects=jwAgihanSubjectIndex();
-  const options=subjects.map(s=>`<option value="${jwAgihanEscape(s.id)}" ${s.id===r.subjectId?'selected':''}>${jwAgihanEscape(s.code+' — '+s.name)}</option>`).join('');
-  const scopes=JW_AGIHAN_SCOPES.map(([id,label])=>`<option value="${id}" ${r.scope===id?'selected':''}>${jwAgihanEscape(label)}</option>`).join('');
+  const choice=subjects.find(s=>s.id===r.choiceId&&s.subjectId===r.subjectId);
+  const options=subjects.map(s=>`<option value="${jwAgihanEscape(s.id)}" ${s.id===r.choiceId?'selected':''}>${jwAgihanEscape(s.label)}</option>`).join('');
+  const scopeOptions=jwAgihanScopesFor(choice);
+  const scopes=(scopeOptions.some(([id])=>id===r.scope)?'':`<option value="${jwAgihanEscape(r.scope)}" selected disabled>Skop lama: ${jwAgihanEscape(jwAgihanScopeLabel(r.scope))} — semak</option>`)+scopeOptions.map(([id,label])=>`<option value="${id}" ${r.scope===id?'selected':''}>${jwAgihanEscape(label)}</option>`).join('');
   const hasQuota=Object.keys(r.yearQuota||{}).length>0;
   const yearControls=years.length>1?`<label class="jw-agihan-check jw-agihan-linecheck"><input type="checkbox" ${hasQuota?'checked':''} onchange="jwAgihanToggleQuota(${r.index},this.checked)"> Tetapkan bil. kelas mengikut tahun</label>`:'';
   const quotas=years.length>1&&hasQuota?`<div class="jw-agihan-quotas">${years.map(y=>`<label>Tahun ${y}<input type="number" min="0" max="20" value="${Number(r.yearQuota?.[y]||0)}" onchange="jwAgihanSetQuota(${r.index},${y},this.value)"></label>`).join('')}</div>`:'';
   const fixed=r.strategy==='TETAP'?`<div class="jw-agihan-fixed"><div class="jw-agihan-muted">Pilih ${r.count} kelas tetap (pilihan, bukan syarat untuk mod Auto/Kekal)</div>
       <div class="jw-agihan-checkgroup">${available.map(c=>`<label class="jw-agihan-check"><input type="checkbox" ${r.fixedClassIds?.includes(c.id)?'checked':''} onchange="jwAgihanFixedClass(${r.index},'${jwAgihanEscape(c.id)}',this.checked)"> ${jwAgihanEscape(c.name)}</label>`).join('')}</div></div>`:'';
-  const estimate=jwAgihanEstimate(r),subjectValid=years.every(y=>jwAgihanPeriods(r.subjectId,y)>0);
+  const estimate=jwAgihanEstimate(r),subjectValid=!!choice&&years.length>0&&years.every(y=>jwAgihanPeriods(r.choiceId,y)>0);
   return `<div class="jw-agihan-quota-row" data-quota-row="${r.index}">
     <div class="jw-agihan-quota-main">
-      <div class="jw-agihan-field"><label>Subjek</label><select onchange="jwAgihanChangeRow(${r.index},'subjectId',this.value)"><option value="">— Pilih subjek —</option>${options}</select></div>
+      <div class="jw-agihan-field"><label>Tetapan Subjek</label><select onchange="jwAgihanChangeRow(${r.index},'choiceId',this.value)"><option value="">— Pilih tetapan subjek —</option>${options}</select></div>
       <div class="jw-agihan-field"><label>Tahun / Tahap</label><select onchange="jwAgihanChangeRow(${r.index},'scope',this.value)">${scopes}</select></div>
       <div class="jw-agihan-field jw-agihan-small"><label>Bil. Kelas</label><input type="number" min="1" max="20" value="${Number(r.count)||1}" onchange="jwAgihanChangeRow(${r.index},'count',this.value)"></div>
       <div class="jw-agihan-field"><label>Kaedah Agihan</label><select onchange="jwAgihanChangeRow(${r.index},'strategy',this.value)">
@@ -2819,11 +2861,12 @@ function jwAgihanRowHTML(r){
         <option value="TETAP" ${r.strategy==='TETAP'?'selected':''}>Kelas tetap (pilihan)</option></select></div>
       <button type="button" class="jw-agihan-delete" title="Padam baris" aria-label="Padam baris" onclick="jwAgihanDeleteRow(${r.index})"><i class="fa-solid fa-trash"></i></button>
     </div>
-    ${!subjectValid&&r.subjectId?'<div class="jw-agihan-inline-error">Subjek ini tidak ditetapkan untuk semua tahun yang dipilih. Pilih tahap/tahun lain.</div>':''}
+    ${!subjectValid&&r.subjectId?`<div class="jw-agihan-inline-error">${!choice?'Agihan lama '+jwAgihanEscape(r.code||r.subjectId)+' — pilih konfigurasi subjek yang tepat. Bilangan kelas asal dikekalkan.':'Skop tahun tidak sepadan dengan konfigurasi ini. Pilih skop yang sah.'}</div>`:''}
+    ${choice?`<div class="jw-agihan-muted">${choice.coTeaching?'Co-Teaching · 2 guru pada kelas dan waktu sama':'Single · 1 guru setiap sesi'} · ${choice.years.includes(0)?'Prasekolah':'Tahun '+choice.years.join(', ')}</div>`:''}
     <div class="jw-agihan-quota-details">
       ${yearControls}${quotas}${fixed}
       <label class="jw-agihan-check jw-agihan-linecheck"><input type="checkbox" ${r.homeroom?'checked':''} onchange="jwAgihanChangeRow(${r.index},'homeroom',this.checked)"> Utamakan kelas sendiri jika guru ini Guru Kelas</label>
-      <span class="jw-agihan-hrs">${estimate===null?'Beban berubah ikut tahun':estimate+' waktu/minggu (anggaran)'}</span>
+      <span class="jw-agihan-hrs">${estimate===null?(!subjectValid?'Pilih konfigurasi dahulu':'Beban berubah ikut tahun'):estimate+' waktu/minggu (anggaran)'}</span>
     </div>
   </div>`;
 }
@@ -2832,12 +2875,23 @@ function jwAgihanToggleTeacher(id){
   jwAgihanRenderTeachers();
 }
 function jwAgihanAddRow(id){
-  JW_AGIHAN_CORE.rows.push({teacherId:id,subjectId:'',scope:'T1',count:1,yearQuota:{},strategy:'AUTO',fixedClassIds:[],homeroom:false,note:''});
+  JW_AGIHAN_CORE.rows.push({teacherId:id,subjectId:'',choiceId:'',scope:'T1',count:1,yearQuota:{},strategy:'AUTO',fixedClassIds:[],homeroom:false,note:''});
   JW_AGIHAN_CORE.openTeachers.add(id);jwAgihanSetDirty(true);jwAgihanRenderTeachers();jwAgihanRenderStats();jwAgihanRenderCoverage();
 }
 function jwAgihanChangeRow(idx,field,value){
   const r=JW_AGIHAN_CORE.rows[idx];if(!r)return;
-  r[field]=field==='count'?Number(value):value;
+  if(field==='choiceId'){
+    const choice=jwAgihanSubjectIndex().find(s=>s.id===value),previousYears=jwAgihanYears(r.scope),wasLegacy=!!r.subjectId&&!r.choiceId||!!r.needsReview;
+    r.choiceId=choice?.id||'';r.subjectId=choice?.subjectId||'';r.code=choice?.code||'';r.needsReview=false;
+    r.settingIds=choice?.settingIds||[];r.configurationYears=choice?.years||[];r.coTeaching=!!choice?.coTeaching;
+    if(choice){
+      // Pilihan baru menggunakan keseluruhan skop konfigurasi. Agihan lama yang sah mengekalkan skop/pecahan.
+      const scopeValid=previousYears.length&&previousYears.every(y=>choice.years.includes(y));
+      if((choice.years.includes(0)&&!scopeValid)||!wasLegacy&&!(scopeValid&&(r.id||Object.keys(r.yearQuota||{}).length||(r.fixedClassIds||[]).length))){
+        r.scope=jwAgihanScopeKey(choice.years);r.yearQuota={};r.fixedClassIds=[];
+      }
+    }
+  }else r[field]=field==='count'?Number(value):value;
   if(field==='scope'){r.yearQuota={};r.fixedClassIds=[];}
   if(field==='strategy'&&value!=='TETAP')r.fixedClassIds=[];
   if(field==='count'&&Object.keys(r.yearQuota||{}).length){/* Kekal pecahan; diperingatkan jika jumlah tidak sama. */}
@@ -2875,27 +2929,29 @@ function jwAgihanRenderStats(){
 function jwAgihanRenderCoverage(){
   const el=document.getElementById('jwAgihanCoverage');if(!el)return;
   if(!JW_AGIHAN_CORE.subjects.length){el.innerHTML='<div class="jw-agihan-empty">Aktifkan Tetapan Subjek CORE untuk menyemak kuota kelas.</div>';return;}
+  const missingPra=JW_AGIHAN_CORE.subjects.some(s=>s.year===0)&&!jwAgihanYearClasses(0).length;
   const catalog=JW_AGIHAN_CORE.subjects.filter(s=>jwAgihanYearClasses(s.year).length>0);
   const results=catalog.map(s=>{
-    const required=jwAgihanYearClasses(s.year).length;
+    const required=jwAgihanYearClasses(s.year).length*s.requiredTeachers;
     let exact=0,flex=0;
-    JW_AGIHAN_CORE.rows.filter(r=>r.subjectId===s.id&&jwAgihanYears(r.scope).includes(s.year)).forEach(r=>{
+    JW_AGIHAN_CORE.rows.filter(r=>r.choiceId===s.id&&r.subjectId===s.subjectId&&jwAgihanYears(r.scope).includes(s.year)).forEach(r=>{
       const years=jwAgihanYears(r.scope),q=r.yearQuota||{};
-      if(years.length===1)exact+=Number(r.count);
+      if(r.strategy==='TETAP'&&(r.fixedClassIds||[]).length===Number(r.count))exact+=r.fixedClassIds.filter(id=>JW_AGIHAN_CORE.classes.some(c=>c.id===id&&c.year===s.year)).length;
+      else if(years.length===1)exact+=Number(r.count);
       else if(Object.keys(q).length){exact+=Number(q[s.year]||0);
         flex+=Math.max(0,Number(r.count)-Object.values(q).reduce((v,n)=>v+Number(n),0))/years.length;
       }else flex+=Number(r.count)/years.length;
     });
     return {...s,required,exact,flex,status:exact>required?'lebih':exact===required&&flex===0?'lengkap':flex>0?'bebas':'kurang'};
   });
-  let html='';for(let year=1;year<=6;year++){
+  let html='';for(let year=0;year<=6;year++){
     const rows=results.filter(r=>r.year===year);if(!rows.length)continue;
     const complete=rows.filter(r=>r.status==='lengkap').length,short=rows.filter(r=>r.status==='kurang').length;
-    html+=`<details class="jw-agihan-coverage-year" ${year===1?'open':''}><summary><strong>Tahun ${year}</strong><span>${complete}/${rows.length} lengkap · ${short} belum cukup · ${rows.filter(r=>r.status==='bebas').length} belum dipadankan</span></summary><div class="jw-agihan-coverage-list">`;
-    html+=rows.map(r=>`<div class="jw-agihan-coverage-item"><strong>${jwAgihanEscape(r.code)}</strong><span>${r.exact} ditetapkan${r.flex?' · ada kuota bebas':''} / ${r.required} kelas</span><em class="jw-agihan-status is-${r.status}">${{lengkap:'Lengkap',kurang:'Kurang',lebih:'Lebihan',bebas:'Perlu Padanan'}[r.status]}</em></div>`).join('');
+    html+=`<details class="jw-agihan-coverage-year" ${year===1?'open':''}><summary><strong>${jwYearLabel(year)}</strong><span>${complete}/${rows.length} lengkap · ${short} belum cukup · ${rows.filter(r=>r.status==='bebas').length} belum dipadankan</span></summary><div class="jw-agihan-coverage-list">`;
+    html+=rows.map(r=>`<div class="jw-agihan-coverage-item"><strong>${jwAgihanEscape(r.label)}</strong><span>${r.exact} ditetapkan${r.flex?' · ada kuota bebas':''} / ${r.required} penempatan guru-kelas</span><em class="jw-agihan-status is-${r.status}">${{lengkap:'Lengkap',kurang:'Kurang',lebih:'Lebihan',bebas:'Perlu Padanan'}[r.status]}</em></div>`).join('');
     html+='</div></details>';
   }
-  el.innerHTML=html||'<div class="jw-agihan-empty">Tiada kelas aktif atau subjek untuk disemak.</div>';
+  el.innerHTML=(missingPra?'<div class="jw-agihan-empty">Kelas Prasekolah aktif tidak dikesan. Semak nama, kategori dan ID dalam Master_Kelas_Bilik.</div>':'')+(html||'<div class="jw-agihan-empty">Tiada kelas aktif atau subjek untuk disemak.</div>');
 }
 function jwAgihanErrors(){
   const errors=[],bySub=new Map(JW_AGIHAN_CORE.subjects.map(s=>[s.id+'|'+s.year,s]));
@@ -2904,15 +2960,15 @@ function jwAgihanErrors(){
     const issue=t=>errors.push({index:i,text:`Baris ${i+1}: ${t}`});
     const years=jwAgihanYears(r.scope),count=Number(r.count);
     if(!JW_AGIHAN_CORE.staff.some(t=>t.id===r.teacherId))issue('Guru tidak lagi aktif. Padam tugasan ini dan agihkan kepada guru aktif.');
-    if(!r.subjectId||!years.length)issue('Pilih subjek dan skop tahun.');
+    if(!r.subjectId||!r.choiceId||!years.length)issue('Pilih konfigurasi Tetapan Subjek dan skop tahun.');
     if(!Number.isInteger(count)||count<1)issue('Bilangan kelas tidak sah.');
-    if(years.some(y=>!bySub.has(r.subjectId+'|'+y)))issue('Subjek tidak tersedia bagi semua tahun yang dipilih.');
+    if(years.some(y=>bySub.get(r.choiceId+'|'+y)?.subjectId!==r.subjectId))issue('Konfigurasi subjek tidak tersedia bagi semua tahun yang dipilih.');
     const available=JW_AGIHAN_CORE.classes.filter(c=>years.includes(c.year));
     if(count>available.length)issue(`Kuota melebihi ${available.length} kelas yang tersedia.`);
     if(Object.keys(r.yearQuota||{}).length){const sum=Object.values(r.yearQuota).reduce((n,x)=>n+Number(x),0);
       if(sum!==count)issue(`Jumlah pecahan tahun (${sum}) mesti sama dengan ${count} kelas.`);}
     if(r.strategy==='TETAP'&&(r.fixedClassIds||[]).length!==count)issue(`Pilih ${count} kelas tetap.`);
-    years.forEach(y=>{const key=r.teacherId+'|'+r.subjectId+'|'+y;
+    years.forEach(y=>{const key=r.teacherId+'|'+r.choiceId+'|'+y;
       if(seen.has(key))issue('Subjek dan tahun bertindih dengan baris guru ini yang lain.');seen.add(key);});
   });return errors;
 }
@@ -2931,7 +2987,7 @@ function jwAgihanErrorPopup(errors){
 async function jwAgihanNew(){
   if(JW_AGIHAN_CORE.dirty&&!(await jwAgihanConfirm('Buka set baharu?','Perubahan yang belum disimpan akan hilang.','Set Baharu')))return;
   JW_AGIHAN_CORE.rows=[];JW_AGIHAN_CORE.currentId='';JW_AGIHAN_CORE.openTeachers.clear();
-  document.getElementById('jwAgihanSetName').value='';jwAgihanSetDirty(false);jwAgihanRenderAll();jwAgihanTab('quota');
+  document.getElementById('jwAgihanSetName').value='';JW_AGIHAN_CORE.needsResave=false;jwAgihanNotice('');jwAgihanSetDirty(false);jwAgihanRenderAll();jwAgihanTab('quota');
 }
 async function jwAgihanSave(){
   if(!JW_AGIHAN_CORE.subjectSet)return jwAgihanDialog({title:'Tetapan Subjek belum aktif',text:'Pilih Tetapan Subjek CORE terlebih dahulu.',icon:'warning'});
@@ -2940,14 +2996,14 @@ async function jwAgihanSave(){
   if(name.length<2||!JW_AGIHAN_CORE.rows.length)return jwAgihanDialog({title:'Agihan belum lengkap',text:'Isi nama set dan sekurang-kurangnya satu tugasan.',icon:'warning'});
   if(!(await jwAgihanConfirm('Simpan sebagai versi baharu?',`${JW_AGIHAN_CORE.rows.length} baris kuota akan disimpan di JW_Agihan_Baris. Jadual rasmi tidak berubah.`, 'Simpan Versi')))return;
   try{
-    const res=await jwAgihanRequest('fiJWAgihanCoreSave',{name,year,rows:JW_AGIHAN_CORE.rows});
-    JW_AGIHAN_CORE.currentId=res.id;JW_AGIHAN_CORE.dirty=false;jwAgihanSetDirty(false);
+    const res=await jwAgihanRequest('fiJWAgihanCoreSave',{name,year,subjectSetId:JW_AGIHAN_CORE.subjectSet.id,rows:JW_AGIHAN_CORE.rows});
+    JW_AGIHAN_CORE.currentId=res.id;JW_AGIHAN_CORE.dirty=false;JW_AGIHAN_CORE.needsResave=false;jwAgihanSetDirty(false);jwAgihanNotice('');
     await jwAgihanRefreshMetadata();
     await jwAgihanDialog({title:'Versi Agihan disimpan',text:'Set ini belum aktif. Klik Aktifkan Set untuk menjadikannya pilihan persediaan.',icon:'success'});
   }catch(e){jwAgihanNotice(e.message,true);jwAgihanOpenError(e);}
 }
 async function jwAgihanRefreshMetadata(){
-  const res=await jwAgihanRequest('fiJWAgihanStudioGet');
+  const res=await jwAgihanRequest('fiJWAgihanStudioGet');jwAgihanCheckVersion(res);
   JW_AGIHAN_CORE.presets=res.presets||[];JW_AGIHAN_CORE.selected=res.selected||null;
   JW_AGIHAN_CORE.takeovers=res.takeovers||[];JW_AGIHAN_CORE.plans=res.plans||[];
   jwAgihanSetDirty(JW_AGIHAN_CORE.dirty);jwAgihanRenderHistory();jwAgihanRenderTakeover();jwAgihanRenderPlan();
@@ -2960,7 +3016,7 @@ function jwAgihanOpenError(e){
 }
 async function jwAgihanActivate(){
   const id=JW_AGIHAN_CORE.currentId;
-  if(!id||JW_AGIHAN_CORE.dirty)return jwAgihanDialog({title:'Simpan Versi dahulu',text:'Aktifkan hanya versi yang sudah disimpan tanpa perubahan tertangguh.',icon:'warning'});
+  if(!id||JW_AGIHAN_CORE.dirty||JW_AGIHAN_CORE.needsResave)return jwAgihanDialog({title:'Simpan Versi dahulu',text:'Aktifkan hanya versi yang sudah disimpan tanpa perubahan tertangguh.',icon:'warning'});
   if(!(await jwAgihanConfirm('Aktifkan Agihan ini?', 'Hanya menukar set Agihan CORE bagi persediaan. Jadual_Waktu_Hasil kekal.', 'Aktifkan Set')))return;
   try{await jwAgihanRequest('fiJWAgihanCoreActivate',{id});await jwAgihanRefreshMetadata();
     jwAgihanNotice('Set Agihan aktif berjaya ditetapkan. Tiada jadual baharu dijana.');
@@ -2982,11 +3038,13 @@ async function jwAgihanRecall(){
   if(JW_AGIHAN_CORE.dirty&&!(await jwAgihanConfirm('Panggil semula versi?', 'Perubahan set kerja yang belum disimpan akan hilang.','Panggil Semula')))return;
   try{
     const r=await jwAgihanRequest('fiJWAgihanCoreRecall',{id});
+    JW_AGIHAN_CORE.subjects=r.subjects||[];JW_AGIHAN_CORE.subjectSet=r.subjectSet||null;JW_AGIHAN_CORE.needsResave=!!r.needsResave;
     JW_AGIHAN_CORE.rows=r.rows||[];JW_AGIHAN_CORE.currentId=id;JW_AGIHAN_CORE.openTeachers.clear();
+    JW_AGIHAN_CORE.rows.filter(r=>r.needsReview).forEach(r=>JW_AGIHAN_CORE.openTeachers.add(r.teacherId));
     document.getElementById('jwAgihanSetName').value=r.name;
     document.getElementById('jwAgihanYear').value=r.year;
     jwAgihanSetDirty(false);jwAgihanRenderAll();jwAgihanTab('quota');
-    jwAgihanNotice('Versi sejarah dibuka. Kamu boleh edit dan Simpan Versi untuk menghasilkan versi baharu.');
+    if(JW_AGIHAN_CORE.needsResave||JW_AGIHAN_CORE.rows.some(r=>r.needsReview))jwAgihanReviewNotice();else jwAgihanNotice('Versi sejarah dibuka. Kamu boleh edit dan Simpan Versi untuk menghasilkan versi baharu.');
   }catch(e){jwAgihanOpenError(e);}
 }
 function jwAgihanRenderTakeover(){
