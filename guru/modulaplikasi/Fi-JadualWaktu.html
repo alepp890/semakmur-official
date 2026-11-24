@@ -32,8 +32,8 @@
     }
   </script>
 
-  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=2.6.4" />
-  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=2.6.4" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=2.7" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=2.7" />
 </head>
 <body class="min-h-screen text-slate-800 bg-slate-100">
 
@@ -287,62 +287,85 @@
         </section>
       </div>
 
-      <!-- ================= 3. AGIHAN TUGAS GURU ================= -->
-      <div id="viewAgihanTugas" class="hidden space-y-6">
-        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 border-l-8 border-l-amber-500">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-            <div>
-              <h2 class="font-display font-extrabold text-xl text-slate-800">3. Matriks Agihan Tugas Mengikut Guru</h2>
-              <p class="text-xs text-slate-500">Pilih subjek dan kelas bagi Guru Utama. Jika ada Guru Pasangan (Co-Teacher), pilih di dropdown tanpa membuat baris terbalik.</p>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="tambahBarisGuruTambahanManual()" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-extrabold text-xs rounded-xl transition flex items-center gap-1">
-                <i class="fa-solid fa-user-plus"></i> + Tugasan Guru
-              </button>
-              <button id="btnSimpanAgihan" onclick="simpanAgihanTugas()" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center gap-2 disabled:opacity-60">
-                <i class="fa-solid fa-floppy-disk"></i> Simpan Agihan
-              </button>
-            </div>
+      <!-- ================== 3. AGIHAN GURU CORE V2.7 ================== -->
+      <div id="viewAgihanTugas" class="hidden space-y-3 jw-agihan-core" aria-label="Agihan Guru CORE">
+        <div class="jw-agihan-menubar">
+          <div class="jw-agihan-tabs" role="tablist" aria-label="Bahagian Agihan Guru">
+            <button class="jw-agihan-tab is-active" type="button" data-a-tab="quota" onclick="jwAgihanTab('quota')">Kuota Mengajar</button>
+            <button class="jw-agihan-tab" type="button" data-a-tab="history" onclick="jwAgihanTab('history')">Sejarah &amp; Panggil Semula</button>
+            <button class="jw-agihan-tab" type="button" data-a-tab="takeover" onclick="jwAgihanTab('takeover')">Pengambilalihan Guru</button>
+            <button class="jw-agihan-tab" type="button" data-a-tab="plan" onclick="jwAgihanTab('plan')">Rancangan Jana</button>
           </div>
-
-          <div class="flex flex-col sm:flex-row sm:items-center gap-2 justify-between bg-amber-50/60 border border-amber-200 rounded-xl px-3 py-2">
-            <div class="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
-              <label for="inputCariGuruAgihan" class="text-xs font-bold text-amber-900 whitespace-nowrap"><i class="fa-solid fa-magnifying-glass mr-1"></i> Cari guru:</label>
-              <input id="inputCariGuruAgihan" type="search" oninput="filterAgihanGuru()" placeholder="Taip nama guru untuk tapis matriks..." class="w-full sm:max-w-md border border-amber-200 bg-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300">
-              <span id="jwAgihanFilterCount" class="text-[11px] text-amber-800 font-semibold"></span>
-            </div>
-            <span id="jwAgihanSaveStatus" role="status" aria-live="polite" class="text-[11px] font-bold text-slate-600">Data dimuatkan</span>
-          </div>
-
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
-                <i class="fa-solid fa-list-check text-amber-500"></i> Status Kelengkapan Pengisian Subjek Mengikut Kelas <span class="hidden sm:inline font-medium text-slate-500">(klik kelas untuk semak butiran)</span>:
-              </span>
-              <button onclick="toggleClassCoverageSummary()" class="text-[11px] font-bold text-amber-700 hover:underline">
-                <i class="fa-solid fa-eye mr-1"></i> Tunjuk / Sembunyi Status
-              </button>
-            </div>
-            <div id="boxClassCoverageSummary" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 text-[11px] font-semibold pt-1"></div>
-          </div>
-
-          <div class="overflow-x-auto min-h-[350px]">
-            <table class="w-full text-left text-xs border-collapse">
-              <thead class="bg-slate-100 font-extrabold text-slate-700 border-b border-slate-200">
-                <tr>
-                  <th class="table-cell-std w-12 text-center">BIL</th>
-                  <th class="table-cell-std w-64 sticky-col-guru">Nama Guru Utama</th>
-                  <th class="table-cell-std min-w-[240px]">Subjek Mengajar</th>
-                  <th class="table-cell-std min-w-[200px]">Senarai Kelas Diajar (Checkbox)</th>
-                  <th class="table-cell-std w-48 text-center">Guru Pasangan / Co-Teacher</th>
-                  <th class="table-cell-std w-28 text-center">Waktu Subjek</th>
-                  <th class="table-cell-std w-32 text-center">Tindakan</th>
-                </tr>
-              </thead>
-              <tbody id="tbodyAgihanGuruMatrix" class="divide-y divide-slate-100 font-medium"></tbody>
-            </table>
+          <div class="jw-agihan-head-actions">
+            <span id="jwAgihanActiveLabel" class="jw-agihan-pill">Belum ada set aktif</span>
+            <button type="button" class="jw-agihan-btn jw-agihan-btn-light" onclick="jwAgihanReload()"><i class="fa-solid fa-rotate"></i> Muat Semula</button>
           </div>
         </div>
+        <div id="jwAgihanNotice" role="status" aria-live="polite" class="jw-agihan-notice hidden"></div>
+        <section id="jwAgihanPane_quota" class="jw-agihan-pane space-y-3">
+          <div class="jw-agihan-toolbar">
+            <div class="jw-agihan-field"><label for="jwAgihanSetName">Nama Set Agihan</label><input id="jwAgihanSetName" type="text" maxlength="100" placeholder="Contoh: Agihan Pengajaran Sesi 2027" oninput="jwAgihanMarkDirty()"></div>
+            <div class="jw-agihan-field jw-agihan-year"><label for="jwAgihanYear">Sesi</label><input id="jwAgihanYear" type="number" min="2020" max="2100" oninput="jwAgihanMarkDirty()"></div>
+            <div class="jw-agihan-toolbar-buttons">
+              <button type="button" class="jw-agihan-btn jw-agihan-btn-light" onclick="jwAgihanNew()"><i class="fa-solid fa-plus"></i> Set Baharu</button>
+              <button id="jwAgihanBtnSave" type="button" class="jw-agihan-btn jw-agihan-btn-primary" onclick="jwAgihanSave()"><i class="fa-solid fa-floppy-disk"></i> Simpan Versi</button>
+              <button id="jwAgihanBtnActivate" type="button" class="jw-agihan-btn jw-agihan-btn-outline" onclick="jwAgihanActivate()" disabled><i class="fa-solid fa-check"></i> Aktifkan Set</button>
+            </div>
+          </div>
+          <div class="jw-agihan-stats" id="jwAgihanStats" aria-live="polite"></div>
+          <div class="jw-agihan-tools">
+            <div class="jw-agihan-field jw-agihan-find"><label for="jwAgihanFind">Cari guru</label><input id="jwAgihanFind" type="search" placeholder="Nama / ID Staf" oninput="jwAgihanRenderTeachers()"></div>
+            <div class="jw-agihan-field"><label for="jwAgihanFilter">Paparan</label><select id="jwAgihanFilter" onchange="jwAgihanRenderTeachers()"><option value="all">Semua guru aktif</option><option value="assigned">Ada tugasan</option><option value="empty">Belum ada tugasan</option></select></div>
+            <span id="jwAgihanTeacherCount" class="jw-agihan-count"></span>
+          </div>
+          <div id="jwAgihanTeachers" class="jw-agihan-teacher-list" aria-live="polite"></div>
+          <section class="jw-agihan-review">
+            <div class="jw-agihan-section-head"><h3>Semakan Kuota Mengikut Tahun &amp; Subjek</h3><span class="jw-agihan-muted">Berdasarkan kelas aktif dan Tetapan Subjek CORE</span></div>
+            <div id="jwAgihanCoverage" class="jw-agihan-coverage"></div>
+          </section>
+        </section>
+        <section id="jwAgihanPane_history" class="jw-agihan-pane hidden">
+          <div class="jw-agihan-panel">
+            <div class="jw-agihan-section-head"><h3>Sejarah Set Agihan</h3><span class="jw-agihan-muted">✓ menandakan set yang aktif</span></div>
+            <div class="jw-agihan-history-actions">
+              <select id="jwAgihanHistorySelect" aria-label="Pilih versi agihan"></select>
+              <button class="jw-agihan-btn jw-agihan-btn-primary" onclick="jwAgihanRecall()"><i class="fa-solid fa-clock-rotate-left"></i> Panggil Semula</button>
+            </div>
+            <div id="jwAgihanHistoryList" class="jw-agihan-history-list"></div>
+          </div>
+        </section>
+        <section id="jwAgihanPane_takeover" class="jw-agihan-pane hidden">
+          <div class="jw-agihan-panel space-y-3">
+            <div class="jw-agihan-section-head"><h3>Rancangan Pengambilalihan Jadual Guru</h3><span class="jw-agihan-tag jw-agihan-tag-muted">Belum menukar guru rasmi</span></div>
+            <div class="jw-agihan-form-grid">
+              <div class="jw-agihan-field"><label for="jwAlihOriginal">Guru asal</label><select id="jwAlihOriginal"></select></div>
+              <div class="jw-agihan-field"><label for="jwAlihNew">Guru pengganti</label><select id="jwAlihNew"></select></div>
+              <div class="jw-agihan-field"><label for="jwAlihType">Jenis</label><select id="jwAlihType" onchange="jwAgihanTakeoverType()"><option value="TEMP">Sementara</option><option value="KEKAL">Tetap</option></select></div>
+              <div class="jw-agihan-field"><label for="jwAlihStart">Tarikh mula</label><input id="jwAlihStart" type="date"></div>
+              <div class="jw-agihan-field" id="jwAlihEndBox"><label for="jwAlihEnd">Tarikh tamat</label><input id="jwAlihEnd" type="date"></div>
+              <div class="jw-agihan-field jw-agihan-field-wide"><label for="jwAlihNote">Catatan (pilihan)</label><input id="jwAlihNote" maxlength="300" placeholder="Contoh: Guru ganti sehingga guru baharu melapor diri"></div>
+            </div>
+            <label class="jw-agihan-check"><input id="jwAlihHomeroom" type="checkbox"> Turut cadangkan pengambilalihan tanggungjawab Guru Kelas (perlu disahkan dalam Manual Pengurusan)</label>
+            <div class="jw-agihan-row-end"><button class="jw-agihan-btn jw-agihan-btn-primary" onclick="jwAgihanSaveTakeover()"><i class="fa-solid fa-floppy-disk"></i> Simpan Rancangan</button></div>
+            <div class="jw-agihan-hint">Rekod ini belum mengubah Jadual_Waktu_Hasil, identiti guru dalam e-Relief, atau tanggungjawab Guru Kelas. Penyambungan operasi rasmi akan dibuat secara berasingan.</div>
+            <div id="jwAlihHistory"></div>
+          </div>
+        </section>
+        <section id="jwAgihanPane_plan" class="jw-agihan-pane hidden">
+          <div class="jw-agihan-panel space-y-3">
+            <div class="jw-agihan-section-head"><h3>Rancangan Penjanaan Jadual</h3><span class="jw-agihan-tag jw-agihan-tag-muted">Tidak menjalankan Generator</span></div>
+            <div class="jw-agihan-form-grid">
+              <div class="jw-agihan-field"><label for="jwPlanMode">Jenis penjanaan</label><select id="jwPlanMode"><option value="BAHARU">Jana Baharu — tanpa rujuk kelas lama</option><option value="KEKAL">Jana Semula — kekalkan padanan lama</option><option value="TERPILIH">Rombakan Terpilih</option></select></div>
+              <div class="jw-agihan-field"><label for="jwPlanYear">Sesi</label><input id="jwPlanYear" type="number" min="2020" max="2100"></div>
+              <div class="jw-agihan-field"><label for="jwPlanStart">Tarikh mula kuat kuasa (dirancang)</label><input id="jwPlanStart" type="date"></div>
+              <div class="jw-agihan-field"><label for="jwPlanReference">Rujukan versi jadual rasmi (jika ada)</label><input id="jwPlanReference" maxlength="100" placeholder="Belum tersedia / ID versi rasmi"></div>
+              <div class="jw-agihan-field jw-agihan-field-wide"><label for="jwPlanNote">Catatan</label><input id="jwPlanNote" maxlength="300" placeholder="Sebab rombakan atau pertukaran guru"></div>
+            </div>
+            <div class="jw-agihan-row-end"><button class="jw-agihan-btn jw-agihan-btn-primary" onclick="jwAgihanSavePlan()"><i class="fa-solid fa-floppy-disk"></i> Simpan Rancangan</button></div>
+            <div class="jw-agihan-hint">Tarikh kuat kuasa tidak sama dengan tarikh Jana. Menyimpan rancangan ini tidak menerbitkan jadual dan tidak mengubah jadual rasmi yang digunakan modul lain.</div>
+            <div id="jwPlanHistory"></div>
+          </div>
+        </section>
       </div>
 
       <!-- ================= 4. HAD GURU ================= -->
@@ -436,6 +459,6 @@
   <!-- Penyambung portal Fi: identiti/endpoint sahaja; UI asal dikekalkan. -->
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js?v=fijw-1.0.3"></script>
-  <script src="Fi-JadualWaktu.js?v=2.6.4" defer></script>
+  <script src="Fi-JadualWaktu.js?v=2.7" defer></script>
 </body>
 </html>

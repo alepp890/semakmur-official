@@ -98,3 +98,33 @@
 
 /* V2.6.5: Notis ringkas jika tiada baris subjek yang sah untuk dijumlahkan. */
 .jw-subject-cohort-empty{grid-column:1/-1;padding:14px 16px;background:#f8faf9;border:1px dashed #dbe9e2;border-radius:13px;color:#64746e;font-size:12px}
+
+/* V2.7 Agihan Guru: PWA mengekalkan tipografi PWA SeMAKMUR sedia ada. */
+@media(max-width:680px){
+.jw-agihan-core{width:100%;overflow:hidden}
+.jw-agihan-menubar{padding:7px;gap:7px}
+.jw-agihan-tabs{width:100%;max-width:100%;padding:2px;overscroll-behavior-x:contain}
+.jw-agihan-tab{font-size:12px;padding:8px 10px}
+.jw-agihan-head-actions{width:100%;justify-content:space-between}
+.jw-agihan-pill{max-width:63vw}
+.jw-agihan-toolbar,.jw-agihan-tools{gap:8px;padding:10px}
+.jw-agihan-toolbar .jw-agihan-year{flex:0 0 94px}
+.jw-agihan-toolbar-buttons{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.jw-agihan-toolbar-buttons .jw-agihan-btn{padding:9px 5px;white-space:normal;text-align:center;font-size:11px;min-height:39px}
+.jw-agihan-teacher-head{padding:10px 8px;gap:7px}
+.jw-agihan-teacher-head>.jw-agihan-btn{padding:7px 9px}
+.jw-agihan-teacher-name{font-size:12px}
+.jw-agihan-row-list{padding:8px}
+.jw-agihan-quota-row{padding:9px}
+.jw-agihan-quota-main{grid-template-columns:1fr 1fr;gap:8px}
+.jw-agihan-quota-main .jw-agihan-delete{grid-column:2}
+.jw-agihan-quota-details{align-items:flex-start;gap:9px}
+.jw-agihan-hrs{margin-left:0}
+.jw-agihan-stat{padding:9px 10px}
+.jw-agihan-stat strong{font-size:15px}
+.jw-agihan-field label{font-size:11px}
+.jw-agihan-history-actions{flex-wrap:wrap}
+.jw-agihan-history-actions select{flex:1 1 100%;max-width:none}
+.jw-agihan-panel{padding:11px}
+}
+@media(max-width:680px){.jw-agihan-core .jw-agihan-field>input,.jw-agihan-core .jw-agihan-field>select{font-size:13px}.jw-agihan-core .jw-agihan-btn{font-size:12px}.jw-agihan-core .jw-agihan-teacher-name{font-size:13px}}
