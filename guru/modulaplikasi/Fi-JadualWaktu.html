@@ -32,8 +32,8 @@
     }
   </script>
 
-  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=2.8.0-F2A" />
-  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=2.8.0-F2A" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-Dekstop.css?v=3.0-UAT1" />
+  <link rel="stylesheet" href="Fi-JadualWaktu-PWA.css?v=3.0-UAT1" />
 </head>
 <body class="min-h-screen text-slate-800 bg-slate-100">
 
@@ -389,6 +389,7 @@
             <div class="jw-agihan-field jw-agihan-year"><label for="jwConYear">Sesi</label><input id="jwConYear" readonly type="number" title="Sesi Tetapan Subjek CORE aktif"></div>
             <div class="jw-agihan-toolbar-buttons">
               <button class="jw-agihan-btn jw-agihan-btn-light" type="button" onclick="jwConNew()"><i class="fa-solid fa-plus"></i> Set Baharu</button>
+              <button class="jw-agihan-btn jw-agihan-btn-light" type="button" onclick="jw3Preset()"><i class="fa-solid fa-sliders"></i> Isi Tetapan Sekolah</button>
               <button class="jw-agihan-btn jw-agihan-btn-primary" type="button" onclick="jwConSave()"><i class="fa-solid fa-floppy-disk"></i> Simpan Versi</button>
               <button id="jwConActivate" class="jw-agihan-btn jw-agihan-btn-outline" type="button" onclick="jwConActivate()" disabled><i class="fa-solid fa-check"></i> Aktifkan Set</button>
             </div>
@@ -399,7 +400,7 @@
               <div class="jw-con-limit-grid">
                 <div class="jw-agihan-field"><label for="jwConRun">Maks. waktu berturut-turut</label><input id="jwConRun" type="number" min="1" max="4" value="4" oninput="jwConDirty()"><small class="jw-con-help">Wajib · maksimum 4</small></div>
                 <div class="jw-agihan-field"><label for="jwConGap">Min. waktu senggang</label><input id="jwConGap" type="number" min="1" max="4" value="1" oninput="jwConDirty()"><small class="jw-con-help">Selepas mencapai had berturut</small></div>
-                <div class="jw-agihan-field"><label for="jwConDaily">Maks. waktu sehari</label><input id="jwConDaily" type="number" min="0" max="40" value="0" oninput="jwConDirty()"><small class="jw-con-help">0 = tiada had tambahan</small></div>
+                <div class="jw-agihan-field"><label for="jwConDaily">Maks. waktu sehari</label><input id="jwConDaily" type="number" min="0" max="40" value="7" oninput="jwConDirty()"><small class="jw-con-help">0 = tiada had tambahan</small></div>
               </div>
               <div class="jw-con-checklist">
                 <label class="jw-agihan-check jw-con-check"><input id="jwConBalance" type="checkbox" checked onchange="jwConDirty()"><span><strong>Seimbangkan beban mengajar sepanjang minggu</strong><small>Keutamaan sangat tinggi · 30 waktu / 5 hari = sasaran 6 waktu sehari.</small></span></label>
@@ -417,13 +418,13 @@
           </div>
           <section class="jw-agihan-panel jw-con-panel">
             <div class="jw-agihan-section-head"><h3><i class="fa-solid fa-list-check jw-con-icon"></i> Kekangan Khusus</h3><button type="button" class="jw-agihan-btn jw-agihan-btn-light" onclick="jwF2ConAdd()"><i class="fa-solid fa-plus"></i> Tambah Kekangan</button></div>
-            <p class="jw-con-help">Had individu mengatasi kategori dan umum. Gunakan jam sebenar. Semua peraturan perlu diaudit sebelum Generator V3.</p>
-            <div id="jwF2Specific" class="jw-con-specific-list"></div>
+            <p class="jw-con-help">Had individu mengatasi kategori dan umum. Pilih agihan dan julat masa daripada Grid aktif.</p>
+            <p id="jw3GridInfo" class="jw-con-info"></p><div id="jwF2Specific" class="jw-con-specific-list"></div>
           </section>
           <section class="jw-agihan-panel jw-con-panel">
             <div class="jw-agihan-section-head"><h3><i class="fa-solid fa-shield-halved jw-con-icon"></i> Peraturan Teras Generator</h3><span class="jw-agihan-tag jw-agihan-tag-muted"><i class="fa-solid fa-lock"></i> Dikunci</span></div>
             <div id="jwConLocked" class="jw-con-locked-grid"></div>
-            <p class="jw-con-info"><i class="fa-solid fa-circle-info"></i><span>Tetapan persediaan Generator V3. Enjin penjanaan belum diaktifkan.</span></p>
+            <p class="jw-con-info"><i class="fa-solid fa-circle-info"></i><span>Dikuatkuasakan dalam Generator V3 — Simulasi UAT. Tiada penerbitan rasmi.</span></p>
           </section>
         </section>
         <section id="jwConHistory" role="tabpanel" aria-labelledby="jwConTabHistory" class="jw-agihan-pane hidden">
@@ -437,21 +438,8 @@
 
       <!-- ================= 5. ENJIN GENERATOR & GRID ================= -->
       <div id="viewGeneratorConsole" class="space-y-6">
-        <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-md space-y-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-800 toolbar-no-print">
-          <div>
-            <h2 class="font-display font-extrabold text-xl text-white">Jana & Urus Jadual Waktu</h2>
-            <p class="text-xs text-slate-400 mt-1">Sediakan jadual waktu berdasarkan tetapan sekolah dan agihan guru yang telah dipilih.</p>
-          </div>
-          <div class="flex flex-wrap items-center gap-2 shrink-0">
-            <button id="btnShuffleJW" onclick="shuffleJadualWaktuFrontend()" type="button" class="px-5 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled title="Susun semula tanpa mengubah tetapan">
-              <i class="fa-solid fa-shuffle text-base"></i> Shuffle Jadual
-            </button>
-            <button id="btnGenerateJW" onclick="janaJadualWaktuAuto()" class="px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-lg transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-              <i class="fa-solid fa-wand-magic-sparkles text-base"></i> Jana Jadual Automatik
-            </button>
-          </div>
-        </div>
-
+        <div class="jw-agihan-core jw-con-core"><div class="jw-agihan-pane space-y-3"><div class="jw-agihan-quota-row jw3-sim"><div class="jw3-toolbar"><div><h2 class="font-display font-extrabold text-lg">Generator V3 — Simulasi UAT</h2><p class="jw-agihan-muted">Jana Baharu · Baca empat set CORE aktif · Tidak menulis jadual rasmi</p></div><button id="jw3Run" type="button" class="jw-agihan-btn jw-agihan-btn-primary" onclick="jw3RunSimulation()"><i class="fa-solid fa-wand-magic-sparkles"></i> Jana Simulasi</button></div><p id="jw3Status" role="status" class="jw-agihan-muted">Aktifkan semua set CORE dahulu.</p><div id="jw3Output" class="space-y-3"></div></div></div></div>
+        <div class="hidden" aria-hidden="true"><button id="btnShuffleJW" type="button" disabled></button><button id="btnGenerateJW" type="button" disabled></button></div>
         <div id="boxClashReport" class="hidden bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-3 toolbar-no-print">
           <div class="flex items-center justify-between border-b pb-2">
             <h3 class="font-extrabold text-sm text-slate-800 flex items-center gap-2">
@@ -464,7 +452,7 @@
 
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 toolbar-no-print">
-            <h3 class="font-display font-extrabold text-lg text-slate-800">Paparan Grid Jadual Waktu Penuh</h3>
+            <h3 class="font-display font-extrabold text-lg text-slate-800">Jadual Waktu Sedia Ada (Rujukan Berasingan)</h3>
             <div class="flex items-center gap-3">
               <select id="selFilterViewJadual" onchange="renderJadualHasilView()" class="p-2 border border-slate-300 rounded-xl bg-slate-50 font-bold text-xs focus:outline-none">
                 <option value="guru">Jadual Mengikut Guru</option>
@@ -490,6 +478,6 @@
   <!-- Penyambung portal Fi: identiti/endpoint sahaja; UI asal dikekalkan. -->
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js?v=fijw-1.0.3"></script>
-  <script src="Fi-JadualWaktu.js?v=2.8.0-F2A" defer></script>
+  <script src="Fi-JadualWaktu.js?v=3.0-UAT1" defer></script>
 </body>
 </html>

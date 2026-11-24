@@ -145,3 +145,5 @@
 #viewGuruConstraints .jw-con-help,#viewGuruConstraints .jw-con-check small,#viewGuruConstraints .jw-con-info{font-size:12px}
 }
 @media(max-width:380px){#viewGuruConstraints .jw-con-specific-grid{grid-template-columns:1fr}}
+
+@media(max-width:700px){.jw3-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.jw3-toolbar{align-items:stretch}.jw3-toolbar select{flex:1;min-width:0}.jw3-multi-actions{justify-content:flex-start}.jw3-sim{padding:10px!important}.jw3-table{font-size:12px}}
