@@ -289,7 +289,7 @@
         </section>
       </div>
 
-      <!-- ================== 3. AGIHAN GURU CORE V2.7.2 ================== -->
+      <!-- ================== 3. AGIHAN GURU CORE V2.7.3 ================== -->
       <div id="viewAgihanTugas" class="hidden space-y-3 jw-agihan-core" aria-label="Agihan Guru CORE">
         <div class="jw-agihan-menubar">
           <div class="jw-agihan-tabs" role="tablist" aria-label="Bahagian Agihan Guru">
@@ -307,7 +307,7 @@
         <section id="jwAgihanPane_quota" class="jw-agihan-pane space-y-3">
           <div class="jw-agihan-toolbar">
             <div class="jw-agihan-field"><label for="jwAgihanSetName">Nama Set Agihan</label><input id="jwAgihanSetName" type="text" maxlength="100" placeholder="Contoh: Agihan Pengajaran Sesi 2027" oninput="jwAgihanMarkDirty()"></div>
-            <div class="jw-agihan-field jw-agihan-year"><label for="jwAgihanYear">Sesi</label><input id="jwAgihanYear" type="number" min="2020" max="2100" oninput="jwAgihanMarkDirty()"></div>
+            <div class="jw-agihan-field jw-agihan-year"><label for="jwAgihanYear">Sesi</label><input id="jwAgihanYear" type="number" min="2020" max="2100" oninput="jwAgihanSessionChanged()"></div>
             <div class="jw-agihan-toolbar-buttons">
               <button type="button" class="jw-agihan-btn jw-agihan-btn-light" onclick="jwAgihanNew()"><i class="fa-solid fa-plus"></i> Set Baharu</button>
               <button id="jwAgihanBtnSave" type="button" class="jw-agihan-btn jw-agihan-btn-primary" onclick="jwAgihanSave()"><i class="fa-solid fa-floppy-disk"></i> Simpan Versi</button>
@@ -317,7 +317,7 @@
           <div class="jw-agihan-stats" id="jwAgihanStats" aria-live="polite"></div>
           <div class="jw-agihan-tools">
             <div class="jw-agihan-field jw-agihan-find"><label for="jwAgihanFind">Cari guru</label><input id="jwAgihanFind" type="search" placeholder="Nama / ID Staf" oninput="jwAgihanRenderTeachers()"></div>
-            <div class="jw-agihan-field"><label for="jwAgihanFilter">Paparan</label><select id="jwAgihanFilter" onchange="jwAgihanRenderTeachers()"><option value="all">Semua guru aktif</option><option value="assigned">Ada tugasan</option><option value="empty">Belum ada tugasan</option></select></div>
+            <div class="jw-agihan-field"><label for="jwAgihanFilter">Paparan</label><select id="jwAgihanFilter" onchange="jwAgihanRenderTeachers()"><option value="all">Semua guru aktif</option><option value="assigned">Ada tugasan</option><option value="empty">Belum ada tugasan</option><option value="homeroom">Guru Kelas</option></select></div>
             <span id="jwAgihanTeacherCount" class="jw-agihan-count"></span>
           </div>
           <div id="jwAgihanTeachers" class="jw-agihan-teacher-list" aria-live="polite"></div>
@@ -461,6 +461,6 @@
   <!-- Penyambung portal Fi: identiti/endpoint sahaja; UI asal dikekalkan. -->
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js?v=fijw-1.0.3"></script>
-  <script src="Fi-JadualWaktu.js?v=2.7.2" defer></script>
+  <script src="Fi-JadualWaktu.js?v=2.7.3" defer></script>
 </body>
 </html>
