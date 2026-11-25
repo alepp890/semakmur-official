@@ -212,78 +212,70 @@ function fiJWMessageParent(type,message){
     // Mengelakkan paparan kosong ketika pertama kali dibuka. Maklumat
     // staf dan tetapan jadual diperoleh secara selari, tetapi digabung
     // hanya setelah kedua-duanya selesai.
-    async function initialiseJWPortal() {
-      showLoader('', 'startup');
+    // V3.1B: initial read uses only active CORE and official LIVE endpoints.
+    let JW_BOOT_BUSY=false, JW_BOOT_READY=false, JW_SUBJECT_READY=false;
+    let JW_LIVE_ACTIVE=null, JW_LIVE_ACTIVE_ID='', JW_LIVE_TODAY='';
+    function jwBootInert(on){const main=document.querySelector('.jw-module-main');if(main)main.inert=on;document.querySelectorAll('.jw-module-tab').forEach(b=>b.disabled=on);}
+    async function jwLiveReadActive(){
+      const status=await jwAgihanRequest('fiJWLiveStatus',{},false);
+      if(!Array.isArray(status.versions)||!Object.prototype.hasOwnProperty.call(status,'active'))throw Error('Respons status LIVE tidak sah.');
+      if(!status.active)return {status,out:null};
+      const out=await jwAgihanRequest('fiJWLiveGet',{id:status.active},false);
+      if(out.version?.Jadual_ID!==status.active||out.version.Status!=='DITERBITKAN'||!out.result?.printGrid?.length)throw Error('Versi LIVE aktif tidak sepadan.');
+      jw3SlotRows(out.result);
+      return {status,out};
+    }
+    function jwLiveSetActive(info){
+      JW_LIVE_ACTIVE_ID=info.status.active||'';JW_LIVE_TODAY=info.status.today||'';
+      JW_LIVE_ACTIVE=info.out?{...info.out.result,liveVersion:info.out.version}:null;
+      JW_LIVE_VIEW=JW_LIVE_ACTIVE;
+      if(JW_LIVE_VIEW)jw3RenderResult();else document.getElementById('jw3Output')?.replaceChildren();
+      jwLiveUpdateStatus();renderJadualHasilView();jw3RunButton();
+    }
+    async function initialiseJWPortal(mode='startup') {
+      if(JW_BOOT_BUSY||JW3_BUSY||JW_LIVE_BUSY)return;
+      JW_BOOT_BUSY=true;JW_BOOT_READY=false;jwBootInert(true);showLoader('',mode);
       try {
-        // Semua maklumat diminta serta-merta; hasil jadual tidak menunggu tetapan siap.
-        // Data utama dibuka apabila tetapan dan jadual semasa siap.
-        // Direktori staf bukan prasyarat paparan jadual kelas; baca di belakang.
-        const staffPromise = postToBackend({ action:'getManualV2Data' })
-          .then(res => {
-            if (res && res.success) {
-              ALL_STAF = res.staf || [];
-              ALL_LOKASI = res.lokasi || [];
-              ALL_MASTER_SUBJEK_LIST = res.subjek || [];
-              // Pilihan kod/nama subjek perlu dimuat semula setelah master tiba.
-              renderSubjekTable();
-              if (JW_HASIL_VIEW_RENDERED && JW_AGIHAN_REVISION === 0 && !JW_AGIHAN_SAVING) {
-                // Data staf sampai selepas paparan dibuka: segarkan label dan pilihan yang diperlukan.
-                renderAgihanGuruMatrix();
-                renderGuruConstraintTable();
-                renderJadualHasilView();
-              } else if (document.getElementById('jw3PrintSource')?.value && document.getElementById('jw3PrintSource').value !== 'reference') {
-                jw3PrintRenderBottom();
-              }
-            }
-          })
-          .catch(error => console.warn('Direktori guru belum tersedia:',error));
-        // Janji ini bukan di-await supaya tidak mengunci pelancaran modul.
-        void staffPromise;
-        const [jwResult, hasilResult] = await Promise.all([
-          postToBackend({ action: 'getJWConstraints' }),
-          postToBackend({ action: 'getJadualWaktuHasil' }).catch(error => {
-            console.warn('Jadual semasa belum dapat dimuatkan:',error);
-            return null;
-          })
-        ]);
-        if (!jwResult || !jwResult.success) throw new Error('Tetapan jadual tidak dapat dibaca.');
-        // Biarkan animasi dipaparkan satu bingkai sebelum kerja membina matriks bermula.
-        await new Promise(resolve => requestAnimationFrame(resolve));
-        applyJWConstraintsData(jwResult);
-        void jwGridStudioLoad();
-        if (!ALL_STAF.length) {
-          // Paparan kelas tetap boleh digunakan walaupun direktori staf lambat dibaca.
-          const modePilihan = document.getElementById('selFilterViewJadual');
-          if (modePilihan) modePilihan.value = 'kelas';
-        }
-        // Ketika portal siap, jadual yang sudah disimpan terus berada dalam grid.
-        if (hasilResult && hasilResult.success) {
-          STATE_HASIL_JADUAL = normalizeJwHasilRows(hasilResult.data);
-          JW_HASIL_VIEW_RENDERED = false;
-          setJwHasilStatus(STATE_HASIL_JADUAL.length ? 'ready' : 'empty');
-        } else {
-          setJwHasilStatus('error');
-        }
-        renderJadualHasilView();
-        JW_HASIL_VIEW_RENDERED = true;
-        hideLoader();
-        syncJwActionButtons();
-        fiJWMessageParent('semakmur-fi-jw-ready');
-      } catch (error) {
-        console.error('Gagal membuka portal jadual waktu:',error);
-        hideLoader();
-        fiJWMessageParent('semakmur-fi-jw-error',error && error.message || error);
-        setJwHasilStatus('error');
-        Swal.fire({icon:'error',title:'Paparan belum tersedia',
-          text:'Sila semak sambungan internet dan cuba muat semula halaman.',
-          confirmButtonText:'Faham'});
-      }
+        const staff=await postToBackend({action:'getManualV2Data'});
+        if(!staff?.success||!Array.isArray(staff.staf))throw Error('Direktori staf tidak dapat dibaca.');
+        ALL_STAF=staff.staf;ALL_LOKASI=staff.lokasi||[];ALL_MASTER_SUBJEK_LIST=staff.subjek||[];
+        const progress=document.getElementById('loader-footnote');
+        if(progress)progress.textContent='Memuatkan Grid, Subjek, Agihan, Kekangan dan jadual rasmi…';
+        JW_GRID_LOADED=false;JW_SUBJECT_READY=false;JW_AGIHAN_CORE.loaded=false;JW_CON_F1.loaded=false;
+        // No nested loader; wait for all requests (even failures) before releasing the overlay.
+        const tasks=[['Grid Masa',()=>jwGridStudioLoad(true)],['Tetapan Subjek',()=>jwSubjectStudioLoad(true)],['Agihan Guru',()=>jwAgihanReload(true,true)],['Had & Pelepasan',()=>jwConLoad(true,true)],['Jadual LIVE',()=>jwLiveReadActive()]];
+        const results=await Promise.allSettled(tasks.map(([,run])=>Promise.resolve().then(run)));
+        const failed=results.map((r,i)=>r.status==='rejected'?tasks[i][0]+': '+String(r.reason?.message||r.reason):'').filter(Boolean);
+        if(failed.length)throw Error(failed.join(' | '));
+        if(!JW_GRID_LOADED||!JW_SUBJECT_READY||!JW_AGIHAN_CORE.loaded||!JW_CON_F1.loaded)throw Error('Sebahagian CORE belum sedia.');
+        const info=results[4].value;
+        JW3_RESULT=null;JW3_IMPORTED_PRINT=null;
+        JW_BOOT_READY=true;jwLiveSetActive(info);JW_HASIL_VIEW_RENDERED=true;const note=document.getElementById('jwCoreRefreshNote');if(note)note.hidden=true;const refresh=document.querySelector('.jw-header-refresh');if(refresh){refresh.style.outline='';refresh.title='';}
+        jwBootInert(false);fiJWMessageParent('semakmur-fi-jw-ready');
+      }catch(error){
+        console.error('V3.1B pembukaan CORE/LIVE:',error);
+        JW_BOOT_READY=false;JW_LIVE_VIEW=null;JW_LIVE_ACTIVE=null;JW3_RESULT=null;
+        document.getElementById('jw3Output')?.replaceChildren();document.getElementById('containerHasilJadualView')?.replaceChildren();
+        setJwHasilStatus('error');jwLiveUpdateStatus();
+        fiJWMessageParent('semakmur-fi-jw-error',String(error.message||error));
+        hideLoader();await Swal.fire({icon:'error',title:'Maklumat rasmi belum tersedia',text:String(error.message||error)+' · Klik Muat Semula untuk cuba lagi. Jadual rujukan lama tidak digunakan.',confirmButtonText:'Faham'});
+      }finally{JW_BOOT_BUSY=false;hideLoader();}
     }
 
     async function postToBackend(payload) {
       // Format request asal dikekalkan; cuma laluan HTTP kini melalui Fi-Sync.
-      return fiJWRequest(payload);
+      const result=await fiJWRequest(payload);
+      if(result?.success&&['fiJWGridActiveApply','fiJWSubjectCoreSave','fiJWSubjectActiveSelect','fiJWAgihanCoreActivate'].includes(payload.action))await jwCoreRefreshDependents(payload.action);
+      return result;
     }
+    async function jwCoreRefreshDependents(action){
+      if(!JW_BOOT_READY)return;
+      const jobs=[],refreshAgihan=['fiJWSubjectCoreSave','fiJWSubjectActiveSelect'].includes(action);let skipped=false;
+      if(refreshAgihan){if(JW_AGIHAN_CORE.dirty||JW_AGIHAN_CORE.loading)skipped=true;else jobs.push(jwAgihanReload(true,true));}
+      if(JW_CON_F1.dirty||JW_CON_F1.loading)skipped=true;else jobs.push(jwConLoad(true,true));
+      const result=await Promise.allSettled(jobs);if(skipped||result.some(x=>x.status==='rejected'))jwCoreNeedsRefresh();
+    }
+    function jwCoreNeedsRefresh(){const el=document.querySelector('.jw-header-refresh');if(el){el.title='CORE aktif berubah. Muat Semula untuk menyelaraskan semua panel.';el.style.outline='2px solid #d97706';}const note=document.getElementById('jwCoreRefreshNote');if(note){note.hidden=false;note.textContent='CORE aktif berubah. Klik Muat Semula sebelum menyunting panel yang bergantung pada perubahan ini.';}}
 
     // Pengekalan nama fungsi untuk keserasian kod asal; navigasi kini menggunakan tab.
     function toggleSidebar() {
@@ -294,7 +286,7 @@ function fiJWMessageParent(type,message){
     function switchView(viewId, btnEl) {
       const views = ['viewGridMasa', 'viewMasterSubjek', 'viewAgihanTugas', 'viewGuruConstraints', 'viewGeneratorConsole'];
       // Abaikan ID yang tidak wujud: tiada perubahan pada panel lain.
-      if (!views.includes(viewId)) return;
+      if (!views.includes(viewId) || !JW_BOOT_READY || JW_BOOT_BUSY) return;
       views.forEach(id => {
         const el = document.getElementById(id);
         if (el) { el.classList.toggle('hidden',id !== viewId); el.setAttribute('aria-hidden', id === viewId ? 'false' : 'true'); }
@@ -314,18 +306,7 @@ function fiJWMessageParent(type,message){
         viewGeneratorConsole:'Jana & Jadual Penuh'};
       const bread = document.getElementById('txtBreadcrumb');
       if (bread) bread.textContent = labels[viewId];
-      if (viewId === 'viewAgihanTugas') void jwAgihanOpen();
-      if (viewId === 'viewGuruConstraints') void jwConLoad();
-      if (viewId === 'viewGeneratorConsole' && !JW_HASIL_VIEW_RENDERED) {
-        if (STATE_HASIL_JADUAL.length) {
-          renderJadualHasilView();
-          JW_HASIL_VIEW_RENDERED = true;
-        } else {
-          const output = document.getElementById('containerHasilJadualView');
-          if (output && !output.innerHTML.trim()) output.innerHTML =
-            '<div class="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center text-sm font-semibold text-slate-500">Paparan jadual waktu akan tersedia di sini.</div>';
-        }
-      }
+      // All five panels are prepared during startup. Switching is a local DOM operation only.
     }
 
     // Navigasi papan kekunci sama seperti komponen tab: anak panah kiri/kanan, Home, End.
@@ -487,32 +468,13 @@ function fiJWMessageParent(type,message){
     }
 
     async function loadAllJWData() {
-      showLoader('', 'refresh');
-      try {
-        const [res, hasil] = await Promise.all([
-          postToBackend({ action:'getJWConstraints' }),
-          postToBackend({ action:'getJadualWaktuHasil' }).catch(() => null)
-        ]);
-        if (!res || !res.success) throw new Error('Maklumat jadual tidak dapat dibaca.');
-        await new Promise(resolve => requestAnimationFrame(resolve));
-        applyJWConstraintsData(res);
-        JW_GRID_MODE='legacy';void jwGridStudioLoad();
-        if (hasil && hasil.success) {
-          STATE_HASIL_JADUAL = normalizeJwHasilRows(hasil.data);
-          setJwHasilStatus(STATE_HASIL_JADUAL.length ? 'ready' : 'empty');
-          renderJadualHasilView();
-          JW_HASIL_VIEW_RENDERED = true;
-        } else {
-          setJwHasilStatus('error');
-        }
-        syncJwActionButtons();
-        hideLoader();
-      } catch (err) {
-        console.error('Tidak dapat memuatkan maklumat terkini:',err);
-        hideLoader();
-        Swal.fire('Paparan belum dikemas kini', 'Sila semak sambungan anda dan cuba lagi.', 'error');
-      }
+      if(JW_BOOT_BUSY||JW3_BUSY||JW_LIVE_BUSY||JW_AGIHAN_CORE.loading||JW_CON_F1.loading||JW_SUBJECT_LOADING)return;
+      if(JW_BOOT_READY && !await jwAgihanConfirm('Muat semula semua data aktif?', 'Perubahan editor atau calon jadual yang belum disimpan akan dilepaskan. Jadual rasmi dan semua versi tersimpan kekal.', 'Muat Semula'))return;
+      // Confirmed refresh must not prompt inside the individual loaders.
+      JW_AGIHAN_CORE.dirty=false;JW_CON_F1.dirty=false;
+      await initialiseJWPortal('refresh');
     }
+
 
     // =================== GRID MASA PINTAR V2 — HANYA TETAPAN GRID ===================
     // Modul lain, solver Jana/Shuffle dan sumber jadual asal tidak diubah.
@@ -633,13 +595,14 @@ function fiJWMessageParent(type,message){
       document.querySelectorAll('.jw-grid-tab').forEach(el=>el.classList.toggle('jw-grid-tab--active',el.dataset.tab===tab));
       ['controller','grid','history'].forEach(id=>document.getElementById('jwGridPanel_'+id)?.classList.toggle('hidden',tab!==id));
     }
-    async function jwGridStudioLoad(){
+    async function jwGridStudioLoad(preload=false){
       try{
         const res=await postToBackend({action:'fiJWGridStudioGet'});
         if(!res?.success)throw Error(res?.error||'Studio Grid tidak tersedia');
         JW_GRID_CTRL=res.controller;JW_GRID_CTRL_SAVED=jwGridClone(res.controller);JW_GRID_WORK_CTRL=jwGridClone(res.controller);JW_GRID_CTRL_VERSION=res.controllerVersion||0;
         JW_GRID_PRESETS=res.presets||[];JW_GRID_SOURCE=res.source;
         JW_GRID_SELECTED=res.selected||null;
+        if(res.selected&&(!Array.isArray(res.selectedGrid)||!res.selectedController))throw Error('Snapshot Grid aktif tidak lengkap.');
         JW_GRID_LOADED=true;
         const src=document.getElementById('jwGridSourceBadge');if(src)src.textContent=res.source==='GOOGLE_SHEETS_TERAS'?'Sumber: Sheets CORE':res.source==='SALINAN_UAT'?'Sumber: UAT':'Sumber lama · jalankan Setup CORE';
         if(res.selected && Array.isArray(res.selectedGrid) && res.selectedController){
@@ -647,21 +610,20 @@ function fiJWMessageParent(type,message){
           JW_GRID_WORK_CTRL=jwGridClone(res.selectedController);
           JW_GRID_VIEW_ID=res.selected.id;
           JW_GRID_MODE='selected';JW_GRID_DIRTY=false;
-        }else if(JW_GRID_MODE!=='draft'&&JW_GRID_MODE!=='recall'){
-          STATE_GRID_MASA=(res.grid||[]).map(r=>({...r,__legacy:true}));
-          JW_GRID_VIEW_ID='';JW_GRID_MODE='legacy';
+        }else if(preload||JW_GRID_MODE!=='draft'&&JW_GRID_MODE!=='recall'){
+          STATE_GRID_MASA=[];JW_GRID_VIEW_ID='';JW_GRID_MODE='legacy';JW_GRID_DIRTY=false;
         }
         jwGridRenderController();jwGridRenderMode();renderGridMasaTable();
         if(res.selectionWarning)jwGridColorMessage(res.selectionWarning,true);
-      }catch(e){console.warn('Studio Grid:',e);jwGridColorMessage('Studio Grid tidak dapat dibaca: '+e.message,true);}
+      }catch(e){JW_GRID_LOADED=false;console.warn('Studio Grid:',e);jwGridColorMessage('Studio Grid tidak dapat dibaca: '+e.message,true);if(preload)throw e;}
     }
     function jwGridRenderMode(){
       const el=document.getElementById('jwGridWorkingLabel');
       if(el)el.textContent=JW_GRID_MODE==='selected'?'Grid persediaan aktif: '+(JW_GRID_SELECTED?.name||'Versi tersimpan')+' · klik Edit Grid untuk ubah':
-        JW_GRID_MODE==='legacy'?'Grid operasi asal · baca sahaja':JW_GRID_MODE==='draft'?'Grid baharu · belum disimpan':'Grid dipanggil · boleh edit dan simpan sebagai versi baharu';
+        JW_GRID_MODE==='legacy'?'Belum ada Grid persediaan aktif':JW_GRID_MODE==='draft'?'Grid baharu · belum disimpan':'Grid dipanggil · boleh edit dan simpan sebagai versi baharu';
       const hint=document.getElementById('jwGridModeHint');
       if(hint)hint.textContent=JW_GRID_MODE==='selected'?'Klik Edit Grid untuk menghasilkan salinan baharu; perubahan hanya aktif apabila disimpan lalu diaktifkan.':
-        JW_GRID_MODE==='legacy'?'Klik “Tambah Grid Masa” untuk membuat draf baharu. Jadual sedia ada tidak berubah.':'ID slot dijana semasa simpan. Hanya kumpulan dan jenis slot perlu dipilih.';
+        JW_GRID_MODE==='legacy'?'Pilih Grid dalam sejarah atau klik Tambah Grid Masa. Jadual rasmi tidak berubah.':'ID slot dijana semasa simpan. Hanya kumpulan dan jenis slot perlu dipilih.';
       const active=document.getElementById('jwGridActiveChoice');
       if(active)active.textContent=JW_GRID_SELECTED?'Grid persediaan dipilih: '+JW_GRID_SELECTED.name:'Belum memilih Grid Persediaan Aktif';
       jwGridRenderPresets();
@@ -1184,12 +1146,13 @@ function fiJWMessageParent(type,message){
       const target=document.getElementById('jwSubjectPresetDetails');if(!target)return;
       target.textContent=preset?`${preset.count} rekod · Disimpan ${preset.createdAt} · Sesi ${preset.year}`:'';
     }
-    async function jwSubjectStudioLoad(){
+    async function jwSubjectStudioLoad(preload=false){
       if(JW_SUBJECT_LOADING)return;
-      JW_SUBJECT_LOADING=true;showLoader('','refresh');
+      JW_SUBJECT_LOADING=true;if(!preload)showLoader('','refresh');
       try{
         const res=await postToBackend({action:'fiJWSubjectStudioGet'});
         if(!res?.success)throw Error(res?.error||'Tetapan sejarah subjek tidak dapat dibaca.');
+        if(res.selected&&(!Array.isArray(res.activeData)||!res.activeData.length))throw Error('Snapshot Tetapan Subjek aktif tidak lengkap.');
         JW_SUBJECT_PRESETS=res.presets||[];JW_SUBJECT_SELECTED=res.selected||null;
         JW_SUBJECT_SOURCE=String(res.source||'');jwSubjectRefreshOptions();
         JW_SUBJECT_TARGETS=Array.isArray(res.activeTargets)?JSON.parse(JSON.stringify(res.activeTargets)):[];jwSubjectRenderTargets();
@@ -1197,10 +1160,10 @@ function fiJWMessageParent(type,message){
           STATE_SUBJEK=JSON.parse(JSON.stringify(res.activeData));
           JW_SUBJECT_YEAR=Number(res.selected.year)||JW_SUBJECT_YEAR;
           renderSubjekTable();
-        }
-        if(res.selectionWarning)jwSubjectNotice(res.selectionWarning,true);
-      }catch(err){jwSubjectNotice('Sejarah Tetapan Subjek belum tersedia: '+String(err.message||err),true);}
-      finally{JW_SUBJECT_LOADING=false;hideLoader();}
+        }else{STATE_SUBJEK=[];renderSubjekTable();}
+        if(res.selectionWarning)jwSubjectNotice(res.selectionWarning,true);JW_SUBJECT_READY=true;
+      }catch(err){JW_SUBJECT_READY=false;jwSubjectNotice('Sejarah Tetapan Subjek belum tersedia: '+String(err.message||err),true);if(preload)throw err;}
+      finally{JW_SUBJECT_LOADING=false;if(!preload)hideLoader();}
     }
     async function jwSubjectNew(){
       syncSubjekDOM();
@@ -2743,7 +2706,7 @@ async function jwAgihanOpen(){
   if(JW_AGIHAN_CORE.loaded||JW_AGIHAN_CORE.loading)return;
   await jwAgihanReload(true);
 }
-async function jwAgihanReload(quiet=false){
+async function jwAgihanReload(quiet=false,preload=false){
   if(JW_AGIHAN_CORE.loading)return;
   if(!quiet&&JW_AGIHAN_CORE.dirty&&!(await jwAgihanConfirm('Perubahan belum disimpan',
     'Muat semula akan membuang perubahan Agihan yang belum disimpan.','Muat semula')))return;
@@ -2751,11 +2714,12 @@ async function jwAgihanReload(quiet=false){
   const activeLabel=document.getElementById('jwAgihanActiveLabel');
   if(activeLabel)activeLabel.textContent='Menyemak set aktif…';
   try{
-    const res=await jwAgihanRequest('fiJWAgihanStudioGet');jwAgihanCheckVersion(res);
+    const res=await jwAgihanRequest('fiJWAgihanStudioGet',{},!preload);jwAgihanCheckVersion(res);
     Object.assign(JW_AGIHAN_CORE,{loaded:true,staff:res.staff||[],historyStaff:res.historyStaff||[],classes:res.classes||[],
       subjects:res.subjects||[],subjectSet:res.subjectSet||null,constraints:res.constraints||null,roleData:res.roleData||{ok:false,roles:[]},selected:res.selected||null,
       presets:res.presets||[],rows:JSON.parse(JSON.stringify(res.activeRows||[])),
       takeovers:res.takeovers||[],plans:res.plans||[],currentId:res.selected?.id||'',dirty:false,needsResave:!!res.needsResave});
+    for(const id of ['jwAlihOriginal','jwAlihNew']){const el=document.getElementById(id);if(el)delete el.dataset.ready;}
     JW_AGIHAN_CORE.openTeachers.clear();
     JW_AGIHAN_CORE.rows.filter(r=>r.needsReview).forEach(r=>JW_AGIHAN_CORE.openTeachers.add(r.teacherId));
     const year=document.getElementById('jwAgihanYear');if(year)year.value=res.selected?.year||res.subjectSet?.year||new Date().getFullYear();
@@ -2765,6 +2729,7 @@ async function jwAgihanReload(quiet=false){
   }catch(err){
     if(activeLabel)activeLabel.textContent='Set aktif belum dapat disahkan';
     jwAgihanNotice(err.message+' Data tidak dipadam oleh proses muat semula ini.',true);
+    JW_AGIHAN_CORE.loaded=false;if(preload)throw err;
     await jwAgihanDialog({title:'Agihan Guru belum dapat dibuka',text:err.message,icon:'error'});
   }
   finally{JW_AGIHAN_CORE.loading=false;}
@@ -3198,8 +3163,8 @@ function jwConMeta(d){JW_CON_F1.data=d;jwConEl('jwConActive').textContent=d.acti
   const locked=jwConEl('jwConLocked');locked.replaceChildren();const labels={TIADA_PERTINDIHAN_GURU:'Tiada pertindihan guru',TIADA_PERTINDIHAN_KELAS:'Tiada pertindihan kelas',TIADA_PERTINDIHAN_BILIK_MELEBIHI_KAPASITI:'Tiada pertindihan bilik melebihi kapasiti',CUKUP_WAKTU_SUBJEK:'Cukup waktu subjek',PATUH_CORAK_BLOK:'Patuh corak blok',BLOK_TIDAK_RENTAS_REHAT_ATAU_SLOT_BUKAN_PDPC:'Blok tidak merentasi rehat atau slot bukan PdPc',CO_TEACHING_SERENTAK:'Co-Teaching serentak',DALAM_GRID_MASA:'Dalam Grid Masa',PRA_SUBJEK_DITETAPKAN_SAHAJA:'Prasekolah: subjek yang ditetapkan sahaja'};
   d.locked.forEach(k=>{const e=document.createElement('div');e.className='jw-con-locked-item';const icon=document.createElement('i');icon.className='fa-solid fa-lock';icon.setAttribute('aria-hidden','true');const label=document.createElement('span');label.textContent=labels[k]||k;e.append(icon,label);locked.appendChild(e);});
 }
-async function jwConLoad(force=false){if(JW_CON_F1.loading||JW_CON_F1.loaded&&!force)return;if(JW_CON_F1.dirty&&!await jwAgihanConfirm('Muat semula?','Perubahan belum disimpan akan hilang.','Muat Semula'))return;JW_CON_F1.loading=true;
-  try{const d=await jwAgihanRequest('fiJWConstraintF1Get');if(d.version!=='V2.8.0-F2'||d.simulationVersion!=='V3.0-UAT3B')throw Error('Backend Constraints belum versi V3.0-UAT3B. Deploy kod baharu.');jwConMeta(d);jwConApply(d.active);JW_CON_F1.loaded=true;jwConNotice('');}catch(e){jwConNotice(e.message,true);}finally{JW_CON_F1.loading=false;}}
+async function jwConLoad(force=false,preload=false){if(JW_CON_F1.loading||JW_CON_F1.loaded&&!force)return;if(!preload&&JW_CON_F1.dirty&&!await jwAgihanConfirm('Muat semula?','Perubahan belum disimpan akan hilang.','Muat Semula'))return;JW_CON_F1.loading=true;
+  try{const d=await jwAgihanRequest('fiJWConstraintF1Get',{},!preload);if(d.version!=='V2.8.0-F2'||d.simulationVersion!=='V3.0-UAT3B')throw Error('Backend Constraints belum versi V3.0-UAT3B. Deploy kod baharu.');jwConMeta(d);jwConApply(d.active);JW_CON_F1.loaded=true;jwConNotice('');}catch(e){JW_CON_F1.loaded=false;jwConNotice(e.message,true);if(preload)throw e;}finally{JW_CON_F1.loading=false;}}
 async function jwConNew(){if(!JW_CON_F1.data)return;if(JW_CON_F1.dirty&&!await jwAgihanConfirm('Set baharu?','Perubahan belum disimpan akan hilang.','Set Baharu'))return;jwConApply(null);jwConTab('edit');jwConDirty();}
 async function jwConRecall(){const d=JW_CON_F1.data,set=d?.sets.find(x=>x.id===jwConEl('jwConHistorySelect').value);if(!set)return jwConNotice('Pilih set dahulu.',true);if(JW_CON_F1.dirty&&!await jwAgihanConfirm('Panggil semula?','Perubahan belum disimpan akan hilang.','Panggil Semula'))return;jwConApply(set);jwConTab('edit');jwConNotice('Versi sejarah dibuka; belum diaktifkan.');}
 async function jwConSave(){if(!JW_CON_F1.data)return;try{const r=await jwAgihanRequest('fiJWConstraintF1Save',{year:JW_CON_F1.data.year,clientVersion:'V2.8.0-F2',name:jwConEl('jwConName').value,rules:jwConRules()});const d=await jwAgihanRequest('fiJWConstraintF1Get');jwConMeta(d);jwConApply(d.sets.find(x=>x.id===r.id));jwConNotice('Versi disimpan. Klik Aktifkan Set jika mahu digunakan.');}catch(e){jwConNotice(e.message,true);}}
@@ -3326,14 +3291,18 @@ function jw3SpecificHTML(r,i,c){const esc=jwAgihanEscape,field=(label,html)=>`<d
 }
 async function jw3Preset(){if(!await jwAgihanConfirm('Isi tetapan sekolah?','Tetapan ini menggantikan draf Constraints sahaja. Set sejarah dan Agihan Guru kekal.','Isi Draf'))return;try{const d=await jwAgihanRequest('fiJW3Preset');jwConApply({name:'UAT V3 — Kekangan sekolah '+JW_CON_F1.data.year,rules:d.rules});jwConDirty();jwConNotice('Tetapan sekolah dimasukkan. Simpan Versi dan Aktifkan Set.');}catch(e){jwConNotice(e.message,true);}}
 let JW3_RESULT=null,JW3_BUSY=false,JW3_STOP=false;
-function jw3RunButton(){jwLiveControls();const b=document.getElementById('jw3Run');if(!b)return;b.disabled=false;b.textContent=JW3_BUSY?(JW3_STOP?'Berhenti selepas pusingan ini…':'Hentikan selepas pusingan'):(JW3_RESULT?.optimization?.canContinue?'Sambung Pengoptimuman':'Jana Simulasi');const reset=document.getElementById('jw3Reset');if(reset)reset.disabled=JW3_BUSY;}
-async function jw3ResetSimulation(){if(JW3_BUSY)return;if(JW3_RESULT&&!await jwAgihanConfirm('Mulakan simulasi baharu?','Jadual terbaik dalam sesi ini akan dilepaskan. Set CORE dan jadual rasmi tidak diubah.','Jana baharu'))return;JW_LIVE_VIEW=null;JW3_PRINT_SOURCE='simulation';JW3_RESULT=null;document.getElementById('jw3Output').innerHTML='';renderJadualHasilView();await jw3RunSimulation();}
-async function jw3RunSimulation(){
+function jw3RunButton(){jwLiveControls();const b=document.getElementById('jw3Run');if(!b)return;b.disabled=false;b.textContent=JW3_BUSY?(JW3_STOP?'Berhenti selepas pusingan ini…':'Hentikan selepas pusingan'):JW_LIVE_VIEW&&JW3_RESULT?'Buka calon jadual':JW3_RESULT?.optimization?.canContinue?'Sambung Penjanaan':'Jana Jadual Baharu';const reset=document.getElementById('jw3Reset');if(reset){reset.disabled=JW3_BUSY;reset.hidden=!!JW_LIVE_VIEW;}}
+async function jw3ResetSimulation(){if(JW3_BUSY||JW_BOOT_BUSY)return;if(!await jwAgihanConfirm('Jana jadual baharu?','Calon belum disimpan akan dilepaskan. Jadual rasmi tidak berubah sehingga draf diterbitkan.','Jana Baharu'))return;JW_LIVE_VIEW=null;JW3_RESULT=null;document.getElementById('jw3Output').replaceChildren();renderJadualHasilView();await jw3RunSimulation(true);}
+
+async function jw3RunSimulation(confirmed=false){
+ if(JW_BOOT_BUSY||!JW_BOOT_READY||JW_LIVE_BUSY)return;
  if(JW3_BUSY){JW3_STOP=true;jw3RunButton();return;}
- if(JW3_RESULT&&!JW3_RESULT.optimization?.canContinue){return jw3ResetSimulation();}
+ if(JW_LIVE_VIEW&&JW3_RESULT){JW_LIVE_VIEW=null;jw3RenderResult();jwLiveUpdateStatus();renderJadualHasilView();jw3RunButton();return;}
+ if(JW3_RESULT&&!JW3_RESULT.optimization?.canContinue)return jw3ResetSimulation();
+ if(!JW3_RESULT&&!confirmed&&!await jwAgihanConfirm('Jana jadual baharu?','Hasil ialah calon jadual. Jadual rasmi aktif kekal sehingga penerbitan diluluskan.','Jana Baharu'))return;
  const btn=document.getElementById('jw3Run'),status=document.getElementById('jw3Status');if(!btn||!status)return;
  if(!document.getElementById('jw3Reset')){const reset=document.createElement('button');reset.id='jw3Reset';reset.type='button';reset.className='jw-agihan-btn jw-agihan-btn-light';reset.textContent='Jana Baharu';reset.addEventListener('click',jw3ResetSimulation);btn.insertAdjacentElement('afterend',reset);}
- JW_LIVE_VIEW=null;JW3_PRINT_SOURCE='simulation';JW3_BUSY=true;JW3_STOP=false;jw3RunButton();let stagnant=0,rounds=0;
+ JW_LIVE_VIEW=null;JW3_BUSY=true;JW3_STOP=false;jw3RunButton();if(!JW3_RESULT){document.getElementById('jw3Output')?.replaceChildren();renderJadualHasilView();}let stagnant=0,rounds=0;
  // Sequential bounded calls: keep the best result and checkpoint in this portal session.
  // No database writes, no triggers, and no parallel requests.
  try{
@@ -3348,14 +3317,14 @@ async function jw3RunSimulation(){
    if(!r.optimization.canContinue||stagnant>=9)break;
   }
   const r=JW3_RESULT;if(r){const reason=JW3_STOP?'Dihentikan selepas pusingan':!r.optimization.canContinue?(r.optimization.stopReason==='LENGKAP'?'Lengkap — audit selesai':r.optimization.stopReason==='SEMAK_TETAPAN'?'Semak tetapan / padanan semasa':'Audit konflik — perlu semakan'):stagnant>=9?'Tiada peningkatan dalam 9 pusingan; backup telah dicuba; boleh sambung':'Had 12 pusingan; boleh sambung';status.textContent=reason+' · '+r.stats.scheduledPeriods+'/'+r.stats.expectedPeriods+' waktu · baki '+r.stats.missingPeriods+' · pusingan '+r.checkpoint.round+' · Jadual rasmi tidak diubah';}
- }catch(e){status.textContent='Gagal simulasi: '+e.message+(JW3_RESULT?' · Jadual terbaik terdahulu dikekalkan.':'');}finally{JW3_BUSY=false;JW3_STOP=false;jw3RunButton();}
+ }catch(e){if(!JW3_RESULT&&JW_LIVE_ACTIVE){JW_LIVE_VIEW=JW_LIVE_ACTIVE;jw3RenderResult();renderJadualHasilView();}status.textContent='Penjanaan belum berjaya: '+e.message+(JW3_RESULT?' · Jadual terbaik terdahulu dikekalkan.':'');}finally{JW3_BUSY=false;JW3_STOP=false;jw3RunButton();}
 }
 function jw3RenderResult(){const r=jwLiveViewed();if(!r)return;const oldMode=document.getElementById('jw3Mode')?.value,oldFilter=document.getElementById('jw3Filter')?.value;const esc=jwAgihanEscape,st=r.stats,metrics=[['Waktu kelas dijana',st.scheduledPeriods+'/'+st.expectedPeriods],['Waktu belum dijana',st.missingPeriods],['Pertindihan guru',st.teacherClashes],['Pertindihan kelas',st.classClashes],['Pertindihan bilik',st.roomClashes],['Co-Teaching tidak padan',st.coMismatch],['Pautan Guru Utama tidak padan',st.linkedMismatch??'—'],['Blok tidak sah',st.blockMismatch],['Had harian dilanggar',st.dailyViolations],['Had berturut dilanggar',st.consecutiveViolations],['Senggang tidak cukup',st.gapViolations],['Waktu Co-Teaching belum dijana',st.missingCoPeriods],['PJ–PK tidak padan',st.linkMismatch],['Co-Teaching belum berpaut (baris)',st.unpairedRows],['Komponen tiada padanan',st.unmatchedComponents],['Kunci belum dipenuhi',st.missingLocks],['Rujukan rehat dilanggar',st.referenceViolations],['Blok rujukan belum dijana',st.referenceMissingDays],['Liputan hari belum cukup',st.coverageViolations],['Ralat / Amaran',st.errors+' / '+st.warnings],['Pusingan pengoptimuman',r.optimization?.round??'—'],['Cubaan peralihan berantai',r.optimization?.chainMovesAttempted??'—'],['Mod carian',r.optimization?.searchMode??'—'],['Kedalaman rantai',r.optimization?.chainDepth??'—'],['Susun semula blok berjaya / cubaan',(r.optimization?.repackSuccesses??0)+' / '+(r.optimization?.repackAttempts??0)]];
  const table=(head,rows)=>`<div class="jw3-scroll"><table class="jw3-table"><thead><tr>${head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map(v=>`<td>${esc(String(v??''))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
- document.getElementById('jw3Output').innerHTML=`${jwLiveViewBanner(r)}<div class="jw3-stats">${metrics.map(([k,v])=>`<div class="jw-agihan-quota-row"><small>${esc(k)}</small><strong>${esc(String(v))}</strong></div>`).join('')}</div><p class="jw-agihan-muted">Set aktif: ${esc(JSON.stringify(r.sets))}</p><div class="jw3-toolbar"><button class="jw-agihan-btn jw-agihan-btn-light" onclick="jw3Download('csv')">Eksport jadual CSV</button><button class="jw-agihan-btn jw-agihan-btn-light" onclick="jw3Download('json')">Eksport audit JSON</button></div><details open><summary>Ralat & amaran (${r.issues.length+r.warnings.length})</summary>${table(['Jenis','Butiran'],[...r.issues,...r.warnings].map(({type,...d})=>[type,JSON.stringify(d)]))}</details>${r.linkedAudit?.length?`<details open><summary>Audit Guru Utama & Pairing (${r.linkedAudit.length} kelas)</summary>${table(['Kelas','Guru Utama','Komponen','Guru kedua','Waktu dijana / sasaran','Padanan'],r.linkedAudit.flatMap(a=>a.components.map(p=>[a.className,a.mainTeacherName,p.label,p.teacherNames.filter((n,i)=>p.teachers[i]!==a.mainTeacherId).join(' + ')||'—',p.mainScheduled+'/'+p.expected,a.valid&&p.valid?'Sepadan':'Semak'])) )}</details>`:''}<details open><summary>Statistik guru — beban Isnin hingga Jumaat</summary>${table(['Guru','Kuota waktu','Dipadankan','Dijana','Isn','Sel','Rab','Kha','Jum','Hari'],r.teacherStats.map(t=>[t.name,t.plannedMin===t.plannedMax?t.plannedMin:t.plannedMin+'–'+t.plannedMax,t.required,t.scheduled,...t.days,t.targetDays===0?t.activeDays+' (bebas)':t.activeDays+'/'+t.targetDays]))}</details><details><summary>Statistik kelas</summary>${table(['Kelas','Sasaran','Dijana','Slot PdPc'],r.classStats.map(c=>[c.name,c.expected,c.scheduled,c.gridSlots]))}</details><div class="jw3-toolbar"><label>Jadual simulasi</label><select id="jw3Mode" onchange="jw3ViewOptions()"><option value="kelas">Mengikut kelas</option><option value="guru">Mengikut guru</option></select><select id="jw3Filter" onchange="jw3RenderSchedule()"></select></div><div id="jw3Schedule"></div>`;if(oldMode)document.getElementById("jw3Mode").value=oldMode;jw3ViewOptions();const filter=document.getElementById("jw3Filter");if(oldFilter&&Array.from(filter.options).some(o=>o.value===oldFilter)){filter.value=oldFilter;jw3RenderSchedule();}}
+ document.getElementById('jw3Output').innerHTML=`${jwLiveViewBanner(r)}${r.liveVersion?'<details class="jw-live-audit"><summary>Audit & statistik jadual</summary>':''}<div class="jw3-stats">${metrics.map(([k,v])=>`<div class="jw-agihan-quota-row"><small>${esc(k)}</small><strong>${esc(String(v))}</strong></div>`).join('')}</div><p class="jw-agihan-muted">Set CORE penjanaan: ${esc(JSON.stringify(r.sets))}</p><div class="jw3-toolbar"><button class="jw-agihan-btn jw-agihan-btn-light" onclick="jw3Download('csv')">Eksport jadual CSV</button><button class="jw-agihan-btn jw-agihan-btn-light" onclick="jw3Download('json')">Eksport audit JSON</button></div><details open><summary>Ralat & amaran (${r.issues.length+r.warnings.length})</summary>${table(['Jenis','Butiran'],[...r.issues,...r.warnings].map(({type,...d})=>[type,JSON.stringify(d)]))}</details>${r.linkedAudit?.length?`<details open><summary>Audit Guru Utama & Pairing (${r.linkedAudit.length} kelas)</summary>${table(['Kelas','Guru Utama','Komponen','Guru kedua','Waktu dijana / sasaran','Padanan'],r.linkedAudit.flatMap(a=>a.components.map(p=>[a.className,a.mainTeacherName,p.label,p.teacherNames.filter((n,i)=>p.teachers[i]!==a.mainTeacherId).join(' + ')||'—',p.mainScheduled+'/'+p.expected,a.valid&&p.valid?'Sepadan':'Semak'])) )}</details>`:''}<details open><summary>Statistik guru — beban Isnin hingga Jumaat</summary>${table(['Guru','Kuota waktu','Dipadankan','Dijana','Isn','Sel','Rab','Kha','Jum','Hari'],r.teacherStats.map(t=>[t.name,t.plannedMin===t.plannedMax?t.plannedMin:t.plannedMin+'–'+t.plannedMax,t.required,t.scheduled,...t.days,t.targetDays===0?t.activeDays+' (bebas)':t.activeDays+'/'+t.targetDays]))}</details><details><summary>Statistik kelas</summary>${table(['Kelas','Sasaran','Dijana','Slot PdPc'],r.classStats.map(c=>[c.name,c.expected,c.scheduled,c.gridSlots]))}</details>${r.liveVersion?'</details>':''}<div class="jw3-toolbar" ${r.liveVersion?'hidden style="display:none"':''}><label>Semakan calon jadual</label><select id="jw3Mode" onchange="jw3ViewOptions()"><option value="kelas">Mengikut kelas</option><option value="guru">Mengikut guru</option></select><select id="jw3Filter" onchange="jw3RenderSchedule()"></select></div><div id="jw3Schedule" ${r.liveVersion?'hidden':''}></div>`;if(r.liveVersion)return;if(oldMode)document.getElementById("jw3Mode").value=oldMode;jw3ViewOptions();const filter=document.getElementById("jw3Filter");if(oldFilter&&Array.from(filter.options).some(o=>o.value===oldFilter)){filter.value=oldFilter;jw3RenderSchedule();}}
 function jw3ViewOptions(){const r=jwLiveViewed(),m=document.getElementById('jw3Mode').value,el=document.getElementById('jw3Filter');el.replaceChildren();const list=m==='kelas'?r.classStats:r.teacherStats;list.forEach(t=>el.add(new Option(t.name,t.id)));jw3RenderSchedule();}
 function jw3RenderSchedule(){const r=jwLiveViewed(),mode=document.getElementById('jw3Mode').value,id=document.getElementById('jw3Filter').value,esc=jwAgihanEscape;const rows=r.sessions.filter(s=>mode==='kelas'?s.classId===id:s.teachers.includes(id));const display=mode==='kelas'?r.classStats.find(c=>c.id===id)?.display:null;if(display){jw3RenderSparse(rows,display);return;}document.getElementById('jw3Schedule').innerHTML=`<div class="jw3-scroll"><div class="jw3-week">${['Isnin','Selasa','Rabu','Khamis','Jumaat'].map((d,i)=>`<div><h4>${d}</h4>${rows.filter(s=>s.day===i+1).sort((a,b)=>a.start.localeCompare(b.start)).map(s=>`<div class="jw3-session"><small>${esc(s.start)}–${esc(s.end)}</small><strong>${esc(s.code)} · ${esc(s.className)}</strong><small>${esc(s.teacherNames.join(' + '))}</small></div>`).join('')||'<small>Tiada PdPc dijana</small>'}</div>`).join('')}</div></div>`;}
-function jw3Download(format,r=jwLiveViewed()){if(!r)return;let data,ext;if(format==='json'){data=JSON.stringify(r,null,2);ext='json';}else{const quote=v=>{let s=String(v??'');if(/^[=+@\-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';};try{const rows=jw3SlotRows(r);data='\uFEFF'+[['Kelas','Hari','Mula','Tamat','Subjek','Guru','Bilik ID','Waktu','Co-Teaching','No_Waktu','Slot_Index','Slot_Label','Slot_ID','ID_Kelas','ID_Subjek','Kod_Subjek','ID_Guru_Utama','ID_Guru_Pair','Tahun_Kelas','Hari_Index','Grid_ID','Sumber_Jadual','Masa_Jana'],...rows.map(({s,g})=>[s.className,JW3_PRINT_DAYS[s.day-1],g.start,g.end,s.subject,s.teacherNames.join(' + '),s.room,1,s.coTeaching?'Ya':'Tidak',g.number,g.number,'W'+g.number,g.id,s.classId,s.subjectId,s.code,s.teachers[0],s.teachers[1]||'',s.year,s.day,r.sets.grid,r.liveVersion?'LIVE_'+r.liveVersion.Status:r===JW3_IMPORTED_PRINT?'SIMULASI_JSON_TERDAHULU':'SIMULASI_GENERATOR',r.generatedAt])].map(row=>row.map(quote).join(',')).join('\r\n');}catch(e){Swal.fire('Eksport belum tersedia',e.message,'warning');return;}ext='csv';}const url=URL.createObjectURL(new Blob([data],{type:format==='json'?'application/json':'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=r.liveVersion?'SeMAKMUR_'+r.liveVersion.Jadual_ID+'.'+ext:'SeMAKMUR_SIMULASI_UAT_'+r.sets.year+'.'+ext;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function jw3Download(format,r=jwLiveViewed()){if(!r)return;let data,ext;if(format==='json'){data=JSON.stringify(r,null,2);ext='json';}else{const quote=v=>{let s=String(v??'');if(/^[=+@\-]/.test(s))s="'"+s;return '"'+s.replaceAll('"','""')+'"';};try{const rows=jw3SlotRows(r);data='\uFEFF'+[['Kelas','Hari','Mula','Tamat','Subjek','Guru','Bilik ID','Waktu','Co-Teaching','No_Waktu','Slot_Index','Slot_Label','Slot_ID','ID_Kelas','ID_Subjek','Kod_Subjek','ID_Guru_Utama','ID_Guru_Pair','Tahun_Kelas','Hari_Index','Grid_ID','Sumber_Jadual','Masa_Jana'],...rows.map(({s,g})=>[s.className,JW3_PRINT_DAYS[s.day-1],g.start,g.end,s.subject,s.teacherNames.join(' + '),s.room,1,s.coTeaching?'Ya':'Tidak',g.number,g.number,'W'+g.number,g.id,s.classId,s.subjectId,s.code,s.teachers[0],s.teachers[1]||'',s.year,s.day,r.sets.grid,r.liveVersion?'LIVE_'+r.liveVersion.Status:'CALON_JADUAL',r.generatedAt])].map(row=>row.map(quote).join(',')).join('\r\n');}catch(e){Swal.fire('Eksport belum tersedia',e.message,'warning');return;}ext='csv';}const url=URL.createObjectURL(new Blob([data],{type:format==='json'?'application/json':'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=r.liveVersion?'SeMAKMUR_'+r.liveVersion.Jadual_ID+'.'+ext:'SeMAKMUR_CALON_JADUAL_'+r.sets.year+'.'+ext;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 
 // Grid reference builder: edits draft only, no automatic activation.
 async function jwGridBuildReferencePra(){
@@ -3384,7 +3353,7 @@ function jw3LinkedQuotaHTML(state){const esc=jwAgihanEscape,rules=(state.constra
 // UAT3B Print/Export patch: never reads or writes official timetable when displaying simulation.
 const JW3_PRINT_DAYS=['Isnin','Selasa','Rabu','Khamis','Jumaat'];
 let JW3_PRINT_SOURCE=null,JW3_IMPORTED_PRINT=null;
-function jw3PrintResult(){return document.getElementById('jw3PrintSource')?.value==='imported'?JW3_IMPORTED_PRINT:JW3_RESULT;}
+function jw3PrintResult(){return jwLiveViewed();}
 function jw3SlotMap(r){const map=new Map();for(const g of r.printGrid||[])for(const y of g.years)map.set(`${y}|${g.day}|${g.id}`,g);return map;}
 function jw3SlotRows(r){const map=jw3SlotMap(r),out=[];for(const s of r.sessions){const slots=s.slotIds.map(id=>map.get(`${s.year}|${s.day}|${id}`));if(slots.length!==s.periods||slots.some(g=>!g||g.type!=='PDP'||!g.number)||slots[0]?.start!==s.start||slots.at(-1)?.end!==s.end||slots.some((g,i)=>i&&slots[i-1].end!==g.start))throw Error('Metadata Grid tidak sepadan: '+s.className+' '+s.day+' '+s.start);for(const g of slots)out.push({s,g});}return out;}
 function jw3PrintStyles(){if(document.getElementById('jw3PrintStyle'))return;const style=document.createElement('style');style.id='jw3PrintStyle';style.textContent=`
@@ -3409,35 +3378,40 @@ function jw3PrintCardHTML(r,mode,entity,slotRows){const esc=jwAgihanEscape,own=s
  const week=`<table class="jw3-print-week"><thead><tr><th class="jw3-dayname">HARI</th>${cols.map(q=>`<th class="${cls(q)}">${header(q)}<span class="jw3-slot-time">${esc(q.start)}–${esc(q.end)}</span></th>`).join('')||'<th>Tiada slot</th>'}</tr></thead><tbody>${body}</tbody></table>`;
  const date=r.generatedAt&&Number.isFinite(new Date(r.generatedAt).getTime())?new Date(r.generatedAt).toLocaleString('ms-MY',{timeZone:'Asia/Kuala_Lumpur',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):'[tarikh dan masa tidak direkod]';
  return `<section class="jw3-print-card jw3-print-${mode}${cols.length>16?' jw3-many-cols':''}" data-entity="${esc(entity.id)}"><div class="jw3-print-heading"><h2>JADUAL WAKTU ${mode==='guru'?'GURU':'KELAS'}: ${esc(entity.name)}</h2><p>SEKOLAH KEBANGSAAN SEGAMBUT MAKMUR | JUMLAH WAKTU: ${total} WAKTU</p></div>${week}<div class="jw3-print-footer"><div class="jw3-print-meta"><p class="jw3-gen-date">Jadual waktu dijana pada ${esc(date)} melalui SeMAKMUR I-System</p></div>${jw3PrintSummaryHTML(stats,total)}</div></section>`;}
-function jw3PrintRenderBottom(){const r=jw3PrintResult(),container=document.getElementById('containerHasilJadualView'),modeEl=document.getElementById('selFilterViewJadual');if(!r||!container||!modeEl)return;const mode=modeEl.value==='kelas'?'kelas':'guru',list=mode==='guru'?r.teacherStats:r.classStats;try{const rows=jw3SlotRows(r);const f=document.getElementById('jw3PrintFilter'),old=f?.value||'';if(f){f.replaceChildren(new Option('Semua '+(mode==='guru'?'guru':'kelas'),''));list.forEach(e=>f.add(new Option(e.name,e.id)));if(list.some(e=>e.id===old))f.value=old;}container.innerHTML=list.filter(e=>!f?.value||e.id===f.value).map(e=>jw3PrintCardHTML(r,mode,e,rows)).join('');const status=document.getElementById('jwHasilStatusText');if(status)status.textContent=r.stats.scheduledPeriods+'/'+r.stats.expectedPeriods+' waktu · '+(r.liveVersion?.Status==='DITERBITKAN'?'Versi rasmi '+r.liveVersion.Jadual_ID+' · '+r.liveVersion.Tarikh_Kuat_Kuasa:r.liveVersion?'Draf dibuka: '+r.liveVersion.Nama+' · '+r.liveVersion.Jadual_ID:'Simulasi belum diterbitkan.');}catch(e){container.textContent='Jadual simulasi tidak dapat dipaparkan: '+e.message;}}
-function renderJadualHasilView(){jwLiveControls();const mode=document.getElementById('selFilterViewJadual');if(!mode)return;jw3PrintStyles();let source=document.getElementById('jw3PrintSource');const toolbar=mode.parentElement,heading=toolbar.parentElement.querySelector('h3');if(!source){source=document.createElement('select');source.id='jw3PrintSource';source.className=mode.className;source.add(new Option('Jadual Rujukan Lama','reference'));source.add(new Option('Simulasi Generator','simulation'));source.add(new Option('Fail JSON Terdahulu','imported'));source.addEventListener('change',()=>{JW3_PRINT_SOURCE=source.value;if(source.value==='imported'&&JW3_IMPORTED_PRINT)JW_LIVE_VIEW=JW3_IMPORTED_PRINT;else JW_LIVE_VIEW=null;if(jwLiveViewed())jw3RenderResult();else document.getElementById('jw3Output')?.replaceChildren();jwLiveUpdateStatus();renderJadualHasilView();});toolbar.insertBefore(source,mode);toolbar.style.flexWrap='wrap';const filter=document.createElement('select');filter.id='jw3PrintFilter';filter.className=mode.className;filter.addEventListener('change',jw3PrintRenderBottom);mode.insertAdjacentElement('afterend',filter);const button=toolbar.querySelector('button');if(button){button.removeAttribute('onclick');button.addEventListener('click',jw3PrintA4);}const load=document.createElement('button');load.type='button';load.className='jw-agihan-btn jw-agihan-btn-light';load.textContent='Buka JSON Jadual';load.addEventListener('click',jw3PrintChooseJSON);toolbar.appendChild(load);const csv=document.createElement('button');csv.id='jw3PrintCSV';csv.type='button';csv.className='jw-agihan-btn jw-agihan-btn-light';csv.textContent='Eksport CSV Slot';csv.addEventListener('click',()=>jw3Download('csv',jw3PrintResult()));toolbar.appendChild(csv);}
- const opt=source.querySelector('option[value="simulation"]');opt.disabled=!JW3_RESULT?.printGrid?.length;const imported=source.querySelector('option[value="imported"]');imported.disabled=!JW3_IMPORTED_PRINT;imported.textContent=JW3_IMPORTED_PRINT?.liveVersion?'LIVE: '+JW3_IMPORTED_PRINT.liveVersion.Nama+' · '+JW3_IMPORTED_PRINT.liveVersion.Status:'Fail JSON Terdahulu';source.value=JW3_PRINT_SOURCE==='reference'?'reference':JW3_PRINT_SOURCE==='imported'&&!imported.disabled?'imported':opt.disabled?'reference':'simulation';const simulation=source.value!=='reference',f=document.getElementById('jw3PrintFilter');f.hidden=!simulation;document.getElementById('jw3PrintCSV').hidden=!simulation;const master=mode.querySelector('option[value="master"]');if(master)master.disabled=simulation;if(simulation&&mode.value==='master')mode.value='guru';if(heading)heading.textContent=simulation?(jw3PrintResult()?.liveVersion?'Jadual Waktu LIVE — '+jw3PrintResult().liveVersion.Nama:'Jadual Waktu Simulasi Generator — Semakan & Cetakan'):'Jadual Waktu Rujukan Lama (CORE)';if(simulation){setJwHasilStatus('ready');jw3PrintRenderBottom();}else{if(STATE_HASIL_JADUAL?.length)setJwHasilStatus('ready');renderJadualHasilReferenceView();}}
-function jw3PrintA4(){if(document.getElementById('jw3PrintSource')?.value==='reference'){window.print();return;}const cards=[...document.querySelectorAll('#containerHasilJadualView .jw3-print-card')];if(!cards.length)return;const old=document.getElementById('jw3PrintRoot');old?.remove();const root=document.createElement('div');root.id='jw3PrintRoot';root.className='jw3-print-root';cards.forEach(c=>root.appendChild(c.cloneNode(true)));document.body.appendChild(root);document.body.classList.add('jw3-isolated-print');const cleanup=()=>{root.remove();document.body.classList.remove('jw3-isolated-print');};window.addEventListener('afterprint',cleanup,{once:true});try{window.print();}catch(e){cleanup();throw e;}}
+function jw3PrintRenderBottom(){const r=jw3PrintResult(),container=document.getElementById('containerHasilJadualView'),modeEl=document.getElementById('selFilterViewJadual');if(!r||!container||!modeEl)return;const mode=modeEl.value==='kelas'?'kelas':'guru',list=mode==='guru'?r.teacherStats:r.classStats;try{const rows=jw3SlotRows(r);const f=document.getElementById('jw3PrintFilter'),old=f?.value||'';if(f){f.replaceChildren(new Option('Semua '+(mode==='guru'?'guru':'kelas'),''));list.forEach(e=>f.add(new Option(e.name,e.id)));if(list.some(e=>e.id===old))f.value=old;}container.innerHTML=list.filter(e=>!f?.value||e.id===f.value).map(e=>jw3PrintCardHTML(r,mode,e,rows)).join('');const status=document.getElementById('jwHasilStatusText');if(status)status.textContent=r.stats.scheduledPeriods+'/'+r.stats.expectedPeriods+' waktu · '+(r.liveVersion?.Jadual_ID===JW_LIVE_ACTIVE_ID?'Rasmi aktif '+r.liveVersion.Jadual_ID+' · '+r.liveVersion.Tarikh_Kuat_Kuasa:r.liveVersion?(r.liveVersion.Status==='DRAF'?'Draf dibuka: ':'Versi diterbitkan (bukan aktif): ')+r.liveVersion.Nama+' · '+r.liveVersion.Jadual_ID:'Calon jadual belum diterbitkan.');}catch(e){container.textContent='Jadual tidak dapat dipaparkan: '+e.message;}}
+function renderJadualHasilView(){jwLiveControls();const mode=document.getElementById('selFilterViewJadual');if(!mode)return;jw3PrintStyles();const toolbar=mode.parentElement,heading=toolbar.parentElement.querySelector('h3');
+ const master=mode.querySelector('option[value="master"]');master?.remove();if(!['guru','kelas'].includes(mode.value))mode.value='guru';
+ let filter=document.getElementById('jw3PrintFilter');if(!filter){toolbar.style.flexWrap='wrap';filter=document.createElement('select');filter.id='jw3PrintFilter';filter.className=mode.className;filter.addEventListener('change',jw3PrintRenderBottom);mode.insertAdjacentElement('afterend',filter);const button=toolbar.querySelector('button');if(button){button.removeAttribute('onclick');button.addEventListener('click',jw3PrintA4);}const csv=document.createElement('button');csv.id='jw3PrintCSV';csv.type='button';csv.className='jw-agihan-btn jw-agihan-btn-light';csv.textContent='Eksport CSV Slot';csv.addEventListener('click',()=>jw3Download('csv'));toolbar.appendChild(csv);}
+ const r=jw3PrintResult(),v=r?.liveVersion,isActive=v?.Jadual_ID===JW_LIVE_ACTIVE_ID&&!!v;
+ if(heading)heading.textContent=v?(isActive?'Jadual Waktu Rasmi — ':'Jadual Waktu — ')+v.Nama:r?'Calon Jadual Baharu':'Jadual Waktu Rasmi';
+ filter.disabled=!r;document.getElementById('jw3PrintCSV').disabled=!r;const print=toolbar.querySelector('button');if(print)print.disabled=!r;
+ if(r){setJwHasilStatus('ready');jw3PrintRenderBottom();}else{setJwHasilStatus('empty');document.getElementById('containerHasilJadualView')?.replaceChildren();const status=document.getElementById('jwHasilStatusText');if(status)status.textContent=JW3_BUSY?'Penjanaan sedang berjalan…':'Belum ada jadual untuk dipaparkan.';}
+}
 
-// Import is strictly for viewing/printing/export, never a generator checkpoint or official timetable.
-async function jw3PrintLoadJSON(file){if(!file||file.size>5*1024*1024)throw Error('Pilih fail audit JSON sehingga 5 MB.');const r=JSON.parse(await file.text());if(!r?.sets?.grid||!Array.isArray(r.sessions)||!Array.isArray(r.teacherStats)||!Array.isArray(r.classStats)||!r.stats||!r.optimization||r.sessions.length>10000||r.teacherStats.length>500||r.classStats.length>200)throw Error('Format audit Generator tidak sah.');const snap=await postToBackend({action:'fiJWGridArchiveRecall',data:{id:r.sets.grid,forPrint:true}});if(!snap?.success||snap.id!==r.sets.grid||!Array.isArray(snap.printGrid))throw Error('Grid asal tidak tersedia. Tiada nombor waktu diteka.');r.printGrid=snap.printGrid;for(const c of r.classStats){if(c.year===undefined)c.year=r.sessions.find(s=>s.classId===c.id)?.year;}const rows=jw3SlotRows(r);if(rows.length!==r.stats.scheduledPeriods||rows.reduce((n,{s})=>n+s.teachers.length,0)!==r.stats.teacherPeriods)throw Error('Jumlah sesi tidak sepadan dengan audit fail.');if(r.classStats.some(c=>rows.filter(({s})=>s.classId===c.id).length!==c.scheduled)||r.teacherStats.some(t=>rows.filter(({s})=>s.teachers.includes(t.id)).length!==t.scheduled))throw Error('Jumlah waktu individu tidak sepadan dengan audit fail.');JW3_IMPORTED_PRINT=r;JW_LIVE_VIEW=r;JW3_PRINT_SOURCE='imported';jw3RenderResult();jwLiveUpdateStatus();renderJadualHasilView();}
-function jw3PrintChooseJSON(){const input=document.createElement('input');input.type='file';input.accept='.json,application/json';input.addEventListener('change',async()=>{const file=input.files?.[0];if(!file)return;try{await jw3PrintLoadJSON(file);}catch(e){Swal.fire('JSON belum dapat dibuka',e.message,'warning');}});input.click();}
+function jw3PrintA4(){const cards=[...document.querySelectorAll('#containerHasilJadualView .jw3-print-card')];if(!cards.length)return;const old=document.getElementById('jw3PrintRoot');old?.remove();const root=document.createElement('div');root.id='jw3PrintRoot';root.className='jw3-print-root';cards.forEach(c=>root.appendChild(c.cloneNode(true)));document.body.appendChild(root);document.body.classList.add('jw3-isolated-print');const cleanup=()=>{root.remove();document.body.classList.remove('jw3-isolated-print');};window.addEventListener('afterprint',cleanup,{once:true});try{window.print();}catch(e){cleanup();throw e;}}
 
-// V3.1 LIVE: save/re-audit reviewed checkpoint; never publish client rows directly.
+
 let JW_LIVE_BUSY=false,JW_LIVE_VIEW=null;
 function jwLiveViewed(){return JW_LIVE_VIEW||JW3_RESULT;}
-function jwLiveViewBanner(r){const v=r?.liveVersion,e=jwAgihanEscape;return `<div style="padding:12px 15px;margin:0 0 12px;border:1px solid #cbded5;border-radius:10px;background:#f0f7f3;color:#214c3d;font-size:13px;line-height:1.6"><strong>${v?'Jadual sedang dibuka: '+e(v.Nama):r===JW3_IMPORTED_PRINT?'Fail JSON terdahulu':'Simulasi Generator semasa'}</strong>${v?`<div>${e(v.Jadual_ID)} · ${e(v.Status)} · ${e(v.Tarikh_Kuat_Kuasa||'Belum berkuat kuasa')}</div>`:''}<div>${e(r.stats.scheduledPeriods)} waktu kelas · ${e(r.stats.teacherPeriods)} waktu guru</div>${v?'<button type="button" onclick="jwLiveBackSimulation()" style="margin-top:8px;padding:6px 12px;border:1px solid #adc8ba;border-radius:6px;background:white;color:#214c3d;cursor:pointer">Kembali ke simulasi</button>':''}</div>`;}
-function jwLiveUpdateStatus(){const st=document.getElementById('jw3Status'),r=jwLiveViewed(),v=r?.liveVersion;if(st)st.textContent=v?'Versi dibuka: '+v.Nama+' · '+v.Jadual_ID+' · '+v.Status:r?(r===JW3_IMPORTED_PRINT?'Fail JSON terdahulu':'Simulasi Generator semasa')+' · '+r.stats.scheduledPeriods+'/'+r.stats.expectedPeriods+' waktu':'Tiada simulasi dalam sesi ini.';}
-function jwLiveBackSimulation(){JW_LIVE_VIEW=null;JW3_PRINT_SOURCE=JW3_RESULT?'simulation':'reference';if(JW3_RESULT)jw3RenderResult();else document.getElementById('jw3Output').replaceChildren();jwLiveUpdateStatus();renderJadualHasilView();}
-function jwLiveShow(out){out.result.liveVersion=out.version;JW_LIVE_VIEW=out.result;JW3_IMPORTED_PRINT=out.result;JW3_PRINT_SOURCE='imported';jw3RenderResult();renderJadualHasilView();const st=document.getElementById('jw3Status');if(st)st.textContent='Versi dibuka: '+out.version.Nama+' · '+out.version.Jadual_ID+' · '+out.version.Status;}
+function jwLiveViewBanner(r){const v=r?.liveVersion,e=jwAgihanEscape,active=!!v&&v.Jadual_ID===JW_LIVE_ACTIVE_ID;return `<div style="padding:12px 15px;margin:0 0 12px;border:1px solid #cbded5;border-radius:10px;background:#f0f7f3;color:#214c3d;font-size:13px;line-height:1.6"><strong>${active?'Jadual rasmi aktif: '+e(v.Nama):v?'Jadual sedang dibuka: '+e(v.Nama):'Calon jadual baharu'}</strong>${v?`<div>${e(v.Jadual_ID)} · ${e(v.Status)} · ${e(v.Tarikh_Kuat_Kuasa||'Belum berkuat kuasa')}</div>`:'<div>Belum diterbitkan.</div>'}<div>${e(r.stats.scheduledPeriods)} waktu kelas · ${e(r.stats.teacherPeriods)} waktu guru</div>${!active&&JW_LIVE_ACTIVE_ID?'<button type="button" onclick="jwLiveReturnOfficial()" style="margin-top:8px;padding:6px 12px;border:1px solid #adc8ba;border-radius:6px;background:white;color:#214c3d;cursor:pointer">Kembali ke jadual rasmi</button>':''}</div>`;}
+function jwLiveUpdateStatus(){const st=document.getElementById('jw3Status'),r=jwLiveViewed(),v=r?.liveVersion;if(st)st.textContent=v?(v.Jadual_ID===JW_LIVE_ACTIVE_ID?'Rasmi aktif: ':'Versi dibuka: ')+v.Nama+' · '+v.Jadual_ID+' · '+(v.Tarikh_Kuat_Kuasa||'Belum berkuat kuasa'):r?'Calon jadual · '+r.stats.scheduledPeriods+'/'+r.stats.expectedPeriods+' waktu':JW_BOOT_READY?'Belum ada jadual rasmi aktif.':'Maklumat rasmi belum tersedia.';}
+async function jwLiveReturnOfficial(){if(JW3_BUSY||JW_LIVE_BUSY||JW_BOOT_BUSY)return;JW_LIVE_BUSY=true;showLoader('','refresh');try{jwLiveSetActive(await jwLiveReadActive());}catch(e){await Swal.fire('Jadual rasmi belum dapat dibuka',e.message,'error');}finally{JW_LIVE_BUSY=false;hideLoader();}}
+function jwLiveShow(out){if(!out?.version||!out?.result?.printGrid?.length)throw Error('Snapshot versi tidak sah.');jw3SlotRows(out.result);out.result.liveVersion=out.version;JW_LIVE_VIEW=out.result;jw3RenderResult();renderJadualHasilView();jwLiveUpdateStatus();jw3RunButton();}
+
 function jwLiveModalStyles(){if(document.getElementById('jwLiveCSS'))return;const x=document.createElement('style');x.id='jwLiveCSS';x.textContent=`.jw-live-popup{max-width:calc(100vw - 24px)!important;font-family:inherit!important;color:#24352f!important;border-radius:16px!important;padding:24px!important;box-sizing:border-box!important}.jw-live-popup .swal2-title{font-size:21px!important;font-weight:700!important;color:#173c34!important}.jw-live-popup .swal2-html-container{margin:14px 0 0!important;text-align:left!important;max-height:calc(100vh - 150px);overflow:auto!important}.jw-live-ui{font-size:13px;line-height:1.5;color:#283b33;text-align:left}.jw-live-ui *{box-sizing:border-box}.jw-live-section{border:1px solid #dce5df;border-radius:11px;padding:14px;margin:12px 0;background:#fff}.jw-live-section h4{margin:0 0 9px;color:#173c34;font-size:14px;font-weight:700}.jw-live-ui label{display:block;font-size:12px;font-weight:600;margin:7px 0 5px}.jw-live-ui input:not([type=checkbox]),.jw-live-ui select{width:100%;border:1px solid #c7d5ce;border-radius:8px;background:#fff;color:#263b32;font:inherit;padding:10px;margin:0 0 8px;min-height:40px}.jw-live-ui .livebtn{display:inline-flex;align-items:center;justify-content:center;padding:9px 15px;border:1px solid #adc8ba;border-radius:8px;font:inherit;font-weight:600;background:#fff;color:#173c34;cursor:pointer;min-height:38px}.jw-live-ui .livebtn.primary{background:#17634e;color:#fff;border-color:#17634e}.jw-live-ui .livebtn:disabled{opacity:.45;cursor:not-allowed}.jw-live-ui .liverow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.jw-live-ui .livemeta{font-size:12px;color:#54675f;overflow-wrap:anywhere}.jw-live-ui .livecurrent{padding:12px;border-radius:9px;background:#eef6f0;border:1px solid #cddfd4;margin-bottom:10px}.jw-live-ui .livegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.jw-live-ui .livegrid>div{padding:9px;border:1px solid #e2e8e4;border-radius:8px;overflow-wrap:anywhere}@media(max-width:520px){.jw-live-popup{padding:14px!important}.jw-live-ui .livegrid{grid-template-columns:1fr}}`;document.head.appendChild(x);}
 
 async function jwLiveFingerprint(r){const text=JSON.stringify(r.sessions.map(s=>JSON.stringify([s.classId,s.year,s.choiceId,s.settingId,s.subjectId,s.code,s.teachers,s.day,s.start,s.end,s.periods,s.slotIds,s.room,!!s.coTeaching])).sort());if(!window.crypto?.subtle)throw Error('Browser perlu menyokong SHA-256 melalui HTTPS.');const hash=await window.crypto.subtle.digest('SHA-256',new TextEncoder().encode(text));return Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');}
-function jwLiveCandidate(){return jwLiveViewed()|| (JW3_PRINT_SOURCE==='imported'?JW3_IMPORTED_PRINT:null);}
-function jwLiveControls(){const run=document.getElementById('jw3Run');if(!run||document.getElementById('jwLiveMenu'))return;const b=document.createElement('button');b.id='jwLiveMenu';b.type='button';b.className='jw-agihan-btn jw-agihan-btn-light';b.textContent='LIVE · Draf & Penerbitan';b.addEventListener('click',jwLiveMenu);run.parentElement.appendChild(b);}
+function jwLiveCandidate(){return jwLiveViewed();}
+function jwLiveControls(){const run=document.getElementById('jw3Run');if(!run||document.getElementById('jwLiveMenu'))return;const b=document.createElement('button');b.id='jwLiveMenu';b.type='button';b.className='jw-agihan-btn jw-agihan-btn-light';b.textContent='Sejarah & Penerbitan';b.addEventListener('click',jwLiveMenu);run.parentElement.appendChild(b);}
 async function jwLiveMenu(){if(JW3_BUSY||JW_LIVE_BUSY)return;JW_LIVE_BUSY=true;jwLiveModalStyles();try{
  const s=await jwAgihanRequest('fiJWLiveStatus',{},true),esc=jwAgihanEscape,r=jwLiveCandidate(),v=r?.liveVersion,ready=!!r?.checkpoint&&r.stats?.errors===0&&r.stats.scheduledPeriods===r.stats.expectedPeriods&&r.optimization?.stopReason==='LENGKAP'&&!v;
- const active=s.versions.find(x=>x.Jadual_ID===s.active),projected=s.versions.find(x=>x.Jadual_ID===s.projected),options=s.versions.slice().reverse().map(x=>`<option value="${esc(x.Jadual_ID)}" ${x.Jadual_ID===v?.Jadual_ID?'selected':''}>${esc(x.Nama)} · ${esc(x.Status)} · ${esc(x.Jadual_ID)}</option>`).join('');
- const q=await Swal.fire({title:'LIVE — Draf & Penerbitan',width:690,customClass:{popup:'jw-live-popup'},html:`<div class="jw-live-ui"><div class="livecurrent"><strong>Jadual sedang dibuka</strong><div>${v?esc(v.Nama):r?(r===JW3_IMPORTED_PRINT?'Fail JSON terdahulu':'Simulasi Generator semasa'):'Tiada jadual dibuka'}</div><div class="livemeta">${v?esc(v.Jadual_ID)+' · '+esc(v.Status)+' · '+esc(v.Tarikh_Kuat_Kuasa||'Belum berkuat kuasa'):r?esc(r.stats.scheduledPeriods)+' waktu · '+(ready?'audit lengkap':'audit belum lengkap'):'Jana atau buka draf dahulu.'}</div></div><div class="livegrid"><div><strong>Jadual rasmi aktif</strong><div>${active?esc(active.Nama):'Belum ada LIVE'}</div><div class="livemeta">${active?esc(active.Jadual_ID)+' · '+esc(active.Tarikh_Kuat_Kuasa):''}</div></div><div><strong>Paparan modul lama</strong><div>${projected?esc(projected.Nama):'Belum diselaraskan'}</div><div class="livemeta">${esc(s.target)}</div></div></div><section class="jw-live-section"><h4>1. Simpan hasil simulasi</h4><label for="jwLiveName">Nama draf</label><input id="jwLiveName" value="Jadual ${esc(String(r?.sets?.year||''))}" ${!ready?'disabled':''}><button type="button" id="jwLiveSaveBtn" class="livebtn primary" ${!ready||!s.canPublish?'disabled':''}>Simpan draf</button><div class="livemeta">${v?'Versi ini sudah tersimpan. Kembali ke simulasi untuk menyimpan calon baharu.':'Jadual rasmi tidak berubah.'}</div></section><section class="jw-live-section"><h4>2. Sejarah & penerbitan</h4><label for="jwLivePick">Pilih versi</label><select id="jwLivePick"><option value="">— Pilih versi —</option>${options}</select><div id="jwLiveDetails" class="livemeta" style="min-height:36px;margin-bottom:8px"></div><div class="liverow"><button type="button" id="jwLiveOpenBtn" class="livebtn">Buka jadual</button><button type="button" id="jwLivePubBtn" class="livebtn primary">Terbitkan draf</button></div></section><div class="livemeta">CORE: ${esc(s.coreTarget||'Sumber CORE sedia ada')} · LIVE: ${esc(s.target)}</div></div>`,showConfirmButton:false,showCloseButton:true,didOpen:()=>{const pick=document.getElementById('jwLivePick'),open=document.getElementById('jwLiveOpenBtn'),pub=document.getElementById('jwLivePubBtn'),get=()=>s.versions.find(x=>x.Jadual_ID===pick.value);const update=()=>{const x=get();open.disabled=!x;pub.disabled=!s.canPublish||!x||x.Status!=='DRAF';document.getElementById('jwLiveDetails').textContent=x?[x.Jadual_ID,x.Status,x.Waktu_Kelas+' waktu','Simpan: '+(x.Draf_Pada||'—'),'Kuat kuasa: '+(x.Tarikh_Kuat_Kuasa||'—')].join(' · '):'Pilih versi untuk melihat butiran.';};pick.onchange=update;update();document.getElementById('jwLiveSaveBtn').onclick=()=>{const name=document.getElementById('jwLiveName').value.trim();if(!name)return Swal.showValidationMessage('Masukkan nama draf.');Swal.close({isConfirmed:true,value:{mode:'save',name}});};open.onclick=()=>{if(get())Swal.close({isConfirmed:true,value:{mode:'open',id:pick.value}});};pub.onclick=()=>{if(get()?.Status==='DRAF')Swal.close({isConfirmed:true,value:{mode:'publish',id:pick.value}});};}});
+ JW_LIVE_ACTIVE_ID=s.active||'';JW_LIVE_TODAY=s.today||'';
+ const active=s.versions.find(x=>x.Jadual_ID===s.active),options=s.versions.slice().reverse().map(x=>`<option value="${esc(x.Jadual_ID)}" ${x.Jadual_ID===v?.Jadual_ID?'selected':''}>${esc(x.Nama)} · ${esc(x.Status)} · ${esc(x.Jadual_ID)}</option>`).join('');
+ const q=await Swal.fire({title:'LIVE — Draf & Penerbitan',width:690,customClass:{popup:'jw-live-popup'},html:`<div class="jw-live-ui"><div class="livecurrent"><strong>Jadual sedang dibuka</strong><div>${v?esc(v.Nama):r?'Calon jadual baharu':'Tiada jadual dibuka'}</div><div class="livemeta">${v?esc(v.Jadual_ID)+' · '+esc(v.Status)+' · '+esc(v.Tarikh_Kuat_Kuasa||'Belum berkuat kuasa'):r?esc(r.stats.scheduledPeriods)+' waktu · '+(ready?'audit lengkap':'audit belum lengkap'):'Jana atau buka draf dahulu.'}</div></div><div class="livegrid"><div><strong>Jadual rasmi aktif</strong><div>${active?esc(active.Nama):'Belum ada LIVE'}</div><div class="livemeta">${active?esc(active.Jadual_ID)+' · '+esc(active.Tarikh_Kuat_Kuasa):''}</div></div><div><strong>Tarikh rujukan</strong><div>${esc(s.today)}</div><div class="livemeta">${esc(s.target)}</div></div></div><section class="jw-live-section"><h4>1. Simpan calon jadual</h4><label for="jwLiveName">Nama draf</label><input id="jwLiveName" value="Jadual ${esc(String(r?.sets?.year||''))}" ${!ready?'disabled':''}><button type="button" id="jwLiveSaveBtn" class="livebtn primary" ${!ready||!s.canPublish?'disabled':''}>Simpan draf</button><div class="livemeta">${v?'Versi ini sudah tersimpan. Buka calon jadual melalui butang Jana Jadual Baharu jika perlu.':'Jadual rasmi tidak berubah.'}</div></section><section class="jw-live-section"><h4>2. Sejarah & penerbitan</h4><label for="jwLivePick">Pilih versi</label><select id="jwLivePick"><option value="">— Pilih versi —</option>${options}</select><div id="jwLiveDetails" class="livemeta" style="min-height:36px;margin-bottom:8px"></div><div class="liverow"><button type="button" id="jwLiveOpenBtn" class="livebtn">Buka jadual</button><button type="button" id="jwLivePubBtn" class="livebtn primary">Terbitkan draf</button></div></section><div class="livemeta">CORE: ${esc(s.coreTarget||'Sumber CORE sedia ada')} · LIVE: ${esc(s.target)}</div></div>`,showConfirmButton:false,showCloseButton:true,didOpen:()=>{const pick=document.getElementById('jwLivePick'),open=document.getElementById('jwLiveOpenBtn'),pub=document.getElementById('jwLivePubBtn'),get=()=>s.versions.find(x=>x.Jadual_ID===pick.value);const update=()=>{const x=get();open.disabled=!x;pub.disabled=!s.canPublish||!x||x.Status!=='DRAF';document.getElementById('jwLiveDetails').textContent=x?[x.Jadual_ID,x.Status,x.Waktu_Kelas+' waktu','Simpan: '+(x.Draf_Pada||'—'),'Kuat kuasa: '+(x.Tarikh_Kuat_Kuasa||'—')].join(' · '):'Pilih versi untuk melihat butiran.';};pick.onchange=update;update();document.getElementById('jwLiveSaveBtn').onclick=()=>{const name=document.getElementById('jwLiveName').value.trim();if(!name)return Swal.showValidationMessage('Masukkan nama draf.');Swal.close({isConfirmed:true,value:{mode:'save',name}});};open.onclick=()=>{if(get())Swal.close({isConfirmed:true,value:{mode:'open',id:pick.value}});};pub.onclick=()=>{if(get()?.Status==='DRAF')Swal.close({isConfirmed:true,value:{mode:'publish',id:pick.value}});};}});
  if(!q.isConfirmed||!q.value)return;const a=q.value;
- if(a.mode==='save'){const out=await jwAgihanRequest('fiJWLiveSave',{name:a.name,checkpoint:r.checkpoint,fingerprint:await jwLiveFingerprint(r),generatedAt:r.generatedAt},true);jwLiveShow(await jwAgihanRequest('fiJWLiveGet',{id:out.id},true));await Swal.fire('Draf disimpan',out.name+' · '+out.id,'success');}
+ if(a.mode==='save'){const out=await jwAgihanRequest('fiJWLiveSave',{name:a.name,checkpoint:r.checkpoint,fingerprint:await jwLiveFingerprint(r),generatedAt:r.generatedAt},true);jwLiveShow(await jwAgihanRequest('fiJWLiveGet',{id:out.id},true));JW3_RESULT=null;jw3RunButton();await Swal.fire('Draf disimpan',out.name+' · '+out.id,'success');}
  if(a.mode==='open'){const out=await jwAgihanRequest('fiJWLiveGet',{id:a.id},true);jwLiveShow(out);await Swal.fire('Jadual dibuka',out.version.Nama+' · '+out.version.Status,'success');}
- if(a.mode==='publish'){const x=s.versions.find(y=>y.Jadual_ID===a.id);const confirm=await Swal.fire({title:'Terbitkan jadual rasmi?',width:560,customClass:{popup:'jw-live-popup'},html:`<div class="jw-live-ui"><div class="livecurrent"><strong>${esc(x.Nama)}</strong><div>${esc(x.Jadual_ID)} · ${esc(x.Waktu_Kelas)} waktu</div></div><label for="jwLiveDate">Tarikh kuat kuasa</label><input type="date" id="jwLiveDate" min="${esc(s.today)}" value="${esc(s.today)}"><p>Versi sebelumnya dikekalkan. Tiada penjanaan semula.</p><label><input type="checkbox" id="jwLiveAccept"> Saya telah menyemak jadual ini dan mengesahkan pairing Auto serta amaran audit.</label></div>`,showCancelButton:true,confirmButtonText:'Terbitkan rasmi',cancelButtonText:'Batal',preConfirm:()=>{const date=document.getElementById('jwLiveDate').value;if(!date||!document.getElementById('jwLiveAccept').checked){Swal.showValidationMessage('Tetapkan tarikh dan sahkan amaran.');return false;}return date;}});if(!confirm.isConfirmed)return;const out=await jwAgihanRequest('fiJWLivePublish',{id:a.id,date:confirm.value,acceptWarnings:true,confirm:'TERBITKAN'},true);jwLiveShow(await jwAgihanRequest('fiJWLiveGet',{id:out.id},true));await Swal.fire('Versi diterbitkan',out.id+' · '+out.date+' · '+out.projection.status,'success');}
+ if(a.mode==='publish'){const x=s.versions.find(y=>y.Jadual_ID===a.id);const confirm=await Swal.fire({title:'Terbitkan jadual rasmi?',width:560,customClass:{popup:'jw-live-popup'},html:`<div class="jw-live-ui"><div class="livecurrent"><strong>${esc(x.Nama)}</strong><div>${esc(x.Jadual_ID)} · ${esc(x.Waktu_Kelas)} waktu</div></div><label for="jwLiveDate">Tarikh kuat kuasa</label><input type="date" id="jwLiveDate" min="${esc(s.today)}" value="${esc(s.today)}"><p>Versi sebelumnya dikekalkan. Tiada penjanaan semula.</p><label><input type="checkbox" id="jwLiveAccept"> Saya telah menyemak jadual ini dan mengesahkan pairing Auto serta amaran audit.</label></div>`,showCancelButton:true,confirmButtonText:'Terbitkan rasmi',cancelButtonText:'Batal',preConfirm:()=>{const date=document.getElementById('jwLiveDate').value;if(!date||!document.getElementById('jwLiveAccept').checked){Swal.showValidationMessage('Tetapkan tarikh dan sahkan amaran.');return false;}return date;}});if(!confirm.isConfirmed)return;const out=await jwAgihanRequest('fiJWLivePublish',{id:a.id,date:confirm.value,acceptWarnings:true,confirm:'TERBITKAN'},true);const current=await jwLiveReadActive();JW_LIVE_ACTIVE_ID=current.status.active||'';JW_LIVE_TODAY=current.status.today||'';JW_LIVE_ACTIVE=current.out?{...current.out.result,liveVersion:current.out.version}:null;if(out.id===JW_LIVE_ACTIVE_ID)jwLiveSetActive(current);else jwLiveShow(await jwAgihanRequest('fiJWLiveGet',{id:out.id},true));await Swal.fire('Versi diterbitkan',out.id+' · '+out.date+' · '+out.projection.status,'success');}
  }catch(e){await Swal.fire('Semakan LIVE',e.message+' Semak status LIVE sebelum mengulang penerbitan.','warning');}finally{JW_LIVE_BUSY=false;}}
 // Mount after existing view is rendered; does not change HTML/CSS or print layout.
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',jwLiveControls);else jwLiveControls();
