@@ -15,12 +15,20 @@
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
   
-  <script src="Fi-TugasanMingguan.js?v=6.0B" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=6.1" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
   #tm-panel-daily,#tm-panel-weekly{display:none!important}
   [hidden]{display:none!important}
+  @media(max-width:900px){
+    html.tm61-uat .tm-tabs [data-tm-tab='smart']:not([hidden]),html.tm61-uat .tm-tabs [data-tm-tab='settings']:not([hidden]){display:flex!important;}
+    #tm61-rolebar:not([hidden]){margin:12px;padding:12px;display:grid;gap:8px;}
+  }
+  #tm61-global-toggle[aria-pressed="true"]{background:#217d62;color:#fff;}
+  #tm61-rolebar label{display:grid;gap:6px;}
+  @media print{#tm61-rolebar,#tm61-global-toggle{display:none!important;}}
+
   @media(min-width:901px){
     #tm-panel-report-studio .tm5311-desktop-demo-control{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:8px 0 10px}
     #tm-panel-report-studio #tm52-demo-toggle:not([hidden]){display:inline-flex;align-items:center;justify-content:center;min-height:37px;padding:8px 15px;border:1px solid #bad4ec;border-radius:10px;background:#f0f6ff;color:#244d79;font:700 12px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
@@ -59,6 +67,7 @@
       </select>
     </label>
   </div>
+  <div id="tm61-rolebar" class="tm-card" hidden><strong id="tm61-clock-label"></strong><label>Uji sebagai <select id="tm61-role"></select></label></div>
   <!-- V5.3.7 PWA: penapis atas hanya untuk Jadual Tugasan dan Senarai Ahli. -->
   <div id="tm536-top-filter" class="tm536-top-filter" hidden>
     <label id="tm536-week-wrap" class="tm536-filter-label" for="tm536-week-select" hidden>
@@ -81,7 +90,7 @@
     </div>
     <div class="tm-toolbar" aria-label="Pilihan tahun dan muat semula">
       <label id="tm-year-label">Tahun <select id="tm-year" aria-label="Tahun takwim"><option value="2026" selected>2026</option><option value="2027">2027</option></select></label>
-      <button class="tm-btn tm-ghost" id="tm-refresh" type="button">Muat semula</button>
+      <button type="button" class="tm-btn tm-ghost" id="tm61-global-toggle" hidden aria-pressed="false">Mod Ujian Pentadbir: OFF</button><button class="tm-btn tm-ghost" id="tm-refresh" type="button">Muat semula</button>
       <span id="tm-loading" class="tm-loading" hidden>Memuatkan…</span>
     </div>
   </nav>
@@ -254,19 +263,19 @@
       </div>
     </section>
     <section id="tm-panel-smart" data-tm-panel="smart" hidden>
-      <section class="tm-card"><div class="tm-section-title"><div><h2>Smart Auto Agihan — Simulasi & Rasmi</h2>
-        </div><span class="tm-tag tm-warning" id="tm4-mode-badge">MOD SIMULASI</span></div>
+      <section class="tm-card"><div class="tm-section-title"><div><h2>Smart Auto Agihan</h2>
+        </div><span class="tm-tag tm-warning" id="tm4-mode-badge">DATA RASMI</span></div>
         
         <div class="tm-fields">
-          <label>Mod Jadual<select id="tm4-mode"><option value="SIMULASI" selected>SIMULASI — Selamat untuk Ujian</option><option value="RASMI">RASMI — Mengikut Takwim Sebenar</option></select></label>
+          <select id="tm4-mode" hidden aria-hidden="true"><option value="RASMI" selected>RASMI</option></select>
           <label>Minggu Bertugas<select id="tm4-week"><option value="">Pilih minggu…</option></select></label>
         </div>
         <div class="tm-fields">
-          <label>Masa Rujukan Simulasi (andaikan sekarang)<input type="datetime-local" id="tm4-asof" value="2026-11-16T06:30"></label>
+          <label>Masa Rujukan Ujian<input type="datetime-local" id="tm4-asof" disabled></label><button type="button" id="tm61-clock-go" class="tm-btn tm-primary" hidden>Tetapkan Masa Ujian</button>
           <label>Tahap perlindungan sejarah<input value="Slot sebelum masa rujukan tidak diubah" disabled></label>
         </div>
         <div class="tm-buttons">
-          <button type="button" id="tm4-load" class="tm-btn tm-outline">Lihat Jadual</button>
+          <button type="button" id="tm61-audit" class="tm-btn tm-outline">Audit Agihan</button><button type="button" id="tm4-load" class="tm-btn tm-outline">Lihat Jadual</button>
           <button type="button" id="tm4-generate" class="tm-btn tm-primary">Jana Jadual Bertugas</button>
           <button type="button" id="tm4-repair" class="tm-btn tm-outline">Semak &amp; Ganti Secara Auto</button>
           <button type="button" id="tm4-rebalance" class="tm-btn tm-outline">Imbang Semula Draf</button>
@@ -275,25 +284,25 @@
         <div id="tm4-status" class="tm-muted" aria-live="polite"></div>
       </section>
       <div class="tm-two-cols">
-        <section class="tm-card" id="tm47-sim-section"><div class="tm-section-title"><div><h2>Keberadaan Guru — Simulasi</h2><p>Masukkan CRK, CTR, urusan rasmi atau ketiadaan yang diketahui <strong>sebelum jana jadual</strong>. Boleh juga uji MC mengejut selepas jadual bermula.</p></div></div>
+        <section class="tm-card" id="tm47-sim-section" hidden><div class="tm-section-title"><div><h2>Keberadaan Guru — Simulasi</h2><p>Masukkan CRK, CTR, urusan rasmi atau ketiadaan yang diketahui <strong>sebelum jana jadual</strong>. Boleh juga uji MC mengejut selepas jadual bermula.</p></div></div>
           <form id="tm4-absence-form" class="tm-form">
             <label>Nama Guru<select id="tm4-teacher" required><option value="">Pilih guru bertugas…</option></select></label>
             <div class="tm-fields"><label>Dari Tarikh<input id="tm4-absence-from" type="date" required></label><label>Hingga Tarikh<input id="tm4-absence-to" type="date" required></label></div>
             <div class="tm-fields"><label>Kategori Keberadaan<select id="tm4-absence-reason">
               <option value="CRK">CRK</option><option value="CTR">CTR</option><option value="URUSAN_RASMI_LUAR">Urusan Rasmi Luar</option>
               <option value="URUSAN_RASMI_DALAM">Urusan Rasmi Dalam Sekolah</option><option value="MC">MC / Demam</option>
-              <option value="KECEMASAN">Kecemasan</option><option value="LAIN_LAIN">Lain-lain</option></select></label>
+              <option value="E_RELIEF">Relief (isi masa mula/tamat)</option><option value="KECEMASAN">Kecemasan</option><option value="LAIN_LAIN">Lain-lain</option></select></label>
               <label>Lokasi / Kelayakan<select id="tm4-absence-location"><option value="LUAR_SEKOLAH">Tiada di sekolah — jangan agih tugas</option><option value="DALAM_SEKOLAH">Masih di sekolah — boleh diagih tugas</option></select></label></div>
             <div class="tm-fields"><label>Jenis Ujian<select id="tm4-absence-stage"><option value="DIRANCANG">Dirancang lebih awal (sebelum jana)</option><option value="MENDADAK">MC / Kecemasan selepas jana</option></select></label>
               <label>Catatan (pilihan)<input id="tm4-absence-note" maxlength="160" placeholder="Contoh: surat program diterima lebih awal"></label></div>
             <div class="tm-fields"><label>Masa mula (pilihan)<input id="tm4-absence-start" type="time"></label><label>Masa tamat (pilihan)<input id="tm4-absence-end" type="time"></label></div>
             <p class="tm-muted">Kosongkan kedua-dua masa untuk satu hari penuh. Keberadaan <b>di dalam sekolah</b> hanya dicatat dan tidak menyekat agihan. Rekod ini tidak dihantar ke Smart Keberadaan rasmi.</p>
-            <button class="tm-btn tm-primary" type="submit">Simpan Keberadaan Simulasi</button>
+            <button class="tm-btn tm-primary" type="submit">Simpan Keberadaan &amp; Semak Penggantian</button>
           </form>
           <div class="tm47-absence-list" id="tm47-absence-list"><p class="tm-muted">Pilih minggu untuk melihat senarai ketiadaan dirancang.</p></div>
         </section>
-        <section class="tm-card"><div class="tm-section-title"><h2>Uji Minggu Pendek / Cuti</h2></div>
-          <p class="tm-muted">Tandakan CUTI sebelum jana jadual. Rekod rasmi disahkan secara berasingan.</p>
+        <section class="tm-card"><div class="tm-section-title"><h2>Tetapan Hari Sekolah / Cuti</h2></div>
+          <p class="tm-muted">Tandakan CUTI sebelum jana jadual. Perubahan mengikuti suis Mod Ujian Pentadbir.</p>
           <form id="tm4-calendar-form" class="tm-form">
             <label>Tarikh<input id="tm4-cal-date" type="date" required></label>
             <label>Jenis Hari<select id="tm4-cal-kind"><option value="CUTI">Cuti / Tiada Persekolahan</option><option value="SEKOLAH">Hari Persekolahan</option></select></label>
