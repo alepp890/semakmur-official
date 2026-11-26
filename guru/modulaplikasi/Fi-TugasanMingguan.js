@@ -271,6 +271,45 @@ function tm64ReportRevision_(status,summary,followup,days){
  return 'TM64-'+(a>>>0).toString(16).padStart(8,'0')+(b>>>0).toString(16).padStart(8,'0');
 }
 
+// V6.5: additive report fields and visitor categories (same contract in official and local UAT).
+function tm65ReportExtras_(){
+ return {
+  clean:[['clean_class_corridor','Kelas / Koridor'],['clean_canteen','Kantin'],['clean_hall','Dewan Sri Makmur'],['clean_toilet_surroundings','Tandas / Kawasan Persekitaran'],['clean_student','Tandas Murid'],['clean_teacher','Tandas Guru'],['clean_ground','Persekitaran Sekolah']],
+  discipline:[['discipline_safety','Tahap Keselamatan Keseluruhan'],['discipline_overall','Tahap Disiplin Murid'],['discipline_assembly','Waktu Perhimpunan'],['discipline_break','Waktu Rehat'],['discipline_exit','Waktu Pulang']],
+  added:['clean_class_corridor','clean_canteen','clean_toilet_surroundings','discipline_safety','discipline_overall'],
+  categories:['KPM','JPN','PPD','Lain-lain']
+ };
+}
+function tm65VisitorRows_(data){
+ const names=Array.isArray(data?.visitors)?data.visitors:[],categories=Array.isArray(data?.visitor_categories)?data.visitor_categories:[];
+ return names.map((name,i)=>({name:String(name??''),category:String(categories[i]??'')}));
+}
+function tm65VisitorDisplay_(data){
+ return tm65VisitorRows_(data).filter(v=>v.name.trim()).map(v=>v.category?v.category+' — '+v.name:v.name);
+}
+function tm65ValidateExtras_(d,complete,text){
+ const cfg=tm65ReportExtras_();
+ for(const [key,label] of [...cfg.clean,...cfg.discipline]){
+  if(!cfg.added.includes(key))continue;
+  const value=d[key];if(!complete&&value===undefined)continue;
+  const status=value?.status||'',allowed=key.startsWith('clean_')?['BERSIH','MEMUASKAN','PERLU_PERHATIAN']:['TERKAWAL','MEMUASKAN','PERLU_PERHATIAN'];
+  if(!value||typeof value!=='object'||Array.isArray(value)||typeof value.status!=='string'||typeof value.text!=='string'||(status&&!allowed.includes(status))||(complete&&!status))throw Error('Pilih status sah bagi '+label+'.');
+  const note=text(value.text,3000);
+  if(complete&&status==='PERLU_PERHATIAN'&&!note)throw Error('Isi penerangan '+label+'.');
+ }
+ // Keep existing string array for names; category array uses identical indices.
+ // Legacy drafts can be read unchanged; completing or editing demands categories.
+ if(!complete&&d.visitor_categories===undefined)return;
+ if(!Array.isArray(d.visitors)||!Array.isArray(d.visitor_categories)||d.visitors.length!==d.visitor_categories.length||d.visitors.length>30)throw Error('Senarai kategori pelawat tidak sah.');
+ for(let i=0;i<d.visitors.length;i++){
+  const name=d.visitors[i],category=d.visitor_categories[i];
+  if(typeof name!=='string'||typeof category!=='string'||(category&&!cfg.categories.includes(category)))throw Error('Kategori atau nama pelawat tidak sah.');
+  if(complete&&(!cfg.categories.includes(category)||!text(name,250)))throw Error('Pilih kategori dan isi nama bagi setiap pelawat.');
+  if(!complete&&name)text(name,250);
+ }
+ if(complete&&((d.visitors.length>0&&d.visitors_status!=='ADA')||(d.visitors.length===0&&d.visitors_status!=='TIADA')))throw Error('Status pelawat tidak sepadan dengan senarai nama.');
+}
+
 // V6.3 local-only UAT session. Data is cloned from one authenticated read-only snapshot.
 // No report, absence or calendar operation here can call backend/Firestore.
 function tm62LocalSession_(snapshot,saved){
@@ -309,7 +348,7 @@ function tm62LocalSession_(snapshot,saved){
    b.weeks[0].pelan=st.planStatus==='BELUM_JANA'?null:{id:'UAT-LOCAL-'+w.id,status:st.planStatus,leader:w.leader,week:w.id};
    b.uatMeta={[w.id]:{planStatus:st.planStatus,reportStatus:st.report.status}};b.schedule=schedule();return b;
  }
- function status(operation){const sc=schedule();return {status:'UAT_LOKAL_SEDIA',build:'V6.4',year,clock:st.clock,week:{weekId:w.id,year,label:w.label,group:w.group,from:w.from,to:w.to,ready:st.planStatus==='DITERBITKAN',status:st.report.status},planStatus:st.planStatus,roles:roles(),assignments:sc.assignments,schedule:sc,alerts:sc.alerts,blocks:copy(st.blocks),repairPending:sc.alerts.length>0,officialHeld:src.officialHeld,operation,boot:boot()};}
+ function status(operation){const sc=schedule();return {status:'UAT_LOKAL_SEDIA',build:'V6.5',year,clock:st.clock,week:{weekId:w.id,year,label:w.label,group:w.group,from:w.from,to:w.to,ready:st.planStatus==='DITERBITKAN',status:st.report.status},planStatus:st.planStatus,roles:roles(),assignments:sc.assignments,schedule:sc,alerts:sc.alerts,blocks:copy(st.blocks),repairPending:sc.alerts.length>0,officialHeld:src.officialHeld,operation,boot:boot()};}
  function publishIfComplete(){if(st.planStatus==='DITERBITKAN')return;
    if(st.rows.some(a=>a.status==='PERLU_TINDAKAN'))return;
    st.planStatus='DITERBITKAN';st.rows.forEach(a=>{if(a.status==='DRAF')a.status='DITERBITKAN';});
@@ -399,9 +438,10 @@ function tm62LocalSession_(snapshot,saved){
    return {week:{id:w.id,key:year+'_'+w.id,label:w.label,group:w.group,from:w.from,to:w.to,leader:w.leader,gpk:src.gpk,...copy(st.report),revision:tm64ReportRevision_(st.report.status,st.report.summary,st.report.followup,reportDays(actor)),pdfUrl:'',gbPendingAppointment:false},actor,days:reportDays(actor),teachers:src.staff.map(t=>({id:t.id,name:t.name})),corrections:copy(st.corrections),programs:src.programs};
  }
  // Same allowed fields/status validation as official report, using snapshot teacher directory.
- const fields=['speech_gb','speech_duty','speech_discipline','clean_student','clean_teacher','clean_hall','clean_ground','discipline_break','discipline_exit','discipline_assembly','makmur_note','makmur_status','makmur_teacher','makmur_cancel_reason','activities','visitors_status','visitors'];
+ const fields=['speech_gb','speech_duty','speech_discipline','clean_student','clean_teacher','clean_hall','clean_ground','discipline_break','discipline_exit','discipline_assembly','makmur_note','makmur_status','makmur_teacher','makmur_cancel_reason','activities','visitors_status','visitors','visitor_categories',...tm65ReportExtras_().added];
  function validate(d,index,complete){
    if(!d||typeof d!=='object'||Array.isArray(d)||Object.keys(d).some(k=>!fields.includes(k))||JSON.stringify(d).length>45000)throw Error('Data borang tidak sah.');
+   tm65ValidateExtras_(d,complete,text);
    if(!complete)return;
    const check=(k,allowed,required)=>{if(!allowed.includes(d[k]?.status))throw Error('Pilih status bagi '+k);if(d[k].status===required&&!text(d[k].text,3000))throw Error('Isi penerangan '+k);};
    ['speech_gb','speech_duty','speech_discipline'].forEach(k=>check(k,['ADA','TIADA'],'ADA'));
@@ -458,7 +498,8 @@ function tm62LocalSession_(snapshot,saved){
    if(st.planStatus!=='DITERBITKAN')throw Error('Jana jadual dahulu.');
    let n=0;for(const d of reportDays(reportActor(w.leader))){
      if(!d.canWrite||!d.teacher)continue;
-     const v={speech_gb:{status:'TIADA',text:''},speech_duty:{status:'TIADA',text:''},speech_discipline:{status:'TIADA',text:''},clean_student:{status:'BERSIH',text:''},clean_teacher:{status:'BERSIH',text:''},clean_hall:{status:'BERSIH',text:''},clean_ground:{status:'BERSIH',text:''},discipline_break:{status:'TERKAWAL',text:''},discipline_exit:{status:'TERKAWAL',text:''},discipline_assembly:{status:'TERKAWAL',text:''},makmur_status:'ADA',makmur_teacher:active().find(a=>a.date===d.date&&/PROGRAM MAKMUR/i.test(a.taskName))?.staff||d.teacher,makmur_note:'CONTOH UAT — bukan laporan rasmi',makmur_cancel_reason:'',activities:[],visitors_status:'TIADA',visitors:[]};
+     const v={speech_gb:{status:'TIADA',text:''},speech_duty:{status:'TIADA',text:''},speech_discipline:{status:'TIADA',text:''},clean_student:{status:'BERSIH',text:''},clean_teacher:{status:'BERSIH',text:''},clean_hall:{status:'BERSIH',text:''},clean_ground:{status:'BERSIH',text:''},discipline_break:{status:'TERKAWAL',text:''},discipline_exit:{status:'TERKAWAL',text:''},discipline_assembly:{status:'TERKAWAL',text:''},makmur_status:'ADA',makmur_teacher:active().find(a=>a.date===d.date&&/PROGRAM MAKMUR/i.test(a.taskName))?.staff||d.teacher,makmur_note:'CONTOH UAT — bukan laporan rasmi',makmur_cancel_reason:'',activities:[],visitors_status:'TIADA',visitors:[],visitor_categories:[]};
+     for(const k of tm65ReportExtras_().added)v[k]={status:k.startsWith('clean_')?'BERSIH':'TERKAWAL',text:''};
      reportOp(d.teacher,{op:'tm5SaveDay',date:d.date,data:v,complete:true});n++;
    }
    return {status:'CONTOH_DIISI',count:n};
@@ -648,6 +689,7 @@ body { margin:0; background:#e8eeec; font-family:'Aptos','Segoe UI',Arial,sans-s
 .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .metric{border:1px solid #e0e9e5;padding:10px 11px;background:#fafcfb;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:5px;}
 .metric .metric-label {font-size:10px;font-weight:750;color:#4f655d;}
+.metric.tm65-metric-note{flex-wrap:wrap;align-content:flex-start}.tm65-metric-detail{width:100%;min-width:0;overflow-wrap:anywhere}
 .activity-card{border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:8px;padding:12px 14px;margin:8px 0 0;background:#fff;}
 .activity-card .activity-title{font-size:11.4px;font-weight:800;color:var(--pine);margin:0;}
 .activity-card .activity-sub{margin:4px 0 0;font-size:9.7px;color:#73867f;}
@@ -897,15 +939,15 @@ body { margin:0; background:#e8eeec; font-family:'Aptos','Segoe UI',Arial,sans-s
     ${r.simulation?'<div class="draft-note"><strong>UJIAN</strong><span>Data simulasi. Bukan rekod rasmi sekolah.</span></div>':''}`;}
   function pair(p){if(typeof p==='object'&&p!==null)return {status:text(p.status),note:text(p.text)};return {status:text(p),note:''};}
   function speech(p,title){const x=pair(p),status=x.status||'TIADA';return `<article class="speech-card"><div class="cardtop"><strong>${esc(title)}</strong>${badge(status)}</div>${status==='ADA'&&x.note?narrative(x.note):''}</article>`;}
-  function metric(items){return `<div class="metric-grid">${items.map(([n,v])=>`<div class="metric"><span class="metric-label">${esc(n)}</span>${badge(pair(v).status||'Tiada rekod')}</div>`).join('')}</div>`;}
+  function metric(items){return `<div class="metric-grid">${items.map(([n,v])=>{const p=pair(v);return `<div class="metric${p.status==='PERLU_PERHATIAN'&&p.note?' tm65-metric-note':''}"><span class="metric-label">${esc(n)}</span>${badge(p.status||'Tiada rekod')}${p.status==='PERLU_PERHATIAN'&&p.note?`<div class="tm65-metric-detail">${narrative(p.note)}</div>`:''}</div>`;}).join('')}</div>`;}
   function daily(r,d,i){const v=d.data||{},speeches=[
     ['Ucapan Guru Besar / Pentadbir',v.speech_gb],['Ucapan Guru Bertugas',v.speech_duty],['Ucapan Guru Disiplin',v.speech_discipline]];
     const speechBody=`<div class="speech-stack">${speeches.map(([name,val])=>speech(val,name)).join('')}</div>`;
-    const hygiene=metric([['Tandas Murid',v.clean_student],['Tandas Guru',v.clean_teacher],['Dewan Sri Makmur',v.clean_hall],['Persekitaran Sekolah',v.clean_ground]]);
-    const disiplin=metric([['Waktu Perhimpunan',v.discipline_assembly],['Waktu Rehat',v.discipline_break],['Waktu Pulang',v.discipline_exit]]);
+    const hygiene=metric(tm65ReportExtras_().clean.filter(([k])=>!tm65ReportExtras_().added.includes(k)||v[k]).map(([k,label])=>[label,v[k]]));
+    const disiplin=metric(tm65ReportExtras_().discipline.filter(([k])=>!tm65ReportExtras_().added.includes(k)||v[k]).map(([k,label])=>[label,v[k]]));
     const ps=text(v.makmur_status||v.program||'TIADA');const desc=ps==='BATAL'?text(v.makmur_cancel_reason||v.program_reason):text(v.makmur_note||v.program_note);
     const program= `<div class="activity-card program-card"><div class="cardtop"><strong>Pelaksanaan Program Makmur</strong>${badge(ps)}</div>${desc?narrative(desc):''}${v.makmur_teacher?`<p><b>Guru Pengendali:</b> ${esc(humanName(v.makmur_teacher_name||v.makmur_teacher))}</p>`:''}</div>`;
-    const visitors=Array.isArray(v.visitors)?v.visitors:(Array.isArray(v.visitors_list)?v.visitors_list:[]);
+    const visitors=Array.isArray(v.visitors)?tm65VisitorDisplay_(v):(Array.isArray(v.visitors_list)?v.visitors_list:[]);
     const visitorBody=visitors.filter(Boolean).length?`<ol class="numbered">${visitors.filter(Boolean).map(n=>`<li>${esc(n)}</li>`).join('')}</ol>`:'<div class="info-line no-record">Tiada kehadiran pelawat direkodkan.</div>';
     const acts=Array.isArray(v.activities)?v.activities:(Array.isArray(v.activities_list)?v.activities_list:[]);
     const activityBody=acts.length?acts.map((a,i)=>`<article class="activity-card"><p class="activity-title"><span class="activity-number">${i+1}.</span> ${esc(a.title||'Aktiviti')}</p>${narrative(a.desc||a.description||'')}</article>`).join(''):'<div class="info-line no-record">Tiada aktiviti tambahan direkodkan.</div>';
@@ -913,8 +955,8 @@ body { margin:0; background:#e8eeec; font-family:'Aptos','Segoe UI',Arial,sans-s
     return `<div class="daily-hero"><div><div class="kicker">Laporan Harian · ${i+1} / ${r.days.length}</div><h1>${esc(d.day)}</h1><div class="sub">${esc(formatDate(d.date))}</div></div><div class="date-card"><strong>${esc(String(d.date||'').slice(-2))}</strong><span>${esc(r.year||'')}</span></div></div>
       <div class="recorder"><div class="avatar">${esc(humanName(d.reporter).slice(0,2))}</div><div class="by"><small>Direkodkan oleh</small><b>${esc(humanName(d.reporter))}</b></div>${badge('Lengkap')}</div>
       ${section('01','Ucapan dan Makluman',speechBody)}
-      ${section('02','Pemantauan Kebersihan',hygiene)}
-      ${section('03','Pemantauan Disiplin',disiplin)}
+      ${section('02','Pemantauan Kebersihan / Keceriaan Sekolah',hygiene)}
+      ${section('03','Pemantauan Disiplin / Keselamatan',disiplin)}
       ${section('04','Program Makmur',program)}
       ${section('05','Kehadiran Pelawat',visitorBody)}
       ${section('06','Aktiviti dan Program',activityBody)}`;
@@ -2431,7 +2473,7 @@ window.SeMAKMUR_TM5_API = function(payload){return tmAPI(payload.op,payload);};
   function tm523VisitorLabels_(host,selector){
     const items=[...host.querySelectorAll(selector)];
     items.forEach((item,i)=>{
-      const lab=item.querySelector('label');if(!lab)return;
+      const lab=item.querySelector('[data-visitor-name-label]')||item.querySelector('label');if(!lab)return;
       // Label mengandungi input, jadi hanya ubah node teksnya.
       const node=[...lab.childNodes].find(x=>x.nodeType===3);
       if(node)node.textContent=i===0?'Nama Pelawat 1':'Nama Pelawat';
@@ -3018,7 +3060,13 @@ function tm533BindClear(root){
     <div data-extra="${key}">${desktop?
       tm523Narrative_(`data-text="${key}"`,o.text||'',key==='speech_gb'?'Sila isi ucapan guru besar / pentadbir di sini...':key==='speech_duty'?'Sila isi ucapan guru bertugas di sini...':key==='speech_discipline'?'Sila isi ucapan guru disiplin di sini...':'Sila berikan penerangan atau huraian di sini...'):
       `<label>Catatan / Penerangan<textarea data-text="${key}">${esc(o.text||'')}</textarea></label>`}</div></div>`;}
-  function items(list,type){const desktop=tm53Desktop();return (list||[]).map((a,i)=>desktop?
+  function items(list,type){const desktop=tm53Desktop();return (list||[]).map((a,i)=>type==='visitor'?
+    `<div class="tm53-repeat-item tm5-field tm65-visitor-row" data-visitor-item>
+      <div class="tm53-repeat-grid tm65-visitor-grid">
+       <label>Kategori Pelawat<select data-visitor-category><option value="">Pilih kategori</option>${tm65ReportExtras_().categories.map(k=>`<option value="${esc(k)}" ${a?.category===k?'selected':''}>${esc(k)}</option>`).join('')}</select></label>
+       <label data-visitor-name-label>${i===0?'Nama Pelawat 1':'Nama Pelawat'}<input data-item-title value="${esc(a?.name||'')}" maxlength="250" placeholder="Nama pelawat"></label>
+      </div><button type="button" data-remove class="tm53-remove" aria-label="Buang pelawat">Buang</button>
+     </div>`:desktop?
     `<div class="tm53-repeat-item tm5-field" data-${type}-item>
        ${type==='activity'?`<div class="tm53-repeat-grid"><label>Tajuk Aktiviti<input data-item-title value="${esc(a.title||'')}" maxlength="200" placeholder="Nama aktiviti"></label>
        <label>Ringkasan${tm523Narrative_('data-item-desc',a.desc||'','Sila isi ringkasan aktiviti di sini...')}</label></div>`:
@@ -3036,16 +3084,16 @@ function tm533BindClear(root){
        field('speech_gb','Ucapan Guru Besar / Pentadbir',['ADA','TIADA'],x.speech_gb)+
        field('speech_duty','Ucapan Guru Bertugas',['ADA','TIADA'],x.speech_duty)+
        field('speech_discipline','Ucapan Guru Disiplin',['ADA','TIADA'],x.speech_discipline))}
-      ${block('Laporan Kebersihan', [['clean_student','Tandas Murid'],['clean_teacher','Tandas Guru'],['clean_hall','Dewan Sri Makmur'],['clean_ground','Persekitaran Sekolah']].map(([k,v])=>field(k,v,['BERSIH','MEMUASKAN','PERLU_PERHATIAN'],x[k])).join(''))}
-      ${block('Laporan Kawalan dan Disiplin Murid', [['discipline_assembly','Waktu Perhimpunan'],['discipline_break','Waktu Rehat'],['discipline_exit','Waktu Pulang']].map(([k,v])=>field(k,v,['TERKAWAL','MEMUASKAN','PERLU_PERHATIAN'],x[k])).join(''))}
+      ${block('Laporan Kebersihan / Keceriaan Sekolah', tm65ReportExtras_().clean.map(([k,v])=>field(k,v,['BERSIH','MEMUASKAN','PERLU_PERHATIAN'],x[k])).join(''))}
+      ${block('Laporan Disiplin / Keselamatan', tm65ReportExtras_().discipline.map(([k,v])=>field(k,v,['TERKAWAL','MEMUASKAN','PERLU_PERHATIAN'],x[k])).join(''))}
       ${block('Lain-lain',
        `<div class="tm53-field" data-tm53-makmur><label>Program Makmur <small>· ${esc(program)}</small><select id="tm5-program" required><option value="" ${!x.makmur_status?'selected':''} disabled hidden>Pilih status</option><option value="ADA" ${x.makmur_status==='ADA'?'selected':''}>Berjalan</option><option value="BATAL" ${x.makmur_status==='BATAL'?'selected':''}>Batal</option></select></label></div>
         <div class="tm53-field" data-tm53-program-note><label>Catatan pelaksanaan${tm523Narrative_('id="tm53-makmur-note"',x.makmur_note||'','Sila nyatakan pelaksanaan Program Makmur di sini...')}</label></div>
         ${d.dayIndex===0?`<p class="tm53-smallhint">Guru pengendali: Kumpulan ${esc(S.week.group)}</p>`:`<div class="tm53-field" data-program-teacher><label>Guru Pengendali<select id="tm5-program-teacher"><option value="" ${!x.makmur_teacher?'selected':''} disabled hidden>Pilih guru</option>${S.teachers.map(t=>`<option value="${esc(t.id)}" ${String(x.makmur_teacher)===String(t.id)?'selected':''}>${esc(t.name)}</option>`).join('')}</select></label></div>`}
         <div data-cancel-wrap class="tm53-field"><label>Sebab pembatalan${tm523Narrative_('id="tm5-cancel"',x.makmur_cancel_reason||'','Sila nyatakan sebab pembatalan di sini...')}</label></div>`)}
-      <section class="tm53-form-section"><h4>Jemputan / Kehadiran Pelawat</h4>
+      <section class="tm53-form-section"><h4>Jemputan / Kehadiran Pelawat</h4><p class="tm53-smallhint">Pilih kategori, kemudian masukkan nama. Biarkan kosong jika tiada pelawat.</p>
         <input id="tm5-visitors-status" type="hidden" value="${(x.visitors||[]).length?'ADA':'TIADA'}">
-        <div id="tm5-visitors" class="tm53-repeater">${items((x.visitors||[]).length?x.visitors:[''],'visitor')}</div>
+        <div id="tm5-visitors" class="tm53-repeater">${items((x.visitors||[]).length?tm65VisitorRows_(x):[{}],'visitor')}</div>
         <button type="button" id="tm5-add-visitor" class="tm53-add">+ Tambah Nama</button></section>
       <section class="tm53-form-section"><h4>Laporan Aktiviti / Program</h4>
         <div class="tm53-field-grid"><div class="tm53-field"><label>Aktiviti / Program<select id="tm53-activities-status" required><option value="" ${Array.isArray(x.activities)?'':'selected'} disabled hidden>Pilih status</option><option value="TIADA" ${Array.isArray(x.activities)&&!x.activities.length?'selected':''}>Tiada</option><option value="ADA" ${(x.activities||[]).length?'selected':''}>Ada</option></select></label></div></div>
@@ -3093,7 +3141,7 @@ function tm533BindClear(root){
     if(!edit){el.querySelectorAll('input,select,textarea,button:not(#tm5-reopen)').forEach(x=>x.disabled=true);}
     else{const draft=el.querySelector('#tm5-save-draft');if(draft)draft.onclick=guard(()=>saveDay(false));const cancel=el.querySelector('#tm64-cancel-edit');if(cancel)cancel.onclick=guard(async()=>{if(!await tm5318Confirm('Batalkan pindaan? Laporan asal tidak berubah.'))return;clearDayEdit();S.dirty=false;renderEditor();});el.querySelector('#tm5-finish').onclick=guard(()=>saveDay(true));
       el.querySelector('#tm5-add-activity').onclick=()=>el.querySelector('#tm5-activities').insertAdjacentHTML('beforeend',items([{title:'',desc:''}],'activity'));
-      el.querySelector('#tm5-add-visitor').onclick=()=>{el.querySelector('#tm5-visitors').insertAdjacentHTML('beforeend',items([''],'visitor'));if(desktop)tm523VisitorLabels_(el,'[data-visitor-item]');};
+      el.querySelector('#tm5-add-visitor').onclick=()=>{el.querySelector('#tm5-visitors').insertAdjacentHTML('beforeend',items([{}],'visitor'));if(desktop)tm523VisitorLabels_(el,'[data-visitor-item]');};
       el.addEventListener('click',ev=>{if(ev.target.closest('[data-remove]')){ev.target.closest('.tm5-field').remove();if(desktop)tm523VisitorLabels_(el,'[data-visitor-item]');}});}
     if(!tm53Desktop()&&edit)tm5313Wizard(el.querySelector('.tm53-official-form'));
   }
@@ -3105,14 +3153,16 @@ function tm533BindClear(root){
       const hasActivity=area.querySelector('#tm53-activities-status').value==='ADA';
       out.activities=hasActivity?[...area.querySelectorAll('[data-activity-item]')].map(x=>({title:x.querySelector('[data-item-title]').value.trim(),desc:x.querySelector('[data-item-desc]').value.trim()})):[];
       if(hasActivity&&!out.activities.length)throw Error('Tambah sekurang-kurangnya satu aktiviti atau pilih Tiada.');
-      out.visitors=[...area.querySelectorAll('[data-visitor-item]')].map(x=>x.querySelector('[data-item-title]').value.trim()).filter(Boolean);
-      out.visitors_status=out.visitors.length?'ADA':'TIADA';
+      const rows=tm65ReadVisitorControls_(area).filter(v=>v.name.value.trim()||v.category.value);
+      out.visitors=rows.map(v=>v.name.value.trim());out.visitor_categories=rows.map(v=>v.category.value);
+      out.visitors_status=rows.length?'ADA':'TIADA';
     }else{
       if(S.current?.data?.discipline_assembly)out.discipline_assembly=S.current.data.discipline_assembly;
       if(S.current?.data?.makmur_note!==undefined)out.makmur_note=S.current.data.makmur_note;
       out.activities=[...area.querySelectorAll('[data-activity-item]')].map(x=>({title:x.querySelector('[data-item-title]').value,desc:x.querySelector('[data-item-desc]').value}));
-      out.visitors_status=area.querySelector('#tm5-visitors-status').value;
-      out.visitors=[...area.querySelectorAll('[data-visitor-item]')].map(x=>x.querySelector('[data-item-title]').value);
+      const rows=tm65ReadVisitorControls_(area).filter(v=>v.name.value.trim()||v.category.value);
+      out.visitors=rows.map(v=>v.name.value.trim());out.visitor_categories=rows.map(v=>v.category.value);
+      out.visitors_status=rows.length?'ADA':'TIADA';
     }return out;
   }
   function tm532ValidateOfficial_(area){
@@ -3151,11 +3201,8 @@ function tm533BindClear(root){
         if(!desc?.value.trim())return fail(desc,`Sila isi ringkasan Aktiviti ${i+1}.`);
       }
     }
-    // Tiada pelawat sah tanpa nama; jika lebih daripada satu nama diberikan, setiap baris tambahan wajib lengkap.
-    const visitors=[...area.querySelectorAll('[data-visitor-item] input')];
-    if(visitors.some(x=>x.value.trim())){
-      for(const visitor of visitors)if(!visitor.value.trim())return fail(visitor,'Sila isi nama pelawat atau buang baris kosong.');
-    }
+    const visitorIssue=tm65VisitorIssues_(area)[0];
+    if(visitorIssue)return fail(visitorIssue.control,visitorIssue.message);
     return true;
   }
 
@@ -3177,10 +3224,10 @@ function tm533BindClear(root){
     if(d.holiday)return `<section class="tm5-doc-day tm52-doc-holiday"><h3>${esc(d.day)} · ${showDate(d.date)}</h3><p><strong>Tiada laporan — ${esc(d.holidayTitle||'Cuti Persekolahan')}</strong></p></section>`;
     return `<section class="tm5-doc-day"><h3>${esc(d.day)} · ${showDate(d.date)}</h3><div class="tm5-doc-grid">
       ${cell('Ucapan Guru Besar / Pentadbir',itemVal(d,'speech_gb'))}${cell('Ucapan Guru Bertugas',itemVal(d,'speech_duty'))}${cell('Ucapan Guru Disiplin',itemVal(d,'speech_discipline'))}
-      ${[['clean_student','Tandas Murid'],['clean_teacher','Tandas Guru'],['clean_hall','Dewan Sri Makmur'],['clean_ground','Persekitaran Sekolah'],...(v.discipline_assembly?[['discipline_assembly','Disiplin Waktu Perhimpunan']]:[]),['discipline_break','Disiplin Waktu Rehat'],['discipline_exit','Disiplin Waktu Pulang']].map(([k,label])=>cell(label,itemVal(d,k))).join('')}
+      ${[...tm65ReportExtras_().clean,...tm65ReportExtras_().discipline].filter(([k])=>!(k==='discipline_assembly'||tm65ReportExtras_().added.includes(k))||v[k]).map(([k,label])=>cell(k.startsWith('discipline_')&&!tm65ReportExtras_().added.includes(k)?'Disiplin '+label:label,itemVal(d,k))).join('')}
       ${cell(program,v.makmur_status==='BATAL'?'Dibatalkan. '+(v.makmur_cancel_reason||''):'Berlangsung. '+(v.makmur_note?v.makmur_note+'. ':'')+'Guru pengendali: '+(d.dayIndex===0?'Kumpulan '+S.week.group:teacherName(v.makmur_teacher)))}
       ${cell('Laporan Aktiviti',(v.activities||[]).length?(v.activities||[]).map((a,i)=>`${i+1}. ${a.title}: ${a.desc}`).join('\n'):'Tiada laporan aktiviti yang berjalan pada hari ini.')}
-      ${cell('Senarai Pelawat',v.visitors_status==='ADA'?(v.visitors||[]).join('; '):'Tiada pelawat dilaporkan.')}
+      ${cell('Senarai Pelawat',v.visitors_status==='ADA'?tm65VisitorDisplay_(v).join('; '):'Tiada pelawat dilaporkan.')}
       </div></section>`;
   }
   function documentHTML(){const w=S.week;return `<article class="tm5-document" id="tm5-document"><div class="tm5-doc-title"><div class="tm5-doc-school">SK SEGAMBUT MAKMUR</div>
@@ -3359,13 +3406,13 @@ function tm533BindClear(root){
     const uid=String(tmState.user?.uid||'');if(!uid||!tmManager())throw Error('Admin Sistem diperlukan.');
     if(!force&&SB.local&&SB.cacheUid===uid)return SB.local.dispatch('tm60Bootstrap');
     if(!force){try{const raw=sessionStorage.getItem(cacheKey(uid));if(raw){const c=JSON.parse(raw);
-      if(['V6.2','V6.3','V6.4'].includes(c.snapshot?.build)&&Date.now()-Date.parse(c.snapshot.capturedAt)<86400000){const migrated=c.snapshot.build==='V6.2';c.snapshot.build='V6.4';SB.local=tm62LocalSession_(c.snapshot,c.state);SB.cacheUid=uid;if(migrated&&c.state?.planStatus!=='BELUM_JANA')SB.local.dispatch('tm60Repair');persistLocal();return SB.local.dispatch('tm60Bootstrap');}
+      if(['V6.2','V6.3','V6.4','V6.5'].includes(c.snapshot?.build)&&Date.now()-Date.parse(c.snapshot.capturedAt)<86400000){const migrated=c.snapshot.build==='V6.2';c.snapshot.build='V6.5';SB.local=tm62LocalSession_(c.snapshot,c.state);SB.cacheUid=uid;if(migrated&&c.state?.planStatus!=='BELUM_JANA')SB.local.dispatch('tm60Repair');persistLocal();return SB.local.dispatch('tm60Bootstrap');}
     }}catch(e){console.warn('Cache ujian tidak dapat digunakan',e.name);}}
     if(SB.active)throw Error('Matikan Mod Ujian sebelum memuat semula sumber.');
     SB.busy=true;tmProcess('uat',true,'Memuatkan Data Ujian Sekali Sahaja','Mengambil Master Staf, giliran, tetapan tugasan dan jadual waktu LIVE…');
     try{
       const q=await tmAPIOnce_('tm60Snapshot',{});if(uid!==String(tmState.user?.uid||''))throw Error('Akaun telah berubah.');
-      if(q.build!=='V6.4'||!q.week||!q.windows||!q.teaching)throw Error('Snapshot V6.4 belum tersedia. Semak deployment Apps Script.');
+      if(q.build!=='V6.5'||!q.week||!q.windows||!q.teaching)throw Error('Snapshot V6.5 belum tersedia. Semak deployment Apps Script.');
       SB.local=tm62LocalSession_(q);SB.cacheUid=uid;persistLocal();return SB.local.dispatch('tm60Bootstrap');
     }finally{SB.busy=false;tmProcess('uat',false);}
   }
@@ -3656,10 +3703,12 @@ function tm5319ValidateWizardSection(step,form){
       });
     }
   }
-  const visitors=[...step.querySelectorAll(demo?'[data-demo-visitor] input':'[data-visitor-item] input')];
-  if(visitors.some(el=>el.value.trim()))visitors.forEach(el=>{
-    if(!el.value.trim())add(el,'Sila isi nama pelawat atau buang baris kosong.');
-  });
+  if(demo){
+    const visitors=[...step.querySelectorAll('[data-demo-visitor] input')];
+    if(visitors.some(el=>el.value.trim()))visitors.forEach(el=>{
+      if(!el.value.trim())add(el,'Sila isi nama pelawat atau buang baris kosong.');
+    });
+  }else tm65VisitorIssues_(step).forEach(({control,message})=>add(control,message));
   // Future required controls should also be checked in the current section.
   // Avoid duplicate messages for those already checked above.
   for(const control of step.querySelectorAll('input[required],select[required],textarea[required]')){
@@ -3689,6 +3738,17 @@ function tm5319ValidateWizardSection(step,form){
 
 /* V5.3.13 — Borang enam seksyen untuk PWA rasmi dan Mod Ujian.
    Seksyen disembunyikan (tidak dikeluarkan daripada DOM); input kekal untuk simpan/validasi. */
+function tm65ReadVisitorControls_(area){
+ return [...area.querySelectorAll('[data-visitor-item]')].map(row=>({category:row.querySelector('[data-visitor-category]'),name:row.querySelector('[data-item-title]')}));
+}
+function tm65VisitorIssues_(area){
+ const rows=tm65ReadVisitorControls_(area),issues=[];
+ if(rows.some(v=>v.category.value||v.name.value.trim()))for(const v of rows){
+  if(!tm65ReportExtras_().categories.includes(v.category.value))issues.push({control:v.category,message:'Sila pilih kategori pelawat.'});
+  if(!v.name.value.trim())issues.push({control:v.name,message:'Sila isi nama pelawat atau buang baris kosong.'});
+ }
+ return issues;
+}
 function tm5313Wizard(form){
   if(!form||form.dataset.tm5313Wizard==='1')return;
   const steps=[...form.querySelectorAll(':scope > .tm53-form-section')];
