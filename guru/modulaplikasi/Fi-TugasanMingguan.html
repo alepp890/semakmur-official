@@ -8,14 +8,14 @@
   <title>Smart Tugasan Mingguan | SeMAKMUR I-System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
   <script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('tm-embedded');</script>
   <link rel="stylesheet" href="Fi-TugasanMingguan-Desktop.css?v=5.3.3">
   <link rel="stylesheet" href="Fi-TugasanMingguan-PWA.css?v=5.3.19">
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
   
-  <script src="Fi-TugasanMingguan.js?v=6.3" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=6.4" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
@@ -55,6 +55,81 @@
   @media print{#tm62-local-controls,.tm62-previous-pop{display:none!important}.tm62-changed{color:#b42318!important}}
   </style>
 <style>.tm63-emergency-badge{display:inline-block;margin:2px 4px;padding:2px 6px;border:1px solid #e7c68a;border-radius:5px;background:#fff7e6;color:#955c0b;font-size:10px;font-weight:700;letter-spacing:.02em;white-space:nowrap;vertical-align:middle}</style>
+<style>
+/* V6.4 · Fi-JadualWaktu component vocabulary, adapted only to existing TM elements.
+   Reference: JW Agihan Guru & Grid Masa (green #166d59, #cad9cf, radius 8–10).
+   Existing grids, sections, sticky header, mobile wizard, tabs and print layout remain. */
+:root{--tm64-forest:#166d59;--tm64-deep:#115b4b;--tm64-soft:#f3f7f5;--tm64-line:#cad9cf;--tm64-text:#1b332a;--tm64-label:#4f6156;--tm64-ring:#d2f2e6;--tm64-control-font:'Inter','Plus Jakarta Sans',Arial,sans-serif}
+#tm-app :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=range]):not([type=file]),select,textarea),
+.tm64-return-overlay textarea,.tm5318-overlay textarea{
+  box-sizing:border-box!important;min-width:0!important;border:1px solid var(--tm64-line)!important;border-radius:8px!important;
+  background:#fff!important;color:var(--tm64-text)!important;outline:none!important;box-shadow:none!important;
+  padding:9px 11px!important;font-family:var(--tm64-control-font)!important;font-size:13px!important;font-weight:500!important;line-height:1.5!important;
+  min-height:39px!important;transition:border-color .15s,box-shadow .15s,background .15s!important;
+}
+#tm-app select{padding-right:30px!important;}
+#tm-app :is(input,select,textarea):focus-visible,.tm64-return-overlay textarea:focus-visible,.tm5318-overlay textarea:focus-visible{
+  border-color:#31836a!important;box-shadow:0 0 0 3px var(--tm64-ring)!important;outline:none!important
+}
+#tm-app :is(input,select,textarea):disabled,#tm-app :is(input,textarea)[readonly]{background:#f4f7f5!important;color:#60746a!important;cursor:not-allowed!important;opacity:1!important}
+#tm-app :is(input,textarea)::placeholder,.tm64-return-overlay textarea::placeholder{color:#839188!important;font-weight:400!important}
+#tm-app :is(.tm-form,.tm-fields,.tm5-daily-form,.tm5-leader-panel,.tm5-review,.tm5317-return-page) label,
+.tm64-return-label{color:var(--tm64-label)!important;font-family:var(--tm64-control-font)!important;font-size:13px!important;font-weight:650!important;line-height:1.45!important}
+#tm-app :is(.tm5-daily-form,.tm5-leader-panel,.tm5-review) textarea{resize:vertical!important;min-height:88px!important}
+#tm-app :is(.tm5-daily-form,.tm5-leader-panel,.tm5-review) textarea[data-text]{min-height:82px!important}
+#tm-app :is(input[type=checkbox],input[type=radio]){accent-color:var(--tm64-forest)}
+/* Buttons only — not navigation tabs, day cards or red change history. */
+#tm-app :is(.tm-btn,.tm5-save-actions button,.tm5-leader-panel button,.tm5-review button,.tm5313-wizard-footer>button,.tm5313-view-actions button,.tm53-add,.tm525-edit-day,.tm538-back-button,.tm5317-submit,.tm524-modal-actions button),
+.tm64-return-footer button,.tm5318-actions button{
+  border:1px solid #dce8e1!important;border-radius:9px!important;padding:9px 13px!important;min-height:38px!important;background:#f3f7f5!important;
+  color:#2f5d4e!important;font:650 13px/1.4 var(--tm64-control-font)!important;box-shadow:none!important;transition:background .16s,border-color .16s!important;
+}
+#tm-app :is(.tm-btn.tm-primary,.tm5-save-actions .primary,.tm5-leader-panel .primary,.tm5-review .primary,.tm5313-wizard-next,.tm5317-submit,.tm524-modal-actions .primary),
+.tm64-return-footer .primary,.tm5318-actions .tm5318-ok{background:linear-gradient(120deg,#115e59,#0f766e)!important;color:#fff!important;border-color:#166d59!important;font-weight:750!important}
+#tm-app :is(.tm-btn.tm-outline,.tm525-edit-day,.tm53-add){background:#fff!important;border-color:#a4d0b9!important;color:#236a53!important}
+#tm-app :is(.tm-btn,.tm5-save-actions button,.tm5-leader-panel button,.tm5-review button,.tm5313-wizard-footer>button,.tm5313-view-actions button,.tm53-add,.tm525-edit-day):hover:not(:disabled),
+.tm64-return-footer button:hover:not(:disabled),.tm5318-actions button:hover:not(:disabled){filter:brightness(.95)!important;transform:none!important}
+#tm-app :is(.tm-btn,.tm5-save-actions button,.tm5-leader-panel button,.tm5-review button,.tm5313-wizard-footer>button,.tm5313-view-actions button,.tm53-add,.tm525-edit-day):focus-visible,
+.tm64-return-overlay button:focus-visible,.tm5318-actions button:focus-visible{outline:3px solid #afdaca!important;outline-offset:2px!important}
+#tm-app :is(.tm-btn,.tm5-save-actions button,.tm5-review button):disabled,.tm64-return-overlay button:disabled{opacity:.5!important;cursor:not-allowed!important}
+#tm-app .tm53-remove{background:#fff7f5!important;color:#a52c23!important;border:1px solid #f0d0ca!important;border-radius:8px!important;font-family:var(--tm64-control-font)!important}
+#tm-app :is(.tm533-invalid,[aria-invalid=true]){border-color:#b42318!important;box-shadow:0 0 0 2px #fde7e5!important}
+#tm-app .tm53-form-section h4{color:#235d4c!important}
+#tm-app .tm64-edit-note{margin:12px 0;padding:10px 13px;border:1px solid #c9e7de;border-radius:9px;background:#e8f6f2;color:#235d4c;font-size:13px}
+#tm-app .tm64-edit-note strong,#tm-app .tm64-edit-note span{display:block}
+#tm-app .tm64-edit-note span{margin-top:3px;color:#4f6156}
+#tm-app #tm61-global-toggle[aria-pressed=true]{background:#166d59!important;color:#fff!important}
+/* A single body-level return dialog. Legacy TM modal z-index was 999999;
+   standard confirmation must always be ABOVE the legacy modal. */
+.tm5318-overlay{z-index:1000200!important}
+.tm64-return-overlay{position:fixed!important;inset:0!important;z-index:1000100!important;display:grid!important;place-items:center!important;background:rgba(23,45,38,.54)!important;backdrop-filter:blur(3px);padding:20px!important}
+.tm64-return-overlay .tm64-return-dialog{position:relative!important;display:flex!important;flex-direction:column!important;width:min(100%,660px)!important;max-width:660px!important;max-height:calc(100dvh - 40px)!important;overflow:hidden!important;margin:0!important;padding:0!important;background:#fff!important;color:#1b332a!important;border:1px solid #dce8e1!important;border-radius:16px!important;box-shadow:0 24px 72px rgba(20,50,39,.24)!important;font-family:var(--tm64-control-font)!important;text-align:left!important}
+.tm64-return-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:22px 24px 16px;border-bottom:1px solid #e6eee9;background:#f7faf8}
+.tm64-eyebrow{font-size:11px;font-weight:750;letter-spacing:.1em;color:#31836a}
+.tm64-return-header h3,.tm64-return-body h3{margin:6px 0 4px;font-size:18px;line-height:1.4;font-weight:750;color:#173c34}
+.tm64-return-header p,.tm64-return-body p{margin:4px 0 0;line-height:1.6;font-size:13px}
+.tm64-icon-close{display:grid;place-items:center;width:34px;height:34px;border:1px solid #dce8e1;border-radius:9px;background:white;color:#315649;font-size:21px;line-height:1;flex:0 0 auto;cursor:pointer}
+.tm64-return-body{padding:20px 24px;overflow:auto}
+.tm64-return-label{display:block;margin:0 0 8px!important}
+.tm64-return-overlay .tm64-return-days{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(94px,1fr))!important;gap:8px!important;margin-bottom:8px}
+.tm64-return-overlay .tm64-return-day{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:3px!important;text-align:left!important;padding:10px!important;background:#f7faf8!important;border:1px solid #cad9cf!important;border-radius:9px!important;color:#295144!important;cursor:pointer!important;min-height:61px!important}
+.tm64-return-overlay .tm64-return-day small{font-size:12px!important;color:#60746a!important}
+.tm64-return-overlay .tm64-return-day[aria-pressed=true]{background:#e8f6f2!important;border:2px solid #166d59!important;padding:9px!important;color:#115b4b!important;box-shadow:0 0 0 2px #d2f2e6}
+.tm64-return-overlay .tm64-return-day[aria-pressed=true] strong::after{content:' ✓';color:#166d59}
+.tm64-return-help{margin:6px 0 16px!important;color:#60746a!important}
+.tm64-return-overlay textarea{display:block!important;width:100%!important;min-height:114px!important;resize:vertical!important}
+.tm64-confirm-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:#e8f6f2;color:#166d59;font-size:22px;font-weight:750;margin-bottom:12px}
+.tm64-return-error{color:#b42318!important;background:#fff7f5;border:1px solid #f2d2cd;border-radius:8px;padding:9px 12px;margin-top:10px!important}
+.tm64-return-footer{display:flex;justify-content:flex-end;gap:9px;padding:15px 24px;border-top:1px solid #e6eee9;background:#fff}
+.tm64-return-overlay [hidden]{display:none!important}
+@media(max-width:900px){
+ #tm-app :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]),select,textarea){min-height:44px!important;font-size:14px!important}
+ #tm-app :is(.tm5-save-actions button,.tm5-review button,.tm5313-wizard-footer>button,.tm5317-submit,.tm5313-view-actions button){min-height:44px!important}
+}
+@media(max-width:450px){.tm64-return-overlay{padding:12px!important}.tm64-return-dialog{max-height:calc(100dvh - 24px)!important}.tm64-return-header,.tm64-return-body,.tm64-return-footer{padding:15px!important}.tm64-return-footer button{flex:1}}
+@media print{.tm64-return-overlay,.tm64-edit-note{display:none!important}}
+
+</style>
 </head>
 <body>
 <!-- Muat seperti modul e-Kehadiran: indikator proses dan mesej pengesahan. -->
