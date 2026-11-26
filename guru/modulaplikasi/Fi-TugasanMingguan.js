@@ -582,6 +582,15 @@ function tmBusy(flag){tmState.busy=!!flag;tm$('tm-loading').hidden=!flag;
 function tmSignal(type){if(new URLSearchParams(location.search).get('embed')==='1'&&window.parent!==window)window.parent.postMessage({type},location.origin);}
 function tmTrusted(origin){try{const u=new URL(origin);if(u.protocol!=='https:'||u.port||u.username||u.password)return false;const host=u.hostname.toLowerCase();return host==='script.google.com'||host==='script.googleusercontent.com'||host.endsWith('.script.googleusercontent.com')||host.endsWith('-script.googleusercontent.com');}catch{return false;}}
 async function tmAPI(op,extra={}){
+  try{return await tmAPIOnce_(op,extra);}
+  catch(e){
+    if(!String(op).startsWith('tm60')||!String(e.message||e).startsWith('UAT_LOCK_BUSY:'))throw e;
+    // Explicit rejection occurred before lease claim or any UAT mutation. Safe once only.
+    await new Promise(resolve=>setTimeout(resolve,1800));
+    return tmAPIOnce_(op,extra);
+  }
+}
+async function tmAPIOnce_(op,extra={}){
   if(window.SeMAKMUR_TM5_UI?.sandboxActive?.()&&!String(op).startsWith("tm60"))throw Error("Keluar daripada Mod Ujian sebelum menggunakan API rasmi.");
   const user=tmState.auth?.currentUser;
   if(!user)throw Error('Sila log masuk melalui Dashboard Guru terlebih dahulu.');
