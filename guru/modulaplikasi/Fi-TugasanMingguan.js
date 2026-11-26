@@ -1,3 +1,414 @@
+// V6.2 shared deterministic, side-effect-free allocation core (identical in GAS and browser).
+function tm62Core_(){
+ const rest=a=>/REHAT/i.test(a.taskName||''),morning=a=>/\bPAGAR\b|\bPROGRAM MAKMUR\b/i.test(a.taskName||''),
+ report=a=>/LAPORAN\s*(HARIAN|GURU\s*BERTUGAS)|PENYEDIAAN\s*LAPORAN/i.test(a.taskName||''),
+ flexible=a=>a.category==='RINGAN'&&a.mode==='TANPA_MASA'&&(/KUNCI.*BILIK GURU/i.test(a.taskName||'')||report(a)),
+ overlap=(a,b,c,d)=>a<d&&c<b,
+ stamp=a=>a.date+'T'+(a.mode==='TANPA_MASA'?(report(a)?'23:59':'07:00'):a.from),
+ key=a=>[a.date,a.task,a.from,a.to,a.mode].join('|'),
+ pair=(a,list)=>!list.length||(list.length===1&&a.task!==list[0].task&&!(morning(a)&&morning(list[0]))&&
+  (a.mode==='TANPA_MASA'||list[0].mode==='TANPA_MASA'||!overlap(a.from,a.to,list[0].from,list[0].to))&&
+  ((flexible(a)&&list[0].category==='BERAT'&&!flexible(list[0]))||(flexible(list[0])&&a.category==='BERAT'&&!flexible(a)))),
+ clashes=(a,id,teaching)=>a.mode==='TANPA_MASA'?[]:(teaching[a.date+'|'+id]||[]).filter(b=>overlap(a.from,a.to,b.from,b.to)),
+ absent=(a,id,blocks)=>blocks.some(b=>b.id===id&&b.status!=='BATAL'&&!b.onCampus&&b.from<=a.date&&b.to>=a.date&&
+  (a.mode==='TANPA_MASA'?b.reason!=='E_RELIEF':overlap(a.from,a.to,b.start,b.end))),
+ eligible=(a,id,teaching,blocks)=>!absent(a,id,blocks)&&!clashes(a,id,teaching).length,
+ add=(v,a)=>{v.all++;v.weight+=Number(a.weight)||0;v.rest+=rest(a)?1:0;v.morning+=morning(a)?1:0;v.heavy+=a.category==='BERAT'?1:0;v.light+=a.category==='RINGAN'?1:0;v.byTask[a.task]=(v.byTask[a.task]||0)+1;},
+ counts=(rows,members)=>{const out=Object.fromEntries(members.map(p=>[p.id,{all:0,weight:0,rest:0,morning:0,heavy:0,light:0,byTask:{}}]));rows.forEach(a=>{if(out[a.staff])add(out[a.staff],a);});return out;};
+ function allocate({slots,members,frozen=[],teaching={},blocks=[],history=[]}){
+   const ids=members.map(m=>m.id).sort(),types=Object.fromEntries(slots.concat(frozen).map(a=>[a.task,a]));
+   if(!ids.length)throw Error('Tiada ahli kumpulan.');
+   const source=slots.map((a,i)=>({...a,_i:i,_eligible:ids.filter(id=>eligible(a,id,teaching,blocks))}));
+   const target=counts(frozen.concat(slots.map(a=>({...a,staff:ids[0]}))),members);
+   const avg=k=>Object.values(target).reduce((s,x)=>s+x[k],0)/ids.length;
+   const rr=avg('rest'),mm=avg('morning'),ww=avg('weight'),nn=avg('all');
+   const hc=counts(history,members);
+   const score=arr=>{
+     const all=frozen.concat(arr.filter(x=>x.staff)),c=counts(all,members);
+     const dailyCounts={};for(const a of all){const k=a.date+'|'+a.staff;dailyCounts[k]=(dailyCounts[k]||0)+1;}
+     let v=Object.values(dailyCounts).reduce((n,x)=>n+300000*Math.max(0,x-1),0);
+     for(const a of arr){
+       if(!a.staff){v+=1e9;continue;}
+       if(a.restore&&a.staff!==a.restore)v+=2e7;
+       if(a.existing&&a.existing!==a.staff)v+=50;
+     }
+     for(const [id,x] of Object.entries(c)){
+       v+=1200*(x.rest-rr)**2+150*(x.morning-mm)**2+18*(x.all-nn)**2+4*(x.weight-ww)**2+3*x.heavy*x.heavy;
+       for(const [task,n] of Object.entries(x.byTask)){
+         const t=types[task]||{};
+         v+=(rest(t)?100000:morning(t)?400:60)*Math.max(0,n-1)**2;
+         v+=0.05*n*(hc[id]?.byTask[task]||0);
+       }
+     }
+     return v;
+   };
+   const hash=(s)=>{let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;};
+   const priority=a=>rest(a)?0:flexible(a)?4:a.mode!=='TANPA_MASA'?1:morning(a)?2:3;
+   let best=null,bestCost=Infinity;
+   for(let seed=0;seed<12;seed++){
+     const result=[],all=frozen.slice();
+     const order=source.slice().sort((a,b)=>Number(!!b.restore)-Number(!!a.restore)||priority(a)-priority(b)||
+       (seed%3===0?a.date.localeCompare(b.date)||a._eligible.length-b._eligible.length:a._eligible.length-b._eligible.length||a.date.localeCompare(b.date))||
+       hash(seed+'|'+a._i)-hash(seed+'|'+b._i));
+     for(const a of order){
+       const tally=counts(all,members),daily=id=>all.filter(x=>x.staff===id&&x.date===a.date);
+       const candidates=a._eligible.filter(id=>pair(a,daily(id)));
+       const rank=id=>{
+         const x=tally[id],same=x.byTask[a.task]||0;
+         return (a.restore&&id!==a.restore?2e7:0)+(daily(id).length?1000:0)+
+         (rest(a)?same*100000+x.rest*2400:morning(a)?same*400+x.morning*300:same*60)+
+         x.all*36+x.weight*8+x.heavy*6+(a.existing&&id!==a.existing?50:0)+(hc[id]?.byTask[a.task]||0)*0.05+
+         (hash(seed+'|'+a._i+'|'+id)%1000)/1000;
+       };
+       candidates.sort((a,b)=>rank(a)-rank(b));const staff=candidates[0]||'';
+       const x={...a,staff};result.push(x);if(staff)all.push(x);
+     }
+     const cost=score(result);if(cost<bestCost){best=result;bestCost=cost;}
+   }
+   // Reassign and swap across all mutable dates; compare strictly improving scores only.
+   const arr=best;
+   const daily=(id,date,skip)=>frozen.concat(arr).filter(x=>x.staff===id&&x.date===date&&!skip.includes(x));
+   const can=(a,id,skip,extra=[])=>a._eligible.includes(id)&&pair(a,daily(id,a.date,skip).concat(extra.filter(x=>x.staff===id&&x.date===a.date)));
+   for(let pass=0;pass<9;pass++){
+     let improved=false;
+     for(let i=0;i<arr.length;i++){
+       const a=arr[i],old=a.staff;
+       for(const id of a._eligible){if(id===old||!can(a,id,[a]))continue;
+         a.staff=id;const v=score(arr);if(v<bestCost-0.001){bestCost=v;improved=true;break;}a.staff=old;
+       }
+     }
+     for(let i=0;i<arr.length;i++)for(let j=i+1;j<arr.length;j++){
+       const a=arr[i],b=arr[j],x=a.staff,y=b.staff;if(x===y||!y)continue;
+       if(!can(a,y,[a,b])||(x&&!can(b,x,[a,b])))continue;
+       a.staff=y;b.staff=x;const v=score(arr);
+       if(v<bestCost-0.001){bestCost=v;improved=true;}else{a.staff=x;b.staff=y;}
+     }
+     if(!improved)break;
+   }
+   const cleaned=arr.sort((a,b)=>a._i-b._i).map(({_i,_eligible,...a})=>a);
+   return {assigned:cleaned.filter(a=>a.staff),missing:cleaned.filter(a=>!a.staff),score:bestCost};
+ }
+ // Stable assignment matching: repeated positions remain linked to their historical parent.
+ function reconcile({slots,rows,members,teaching,blocks,clock,frozenReportDates=[],history=[],forceFrom=''}){
+   const byId=Object.fromEntries(rows.map(a=>[a.id,a])),memberIds=new Set(members.map(m=>m.id));
+   const root=a=>{let q=a,seen=new Set();while(q?.replaces&&byId[q.replaces]&&!seen.has(q.id)){seen.add(q.id);q=byId[q.replaces];}return q;};
+   const chain=a=>{let q=a,seen=new Set(),direct=false;while(q&&!seen.has(q.id)){seen.add(q.id);direct=direct||/GANTI_KEBERADAAN|GANTI_AUTO/.test(q.method||'');q=byId[q.replaces];}return direct;};
+   const alive=a=>['DITERBITKAN','DRAF','SIM_DITERBITKAN','SIM_DRAF','PERLU_TINDAKAN'].includes(a.status);
+   const superseded=new Set(rows.filter(alive).map(a=>a.replaces).filter(Boolean));
+   const duplicate=rows.filter(a=>alive(a)&&superseded.has(a.id));
+   const active=rows.filter(a=>alive(a)&&a.status!=='PERLU_TINDAKAN'&&!superseded.has(a.id));
+   const locked=a=>stamp(a)<=clock||(report(a)&&frozenReportDates.includes(a.date));
+   const frozen=active.filter(locked),open=active.filter(a=>!locked(a)),pending=rows.filter(a=>a.status==='PERLU_TINDAKAN'&&!locked(a)&&!superseded.has(a.id));
+   const pool=open.concat(pending),used=new Set(),desired=[];
+   const groups=new Map();for(const a of slots){if(locked(a))continue;const k=key(a);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(a);}
+   // Detect changed availability, holiday, vacant positions, or a cancelled absence.
+   let first=null;const affect=d=>{if(!first||d<first)first=d;};
+   if(forceFrom&&slots.some(a=>a.date>=forceFrom&&!locked(a)))affect(forceFrom);
+   for(const [k,ls] of groups){
+     const matches=pool.filter(a=>key(a)===k);
+     // Prefer historic original slot ordering, independent of replacement timestamp.
+     matches.sort((a,b)=>String(root(a)?.id||a.id).localeCompare(String(root(b)?.id||b.id)));
+     ls.forEach((slot,i)=>{
+       const old=matches[i];if(old)used.add(old.id);
+       const origin=old&&root(old),restore=old&&origin?.staff&&memberIds.has(origin.staff)&&(old.status==='PERLU_TINDAKAN'||origin.staff!==old.staff&&chain(old))&&eligible(slot,origin.staff,teaching,blocks)?origin.staff:'';
+       const invalid=old&&old.status!=='PERLU_TINDAKAN'&&(!memberIds.has(old.staff)||!eligible(slot,old.staff,teaching,blocks));
+       if(!old||old.status==='PERLU_TINDAKAN'||invalid||restore)affect(slot.date);
+       desired.push({...slot,oldId:old?.id||'',existing:old?.staff||'',restore,origin:origin?.staff||'',direct:!!(old&&(invalid&&absent(slot,old.staff,blocks)||chain(old)))});
+     });
+   }
+   const removed=pool.filter(a=>!used.has(a.id));removed.forEach(a=>affect(a.date));
+   const retire=duplicate.filter(a=>!locked(a)).map(a=>({...a,retire:true}));retire.forEach(a=>affect(a.date));
+   for(const a of open){const own=active.filter(b=>b!==a&&b.staff===a.staff&&b.date===a.date);if(!pair(a,own))affect(a.date);}
+   if(!first)return {unchanged:true,assigned:[],missing:[],removed:[],frozen:active};
+   const keep=open.filter(a=>a.date<first&&used.has(a.id));
+   const mutable=desired.filter(a=>a.date>=first);
+   const result=allocate({slots:mutable,members,frozen:frozen.concat(keep),teaching,blocks,history});
+   return {...result,unchanged:false,first,removed:removed.concat(retire),frozen:frozen.concat(keep)};
+ }
+ function audit({members,slots,rows,teaching}){
+    const active=rows.filter(a=>a.status==='DITERBITKAN'||a.status==='DRAF'),ct=counts(active,members),dates=[...new Set(slots.map(a=>a.date))];
+    const people=members.map(m=>{const own=active.filter(a=>a.staff===m.id),x=ct[m.id],by={},dailyCounts={};own.forEach(a=>{by[a.taskName]=(by[a.taskName]||0)+1;dailyCounts[a.date]=(dailyCounts[a.date]||0)+1;});const repeats=Object.entries(by).filter(([k,n])=>n>1).map(([k,n])=>k+' ×'+n);
+      return {id:m.id,name:m.name,total:x.all,rest1:own.filter(a=>/REHAT.*TAHAP\s*1/i.test(a.taskName)).length,rest2:own.filter(a=>/REHAT.*TAHAP\s*2/i.test(a.taskName)).length,rest:x.rest,morning:x.morning,heavy:x.heavy,light:x.light,weight:x.weight,repeats:repeats.filter(k=>/PAGAR|PROGRAM MAKMUR/i.test(k)).join('; '),allRepeats:repeats.join('; '),maxDaily:Math.max(0,...Object.values(dailyCounts)),dailyCounts};});
+    const r1=a=>/REHAT.*TAHAP\s*1/i.test(a.taskName),r2=a=>/REHAT.*TAHAP\s*2/i.test(a.taskName);
+    const restByDay=dates.map(date=>{const sc=slots.filter(a=>a.date===date),a=active.filter(a=>a.date===date),t1=a.filter(r1).length,t2=a.filter(r2).length,need1=sc.filter(r1).length,need2=sc.filter(r2).length;return {date,day:sc[0]?.day,t1,t2,need1,need2,ok:t1>=need1&&t2>=need2};});
+    const timedChecks=active.filter(a=>a.mode!=='TANPA_MASA').map(a=>{const conflicts=clashes(a,a.staff,teaching);return {date:a.date,day:a.day,task:a.taskName,staff:a.staff,name:members.find(m=>m.id===a.staff)?.name||a.staff,from:a.from,to:a.to,expected:a.from+'–'+a.to,status:conflicts.length?'KONFLIK':'TIADA_KELAS',conflicts};});
+    const incompatibleDaily=new Set(active.filter(a=>!pair(a,active.filter(b=>b!==a&&b.date===a.date&&b.staff===a.staff))).map(a=>a.date+'|'+a.staff)).size;
+    const warnings=[];if(people.some(p=>p.rest1>1||p.rest2>1))warnings.push('Ulangan rehat tahap sama: semak kelayakan dan kapasiti; pengagihan cuba mengelakkannya.');
+    if(active.length<slots.length)warnings.push('Ada slot belum diisi. Jangan anggap jadual lengkap.');
+    if(incompatibleDaily)warnings.push('Ada gandingan tugas harian tidak serasi.');
+    return {status:'SEDIA',people,restByDay,timedChecks,warnings,summary:{active:active.length,teachers:members.length,days:dates.length,rest1:active.filter(r1).length,rest2:active.filter(r2).length,checked:timedChecks.length,pdpcConflicts:timedChecks.filter(x=>x.conflicts.length).length,restShortages:restByDay.reduce((n,d)=>n+Number(d.t1<d.need1)+Number(d.t2<d.need2),0),weightMin:Math.min(...people.map(p=>p.weight)),weightMax:Math.max(...people.map(p=>p.weight)),restMin:Math.min(...people.map(p=>p.rest)),restMax:Math.max(...people.map(p=>p.rest)),incompatibleDaily}};
+ }
+ return {allocate,reconcile,audit,counts,stamp,pair,rest,morning,report,eligible,key,absent};
+}
+
+// V6.2 local-only UAT session. Data is cloned from one authenticated read-only snapshot.
+// No report, absence or calendar operation here can call backend/Firestore.
+function tm62LocalSession_(snapshot,saved){
+ const copy=x=>JSON.parse(JSON.stringify(x)),core=tm62Core_(),src=copy(snapshot);
+ let st=saved?copy(saved):fresh();
+ const uid=()=>globalThis.crypto?.randomUUID?.()||'UAT-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+ const staff=Object.fromEntries(src.staff.map(s=>[s.id,s.name])),w=src.week,year=String(w.year),wm=src.boot.weeks[0];
+ const dayName=d=>['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'][new Date(d+'T00:00:00Z').getUTCDay()];
+ const isActive=a=>a.status==='DITERBITKAN'||a.status==='DRAF';
+ const day0=src.clock.slice(0,10),due=day0+'T18:00';
+ const text=(s,max)=>{s=String(s??'').trim();if(s.length>max||/^[=+@\-]/.test(s))throw Error('Teks tidak sah atau terlalu panjang.');return s;};
+ const validDate=d=>/^\d{4}-\d\d-\d\d$/.test(d)&&!isNaN(Date.parse(d+'T00:00:00Z'))&&new Date(d+'T00:00:00Z').toISOString().slice(0,10)===d;
+ const isHoliday=d=>st.calendar.find(x=>x.date===d)?.kind==='CUTI';
+ const expected=()=>st.windows.filter(a=>!isHoliday(a.date));
+ const active=()=>st.rows.filter(isActive);
+ function fresh(){return {clock:src.clock,calendar:copy(src.boot.calendar.days),windows:copy(src.windows),settings:copy(src.boot.settings),rows:[],blocks:[],planStatus:'BELUM_JANA',report:{status:'BELUM_DIHANTAR',summary:'',followup:'',gpkNote:'',gbNote:'',verifiedBy:'',verifiedName:'',verifiedAt:''},daily:{},corrections:[],audit:[]};}
+ const log=(type,extra={})=>{st.audit.push({type,clock:st.clock,...extra});if(st.audit.length>400)st.audit.shift();};
+ function roles(){
+   const base=src.roles.map(r=>({...r}));
+   for(const m of w.members){const row=base.find(r=>r.id===m.id);if(!row)continue;
+     const dates=active().filter(a=>a.staff===m.id&&core.report(a)).map(a=>dayName(a.date));
+     row.label=m.id===w.leader?'Ketua Kumpulan':dates.length?'Guru Laporan '+dates.join(', '):'Guru Bertugas';
+   }return base;
+ }
+ function decorated(){
+   const by=Object.fromEntries(st.rows.map(a=>[a.id,a]));
+   return st.rows.map(a=>{const prev=by[a.replaces];return {...a,name:staff[a.staff]||a.staff||'',...(prev?{previousName:staff[prev.staff]||prev.staff||'',previousStaff:prev.staff}: {})};});
+ }
+ function schedule(){
+   const rows=decorated(),audit=core.audit({members:w.members,slots:expected(),rows,teaching:src.teaching});
+   return {status:st.planStatus,mode:'SIMULASI',week:copy(w),planId:st.planStatus==='BELUM_JANA'?'':'UAT-LOCAL-'+w.id,assignments:rows,
+     fairness:core.counts(active(),w.members),frequencyWarnings:audit.warnings,doubleConflicts:[],alerts:rows.filter(a=>a.status==='PERLU_TINDAKAN'),asOf:st.clock};
+ }
+ function boot(){
+   const b=copy(src.boot);b.calendar.days=copy(st.calendar);b.settings=copy(st.settings);
+   b.weeks[0].pelan=st.planStatus==='BELUM_JANA'?null:{id:'UAT-LOCAL-'+w.id,status:st.planStatus,leader:w.leader,week:w.id};
+   b.uatMeta={[w.id]:{planStatus:st.planStatus,reportStatus:st.report.status}};b.schedule=schedule();return b;
+ }
+ function status(operation){const sc=schedule();return {status:'UAT_LOKAL_SEDIA',build:'V6.2',year,clock:st.clock,week:{weekId:w.id,year,label:w.label,group:w.group,from:w.from,to:w.to,ready:st.planStatus==='DITERBITKAN',status:st.report.status},planStatus:st.planStatus,roles:roles(),assignments:sc.assignments,schedule:sc,alerts:sc.alerts,blocks:copy(st.blocks),repairPending:sc.alerts.length>0,officialHeld:src.officialHeld,operation,boot:boot()};}
+ function publishIfComplete(){if(st.planStatus==='DITERBITKAN')return;
+   if(st.rows.some(a=>a.status==='PERLU_TINDAKAN'))return;
+   st.planStatus='DITERBITKAN';st.rows.forEach(a=>{if(a.status==='DRAF')a.status='DITERBITKAN';});
+ }
+ function append(a,staffId,old,method,stat){
+   const {oldId,existing,restore,origin,direct,...slot}=a;
+   st.rows.push({...slot,id:uid(),staff:staffId,status:stat,method,replaces:old?.id||''});
+ }
+ function generate(){
+   if(st.clock<due)throw Error('Masa automasi belum tiba (Ahad 18:00).');
+   if(st.planStatus!=='BELUM_JANA')return repair();
+   const slots=expected().filter(a=>core.stamp(a)>st.clock);
+   if(!slots.length)throw Error('Tiada slot akan datang untuk dijana.');
+   const result=core.allocate({slots,members:w.members,teaching:src.teaching,blocks:st.blocks});
+   st.planStatus='DRAF';for(const a of result.assigned)append(a,a.staff,null,'AUTO','DRAF');
+   for(const a of result.missing)append(a,'',null,'AUTO_KOSONG','PERLU_TINDAKAN');
+   publishIfComplete();log('JANA',{jumlah:result.assigned.length,kosong:result.missing.length});
+   return {status:st.planStatus,bilJana:result.assigned.length,bilBelumSelesai:result.missing.length,bilGanti:0};
+ }
+ function repair(forceFrom=''){
+   if(st.planStatus==='BELUM_JANA')return {status:'BELUM_JANA',bilGanti:0};
+   const r=core.reconcile({slots:expected(),rows:st.rows,members:w.members,teaching:src.teaching,blocks:st.blocks,clock:st.clock,frozenReportDates:Object.keys(st.daily),forceFrom});
+   if(r.unchanged)return {status:'TIADA_PERUBAHAN',bilGanti:0,bilBelumSelesai:st.rows.filter(a=>a.status==='PERLU_TINDAKAN').length};
+   const by=Object.fromEntries(st.rows.map(a=>[a.id,a]));let replaced=0,filled=0;const changes=[];
+   for(const a of r.removed){const old=by[a.id];if(old)old.status=a.retire?'DIGANTI':'DIBATALKAN_CUTI';}
+   for(const a of r.assigned){
+     const old=by[a.oldId];if(old&&isActive(old)&&old.staff===a.staff)continue;
+     const restored=a.restore&&a.staff===a.restore,method=restored?'PULIH_ASAL':a.direct?'GANTI_KEBERADAAN':old?'IMBANG_AUTO':'AUTO_LENGKAP';
+     if(old){old.status='DIGANTI';if(old.staff&&old.staff!==a.staff)replaced++;else filled++;}else filled++;
+     append(a,a.staff,old,method,st.planStatus==='DITERBITKAN'?'DITERBITKAN':'DRAF');
+     changes.push({date:a.date,task:a.taskName,old:old?.staff||'',new:a.staff,method});
+   }
+   for(const a of r.missing){const old=by[a.oldId];if(old)old.status='PERLU_TINDAKAN';else append(a,'',null,'AUTO_KOSONG','PERLU_TINDAKAN');}
+   publishIfComplete();log('IMBANG',{first:r.first,changes,cuti:r.removed.length,kosong:r.missing.length});
+   const restoreFailed=r.assigned.concat(r.missing).filter(a=>a.restore&&a.staff!==a.restore);
+   return {status:r.missing.length?'PERLU_TINDAKAN':restoreFailed.length?'PERLU_SEMAKAN_PULIH':'DIKEMAS_KINI',bilPulihGagal:restoreFailed.length,bilGanti:replaced,bilIsiKekosongan:filled,bilCuti:r.removed.length,bilBelumSelesai:r.missing.length,pending:r.missing,changes};
+ }
+ function clock(value){
+   if(!/^\d{4}-\d\d-\d\dT(?:[01]\d|2[0-3]):[0-5]\d$/.test(value)||!validDate(value.slice(0,10))||value<st.clock||value.slice(0,10)>w.to)throw Error('Masa ujian hanya boleh bergerak ke hadapan dalam minggu ini. Gunakan Mula Semula untuk mengundur.');
+   st.clock=value;
+   if(value>=due&&st.planStatus!=='DITERBITKAN')return generate();
+   return {status:'MASA_DITETAPKAN'};
+ }
+ function saveAbsence(p){
+   const {staff:id,from,to,reason}=p;
+   if(!w.members.some(m=>m.id===id)||!validDate(from)||!validDate(to)||from<w.from||to>w.to||from>to||from<st.clock.slice(0,10)||!['CRK','CTR','MC','URUSAN_RASMI_LUAR','URUSAN_RASMI_DALAM','KECEMASAN','LAIN_LAIN','E_RELIEF'].includes(reason))throw Error('Guru, kategori atau tarikh tidak sah.');
+   if(Boolean(p.start)!==Boolean(p.end))throw Error('Isi kedua-dua masa atau kosongkan kedua-duanya.');
+   const start=p.start||'00:00',end=p.end||'23:59';if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(start)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(end)||start>=end||reason==='E_RELIEF'&&!p.start)throw Error('Julat masa tidak sah.');
+   const onCampus=reason!=='E_RELIEF'&&p.location==='DALAM_SEKOLAH',r=reason==='E_RELIEF'?reason:'UJIAN '+reason;
+   const prior=st.blocks.find(b=>b.status!=='BATAL'&&b.id===id&&b.from===from&&b.to===to&&b.start===start&&b.end===end&&b.reason===r&&b.onCampus===onCampus);
+   if(prior)return {status:'SUDAH_DISIMPAN',blocks:copy(st.blocks),repairPending:false,operation:{status:'TIADA_PERUBAHAN'}};
+   if(st.blocks.length>=100)throw Error('Had 100 rekod simulasi. Mula semula.');
+   st.blocks.push({key:uid(),id,from,to,start,end,reason:r,onCampus,status:'AKTIF',stage:p.stage||'',note:text(p.note,160)});
+   log('KEBERADAAN',{id,from,to});const operation=repair();return {status:'DISIMPAN',blocks:copy(st.blocks),repairPending:operation.bilBelumSelesai>0,operation};
+ }
+ function cancelAbsence(id){
+   const b=st.blocks.find(a=>a.key===id);if(!b)throw Error('Rekod tidak ditemui.');
+   if(b.status==='BATAL')return {status:'SUDAH_BATAL',blocks:copy(st.blocks),repairPending:false,operation:{status:'TIADA_PERUBAHAN'}};
+   b.status='BATAL';log('BATAL_KEBERADAAN',{id:b.id,from:b.from,to:b.to});const operation=repair(b.to>=st.clock.slice(0,10)?(b.from>st.clock.slice(0,10)?b.from:st.clock.slice(0,10)):'');
+   return {status:'DIBATALKAN',blocks:copy(st.blocks),repairPending:operation.bilBelumSelesai>0,operation};
+ }
+ function calendar(p){
+   const d=st.calendar.find(x=>x.date===p.date);
+   if(!d||!['SEKOLAH','CUTI'].includes(p.kind))throw Error('Tarikh/jenis hari tidak sah.');
+   if(p.date+'T07:00'<=st.clock||st.daily[p.date])throw Error('Hari telah bermula atau laporan sudah direkod; sejarah dilindungi.');
+   if(p.kind==='SEKOLAH'&&!src.teachingDates.includes(p.date))throw Error('Rujukan PdPc tarikh ini tiada dalam snapshot.');
+   const note=text(p.note,200);d.kind=p.kind;d.events=d.events.filter(x=>x.type!=='CUTI');
+   if(p.kind==='CUTI')d.events.push({type:'CUTI',title:note||'Cuti peristiwa (ujian)'});
+   log('KALENDAR',{date:p.date,kind:p.kind});const operation=repair();return {status:'DISIMPAN',date:p.date,kind:p.kind,operation};
+ }
+ function reportActor(id){
+   if(id==='ADMIN')id=src.boot.actor.id;
+   else if(!roles().some(r=>r.id===id))throw Error('Peranan ujian tidak sah.');
+   return {id,isMember:w.members.some(m=>m.id===id),isLeader:id===w.leader,isGPK:id===src.gpk,isGB:src.gbIds.includes(id)};
+ }
+ function reportDays(actor){
+   return st.calendar.map(d=>{
+     const date=d.date,holiday=d.kind==='CUTI',data=st.daily[date],teacher=holiday?'':data?.teacher||active().find(a=>a.date===date&&core.report(a))?.staff||'';
+     const status=holiday?'CUTI':data?.status||'BELUM_DIISI',available=holiday||date<=st.clock.slice(0,10);
+     return {date,day:dayName(date),dayIndex:new Date(date+'T00:00:00Z').getUTCDay()-1,holiday,holidayTitle:holiday?d.events.find(e=>e.type==='CUTI')?.title||'Cuti Persekolahan':'',teacher,status,data:holiday?{}:copy(data?.data||{}),filledBy:data?.filledBy||'',locked:holiday||status==='LENGKAP',available,
+       canWrite:!holiday&&available&&!!teacher&&(actor.id===teacher||actor.isLeader)&&['BELUM_DIISI','DRAF','PEMBETULAN'].includes(status)&&!['MENUNGGU_GPK','MENUNGGU_GB','DISAHKAN'].includes(st.report.status)};
+   });
+ }
+ function reportLoad(id){
+   if(st.planStatus!=='DITERBITKAN')throw Error('Jana dan terbitkan jadual dahulu.');
+   const actor=reportActor(id);if(!actor.isMember&&!actor.isGPK&&!actor.isGB&&id!=='ADMIN')throw Error('Anda tidak mempunyai akses kepada minggu ini.');
+   return {week:{id:w.id,key:year+'_'+w.id,label:w.label,group:w.group,from:w.from,to:w.to,leader:w.leader,gpk:src.gpk,...copy(st.report),pdfUrl:'',gbPendingAppointment:false},actor,days:reportDays(actor),teachers:src.staff.map(t=>({id:t.id,name:t.name})),corrections:copy(st.corrections),programs:src.programs};
+ }
+ // Same allowed fields/status validation as official report, using snapshot teacher directory.
+ const fields=['speech_gb','speech_duty','speech_discipline','clean_student','clean_teacher','clean_hall','clean_ground','discipline_break','discipline_exit','discipline_assembly','makmur_note','makmur_status','makmur_teacher','makmur_cancel_reason','activities','visitors_status','visitors'];
+ function validate(d,index,complete){
+   if(!d||typeof d!=='object'||Array.isArray(d)||Object.keys(d).some(k=>!fields.includes(k))||JSON.stringify(d).length>45000)throw Error('Data borang tidak sah.');
+   if(!complete)return;
+   const check=(k,allowed,required)=>{if(!allowed.includes(d[k]?.status))throw Error('Pilih status bagi '+k);if(d[k].status===required&&!text(d[k].text,3000))throw Error('Isi penerangan '+k);};
+   ['speech_gb','speech_duty','speech_discipline'].forEach(k=>check(k,['ADA','TIADA'],'ADA'));
+   ['clean_student','clean_teacher','clean_hall','clean_ground'].forEach(k=>check(k,['BERSIH','MEMUASKAN','PERLU_PERHATIAN'],'PERLU_PERHATIAN'));
+   ['discipline_break','discipline_exit',...(d.discipline_assembly!==undefined?['discipline_assembly']:[])].forEach(k=>check(k,['TERKAWAL','MEMUASKAN','PERLU_PERHATIAN'],'PERLU_PERHATIAN'));
+   if(!['ADA','BATAL'].includes(d.makmur_status))throw Error('Status Program Makmur wajib dipilih.');
+   if(d.makmur_status==='BATAL'&&!text(d.makmur_cancel_reason,3000))throw Error('Isi sebab pembatalan Program Makmur.');
+   if(index!==0&&d.makmur_status==='ADA'&&!src.staff.some(s=>s.id===d.makmur_teacher))throw Error('Pilih guru pengendali sah.');
+   if(d.makmur_note!==undefined)text(d.makmur_note,3000);
+   if(!Array.isArray(d.activities)||d.activities.length>30||d.activities.some(a=>!text(a.title,200)||!text(a.desc,3000)))throw Error('Aktiviti tidak sah.');
+   if(!['ADA','TIADA'].includes(d.visitors_status)||!Array.isArray(d.visitors)||d.visitors.length>30||d.visitors.some(v=>!text(v,250))||d.visitors_status==='ADA'&&!d.visitors.length)throw Error('Senarai pelawat tidak sah.');
+ }
+ function reportOp(id,p){
+   if(p.weekId&&String(p.weekId)!==w.id||p.year&&String(p.year)!==year)throw Error('Minggu ujian tidak sepadan.');
+   if(p.op==='tm5Load')return reportLoad(id);
+   const actor=reportActor(id),days=reportDays(actor),day=days.find(d=>d.date===p.date),r=st.report;
+   if(st.planStatus!=='DITERBITKAN')throw Error('Jadual belum diterbitkan.');
+   if(p.op==='tm5SaveDay'){
+     if(!day?.canWrite)throw Error('Hari belum dibuka, terkunci atau anda bukan Guru Laporan / Ketua.');
+     validate(p.data,day.dayIndex,p.complete===true);
+     const status=p.complete?'LENGKAP':day.status==='PEMBETULAN'?'PEMBETULAN':'DRAF';
+     st.daily[day.date]={teacher:day.teacher,data:copy(p.data),filledBy:actor.id,status};
+     if(p.complete)st.corrections.filter(c=>c.Tarikh===day.date&&c.Status==='TERBUKA').forEach(c=>c.Status='SELESAI');
+     log('LAPORAN_HARI',{date:day.date,actor:actor.id,status});return {status,saved:true};
+   }
+   if(p.op==='tm5Reopen'||p.op==='tm5RequestEdit'){
+     if(!day||day.holiday||day.status!=='LENGKAP')throw Error('Hanya laporan lengkap boleh dibuka semula.');
+     if(p.op==='tm5Reopen'&&(!actor.isLeader||!['BELUM_DIHANTAR','LENGKAP','DIPULANGKAN'].includes(r.status)))throw Error('Hanya Ketua Kumpulan boleh membuka semula sebelum penghantaran.');
+     if(p.op==='tm5RequestEdit'&&(r.status!=='MENUNGGU_GPK'||!actor.isLeader&&actor.id!==day.teacher))throw Error('Pindaan selepas semakan tidak dibenarkan.');
+     const reason=text(p.reason,1000);if(reason.length<(p.op==='tm5RequestEdit'?5:1))throw Error('Nyatakan sebab pindaan.');
+     st.daily[day.date].status='PEMBETULAN';r.status='BELUM_DIHANTAR';log('BUKA_SEMULA',{date:day.date,actor:actor.id,reason});return {status:'PEMBETULAN',weekStatus:r.status,date:day.date};
+   }
+   if(p.op==='tm5SaveWeek'){
+     if(!actor.isLeader||!['BELUM_DIHANTAR','LENGKAP','DIPULANGKAN'].includes(r.status)||days.some(d=>!d.holiday&&d.status!=='LENGKAP')||st.clock.slice(0,10)<days.at(-1).date)throw Error('Ketua sahaja, semua hari lengkap dan hari terakhir telah tiba.');
+     const summary=text(p.summary,5000),followup=text(p.followup,3000);if(p.submit&&summary.length<15)throw Error('Ulasan Ketua minimum 15 aksara.');
+     Object.assign(r,{summary,followup,status:p.submit?'MENUNGGU_GPK':'LENGKAP'});log('KETUA',{status:r.status,actor:actor.id});return {status:r.status};
+   }
+   if(p.op==='tm5GpkReview'||p.op==='tm5GBReview'){
+     const gpk=p.op==='tm5GpkReview';
+     if(gpk?(!actor.isGPK||r.status!=='MENUNGGU_GPK'):(!actor.isGB||actor.isGPK||r.status!=='MENUNGGU_GB'))throw Error('Peranan atau status semakan tidak sah.');
+     if(days.some(d=>!d.holiday&&d.status!=='LENGKAP'))throw Error('Laporan harian belum lengkap.');
+     if(p.decision==='RETURN'){
+       if(!Array.isArray(p.corrections)||!p.corrections.length)throw Error('Pilih hari pembetulan.');
+       const seen=new Set(),items=p.corrections.map(c=>{const d=days.find(x=>x.date===c.date&&!x.holiday&&x.status==='LENGKAP');const note=text(c.note,2000);if(!d||!note||seen.has(c.date))throw Error('Hari atau catatan pembetulan tidak sah.');seen.add(c.date);return {...c,note};});
+       for(const c of items){st.daily[c.date].status='PEMBETULAN';st.corrections.push({ID_Arahan:uid(),Tarikh:c.date,Catatan:c.note,Status:'TERBUKA',ID_GPK:actor.id});}
+       r.status='DIPULANGKAN';log('PULANG',{actor:actor.id,dates:[...seen]});return {status:r.status,days:[...seen]};
+     }
+     if(p.decision!=='APPROVE')throw Error('Keputusan tidak sah.');
+     if(gpk){r.gpkNote=text(p.note,3000);r.status='MENUNGGU_GB';}
+     else{r.gbNote=text(p.note,3000);r.status='DISAHKAN';r.verifiedBy=actor.id;r.verifiedName=staff[actor.id]||'';r.verifiedAt=st.clock.replace('T',' ');}
+     log('SEMAKAN',{actor:actor.id,status:r.status});return {status:r.status};
+   }
+   throw Error('Operasi laporan ujian tidak disokong.');
+ }
+ function sample(){
+   if(st.planStatus!=='DITERBITKAN')throw Error('Jana jadual dahulu.');
+   let n=0;for(const d of reportDays(reportActor(w.leader))){
+     if(!d.canWrite||!d.teacher)continue;
+     const v={speech_gb:{status:'TIADA',text:''},speech_duty:{status:'TIADA',text:''},speech_discipline:{status:'TIADA',text:''},clean_student:{status:'BERSIH',text:''},clean_teacher:{status:'BERSIH',text:''},clean_hall:{status:'BERSIH',text:''},clean_ground:{status:'BERSIH',text:''},discipline_break:{status:'TERKAWAL',text:''},discipline_exit:{status:'TERKAWAL',text:''},discipline_assembly:{status:'TERKAWAL',text:''},makmur_status:'ADA',makmur_teacher:active().find(a=>a.date===d.date&&/PROGRAM MAKMUR/i.test(a.taskName))?.staff||d.teacher,makmur_note:'CONTOH UAT — bukan laporan rasmi',makmur_cancel_reason:'',activities:[],visitors_status:'TIADA',visitors:[]};
+     reportOp(d.teacher,{op:'tm5SaveDay',date:d.date,data:v,complete:true});n++;
+   }
+   return {status:'CONTOH_DIISI',count:n};
+ }
+ function rebuildSettings(){
+   const active=x=>String(x.status).toUpperCase()==='AKTIF',types=Object.fromEntries(st.settings.types.filter(active).map(t=>[t.id,t])),windows=[],used=new Set();
+   const matches=(rule,date)=>rule==='Semua Hari'||rule===dayName(date)||rule==='Selasa–Khamis'&&['Selasa','Rabu','Khamis'].includes(dayName(date));
+   const hh=x=>/^([01]\d|2[0-3]):[0-5]\d$/.test(x);
+   for(const d of st.calendar)for(const t of st.settings.times.filter(active)){
+     const date=d.date,task=types[t.task];if(!task||!matches(t.day,date)||t.from&&date<t.from||t.to&&date>t.to)continue;
+     const k=date+'|'+task.id;if(used.has(k))throw Error('Dua tetapan hari bertindih bagi '+task.name);used.add(k);
+     let from='00:00',to='23:59';
+     if(task.mode!=='TANPA_MASA'){
+       if(!hh(t.start))throw Error('Masa mula wajib bagi '+task.name);from=t.start;
+       if(task.mode==='JULAT'){if(!hh(t.end)||t.end<=from)throw Error('Julat masa tidak sah bagi '+task.name);to=t.end;}
+       else{const [h,m]=from.split(':').map(Number),n=h*60+m+15;if(n>=1440)throw Error('Masa mula terlalu lewat.');to=String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');}
+     }
+     for(let position=1;position<=task.min;position++)windows.push({date,day:dayName(date),task:task.id,taskName:task.name,category:task.category,mode:task.mode,from,to,weight:task.weight,position,window:t.id});
+   }
+   if(windows.length>300)throw Error('Had 300 slot.');st.windows=windows;
+ }
+ function settings(p){
+   if(st.planStatus!=='BELUM_JANA')throw Error('Mula Semula Ujian sebelum mengubah tetapan sumber. Jadual sedia ada dilindungi.');
+   const old=copy(st.settings),oldWindows=copy(st.windows);
+   try{
+     const id=p.id||uid();if(p.op==='upsertTask'){
+       const name=text(p.name,120),category=String(p.category),min=Number(p.min),weight=Number(p.weight),mode=p.hasTime==='YA'?/REHAT/i.test(name)?'JULAT':'MULA_SAHAJA':'TANPA_MASA';
+       if(name.length<3||!['BERAT','RINGAN'].includes(category)||!Number.isInteger(min)||min<1||min>15||!Number.isInteger(weight)||weight<1||weight>20)throw Error('Tetapan jenis tugasan tidak sah.');
+       const t={id,name,category,min,weight,mode,status:'Aktif'},i=st.settings.types.findIndex(x=>x.id===id);
+       if(p.id&&i<0)throw Error('Jenis tugasan asal tidak ditemui.');
+       if(i>=0)st.settings.types[i]=t;else st.settings.types.push(t);
+       if(mode==='TANPA_MASA'&&!st.settings.times.some(x=>x.task===id&&String(x.status).toUpperCase()==='AKTIF'))st.settings.times.push({id:uid(),task:id,day:'Semua Hari',level:'Semua',start:'',end:'',from:p.from||year+'-01-01',to:'',count:min,status:'Aktif'});
+       st.settings.times.filter(x=>x.task===id).forEach(x=>x.count=min);
+     }else{
+       const t=st.settings.types.find(x=>x.id===p.task&&String(x.status).toUpperCase()==='AKTIF');
+       if(!t||!['Semua Hari','Isnin','Selasa','Rabu','Khamis','Jumaat','Selasa–Khamis'].includes(p.day)||!['Semua','Tahap 1','Tahap 2'].includes(p.level||'Semua'))throw Error('Jenis tugasan/hari/tahap tidak sah.');
+       const from=p.from||year+'-01-01',to=p.to||'';if(!validDate(from)||to&&(!validDate(to)||to<from))throw Error('Tarikh kuat kuasa tidak sah.');
+       const r={id,task:t.id,day:p.day,level:p.level||'Semua',start:t.mode==='TANPA_MASA'?'':p.start,end:t.mode==='JULAT'?p.end:'',from,to,count:t.min,status:'Aktif'};
+       const i=st.settings.times.findIndex(x=>x.id===id);if(p.id&&i<0)throw Error('Tetapan asal tidak ditemui.');
+       if(i>=0)st.settings.times[i]=r;else st.settings.times.push(r);
+     }
+     rebuildSettings();log('TETAPAN',{op:p.op,id});return {status:'DISIMPAN',id};
+   }catch(e){st.settings=old;st.windows=oldWindows;throw e;}
+ }
+ function global(p){
+   if(p.year&&String(p.year)!==year||p.weekId&&String(p.weekId)!==w.id)throw Error('UAT hanya bagi minggu pilihan.');
+   switch(p.op){
+    case 'bootstrap':return boot();
+    case 'detail':return {week:{...w,mula:w.from,tamat:w.to},plan:boot().weeks[0].pelan,members:w.members,days:[],entries:[],weekly:null,assignments:decorated()};
+    case 'calendarView':return {year,weekId:w.id,days:copy(st.calendar)};
+    case 'tm4Schedule':return schedule();
+    case 'tm4Members':return {status:'SEDIA',...w,weekId:w.id};
+    case 'tm47Audit':return {...core.audit({members:w.members,slots:expected(),rows:st.rows,teaching:src.teaching}),mode:'SIMULASI',weekId:w.id,source:'Snapshot jadual waktu LIVE — ujian setempat'};
+    case 'tm4SetCalendar':return calendar(p);
+    case 'tm4Publish':if(st.planStatus==='BELUM_JANA')throw Error('Jana jadual dahulu.');publishIfComplete();if(st.planStatus!=='DITERBITKAN')throw Error('Masih ada slot kosong.');return {status:st.planStatus,schedule:schedule()};
+    case 'tm46Rebalance':return {...repair(),schedule:schedule()};
+    case 'upsertTask':case 'upsertWindow':return settings(p);
+    default:throw Error('Operasi tidak tersedia dalam ujian setempat: '+p.op);
+   }
+ }
+ function dispatch(op,p={}){
+   switch(op){
+    case 'tm60Bootstrap':case 'tm60Status':return status();
+    case 'tm60Clock':return status(clock(p.clock));
+    case 'tm60Generate':return status(generate());
+    case 'tm60Repair':return status(repair());
+    case 'tm60SaveAbsence':return saveAbsence(p);
+    case 'tm60CancelAbsence':return cancelAbsence(p.id);
+    case 'tm60Report':return reportOp(p.roleId,p.payload||{});
+    case 'tm60Global':return global(p.payload||{});
+    case 'tm62Reset':st=fresh();return status({status:'UJIAN_DIMULAKAN_SEMULA'});
+    case 'tm62Sample':return sample();
+    default:return global({...p,op});
+   }
+ }
+ return {dispatch,export:()=>({snapshot:copy(src),state:copy(st)})};
+}
+
 /* SeMAKMUR Smart Tugasan Mingguan V3.0 · Fi-Sync integrated frontend.
    Strictly authenticated POST; never write directly to Sheets or Firestore. */
 'use strict';
@@ -584,12 +995,16 @@ function tmSignal(type){if(new URLSearchParams(location.search).get('embed')==='
 function tmTrusted(origin){try{const u=new URL(origin);if(u.protocol!=='https:'||u.port||u.username||u.password)return false;const host=u.hostname.toLowerCase();return host==='script.google.com'||host==='script.googleusercontent.com'||host.endsWith('.script.googleusercontent.com')||host.endsWith('-script.googleusercontent.com');}catch{return false;}}
 let tm61Inflight=0;
 async function tmAPI(op,extra={}){
-  if(window.SeMAKMUR_TM5_UI?.sandboxActive?.()&&!String(op).startsWith('tm60')){extra={payload:{...extra,op}};op='tm60Global';}
+  const ui=window.SeMAKMUR_TM5_UI;
+  if(ui?.sandboxActive?.()){
+    if(!ui.localDispatch)throw Error('Sesi ujian tidak tersedia.');
+    return ui.localDispatch(op,extra);
+  }
   tm61Inflight++;
   try{return await tmAPIOnce_(op,extra);}finally{tm61Inflight--;}
 }
 async function tmAPIOnce_(op,extra={}){
-  if(window.SeMAKMUR_TM5_UI?.sandboxActive?.()&&!String(op).startsWith('tm60'))throw Error('Operasi rasmi disekat ketika UAT.');
+  if(window.SeMAKMUR_TM5_UI?.sandboxActive?.())throw Error('Panggilan backend disekat ketika UAT setempat.');
   const user=tmState.auth?.currentUser;
   if(!user)throw Error('Sila log masuk melalui Dashboard Guru terlebih dahulu.');
   const url=String(window.SeMAKMURFiAPIConfig?.webAppExecUrl||'').trim();
@@ -610,7 +1025,7 @@ async function tmAPIOnce_(op,extra={}){
     window.addEventListener('message',onMessage);document.body.append(iframe,form);form.submit();
   });
 }
-async function tmRun(action,after){if(tmState.busy)return;tmBusy(true);tmNotice('');try{return await action();}catch(e){console.error('[Smart Tugasan Mingguan]',e);tmNotice(e.message||String(e),true);tmSignal('semakmur-tm-error');return null;}finally{tmBusy(false);if(after)after();}}
+async function tmRun(action,after){if(window.SeMAKMUR_TM5_UI?.sandboxActive?.()){try{return await action();}catch(e){tmNotice(e.message||String(e),true);return null;}finally{if(after)after();}}if(tmState.busy)return;tmBusy(true);tmNotice('');try{return await action();}catch(e){console.error('[Smart Tugasan Mingguan]',e);tmNotice(e.message||String(e),true);tmSignal('semakmur-tm-error');return null;}finally{tmBusy(false);if(after)after();}}
 
 /* V5.3.5 — paparan PWA ringkas. Desktop kekal penuh. */
 function tmPwaCompact(){return window.matchMedia('(max-width:900px)').matches;}
@@ -955,14 +1370,14 @@ function tmRenderAssignments(){
     entries.forEach(x=>{
       const id=String(x.task||''),title=x.taskName||typeNames[id]||id||'Tugasan';
       if(!grouped.has(id))grouped.set(id,{title,staff:[]});
-      grouped.get(id).staff.push({id:String(x.staff||''),name:tm536TeacherName(x.staff,names[String(x.staff)]||String(x.staff||'Belum ditetapkan'),x.shortName||x.nickname||x.alias)});
+      grouped.get(id).staff.push({id:String(x.staff||''),name:tm536TeacherName(x.staff,names[String(x.staff)]||String(x.staff||'Belum ditetapkan'),x.shortName||x.nickname||x.alias),previousName:x.previousName||'',previousStaff:x.previousStaff||''});
     });
     const sorted=[...grouped.values()].sort((a,b)=>a.title.localeCompare(b.title,'ms'));
     const content=sorted.length?sorted.map(item=>{
       const unique=[...new Map(item.staff.map(s=>[s.id,s])).values()];
       return `<div class="tm-duty-taskrow">
         <div class="tm-duty-taskname"><strong>${tmEsc(item.title)}</strong></div>
-        <div class="tm-duty-teachers">${unique.map(s=>`<span class="tm-duty-person" title="${tmEsc(s.id)}">${tmEsc(s.name)}</span>`).join('')}</div>
+        <div class="tm-duty-teachers">${unique.map(s=>`${tm62TeacherChip(s.name,s.previousName,s.id)}`).join('')}</div>
       </div>`;
     }).join(''):`<div class="tm-duty-no-tasks">${holiday?'Tiada tugasan — cuti':'Tiada tugasan pada hari ini.'}</div>`;
     return `<section class="tm-duty-daycard" data-duty-card="${tmEsc(date)}">
@@ -1214,11 +1629,11 @@ function tm43DayCards(rows,week){
       const title=String(x.taskName||'Tugasan belum dinamakan').trim();
       const key=title.toLocaleLowerCase('ms-MY');
       if(!dutyGroups.has(key))dutyGroups.set(key,{title,teachers:[]});
-      dutyGroups.get(key).teachers.push({name:x.status===pendingStatus?'Belum ditetapkan — Perlu Tindakan':x.name||'Belum ditetapkan',pending:x.status===pendingStatus});
+      dutyGroups.get(key).teachers.push({name:x.status===pendingStatus?'Belum ditetapkan — Perlu Tindakan':x.name||'Belum ditetapkan',pending:x.status===pendingStatus,previousName:x.previousName||'',previousStaff:x.previousStaff||''});
     }
     const duties=[...dutyGroups.values()].map(g=>`<div class="tm45-duty">
       <div class="tm45-task">${tmEsc(g.title)}</div>
-      <div class="tm45-names">${g.teachers.map((t,i)=>`<span class="tm45-teacher${t.pending?' tm45-needs-action':''}">${tmEsc(t.name)}${i<g.teachers.length-1?' ; ':''}</span>`).join('')}</div>
+      <div class="tm45-names">${g.teachers.map((t,i)=>`${t.previousName&&!t.pending?tm62TeacherChip(t.name,t.previousName,''):`<span class="tm45-teacher${t.pending?' tm45-needs-action':''}">${tmEsc(t.name)}</span>`}${i<g.teachers.length-1?' ; ':''}`).join('')}</div>
     </div>`).join('')||'<p class="tm43-no-duty">Tiada tugasan dijana pada hari ini. Semak sama ada hari cuti atau tetapan hari.</p>';
     // Sejarah tidak dibuang; disimpan dalam panel yang tertutup secara lalai.
     const oldRecords=history.length?`<details class="tm45-history"><summary>Sejarah perubahan (${history.length})</summary>
@@ -1314,7 +1729,7 @@ async function tm4Calendar(e){
   e.preventDefault();const args=tm4Input();if(!args.weekId)return tm4Message('Pilih minggu dahulu.',true);
   const more={date:tm$('tm4-cal-date').value,kind:tm$('tm4-cal-kind').value,note:tm$('tm4-cal-note').value};
   if(args.mode==='RASMI'&&!await tm5318Confirm('Sahkan jenis hari RASMI untuk tarikh '+more.date+'?'))return;
-  const r=await tmRun(()=>tmAPI('tm4SetCalendar',{...args,...more}));if(r){tm4Message('Tarikh '+tmFmt(more.date)+' ditetapkan '+r.kind+'.');if(window.SeMAKMUR_TM5_UI?.sandboxActive?.())await window.SeMAKMUR_TM5_UI.reloadGlobal();}
+  const r=await tmRun(()=>tmAPI('tm4SetCalendar',{...args,...more}));if(r){tm4Message('Tarikh '+tmFmt(more.date)+' ditetapkan '+r.kind+'.'+(r.repairStatus?' '+r.repairStatus:''));if(window.SeMAKMUR_TM5_UI?.sandboxActive?.())await window.SeMAKMUR_TM5_UI.reloadGlobal();}
 }
 
 async function tm47LoadAbsences(){
@@ -1584,6 +1999,7 @@ async function tmInit(){tmListeners();tmTab('overview');
     const fb=appMod.getApps().find(x=>x.name==='semakmur-fi-dashboard')||appMod.initializeApp(cfg,'semakmur-fi-dashboard');
     tmState.auth=authMod.getAuth(fb);
     authMod.onAuthStateChanged(tmState.auth,async user=>{
+      try{const key='semakmur-tm62-cache-owner',old=sessionStorage.getItem(key),current=String(user?.uid||'');if(old&&old!==current)sessionStorage.removeItem('semakmur-tm62-uat:'+old);if(current)sessionStorage.setItem(key,current);else sessionStorage.removeItem(key);}catch(e){}
       if(tm51b.authUid!==String(user?.uid||'')){
         tm51bReset();tm51StopListening();window.SeMAKMUR_TM5_UI?.resetAccount?.();
         tmState.detail=null;tmState.data=null;tmTab('overview');
@@ -1946,7 +2362,7 @@ function tm533BindClear(root){
   const reporterKey=(w,year)=>String(tmState.user?.uid||'')+'|'+String(year)+'|'+String(w);
   function clearReportCache(){S.directoryAt=0;S.loaded=false;S.directoryPending=null;
     S.reportCache.clear();S.reportPending.clear();S.activeYear='';}
-  function resetAccount(){SB.active=false;SB.info=null;SB.boot=null;SB.role="ADMIN";S.request++;S.modalRoot?.remove();S.modalRoot=null;S.returnRoot?.remove();S.returnRoot=null;S.reportStop?.();S.reportStop=null;S.reportListenKey='';clearReportCache();S.week=null;S.days=[];S.actor=null;
+  function resetAccount(){if(SB.cacheUid){try{sessionStorage.removeItem('semakmur-tm62-uat:'+SB.cacheUid);}catch(e){}}SB.local=null;SB.cacheUid='';SB.active=false;SB.info=null;SB.boot=null;SB.role="ADMIN";const controls=tm$('tm62-local-controls');if(controls)controls.hidden=true;S.request++;S.modalRoot?.remove();S.modalRoot=null;S.returnRoot?.remove();S.returnRoot=null;S.reportStop?.();S.reportStop=null;S.reportListenKey='';clearReportCache();S.week=null;S.days=[];S.actor=null;
     S.teachers=[];S.corrections=[];S.chosen='';S.screen='fill';S.mobileDetail=false;S.returnPage=false;S.gpkDraftNote='';S.dirty=false;
     chrome();}
   const reportWrites=new Set(['tm5SaveDay','tm5Reopen','tm5RequestEdit','tm5SaveWeek','tm5GpkReview','tm5GBReview']);
@@ -1958,7 +2374,7 @@ function tm533BindClear(root){
   const dayStatus=s=>({CUTI:'Cuti / Tiada laporan',LENGKAP:'Lengkap',DRAF:'Draf',PEMBETULAN:'Perlu pembetulan',BELUM_DIISI:'Belum diisi'}[String(s)]||'Belum diisi');
   const api=async p=>{if(SB.active)return tmAPI("tm60Report",{roleId:SB.role,payload:p});if(typeof window.SeMAKMUR_TM5_API!=='function')throw Error('Sambungan laporan tidak tersedia.');return window.SeMAKMUR_TM5_API(p);};
   const msg=(s='',bad=false)=>{const el=root.querySelector('#tm5-message');if(el){el.textContent=s;el.dataset.error=bad?'1':'0';}};
-  async function call(p){tmProcess('laporan',true,'Memuatkan Laporan Mingguan','Menyemak rekod rasmi…');try{
+  async function call(p){if(!SB.active)tmProcess('laporan',true,'Memuatkan Laporan Mingguan','Menyemak rekod rasmi…');try{
     const raw=await api(p);if(raw?.ok===false||raw?.status==='RALAT')throw Error(raw?.message||raw?.error||'Tindakan tidak berjaya');
     if(reportWrites.has(String(p?.op||''))){
       // Simpanan disahkan oleh Fi-Sync; jangan kekalkan cache laporan lama.
@@ -2233,7 +2649,7 @@ function tm533BindClear(root){
   }
   function tm525MayEdit(d){
     return !!d&&!d.holiday&&d.status==='LENGKAP'&&
-      (S.actor?.isLeader||String(d.teacher)===String(reportMe()))&&
+      (S.actor?.isLeader||(S.week?.status==='MENUNGGU_GPK'&&String(d.teacher)===String(reportMe())))&&
       !['MENUNGGU_GB','DISAHKAN'].includes(String(S.week?.status));
   }
   function tm525SentTabs(){
@@ -2330,7 +2746,7 @@ function tm533BindClear(root){
   async function requestDayEdit(date){
     const d=S.days.find(x=>x.date===date&&x.status==='LENGKAP'&&!x.holiday&&(S.actor?.isLeader||x.teacher===reportMe()));
     if(!d)return msg('Tiada laporan lengkap yang boleh dipinda oleh akaun ini.',true);
-    if(!S.actor?.isLeader&&d.teacher!==reportMe())return msg('Hanya guru laporan hari tersebut atau Ketua boleh membuat pindaan.',true);
+    if(!tm525MayEdit(d))return msg('Hanya Ketua Kumpulan boleh membuka laporan yang dimuktamadkan.',true);
     if(['MENUNGGU_GB','DISAHKAN'].includes(S.week.status))return msg('Laporan tidak boleh diubah selepas sokongan GPK atau pengesahan GB.',true);
     const reason=await tm5318Prompt(`Sebab pindaan laporan ${d.day}, ${showDate(d.date)} (wajib):`);
     if(!reason?.trim())return;
@@ -2791,11 +3207,38 @@ function tm533BindClear(root){
       if(!el)continue;el.setAttribute('aria-checked',String(active));el.setAttribute('aria-label',(active?'Matikan':'Hidupkan')+' Mod Ujian Pentadbir');
     }
   }
+  const cacheKey=uid=>'semakmur-tm62-uat:'+uid;
+  function persistLocal(){
+    if(!SB.local||!SB.cacheUid)return;
+    try{sessionStorage.setItem(cacheKey(SB.cacheUid),JSON.stringify(SB.local.export()));}catch(e){console.warn('UAT cache memory only',e.name);}
+  }
+  function localDispatch(op,p={}){
+    if(!SB.active||!SB.local||SB.cacheUid!==String(tmState.user?.uid||''))throw Error('Sesi ujian tidak sah.');
+    const r=SB.local.dispatch(op,p);
+    // Update cached view and source after every mutation; reads are synchronous.
+    if(!['tm60Status','tm60Bootstrap','detail','calendarView','tm4Schedule','tm4Members','tm47Audit'].includes(op)&&!(op==='tm60Report'&&p.payload?.op==='tm5Load')){
+      const q=SB.local.dispatch('tm60Status');SB.info=q;SB.boot=q.boot;persistLocal();
+    }
+    return r;
+  }
+  async function loadLocal(force=false){
+    const uid=String(tmState.user?.uid||'');if(!uid||!tmManager())throw Error('Admin Sistem diperlukan.');
+    if(!force&&SB.local&&SB.cacheUid===uid)return SB.local.dispatch('tm60Bootstrap');
+    if(!force){try{const raw=sessionStorage.getItem(cacheKey(uid));if(raw){const c=JSON.parse(raw);
+      if(c.snapshot?.build==='V6.2'&&Date.now()-Date.parse(c.snapshot.capturedAt)<86400000){SB.local=tm62LocalSession_(c.snapshot,c.state);SB.cacheUid=uid;return SB.local.dispatch('tm60Bootstrap');}
+    }}catch(e){console.warn('Cache ujian tidak dapat digunakan',e.name);}}
+    if(SB.active)throw Error('Matikan Mod Ujian sebelum memuat semula sumber.');
+    SB.busy=true;tmProcess('uat',true,'Memuatkan Data Ujian Sekali Sahaja','Mengambil Master Staf, giliran, tetapan tugasan dan jadual waktu LIVE…');
+    try{
+      const q=await tmAPIOnce_('tm60Snapshot',{});if(uid!==String(tmState.user?.uid||''))throw Error('Akaun telah berubah.');
+      if(q.build!=='V6.2'||!q.week||!q.windows||!q.teaching)throw Error('Snapshot V6.2 belum tersedia. Semak deployment Apps Script.');
+      SB.local=tm62LocalSession_(q);SB.cacheUid=uid;persistLocal();return SB.local.dispatch('tm60Bootstrap');
+    }finally{SB.busy=false;tmProcess('uat',false);}
+  }
   async function tm60Request(op,payload={}){
-    if(SB.busy)throw Error('Ujian sedang berjalan.');SB.busy=true;
-    const blocking=op!=='tm60Repair';if(blocking)tmProcess('uat',true,'Memproses Ujian Pentadbir','Menggunakan enjin sebenar dalam database UAT…');else tm4Message('Penggantian sedang diproses. Jadual sedia ada masih boleh dilihat.');
-    try{const uid=tmState.user?.uid;const result=await tmAPI(op,payload);if(uid!==tmState.user?.uid)throw Error('Akaun telah berubah.');if(!result.week)throw Error(result.error||'Respons UAT tidak lengkap.');SB.info=result;return result;}
-    finally{SB.busy=false;if(blocking)tmProcess('uat',false);}
+    if(SB.busy)throw Error('Ujian sedang berjalan.');
+    SB.busy=true;try{const q=localDispatch(op,payload);if(!q.week)throw Error('Respons ujian tidak lengkap.');SB.info=q;SB.boot=q.boot;return q;}
+    finally{SB.busy=false;}
   }
   function tm60Tools(){const el=root.querySelector('#tm60-tools');if(el)el.hidden=true;}
   function renderAbsences(){
@@ -2812,10 +3255,10 @@ function tm533BindClear(root){
     tm51.schedule=sc?.status==='DITERBITKAN'?{...sc,year:q.year,weekId:w.weekId,published:true,assignments:sc.assignments.filter(x=>x.status==='DITERBITKAN'),calendarDays:boot.calendar?.days||[],scheduleHash:'UAT-'+String(sc.asOf),warnings:sc.frequencyWarnings||[]}:null;
     tmState.detail=null;tmState.calendar=boot.calendar||null;
     tmRenderOverview();tm525MembersRender();tmRenderSettings();tmRenderDetail();tm51PopulateWeekSelector();
-    tm$('tm51-week-select').value=w.weekId;tm51SetStatus('UAT · salinan ujian');
+    tm$('tm51-week-select').value=w.weekId;tm51SetStatus('UAT · cache setempat');
     const sel=tm$('tm4-week');sel.innerHTML=`<option value="${esc(w.weekId)}">Minggu ${esc(w.label)} · Kumpulan ${esc(w.group)}</option>`;sel.value=w.weekId;sel.disabled=true;
     tm$('tm4-asof').value=q.clock;tm$('tm4-asof').disabled=false;tm$('tm61-clock-go').hidden=false;
-    tm$('tm4-mode-badge').textContent='MOD UJIAN';tm$('tm47-sim-section').hidden=false;
+    tm$('tm4-mode-badge').textContent='UJIAN SETEMPAT · CACHE';tm$('tm62-local-controls').hidden=false;tm$('tm-year').disabled=true;tm$('tm47-sim-section').hidden=false;
     tm$('tm4-absence-form').querySelectorAll('input,select,button').forEach(x=>x.disabled=false);
     tm$('tm4-absence-from').min=w.from;tm$('tm4-absence-to').min=w.from;tm$('tm4-absence-from').max=w.to;tm$('tm4-absence-to').max=w.to;
     if(!tm$('tm4-absence-from').value||tm$('tm4-absence-from').value<w.from||tm$('tm4-absence-from').value>w.to)tm$('tm4-absence-from').value=w.from;
@@ -2823,7 +3266,7 @@ function tm533BindClear(root){
     if(sc)tm4Render(sc);renderAbsences();tm51RenderAudit();
     const role=tm$('tm61-role');role.innerHTML='<option value="ADMIN">Admin Sistem</option>'+(q.roles||[]).map(r=>`<option value="${esc(r.id)}">${esc(r.label+' — '+r.name)}</option>`).join('');role.value=SB.role;if(!role.value){SB.role='ADMIN';role.value='ADMIN';}
     tm$('tm61-clock-label').textContent='Masa ujian: '+q.clock.replace('T',' ');syncDemoControls();
-    tm4Message('UAT · '+q.planStatus+(q.repairPending?' · Penggantian belum selesai.':'')+(q.operation?' · '+(q.operation.status||'')+' · Ganti: '+(q.operation.bilGanti??'—'):''));
+    tm4Message('UAT SETEMPAT · '+q.planStatus+(q.repairPending?' · Penggantian belum selesai.':'')+(q.operation?' · '+(q.operation.status||'')+' · Ganti: '+(q.operation.bilGanti??'—'):''));
     tmState.tm4WeeksLoaded=true;
   }
   async function reloadGlobal(){
@@ -2836,12 +3279,15 @@ function tm533BindClear(root){
     if(tmState.tab==='report-studio')await tm60ReloadReport();return q;
   }
   async function saveAbsence(more){
-    if(!SB.active||SB.busy)return;SB.busy=true;
-    try{const r=await tmAPI('tm60SaveAbsence',more);SB.info.blocks=r.blocks;SB.info.repairPending=r.repairPending;renderAbsences();tm4Message('Keberadaan ujian disimpan. '+(r.repairPending?'Semakan penggantian menyusul.':''));}
-    finally{SB.busy=false;}
-    if(SB.info.week.ready&&SB.info.repairPending){try{await runUAT('tm60Repair');}catch(e){tm4Message('Keberadaan telah disimpan. Penggantian belum disahkan: '+e.message+'. Semak Executions sebelum cuba semula.',true);}}
+    if(!SB.active||SB.busy)return;
+    const r=localDispatch('tm60SaveAbsence',more);renderGlobal();
+    tm4Message('Keberadaan disimpan setempat · '+(r.operation?.bilGanti||0)+' pertukaran · '+(r.operation?.bilBelumSelesai||0)+' belum diisi.');
   }
-  async function cancelAbsence(id){if(!SB.active||SB.busy||!await tm5318Confirm('Batalkan keberadaan UAT?'))return;SB.busy=true;try{const r=await tmAPI('tm60CancelAbsence',{id});SB.info.blocks=r.blocks;SB.info.repairPending=r.repairPending;renderAbsences();tm4Message('Keberadaan dibatalkan. Semak & Ganti jika perlu.');}finally{SB.busy=false;}}
+  async function cancelAbsence(id){
+    if(!SB.active||SB.busy||!await tm5318Confirm('Batalkan rekod keberadaan? Tugasan asal yang belum bermula akan cuba dipulihkan jika layak.'))return;
+    const r=localDispatch('tm60CancelAbsence',{id});renderGlobal();
+    tm4Message('Keberadaan dibatalkan · '+(r.operation?.bilGanti||0)+' pertukaran · '+(r.operation?.bilPulihGagal||0)+' tugas asal belum dapat dipulihkan · semak nama merah.',!!r.operation?.bilPulihGagal);
+  }
   async function tm60ReloadReport(){
     if(S.dirty)return;S.request++;S.week=null;S.days=[];S.actor=null;S.current=null;S.mobileDetail=false;S.returnPage=false;S.gpkDraftNote='';
     if(!SB.info?.week?.ready){setTab('fill');slot().innerHTML='<section class="tm5-card tm5-empty">Jana dan terbit jadual ujian dahulu.</section>';return;}
@@ -2853,10 +3299,10 @@ function tm533BindClear(root){
     S.dirty=false;S.request++;S.reportStop?.();S.reportStop=null;S.reportListenKey='';clearReportCache();
     S.week=null;S.days=[];S.actor=null;S.current=null;S.chosen='';S.mobileDetail=false;
     if(SB.active){
-      SB.active=false;SB.info=null;SB.boot=null;tmState.data=null;tmState.overviewMeta={};tm51StopListening();tm51bReset();tm51.audit=null;tmState.detail=null;tmState.calendar=null;tmState.tm4=null;tmState.weekId=SB.officialWeek||'';tmState.year=SB.officialYear||'2026';tm$('tm-year').value=tmState.year;tm$('tm4-week').disabled=false;tm$('tm61-clock-go').hidden=true;tm$('tm4-rows').innerHTML='';tm$('tm4-fairness').innerHTML='';tm$('tm47-absence-list').innerHTML='';tmRenderOverview();tmRenderDetail();tm525MembersRender();syncDemoControls();await tmBootstrap();if(tmState.tab==='report-studio')await openPrimary();return;
+      SB.active=false;SB.info=null;SB.boot=null;tm$('tm62-local-controls').hidden=true;tm$('tm-year').disabled=false;tmState.data=null;tmState.overviewMeta={};tm51StopListening();tm51bReset();tm51.audit=null;tmState.detail=null;tmState.calendar=null;tmState.tm4=null;tmState.weekId=SB.officialWeek||'';tmState.year=SB.officialYear||'2026';tm$('tm-year').value=tmState.year;tm$('tm4-week').disabled=false;tm$('tm61-clock-go').hidden=true;tm$('tm4-rows').innerHTML='';tm$('tm4-fairness').innerHTML='';tm$('tm47-absence-list').innerHTML='';tmRenderOverview();tmRenderDetail();tm525MembersRender();syncDemoControls();await tmBootstrap();if(tmState.tab==='report-studio')await openPrimary();return;
     }
     SB.officialWeek=tmState.weekId;SB.officialYear=tmState.year;SB.role='ADMIN';
-    try{const q=await tm60Request('tm60Bootstrap');SB.boot=q.boot;tm51StopListening();tm51bReset();SB.active=true;tm$('tm-year').value=q.year;renderGlobal();if(tmState.tab==='report-studio')await tm60ReloadReport();}
+    try{const q=await loadLocal();SB.info=q;SB.boot=q.boot;tm51StopListening();tm51bReset();SB.active=true;tm$('tm-year').value=q.year;renderGlobal();if(tmState.tab==='report-studio')await tm60ReloadReport();}
     catch(e){if(!SB.active){SB.info=null;SB.boot=null;}tmNotice(String(e.message||e),true);}
   }
   function init(){
@@ -2864,6 +3310,25 @@ function tm533BindClear(root){
     document.getElementById('tm61-global-toggle')?.addEventListener('click',guard(toggleDemo));
     document.getElementById('tm61-role')?.addEventListener('change',guard(async e=>{if(S.dirty&&!await tm5318Confirm('Buang perubahan belum disimpan?')){e.target.value=SB.role;return;}S.dirty=false;SB.role=e.target.value;S.week=null;S.request++;if(tmState.tab==='report-studio')await tm60ReloadReport();}));
     document.getElementById('tm61-clock-go')?.addEventListener('click',guard(()=>runUAT('tm60Clock',{clock:tm$('tm4-asof').value})));
+    document.getElementById('tm62-auto')?.addEventListener('click',guard(async()=>{
+      if(!SB.active||!await tm5318Confirm('Jana jadual penuh menggunakan data cuti/keberadaan yang telah disimpan? Masa ujian akan bergerak ke Ahad 18:05 jika belum tiba.'))return;
+      const d=new Date(SB.info.week.from+'T00:00:00Z');d.setUTCDate(d.getUTCDate()-1);const due=d.toISOString().slice(0,10)+'T18:05';
+      await (SB.info.clock<due?runUAT('tm60Clock',{clock:due}):runUAT('tm60Generate'));
+    }));
+    document.getElementById('tm62-reset')?.addEventListener('click',guard(async()=>{
+      if(!SB.active||!await tm5318Confirm('Mula semula ujian setempat? Semua jadual dan laporan contoh dalam sesi ini dikosongkan. Data rasmi tidak berubah.'))return;
+      S.dirty=false;SB.role='ADMIN';await runUAT('tm62Reset');tmTab('smart');
+    }));
+    document.getElementById('tm62-sample')?.addEventListener('click',guard(async()=>{
+      if(!SB.active||!await tm5318Confirm('Isi contoh laporan bagi semua hari yang telah tiba? Ini hanya data ujian dan tidak menghantar kepada GPK.'))return;
+      const r=localDispatch('tm62Sample');renderGlobal();await tm5318Alert(r.count+' laporan contoh dimuktamadkan. Pilih Ketua Kumpulan untuk menguji penghantaran selepas hari terakhir.');
+    }));
+    document.getElementById('tm62-source')?.addEventListener('click',guard(async()=>{
+      if(!SB.active||!await tm5318Confirm('Buang sesi ujian ini dan ambil snapshot sumber terbaru? Data rasmi kekal.'))return;
+      S.dirty=false;SB.active=false;SB.local=null;SB.info=null;SB.boot=null;try{sessionStorage.removeItem(cacheKey(SB.cacheUid));}catch(e){}
+      try{const q=await loadLocal(true);SB.active=true;SB.info=q;SB.boot=q.boot;SB.role='ADMIN';renderGlobal();}
+      catch(e){SB.active=false;syncDemoControls();await tmBootstrap();throw e;}
+    }));
     document.getElementById('tm61-audit')?.addEventListener('click',guard(tm47Audit));
     document.getElementById('tm5311-local-demo-switch')?.addEventListener('click',toggleDemo);
     document.getElementById('tm5311-demo-role')?.addEventListener('change',e=>{
@@ -2889,7 +3354,7 @@ function tm533BindClear(root){
     else if(changed&&S.screen==='fill')msg('Status laporan berubah. Tekan Muat Semula untuk mendapatkan perubahan terkini.');
   }
   window.SeMAKMUR_TM5_UI={openFromOverview:guard(openFromOverview),openPrimary:guard(openPrimary),
-    resume:guard(resume),sandboxActive:()=>SB.active,sandboxInfo:()=>SB.active?SB.info:null,renderGlobal,renderAbsences,reloadGlobal:guard(reloadGlobal),refreshUAT:guard(()=>runUAT('tm60Status')),runUAT:guard(runUAT),saveAbsence:async p=>{try{return await saveAbsence(p);}catch(e){tm4Message(String(e.message||e),true);}},cancelAbsence:async id=>{try{return await cancelAbsence(id);}catch(e){tm4Message(String(e.message||e),true);}},notifyOverview,clearCache:clearReportCache,resetAccount,
+    resume:guard(resume),localDispatch,sandboxActive:()=>SB.active,sandboxInfo:()=>SB.active?SB.info:null,renderGlobal,renderAbsences,reloadGlobal:guard(reloadGlobal),refreshUAT:guard(()=>runUAT('tm60Status')),runUAT:guard(runUAT),saveAbsence:async p=>{try{return await saveAbsence(p);}catch(e){tm4Message(String(e.message||e),true);}},cancelAbsence:async id=>{try{return await cancelAbsence(id);}catch(e){tm4Message(String(e.message||e),true);}},notifyOverview,clearCache:clearReportCache,resetAccount,
     reload:guard(async()=>{if(S.dirty&&!await tm5318Confirm("Buang perubahan belum disimpan?"))return;S.dirty=false;if(SB.active){S.week=null;await reloadGlobal();if(tmState.tab==='report-studio')return tm60ReloadReport();return;}clearReportCache();await fetchWeeks(true);
       if(S.screen==='directory')return directory(false);
       if(S.week)return loadWeek({weekId:S.week.id,year:tmState.year,from:S.week.from},S.screen==='preview',S.current?.date);
@@ -2899,7 +3364,7 @@ function tm533BindClear(root){
 
 
 /* SeMAKMUR V5.3.18 — Dialog rasmi PWA untuk mesej/amaran, persetujuan dan input.
-   Desktop KEKAL menggunakan alert/confirm/prompt asal. Tindakan PWA ialah Promise:
+   Desktop dan PWA menggunakan dialog frontend. Tindakan ialah Promise:
    tidak boleh melangkaui pengesahan hanya kerana dialog visual tidak menyekat thread. */
 function tm5318Mobile(){return window.matchMedia('(max-width: 900px)').matches;}
 function tm5318Dialog(kind,message){
@@ -2957,15 +3422,12 @@ function tm5318Dialog(kind,message){
   });
 }
 async function tm5318Confirm(message){
-  if(!tm5318Mobile())return window.confirm(message);
   return await tm5318Dialog('confirm',message);
 }
 async function tm5318Prompt(message){
-  if(!tm5318Mobile())return window.prompt(message);
   return await tm5318Dialog('prompt',message);
 }
 function tm5318Alert(message){
-  if(!tm5318Mobile()){window.alert(message);return Promise.resolve();}
   return tm5318Dialog('alert',message);
 }
 
@@ -3787,3 +4249,17 @@ function tm5313RevealInvalid(control){
    D.phase='BELUM_DIHANTAR';D.role='GURU';D.popup=null;D.summary='';D.followup='';render();},
   off:()=>{D.on=false;D.root=null;D.days=[];D.mobilePage=false;D.mobileDirty=false;window.dispatchEvent(new CustomEvent('semakmur-tm52-demo-changed',{detail:{on:false}}));}};
 })();
+
+function tm62TeacherChip(name,previous,id){
+  return previous?`<button type="button" class="tm-duty-person tm62-changed" data-tm62-previous="${tmEsc(previous)}" aria-label="Lihat guru sebelum ini">${tmEsc(name)}</button>`:`<span class="tm-duty-person" title="${tmEsc(id)}">${tmEsc(name)}</span>`;
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-tm62-previous]'),old=document.querySelector('.tm62-previous-pop');
+  if(old)old.remove();if(!b)return;
+  const p=document.createElement('div');p.className='tm62-previous-pop';p.setAttribute('role','status');
+  p.textContent='Guru sebelum ini: '+b.dataset.tm62Previous;document.body.append(p);
+  const r=b.getBoundingClientRect(),x=Math.max(8,Math.min(r.left,window.innerWidth-p.offsetWidth-8));
+  p.style.left=x+'px';p.style.top=Math.max(8,Math.min(r.bottom+6,window.innerHeight-p.offsetHeight-8))+'px';
+  setTimeout(()=>p.remove(),6000);
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelector('.tm62-previous-pop')?.remove();});

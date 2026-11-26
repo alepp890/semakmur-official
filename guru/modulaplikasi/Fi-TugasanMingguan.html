@@ -15,7 +15,7 @@
   <script src="../../firebase-pilot-config.js"></script>
   <script src="../../Fi-APIConfig.js"></script>
   
-  <script src="Fi-TugasanMingguan.js?v=6.1" defer></script>
+  <script src="Fi-TugasanMingguan.js?v=6.2" defer></script>
   <style>
   #tm-sim-area{display:none!important}
   #tm-panel-report-studio>.tm49-top,#tm-panel-report-studio>.tm49-layout{display:none!important}
@@ -34,6 +34,25 @@
     #tm-panel-report-studio #tm52-demo-toggle:not([hidden]){display:inline-flex;align-items:center;justify-content:center;min-height:37px;padding:8px 15px;border:1px solid #bad4ec;border-radius:10px;background:#f0f6ff;color:#244d79;font:700 12px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
     #tm-panel-report-studio #tm52-demo-toggle[aria-pressed="true"]{background:linear-gradient(115deg,#168ec8,#245cb4);border-color:#226eaf;color:#fff}
   }
+  /* V6.2: one consistent professional dialog on desktop/PWA. */
+  .tm5318-overlay{position:fixed!important;inset:0!important;z-index:100090!important;background:rgba(15,23,42,.53)!important;backdrop-filter:blur(3px);display:grid!important;place-items:center!important;padding:20px!important}
+  .tm5318-dialog{box-sizing:border-box!important;width:min(100%,440px)!important;max-width:440px!important;background:#fff!important;color:#253444!important;border:1px solid #dee7e5!important;border-radius:20px!important;padding:26px!important;box-shadow:0 20px 70px rgba(10,23,36,.27)!important;text-align:left!important;font:500 14px/1.6 'Plus Jakarta Sans',sans-serif!important}
+  .tm5318-mark{display:grid!important;place-items:center!important;width:46px!important;height:46px!important;border-radius:14px!important;background:#e5f4ec!important;color:#237454!important;font-weight:800!important;font-size:22px!important;margin:0 0 12px!important}
+  .tm5318-dialog h3{font-size:18px!important;margin:0 0 8px!important;color:#173c32!important;font-weight:800!important}
+  .tm5318-dialog p{margin:0 0 16px!important;white-space:pre-wrap!important}
+  .tm5318-dialog textarea{box-sizing:border-box!important;width:100%!important;border:1px solid #ccd9d5!important;border-radius:10px!important;padding:11px!important;font:inherit!important;resize:vertical}
+  .tm5318-actions{display:flex!important;gap:10px!important;justify-content:flex-end!important;margin-top:18px!important}
+  .tm5318-actions button{border-radius:10px!important;padding:10px 18px!important;min-height:42px!important;font:700 14px 'Plus Jakarta Sans',sans-serif!important;cursor:pointer!important}
+  .tm5318-cancel{border:1px solid #d7e1df!important;background:#fff!important;color:#32534a!important}
+  .tm5318-ok{border:1px solid #246f58!important;background:linear-gradient(130deg,#246f58,#185343)!important;color:#fff!important}
+  .tm62-changed{color:#b42318!important;border:0!important;background:transparent!important;font:inherit!important;font-weight:750!important;text-decoration:underline dotted!important;text-underline-offset:3px;cursor:pointer!important;padding:0!important;text-align:left}
+  .tm62-changed:focus-visible{outline:2px solid #b42318;outline-offset:3px;border-radius:4px}
+  .tm62-previous-pop{position:fixed;z-index:100091;max-width:calc(100vw - 16px);padding:10px 14px;border-radius:10px;border:1px solid #efd6d2;background:#fff9f8;color:#842018;box-shadow:0 8px 24px #15252a26;font:650 13px/1.4 'Plus Jakarta Sans',sans-serif;white-space:normal}
+  #tm62-local-controls{margin-top:14px;padding:14px;border:1px solid #d6e8df;border-radius:12px;background:#f0f7f3}
+  #tm62-local-controls strong{color:#235b47}
+  #tm62-local-controls small{display:block;margin:4px 0 10px;color:#526a60;font-size:13px}
+  @media(max-width:500px){.tm5318-dialog{padding:20px!important}.tm5318-actions button{flex:1}}
+  @media print{#tm62-local-controls,.tm62-previous-pop{display:none!important}.tm62-changed{color:#b42318!important}}
   </style>
 </head>
 <body>
@@ -281,6 +300,16 @@
           <button type="button" id="tm4-rebalance" class="tm-btn tm-outline">Imbang Semula Draf</button>
           <button type="button" id="tm4-publish" class="tm-btn tm-ghost">Terbitkan Jadual</button>
         </div>
+        <div id="tm62-local-controls" hidden>
+          <strong>Ujian setempat · Pantas tanpa panggilan backend</strong>
+          <small>Snapshot rujukan kekal dalam sesi tab. Reset tidak memadam sumber rasmi. Isi contoh hanya untuk hari yang telah tiba.</small>
+          <div class="tm-buttons">
+            <button type="button" id="tm62-auto" class="tm-btn tm-primary">Jana Jadual Penuh (Auto)</button>
+            <button type="button" id="tm62-reset" class="tm-btn tm-outline">Mula Semula Ujian</button>
+            <button type="button" id="tm62-sample" class="tm-btn tm-primary">Isi Contoh Semua Laporan</button>
+            <button type="button" id="tm62-source" class="tm-btn tm-ghost">Muat Semula Sumber</button>
+          </div>
+        </div>
         <div id="tm4-status" class="tm-muted" aria-live="polite"></div>
       </section>
       <div class="tm-two-cols">
@@ -297,12 +326,12 @@
               <label>Catatan (pilihan)<input id="tm4-absence-note" maxlength="160" placeholder="Contoh: surat program diterima lebih awal"></label></div>
             <div class="tm-fields"><label>Masa mula (pilihan)<input id="tm4-absence-start" type="time"></label><label>Masa tamat (pilihan)<input id="tm4-absence-end" type="time"></label></div>
             <p class="tm-muted">Kosongkan kedua-dua masa untuk satu hari penuh. Keberadaan <b>di dalam sekolah</b> hanya dicatat dan tidak menyekat agihan. Rekod ini tidak dihantar ke Smart Keberadaan rasmi.</p>
-            <button class="tm-btn tm-primary" type="submit">Simpan Keberadaan &amp; Semak Penggantian</button>
+            <button class="tm-btn tm-primary" type="submit">Simpan Keberadaan &amp; Imbang Jadual</button>
           </form>
           <div class="tm47-absence-list" id="tm47-absence-list"><p class="tm-muted">Pilih minggu untuk melihat senarai ketiadaan dirancang.</p></div>
         </section>
         <section class="tm-card"><div class="tm-section-title"><h2>Tetapan Hari Sekolah / Cuti</h2></div>
-          <p class="tm-muted">Tandakan CUTI sebelum jana jadual. Perubahan mengikuti suis Mod Ujian Pentadbir.</p>
+          <p class="tm-muted">Tandakan CUTI sebelum atau selepas jana jadual, sebelum hari bermula. Dalam mod ujian, baki jadual diimbang serta-merta.</p>
           <form id="tm4-calendar-form" class="tm-form">
             <label>Tarikh<input id="tm4-cal-date" type="date" required></label>
             <label>Jenis Hari<select id="tm4-cal-kind"><option value="CUTI">Cuti / Tiada Persekolahan</option><option value="SEKOLAH">Hari Persekolahan</option></select></label>
