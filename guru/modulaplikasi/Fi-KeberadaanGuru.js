@@ -1,11 +1,35 @@
 /* ===== MERGED: Fi-KeberadaanGuru-V61.js ===== */
 /* Integrated lab UI, no direct Firestore writes. Real identity always checked by backend. */
+// V6.2A: label paparan sahaja. Nilai Firestore, API, pilihan borang dan CSV tidak diubah.
+function krLabel(value){
+ const labels={PAIRING_DITERUSKAN:'GURU PASANGAN KEKAL',PECAH_PAIRING:'GURU PASANGAN DIALIHKAN',
+  PAIRING_TERHENTI:'GURU PASANGAN TIDAK LAGI KEKAL',JADUAL_ASAL_DIPULIHKAN:'RELIEF DIBATALKAN',
+  DIBATALKAN_GPK:'RELIEF DIBATALKAN OLEH GPK',
+  DIBATALKAN_SIM:'RELIEF DIBATALKAN',TIADA_GANTI:'TIADA GURU GANTI',
+  ADMIN_SISTEM:'ADMIN SISTEM',RELIEF_PEMANTAU:'PEMANTAU RELIEF'};
+ const s=String(value??'');
+ const key=s.trim().toUpperCase().replace(/ +/g,'_');
+ if(Object.prototype.hasOwnProperty.call(labels,key))return labels[key];
+ return s.replace(/_/g,' ');
+}
+function krMessage(value){
+ // Format kod status dalam mesej, bukan URL, nama fail atau nilai borang.
+ return String(value??'').replace(/(^|[^\w./-])([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+)(?![\w/-]|\.[A-Za-z0-9])/g,(_,prefix,code)=>prefix+krLabel(code));
+}
+function krRowLabel(r){
+ if(r.status==='DIBATALKAN')return 'RELIEF DIBATALKAN';
+ if(r.status==='PAIRING_DITERUSKAN'||r.status==='JADUAL_ASAL_DIPULIHKAN'||
+    ['DIBATALKAN_GPK','DIBATALKAN_SIM'].includes(r.status))return krLabel(r.status);
+ if(r.status==='DIAGIH'&&r.assignmentMode==='PECAH_PAIRING')return krLabel(r.assignmentMode);
+ return krLabel(r.status||r.assignmentMode||'—');
+}
+
 (()=>{'use strict';
  const $=id=>document.getElementById(id),esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),bridge=()=>window.KB61Bridge;
  let state=null,busy=false,serial=0,officialBusy=false;
  const names={TIDAK_HADIR:'MIA — Tidak Hadir Tanpa Makluman',MIA:'MIA — Tidak Hadir Tanpa Makluman',KELUAR:'Kebenaran keluar',RASMI:'Urusan rasmi',KECEMASAN:'Kecemasan / keluar',MC:'MC',CRK:'CRK',CTR:'CTR'};
- function text(id,s,error=false){const n=$(id);n.textContent=s;n.classList.toggle('kb61-error',error);}
- function options(rows){return rows.map(s=>`<option value="${esc(s.id)}">${esc(s.name)} · ${esc(s.category)}</option>`).join('');}
+ function text(id,s,error=false){const n=$(id);n.textContent=krMessage(s);n.classList.toggle('kb61-error',error);}
+ function options(rows){return rows.map(s=>`<option value="${esc(s.id)}">${esc(s.name)} · ${esc(krLabel(s.category))}</option>`).join('');}
  function eventAt(){return $('kb61-clock').value==='CUSTOM'?$('kb61-clock-custom').value:$('kb61-clock').value;}
  function fillSelect(id,items,selected){const n=$(id),old=selected||n.value;n.innerHTML=items.map(x=>`<option value="${esc(x.value)}">${esc(x.label)}</option>`).join('');if(items.some(x=>x.value===old))n.value=old;}
  function times(res){
@@ -29,7 +53,7 @@
   if(res.lastAt&&eventAt()<res.lastAt){if(items.some(x=>x.value===res.lastAt))$('kb61-clock').value=res.lastAt;else{$('kb61-clock').value='CUSTOM';custom.value=res.lastAt;}}
   $('kb61-clock-custom-row').hidden=$('kb61-clock').value!=='CUSTOM';
  }
- function showNotice(message,error=false){const n=$('kb61-notice');n.hidden=!message;n.textContent=message||'';n.classList.toggle('kb61-notice-ok',!error);n.classList.toggle('kb61-notice-error',error);}
+ function showNotice(message,error=false){const n=$('kb61-notice');n.hidden=!message;n.textContent=krMessage(message);n.classList.toggle('kb61-notice-ok',!error);n.classList.toggle('kb61-notice-error',error);}
  function role(){return $('kb61-role').value;}
  function ready(){return bridge()?.roles().includes('ADMIN_SISTEM');}
  function date(){return $('kb61-date').value;}
@@ -41,13 +65,13 @@
   else if(role()==='GPK'){if(r.docMock&&!r.docReviewed)opts.push(['SEMAK_BUKTI','Semak bukti']);if(['MC','KECEMASAN','KELUAR','MIA','TIDAK_HADIR'].includes(r.type)||r.type==='RASMI'&&r.scope==='DALAM')opts.push(['SOKONG','Sokong / sahkan'],['TOLAK','Tidak sokong']);if(r.type==='KECEMASAN'&&r.task==='UMUM')opts.push(['KATEGORI','Tentukan kategori akhir']);if(['MIA','TIDAK_HADIR'].includes(r.type))opts.push(['BATAL','Betulkan / Batal MIA']);}else opts.push(['BATAL_GB','GB · Batal keberadaan']);}
   const prev=$('kb61-action').value;$('kb61-action').innerHTML=opts.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');if(opts.some(x=>x[0]===prev))$('kb61-action').value=prev;$('kb61-final-row').hidden=$('kb61-action').value!=='KATEGORI';$('kb61-act').querySelector('button').disabled=!opts.length||busy||!!state?.sourceError||!!state?.archived;}
  function render(res){state=res;times(res);showNotice(res.sourceError|| (res.archived?'Snapshot ujian lama. Simpan eksport jika perlu dan kosongkan tarikh ujian untuk jana dengan LIVE.':res.notice||''),!!res.sourceError||!!res.archived);if(!$('kb61-end-date').value||$('kb61-end-date').value<date())$('kb61-end-date').value=date();const st=$('kb61-staff'),old=st.value;st.innerHTML=options(res.staff||[]);if([...st.options].some(o=>o.value===old))st.value=old;
-  const records=res.records||[],active=records.filter(r=>r.lifecycle==='AKTIF');const target=$('kb61-target'),prev=target.value;target.innerHTML=active.map(r=>`<option value="${esc(r.key)}">${esc(r.name)} · ${esc(names[r.type]||r.type)} · ${esc(r.from)}</option>`).join('');if(active.some(r=>r.key===prev))target.value=prev;$('kb61-act').hidden=!active.length;
-  $('kb61-records').innerHTML=records.length?`<table class="kb61-table"><thead><tr><th>Guru / Kategori</th><th>Pematuhan</th><th>Kesan</th></tr></thead><tbody>${records.map(r=>`<tr><td><strong>${esc(r.name)}</strong><small>${esc(names[r.finalType||r.type]||r.type)} · ${esc(r.from)}–${esc(r.to)} · ${esc(r.registeredByRole)}${r.seriesDays>1?` · Siri ${esc(r.seriesStart)} → ${esc(r.seriesEnd)}`:''}</small></td><td>${esc(r.compliance.replace(/_/g,' '))}${r.docMock?'<small>Bukti simulasi '+(r.docReviewed?'disemak':'ada')+'</small>':''}</td><td>${r.lifecycle==='TAMAT_AWAL'?(r.type==='RASMI'&&r.scope==='DALAM'&&r.task==='SEKAT_CALON'?`Tugas tamat ${esc(r.returnAt)} · Sekatan calon ditarik balik`:`Kembali awal ${esc(r.returnAt)} · Waktu seterusnya dipulihkan`):r.lifecycle==='DIBATALKAN'?(r.gbKeepRelief?'Tidak sah · Relief diterbitkan kekal':'Dibatalkan · Tidak aktif'):r.effect==='MENUNGGU_GPK'?'Menunggu GPK · Tiada relief':r.effect==='SEKAT_CALON'?'Sekat calon':'Relief diperlukan'}${r.actions?.length?`<details><summary>Log (${r.actions.length})</summary>${r.actions.map(a=>`<small>${esc(a.asRole)} · ${esc(a.kind)} · ${esc(a.note)}</small>`).join('')}</details>`:''}</td></tr>`).join('')}</tbody></table>`:'<p>Tiada rekod ujian. Boleh jana hari tanpa ketidakhadiran.</p>';
+  const records=res.records||[],active=records.filter(r=>r.lifecycle==='AKTIF');const target=$('kb61-target'),prev=target.value;target.innerHTML=active.map(r=>`<option value="${esc(r.key)}">${esc(r.name)} · ${esc(names[r.type]||krLabel(r.type))} · ${esc(r.from)}</option>`).join('');if(active.some(r=>r.key===prev))target.value=prev;$('kb61-act').hidden=!active.length;
+  $('kb61-records').innerHTML=records.length?`<table class="kb61-table"><thead><tr><th>Guru / Kategori</th><th>Pematuhan</th><th>Kesan</th></tr></thead><tbody>${records.map(r=>`<tr><td><strong>${esc(r.name)}</strong><small>${esc(names[r.finalType||r.type]||krLabel(r.type))} · ${esc(r.from)}–${esc(r.to)} · ${esc(krLabel(r.registeredByRole))}${r.seriesDays>1?` · Siri ${esc(r.seriesStart)} → ${esc(r.seriesEnd)}`:''}</small></td><td>${esc(krLabel(r.compliance))}${r.docMock?'<small>Bukti simulasi '+(r.docReviewed?'disemak':'ada')+'</small>':''}</td><td>${r.lifecycle==='TAMAT_AWAL'?(r.type==='RASMI'&&r.scope==='DALAM'&&r.task==='SEKAT_CALON'?`Tugas tamat ${esc(r.returnAt)} · Sekatan calon ditarik balik`:`Kembali awal ${esc(r.returnAt)} · Waktu seterusnya dipulihkan`):r.lifecycle==='DIBATALKAN'?(r.gbKeepRelief?'Tidak sah · Relief diterbitkan kekal':'Dibatalkan · Tidak aktif'):r.effect==='MENUNGGU_GPK'?'Menunggu GPK · Tiada relief':r.effect==='SEKAT_CALON'?'Sekat calon':'Relief diperlukan'}${r.actions?.length?`<details><summary>Log (${r.actions.length})</summary>${r.actions.map(a=>`<small>${esc(krLabel(a.asRole))} · ${esc(krLabel(a.kind))} · ${esc(krMessage(a.note))}</small>`).join('')}</details>`:''}</td></tr>`).join('')}</tbody></table>`:'<p>Tiada rekod ujian. Boleh jana hari tanpa ketidakhadiran.</p>';
   const pending=res.revision!==res.appliedRevision;
   text('kb61-state',res.conflict?'Tarikh ini sudah dijana dalam Makmal e-Relief biasa. Reset minggu/tarikh di modul tersebut dahulu.':`${active.length} rekod aktif · ${active.filter(r=>r.compliance!=='LENGKAP').length} belum lengkap · ${res.lastAt?'Agihan terakhir '+res.lastAt:'Belum jana 7.25 pagi'}${pending?' · Ada perubahan belum diterapkan':''} · ${res.timetableVersion?'LIVE '+res.timetableVersion:'Jadual LIVE tidak tersedia'}`);
   if(!res.lastAt&&$('kb61-clock').value!=='CUSTOM')$('kb61-clock').value='07:25';$('kb61-run').disabled=res.conflict||busy||!!res.sourceError||!!res.archived||!res.slots?.length;
   const s=res.summary,o=res.optimization;const rs=res.rows||[];
-  $('kb61-result').innerHTML=s?`<p><strong>${Number(s.diagih||0)} diagih · ${Number(s.tiada||0)} kosong · ${Number(s.pairingDiteruskan||0)} pairing diteruskan · ${Number(s.handover||0)} serah tugas · ${Number(s.dipulihkan||0)} dipulihkan</strong></p>${o?`<p>${esc(o.solver||'Reshuffle')}: ${esc(o.before)} → ${esc(o.after)} · ${o.provenMaximum?'Optimum model':'Optimum belum dibuktikan'}${o.emergencyAuto?' · Kecemasan auto: '+(o.emergencyTeachers||[]).length+' guru relief ketiga':''}</p>`:''}<div class="kb61-scroll"><table class="kb61-table"><thead><tr><th>Waktu</th><th>Kelas / subjek</th><th>Guru ganti / penerus</th><th>Status</th></tr></thead><tbody>${rs.map(r=>`<tr><td>W${esc(r.periodNo||'—')}<small>${esc(r.from)}–${esc(r.to)}</small></td><td>${esc(r.className||r.classId)} · ${esc(r.subject)}<small>${esc((r.originalNames||[]).join(' / '))}</small></td><td>${esc(r.replacementName||(r.continuingNames||[]).join(' / ')||'—')}</td><td>${esc(r.manualBackup?'MANUAL '+r.manualTier:r.emergencyAuto?'KECEMASAN AUTO':r.assignmentMode==='PECAH_PAIRING'?'PECAH PAIRING':r.status.replace(/_/g,' '))}</td></tr>`).join('')}</tbody></table></div>${(res.historyRows||[]).length?`<div class="kb61-restored"><h4>Jadual asal dipulihkan · ${res.historyRows.length} slot</h4><div class="kb61-scroll"><table class="kb61-table"><thead><tr><th>Waktu</th><th>Kelas / Subjek</th><th>Guru hakiki kembali</th><th>Status</th></tr></thead><tbody>${res.historyRows.map(r=>`<tr><td>W${esc(r.periodNo)} · ${esc(r.from)}–${esc(r.to)}</td><td>${esc(r.className||r.classId)} · ${esc(r.subject)}</td><td>${esc((r.originalNames||[]).join(' / '))}</td><td>JADUAL ASAL DIPULIHKAN</td></tr>`).join('')}</tbody></table></div></div>`:''}`:'<p>Belum ada hasil agihan integrasi.</p>';actions();}
+  $('kb61-result').innerHTML=s?`<p><strong>${Number(s.diagih||0)} diagih · ${Number(s.tiada||0)} kosong · ${Number(s.pairingDiteruskan||0)} guru pasangan kekal · ${Number(s.handover||0)} serah tugas · ${Number(s.dipulihkan||0)} dipulihkan</strong></p>${o?`<p>${esc(o.solver||'Reshuffle')}: ${esc(o.before)} → ${esc(o.after)} · ${o.provenMaximum?'Optimum model':'Optimum belum dibuktikan'}${o.emergencyAuto?' · Kecemasan auto: '+(o.emergencyTeachers||[]).length+' guru relief ketiga':''}</p>`:''}<div class="kb61-scroll"><table class="kb61-table"><thead><tr><th>Waktu</th><th>Kelas / subjek</th><th>Guru ganti / penerus</th><th>Status</th></tr></thead><tbody>${rs.map(r=>`<tr><td>W${esc(r.periodNo||'—')}<small>${esc(r.from)}–${esc(r.to)}</small></td><td>${esc(r.className||r.classId)} · ${esc(r.subject)}<small>${esc((r.originalNames||[]).join(' / '))}</small></td><td>${esc(r.replacementName||(r.continuingNames||[]).join(' / ')||'—')}</td><td>${esc(r.manualBackup?'MANUAL '+r.manualTier:r.emergencyAuto?'KECEMASAN AUTO':krRowLabel(r))}</td></tr>`).join('')}</tbody></table></div>${(res.historyRows||[]).length?`<div class="kb61-restored"><h4>Jadual asal dipulihkan · ${res.historyRows.length} slot</h4><div class="kb61-scroll"><table class="kb61-table"><thead><tr><th>Waktu</th><th>Kelas / Subjek</th><th>Guru hakiki kembali</th><th>Status</th></tr></thead><tbody>${res.historyRows.map(r=>`<tr><td>W${esc(r.periodNo)} · ${esc(r.from)}–${esc(r.to)}</td><td>${esc(r.className||r.classId)} · ${esc(r.subject)}</td><td>${esc((r.originalNames||[]).join(' / '))}</td><td>RELIEF DIBATALKAN</td></tr>`).join('')}</tbody></table></div></div>`:''}`:'<p>Belum ada hasil agihan integrasi.</p>';actions();}
  async function call(action,payload={},label='Menyimpan rekod ujian…'){if(busy||!ready())return;busy=true;const my=++serial,day=date();const panel=$('panel-makmal');const disabled=[...panel.querySelectorAll('button,input,select')].map(n=>[n,n.disabled]);disabled.forEach(([n])=>n.disabled=true);$('kb61-loading').hidden=false;$('kb61-loading').textContent=label;
   try{const result=await bridge().api(action,{date:day,revision:state?.revision??0,...payload});if(my===serial&&ready()&&day===date()){render(result);return result;}return null;}
   catch(e){if(my===serial){text('kb61-state',e.message||String(e),true);showNotice(e.message||String(e),true);}return null;}
@@ -108,7 +132,7 @@ function needActionForRole(r){
 }
 function needsTeacherAction(r){return r.lifecycle!=='DIBATALKAN'&&r.ownerUid===user?.uid&&(docRequired(r)&&!r.docPath||r.registeredByAdmin&&!r.teacherExplanation);}
 function reminderOutstanding(r){return r.lifecycle!=='DIBATALKAN'&&needAttention(r);}
-function showMessage(msg='',kind='info'){const a=$('alert');a.hidden=!msg;a.textContent=msg;a.style.background=kind==='error'?'#fff0f1':'#fff5e7';a.style.color=kind==='error'?'#a2454e':'#855815';}
+function showMessage(msg='',kind='info'){const a=$('alert');a.hidden=!msg;a.textContent=krMessage(msg);a.style.background=kind==='error'?'#fff0f1':'#fff5e7';a.style.color=kind==='error'?'#a2454e':'#855815';}
 function toast(msg){$('toast').textContent=msg;$('toast').hidden=false;setTimeout(()=>{$('toast').hidden=true},3600)}
 function showActionError(error){
  const message=String(error?.message||error||'Tindakan gagal.');
@@ -117,7 +141,7 @@ function showActionError(error){
   if(!node){node=document.createElement('div');node.id='fi-action-error';node.setAttribute('role','alert');
    node.style.cssText='margin:10px 0;padding:12px 14px;border:1px solid #eab3b3;border-radius:10px;background:#fff0f1;color:#9f2935;font-size:13px;line-height:1.6;white-space:pre-wrap;';
    $('dialog-content').prepend(node);}
-  node.textContent='Tindakan belum berjaya: '+message;
+  node.textContent='Tindakan belum berjaya: '+krMessage(message);
   node.scrollIntoView({block:'nearest'});
  }else showMessage('Tindakan belum berjaya: '+message,'error');
  console.error('Fi e-Keberadaan:',message);
@@ -276,11 +300,11 @@ function renderReminders(){
  $('reminders-total').textContent=x.length+' rekod';showList('reminder-list',x,'remind');
 }
 
-function reliefTag(r){return ({DIAGIH:'Guru Ganti Ditugaskan',TIADA_GANTI:'Tiada Guru Ganti',DIBATALKAN:'Dibatalkan',DIBATALKAN_GPK:'Dibatalkan GPK',PERLU_SERAH_TUGAS:'Perlu Serah Tugas'})[r.status]||r.status||'Belum Agih';}
+function reliefTag(r){if(r.status==='DIAGIH'&&r.assignmentMode==='PECAH_PAIRING')return 'Guru Pasangan Dialihkan';return ({DIAGIH:'Guru Ganti Ditugaskan',TIADA_GANTI:'Tiada Guru Ganti',DIBATALKAN:'Relief Dibatalkan',DIBATALKAN_GPK:'Relief Dibatalkan oleh GPK',PAIRING_DITERUSKAN:'Guru Pasangan Kekal',JADUAL_ASAL_DIPULIHKAN:'Relief Dibatalkan',PERLU_SERAH_TUGAS:'Perlu Serah Tugas'})[r.status]||krLabel(r.status)||'Belum Agih';}
 function reliefItem(r,admin=false){
  const tone=r.status==='DIAGIH'?'success':r.status==='TIADA_GANTI'||r.status==='PERLU_SERAH_TUGAS'?'warning':'neutral';
  const controls=admin&&has('GPK')&&['DIAGIH','TIADA_GANTI','DIBATALKAN_GPK'].includes(r.status)?`<div class="actions"><button class="secondary mini" type="button" data-relief-action="replaceSlot" data-relief-id="${esc(r.id)}">Tukar / Pilih Guru</button><button class="danger mini" type="button" data-relief-action="cancelSlot" data-relief-id="${esc(r.id)}">Batalkan Relief</button></div>`:'';
- return `<div class="item" style="padding:11px"><div class="detail-line"><strong>${esc(r.teacherName||'Guru asal')}</strong> · ${esc(niceDay(r.date))} · ${esc(r.from||'')}–${esc(r.to||'')}</div><div class="detail-line">${esc(r.className||r.classId||'Kelas')} · ${esc(r.subject||'')} <span class="pill ${tone}">${esc(reliefTag(r))}</span></div>${r.replacementName?`<div class="detail-line">Guru ganti: <strong>${esc(r.replacementName)}</strong></div>`:''}${r.notes?`<div class="detail-line">${esc(r.notes)}</div>`:''}${controls}</div>`;
+ return `<div class="item" style="padding:11px"><div class="detail-line"><strong>${esc(r.teacherName||'Guru asal')}</strong> · ${esc(niceDay(r.date))} · ${esc(r.from||'')}–${esc(r.to||'')}</div><div class="detail-line">${esc(r.className||r.classId||'Kelas')} · ${esc(r.subject||'')} <span class="pill ${tone}">${esc(reliefTag(r))}</span></div>${r.replacementName?`<div class="detail-line">Guru ganti: <strong>${esc(r.replacementName)}</strong></div>`:''}${r.notes?`<div class="detail-line">${esc(krMessage(r.notes))}</div>`:''}${controls}</div>`;
 }
 function renderReliefQueue(){
  const q=$('relief-queue');if(!q)return;
@@ -315,7 +339,7 @@ function closeDialog(){$('dialog').hidden=true;$('dialog-content').innerHTML='';
 function openDialog(title,html){lastPopupFocus=document.activeElement;$('dialog-title').textContent=title;$('dialog-content').innerHTML=html;$('dialog').hidden=false;$('dialog-close').focus();}
 function confirmAction(r,action){
  const titles={kb64ReturnEarly:'Saya Kembali Bertugas · Pulihkan Jadual',cancelRequest:'Batalkan Permohonan Keberadaan',cancelMyRelief:'Saya Boleh Mengajar — Batalkan Relief',reviewProof:'Semak Dokumen',support:'Sokong Keberadaan',reject:'Tidak Sokong',final:'Tentukan Jenis Cuti',upload:'Muat Naik Dokumen',remind:'Rekod Peringatan',kb61Explain:'Penjelasan Guru',kb61Classify:'Tentukan Kategori',kb61Cancel:'Batalkan Rekod Pentadbir',kb61Support:'Sahkan Rekod',kb61Reject:'Tidak Sokong',kb62GbCancel:'Guru Besar · Batalkan Keberadaan'};
- let body=`<p><strong>${esc(r.ownerName||'Guru')}</strong> · ${esc(TYPE[r.type]||r.type)} · ${esc(niceDay(r.start))}</p>`;
+ let body=`<p><strong>${esc(r.ownerName||'Guru')}</strong> · ${esc(TYPE[r.type]||krLabel(r.type))} · ${esc(niceDay(r.start))}</p>`;
  if(action==='upload')body+='<div class="fieldrow"><label for="add-file">Pilih PDF/JPG/PNG</label><input id="add-file" type="file" accept=".pdf,.jpg,.jpeg,.png"></div>';
  if(action==='final'||action==='kb61Classify')body+='<div class="fieldrow"><label for="final-type">Jenis cuti akhir</label><select id="final-type"><option value="CRK">CRK</option><option value="CTR">CTR</option><option value="MC">MC</option><option value="KECEMASAN">Kekal Kecemasan</option></select></div>';
  if(action!=='upload'&&action!=='final')body+='<div class="fieldrow"><label for="admin-note">'+(['cancelRequest','cancelMyRelief','reviewProof'].includes(action)?'Sebab tindakan (wajib)':'Catatan ringkas')+'</label><textarea id="admin-note" rows="2" maxlength="200"></textarea></div>';
@@ -454,7 +478,7 @@ async function submit(ev){ev.preventDefault();if(busy)return;let d;try{d=payload
  {const audit=fns.doc(fns.collection(db,'semakmur_fi_keberadaan_audit'));rec.revision=1;rec.lastActionId=audit.id;rec.updatedByEmail=user.email;const b=fns.writeBatch(db);b.set(fns.doc(db,'semakmur_fi_keberadaan',id),rec);b.set(audit,{requestId:id,ownerUid:user.uid,action:'CREATE',byUid:user.uid,byEmail:user.email,revision:1,gpkStatus:rec.gpkStatus,relief:rec.relief,finalType:rec.finalType,testMode:rec.testMode,at:fns.serverTimestamp()});await b.commit();}
  if(d.file){$('form-status').textContent='Rekod disimpan. Memuat naik lampiran ke Google Drive…';try{await uploadProof(id,d.file);}catch(uploadError){$('form-status').textContent='Permohonan telah direkodkan tetapi fail belum disimpan: '+(uploadError.message||uploadError);tab='status';draw();return;}}
  $('apply-form').reset();$('start').value=localDay();$('end').value=localDay();syncForm();tab='status';draw();toast('Rekod keberadaan dihantar.');
- }catch(e){$('form-status').textContent='Gagal menyimpan: '+(e.code||e.message||e);}finally{busy=false;$('submit').disabled=false;if($('form-status').textContent==='Menyimpan…')$('form-status').textContent='';}}
+ }catch(e){$('form-status').textContent='Gagal menyimpan: '+krMessage(e.code||e.message||e);}finally{busy=false;$('submit').disabled=false;if($('form-status').textContent==='Menyimpan…')$('form-status').textContent='';}}
 
 const FI_EMBED=new URLSearchParams(location.search).get('embed')==='1';
 function tellDashboard(type,message=''){
