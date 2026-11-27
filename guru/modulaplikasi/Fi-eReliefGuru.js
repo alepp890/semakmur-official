@@ -41,6 +41,8 @@ function warn(text,error=false){const el=$('message');el.hidden=!text;el.textCon
 function metrics(data){return data.map(x=>`<div class="metric"><strong>${esc(x[0])}</strong><span>${esc(x[1])}</span></div>`).join('');}
 function badge(status){const s=String(status||''),warning=/TIADA|PERLU/.test(s),critical=/BATAL/.test(s);return `<span class="pill ${critical?'critical':warning?'warn':''}">${esc(s)}</span>`;}
 function shortSlot(x){const m=String(x||'').match(/SLOT[-_]0*(\d+)$/i);return m?'Slot '+Number(m[1]):String(x||'');}
+// V6.2: pairing transfer is not an added teaching period. Legacy final audits counted both.
+function reliefTambahanAudit(a){if(!a||a.reliefSelepas==null)return '—';return Math.max(0,Number(a.reliefSelepas)-(a.reliefCountMode==='ADDITIONAL_ONLY'?0:Number(a.pairingPecah||0)));}
 function listTable(r,own=false){if(!r.length)return '<p class="empty">Tiada tugasan relief untuk tarikh ini.</p>';
  const group={};r.forEach(x=>{const key=(x.originalNames||[]).join(' / ')||'Guru tidak hadir';(group[key]||(group[key]=[])).push(x);});
  let html='<table><thead><tr><th>Waktu</th><th>Subjek</th><th>Kelas</th><th>Guru Ganti</th><th>Kaedah</th><th>Status</th>'+((own||roles.includes('GPK'))?'<th>Tindakan</th>':'')+'</tr></thead><tbody>';
@@ -48,10 +50,10 @@ function listTable(r,own=false){if(!r.length)return '<p class="empty">Tiada tuga
   html+=`<tr class="group"><td colspan="${(own||roles.includes('GPK'))?7:6}">Guru tidak hadir: ${esc(name)}</td></tr>`;
   records.forEach(x=>{html+=`<tr><td><strong>${esc((x.periodNo?'W'+x.periodNo:shortSlot(x.slotId)))}</strong><br><small>${esc(x.from)}–${esc(x.to)}</small></td>
    <td>${esc(x.subject)}</td><td>${esc(x.className||x.classId)}</td><td><strong>${esc(x.replacementName||'Belum diagih')}</strong></td>
-   <td>${esc(x.assignmentMode)}${x.phase==='BACKUP'?' · Backup':''}
+   <td>${esc(x.assignmentMode)}${x.phase==='BACKUP'?' · Backup':''}${x.emergencyAuto?' · Kecemasan auto':''}
     ${x.auditSummary?`<details class="fi-v55-official-audit"><summary>Audit agihan</summary><small>
     Hakiki: ${esc((x.auditSummary.slotsHakiki||[]).join(', '))||'—'};
-    ${esc(x.auditSummary.hakiki)}H + ${esc(x.auditSummary.reliefSelepas)}R = ${esc(x.auditSummary.totalSelepas)} waktu;
+    ${esc(x.auditSummary.hakiki)}H + ${esc(reliefTambahanAudit(x.auditSummary))}R = ${esc(x.auditSummary.totalSelepas)} waktu;
     Berturut: ${esc(x.auditSummary.berturutSelepas)} / ${esc(x.auditSummary.hadBerturut||'—')};
     Relief minggu sebelum dipilih: ${esc(x.auditSummary.reliefMingguSebelum)};
     Keputusan: ${esc(x.auditSummary.keputusan)}.
@@ -390,7 +392,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  function teacherLoadText(staffId,date){const staff=state.week?.staff?.find(s=>s.id===staffId);
   const d=staff?.daily?.[date];if(!d)return '';
   const text=[d.hakiki==null?'Hakiki arkib tidak disahkan':`${d.hakiki} Hakiki`];
-  if(d.pairing)text.push(`- ${d.pairing} Pecah Pairing`);
+  if(d.pairing)text.push(`· ${d.pairing} Pecah Pairing`);
   if(d.relief)text.push(`+ ${d.relief} Relief`);
   if(d.pending)text.push(`· ${d.pending} Perlu Serah Tugas`);
   return text.join(' ');
@@ -400,14 +402,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const valid=a.keputusan==='LULUS_SYARAT_JADUAL'&&Number(a.totalSelepas)<=Number(a.hadHarian)&&(!limit||max<=limit);
   const wlist=(list)=>Array.isArray(list)&&list.length?list.join(', '):'—';
   const others=(a.calonAlternatif||[]).map(t=>`${t.nama}: ${t.hakiki}H, ${t.reliefHari}R (minggu ${t.reliefMinggu}R)`).join(' · ');
-  return `<details class="fi-v55-audit-row"><summary>Audit Agihan · ${esc(valid?'Lulus had jadual':'Perlu semakan')} · ${esc(a.hakiki)}H${a.pairingPecah?' − '+esc(a.pairingPecah)+'P':''} + ${esc(a.reliefSelepas)}R = ${esc(a.totalSelepas)} waktu</summary>
+  return `<details class="fi-v55-audit-row"><summary>Audit Agihan · ${esc(valid?'Lulus had jadual':'Perlu semakan')} · ${esc(a.hakiki)}H + ${esc(reliefTambahanAudit(a))}R = ${esc(a.totalSelepas)} waktu${a.pairingPecah?' · '+esc(a.pairingPecah)+' pecah pairing':''}</summary>
    <div class="fi-v55-audit-grid"><span>Hakiki asal<strong>${esc(wlist(a.slotsHakikiW))}</strong></span>
    <span>Relief diberikan<strong>${esc(wlist(a.slotsReliefW))}</strong></span>
    ${a.pairingPecah?`<span>Pecah pairing<strong>${esc(wlist(a.slotsPecahW))}</strong></span>`:''}
-   <span>Beban selepas<strong>${esc(a.hakiki)}H${a.pairingPecah?' − '+esc(a.pairingPecah)+'P':''} + ${esc(a.reliefSelepas)}R = ${esc(a.totalSelepas)} waktu</strong></span>
-   <span>Had maksimum<strong>${esc(a.hadHarian)} waktu · ${esc(a.hadRelief??'—')} relief${a.manualTier?' · Manual Tahap '+esc(a.manualTier):''}</strong></span>
+   <span>Beban selepas<strong>${esc(a.hakiki)}H + ${esc(reliefTambahanAudit(a))}R = ${esc(a.totalSelepas)} waktu${a.pairingPecah?' · '+esc(a.pairingPecah)+' pecah pairing':''}</strong></span>
+   <span>Had maksimum<strong>${esc(a.hadHarian)} waktu · ${esc(a.hadRelief??'—')} relief${a.manualTier?' · Manual Tahap '+esc(a.manualTier):a.emergencyAuto?' · Kecemasan auto':''}</strong></span>
    <span>Berturut-turut<strong>${esc(max)} / ${esc(limit||'Belum dinilai')} waktu</strong></span>
-   <span>Relief minggu sebelum dipilih<strong>${esc(a.reliefMingguSebelum||0)}</strong></span>
+   <span>Relief minggu sebelum dipilih<strong>${esc(a.reliefMingguSebelum||0)}</strong></span><span>Relief bulan sebelum dipilih<strong>${esc(a.reliefBulanSebelum??'—')}</strong></span>
    <span>Pusingan<strong>${esc(a.pusingan||'—')}</strong></span>
    <span>Calon layak dalam pusingan<strong>${esc(a.calonLayakPusingan||0)}</strong></span></div>
    ${others?`<p class="fi-v55-audit-note"><b>Contoh alternatif pusingan sama:</b> ${esc(others)}</p>`:''}
@@ -429,8 +431,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const handover=r.status==='PERLU_SERAH_TUGAS';
     const empty=r.status==='TIADA_GANTI';
     const label=pairing?'Hakiki kekal · 0 Relief tambahan':restored?'Jadual hakiki dipulihkan':
-     r.audit?`${r.audit.hakiki} Hakiki${r.audit.pairingPecah?' − '+r.audit.pairingPecah+' Pecah Pairing':''} + ${r.audit.reliefSelepas} Relief`:teacherLoadText(r.replacementId,date);
-    const status=r.manualBackup&&r.status==='DIAGIH'?`MANUAL ${r.manualTier||1}`:pairing?'PAIRING DITERUSKAN':restored?'JADUAL DIPULIHKAN':handover?'PERLU SERAH TUGAS':
+     r.audit?`${r.audit.hakiki} Hakiki + ${reliefTambahanAudit(r.audit)} Relief${r.audit.pairingPecah?' · '+r.audit.pairingPecah+' Pecah Pairing':''}`:teacherLoadText(r.replacementId,date);
+    const status=r.manualBackup&&r.status==='DIAGIH'?`MANUAL ${r.manualTier||1}`:r.emergencyAuto&&r.status==='DIAGIH'?'KECEMASAN AUTO':pairing?'PAIRING DITERUSKAN':restored?'JADUAL DIPULIHKAN':handover?'PERLU SERAH TUGAS':
      empty?'BELUM DIAGIH':r.assignmentMode==='PECAH_PAIRING'?'PECAH PAIRING':r.assignmentMode==='BNK'?'BNK':
      r.assignmentMode==='PRAKTIKAL'?'PRAKTIKAL':r.assignmentMode||'BIASA';
     const teacher=pairing?(r.continuingNames||[]).join(' / '):restored?(r.originalNames||[]).join(' / '):
@@ -454,21 +456,21 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  }
  function renderDays(){const week=state.week;if(!week)return;
   el('sim53-week-title').textContent=`Minggu ${week.weekStart} hingga ${week.weekEnd}`;
-  el('sim53-totals').textContent=`${week.totals.generatedDays}/5 hari · ${week.totals.assigned} relief · ${week.totals.pairing} pecah pairing · ${week.totals.continued||0} pairing diteruskan`;
+  el('sim53-totals').textContent=`${week.totals.generatedDays}/5 hari · ${week.totals.extraRelief??(week.totals.assigned-week.totals.pairing)} relief tambahan · ${week.totals.pairing} pecah pairing · ${week.totals.continued||0} pairing diteruskan`;
   el('sim53-days').innerHTML=week.days.length?week.days.map(d=>`<button type="button" class="fi-v53-day" data-open-day="${esc(d.date)}"
-   aria-pressed="${d.date===selectedDate()}">${esc(d.date)} <strong>${Number(d.summary?.diagih||0)} relief</strong>${d.timetableVersion?'<small>LIVE '+esc(d.timetableVersion)+'</small>':''}${(d.archived||d.policyVersion!=='V6.0-MAKMAL')?'<small>Versi lama · perlu jana semula</small>':''}</button>`).join(''):
+   aria-pressed="${d.date===selectedDate()}">${esc(d.date)} <strong>${Number(d.summary?.diagih||0)} relief</strong>${d.timetableVersion?'<small>LIVE '+esc(d.timetableVersion)+'</small>':''}${(d.archived||d.policyVersion!=='V6.2-MAKMAL')?'<small>Versi lama · perlu jana semula</small>':''}</button>`).join(''):
    '<p class="empty">Minggu ini belum mempunyai simulasi. Jana satu hari untuk bermula.</p>';
  }
  function renderWeekly(){const w=state.week;if(!w)return;
   const dates=[0,1,2,3,4].map(i=>{const d=new Date(w.weekStart+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+i);return d.toISOString().slice(0,10);});
-  const suffix=d=>d?`${d.hakiki==null?'— H':d.hakiki+'H'}${d.pairing?` −${d.pairing}P`:''}${d.relief?` +${d.relief}R`:''}`:'—';
+  const suffix=d=>d?`${d.hakiki==null?'— H':d.hakiki+'H'}${d.relief?` +${d.relief}R`:''}${d.pairing?` · ${d.pairing}P`:''}`:'—';
   el('sim53-week-stats').innerHTML=`<table class="fi-v53-stat-table"><thead><tr><th>Guru</th><th>Kategori_Staf</th>
    ${dates.map(d=>`<th>${esc(['Isn','Sel','Rab','Kha','Jum'][dates.indexOf(d)])}<small>${esc(d.slice(8))}</small></th>`).join('')}
-   <th>Relief minggu</th><th>Pecah pairing</th></tr></thead><tbody>
+   <th>Relief ujian</th><th>Pecah pairing</th><th>Asas minggu*</th><th>Asas bulan*</th></tr></thead><tbody>
    ${(w.staff||[]).map(s=>`<tr><td><strong>${esc(s.name)}</strong></td><td>${esc(s.category)}</td>
     ${dates.map(d=>`<td>${esc(suffix(s.daily?.[d]))}${s.daily?.[d]?`<small class="fi-v56-stats-w">H: ${esc((s.daily[d].hakikiW||[]).join(', ')||'—')} · R: ${esc((s.daily[d].reliefW||[]).join(', ')||'—')}</small>`:''}</td>`).join('')}
-    <td><strong>${s.totalRelief}</strong></td><td>${s.totalPairing}</td></tr>`).join('')}</tbody></table>
-   <small class="fi-v53-footnote">H = Hakiki, R = Relief tambahan, P = Pecah Pairing. “—” bermaksud belum dijana atau hakiki arkib tidak disahkan; bukan 0 waktu. Jumlah adalah simulasi, bukan rasmi.</small>`;
+    <td><strong>${s.totalRelief}</strong></td><td>${s.totalPairing}</td><td>${w.selected?.fairness?Number(w.selected.fairness.weeklyLoad?.[s.id]||0):"—"}</td><td>${w.selected?.fairness?Number(w.selected.fairness.monthlyLoad?.[s.id]||0):"—"}</td></tr>`).join('')}</tbody></table>
+   <small class="fi-v53-footnote">H = Hakiki, R = Relief tambahan, P = Pecah Pairing. “—” bermaksud belum dijana atau hakiki arkib tidak disahkan; bukan 0 waktu. Jumlah ujian ialah simulasi sahaja. *Asas minggu/bulan sebelum tarikh dipilih: rekod rasmi dengan penggantian tarikh Makmal terdahulu (tiada kiraan dua kali). P tidak menambah R.</small>`;
  }
  function renderEvents(day){const canceled=new Set((day?.events||[]).filter(e=>e.kind==='CANCEL').map(e=>e.targetKey));
   const targets=[...(day?.cases||[]).map(c=>({key:c.key,staffId:c.staffId,name:c.name,type:c.type})),
@@ -496,7 +498,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const manualWarningNote=manualWarnings.length?`<p class="fi-v56-optimize-note" style="border-color:#e7b98c;background:#fff8ed;color:#875018">Manual Backup perlu disemak semula: ${esc(manualWarnings.join(' · '))}</p>`:'';
   const optimizer=day.events?.length?day.emergencyOptimization:day.optimization;
   const optimizerLabel=(optimizer?.solver==='MILP'?'Global Optimization':'Smart Reshuffle (fallback)')+(day.events?.length?' Susulan':' Agihan Utama');
-  const optimizeNote=optimizer?`<p class="fi-v56-optimize-note">${esc(optimizerLabel)}: ${esc(optimizer.before)} → ${esc(optimizer.after)} slot · +${esc(optimizer.added)} diselamatkan · ${esc(optimizer.changes)} pertukaran · ${esc(optimizer.pairingSplit)} pecah pairing · baki ${esc(optimizer.remaining)}${optimizer.provenMaximum?' · optimum model disahkan':optimizer.limitReached?' · had carian / optimum belum dibuktikan':' · optimum belum dibuktikan'}${optimizer.solverFailure?' · '+esc(optimizer.solverFailure):''}</p>`:'';
+  const optimizeNote=optimizer?`<p class="fi-v56-optimize-note">${esc(optimizerLabel)}: ${esc(optimizer.before)} → ${esc(optimizer.after)} slot · +${esc(optimizer.added)} diselamatkan · ${esc(optimizer.changes)} pertukaran · ${esc(optimizer.pairingSplit)} pecah pairing · baki ${esc(optimizer.remaining)}${optimizer.provenMaximum?' · optimum model disahkan':optimizer.limitReached?' · had carian / optimum belum dibuktikan':' · optimum belum dibuktikan'}${optimizer.emergencyAuto?' · KECEMASAN AUTO: relief ketiga selepas GPK · '+esc((optimizer.emergencyTeachers||[]).length)+' guru':''}${optimizer.solverFailure?' · '+esc(optimizer.solverFailure):''}</p>`:'';
   const restored=(day.historyRows||[]).length?`<details open class="fi-v53-changes"><summary>Jadual asal dipulihkan (${day.historyRows.length}) — bukan relief</summary>
    ${renderCards(day.historyRows,day.date)}</details>`:'';
   el('sim53-day-results').innerHTML=`${day.integrationId?'<p class="fi-v56-optimize-note">Sumber: Makmal e-Keberadaan V6.1. Daftar, batal dan kejadian susulan melalui e-Keberadaan; Manual Backup kekal di sini.</p>':''}${optimizeNote}${manualWarningNote}<h3 class="fi-v53-final-title">Jadual aktif selepas perubahan (SIMULASI)</h3>
@@ -536,7 +538,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const headers=['Tarikh','Slot_ID','Kelas','Subjek','Masa_Mula','Masa_Tamat','Guru_Ganti','ID_Staf','Status','Hakiki','Relief_Selepas','Jumlah','Had_Harian','Berturut','Had_Berturut','Relief_Minggu_Sebelum','Pusingan','Keputusan'];
   const data=(day.rows||[]).filter(x=>x.replacementId).map(r=>{const a=r.audit||{};
    return [day.date,r.slotId,r.classId,r.subject,r.from,r.to,r.replacementName,r.replacementId,r.status,
-    a.hakiki??'',a.reliefSelepas??'',a.totalSelepas??'',a.hadHarian??'',a.berturutSelepas??'',a.hadBerturut??'',a.reliefMingguSebelum??'',a.pusingan??'',a.keputusan||'BELUM_DIAUDIT'];});
+    a.hakiki??'',reliefTambahanAudit(a),a.totalSelepas??'',a.hadHarian??'',a.berturutSelepas??'',a.hadBerturut??'',a.reliefMingguSebelum??'',a.pusingan??'',a.keputusan||'BELUM_DIAUDIT'];});
   const csv='\ufeff'+[headers,...data].map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');
   const obj=new Blob([csv],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(obj),link=document.createElement('a');
   link.href=u;link.download='SeMAKMUR_Audit_Relief_SIMULASI_'+day.date+'.csv';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);
@@ -606,7 +608,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    message(`${result.deletedCount} rekod simulasi dipadam. ${all?'Semua minggu milik Admin ini':'Minggu terpilih'} kini boleh dijana semula. Cuti sebenar tidak diubah.`);
   });
  }
- function manualFormula(c,after){const p=after?c.pecahSelepas:c.pecahPairing,r=after?c.reliefSelepas:c.reliefHari,b=after?c.bebanSelepas:c.bebanSekarang;return `${c.hakiki}H${p?' − '+p+'P':''} + ${r}R = ${b} waktu`;}
+ function manualFormula(c,after){const p=after?c.pecahSelepas:c.pecahPairing,r=after?c.reliefSelepas:c.reliefHari,b=after?c.bebanSelepas:c.bebanSekarang;return `${c.hakiki}H + ${r}R = ${b} waktu${p?' · '+p+' pecah pairing':''}`;}
  function updateManualInfo(){const c=(state.manualCandidates||[]).find(x=>x.staffId===el('sim56-manual-list').value);const panel=el('sim60-manual-info');
   panel.innerHTML=c?`<strong>${esc(c.name)} · ${esc(c.category)}</strong><span>Sekarang: ${esc(manualFormula(c,false))}</span><span>Selepas dipilih: <b>${esc(manualFormula(c,true))}</b> / ${esc(c.maksimumHarian)} waktu</span><span>Relief minggu: ${esc(c.reliefMinggu)} → ${esc(c.reliefMingguSelepas)} · Berturut: ${esc(c.berturutSelepas)}/${esc(c.hadBerturut)}${c.mode==='PECAH_PAIRING'?' · Pecah pairing baharu':''}</span>`:'';}
  async function openManualSlot(reliefId){
@@ -696,7 +698,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  const esc56=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const qs=id=>document.getElementById(id);
  let chosen='',chosenDate='',candidates=[];
- function formula(c,after){const p=after?c.pecahSelepas:c.pecahPairing,r=after?c.reliefSelepas:c.reliefHari;return `${c.hakiki}H${p?' − '+p+'P':''} + ${r}R = ${after?c.bebanSelepas:c.bebanSekarang} waktu`;}
+ function formula(c,after){const p=after?c.pecahSelepas:c.pecahPairing,r=after?c.reliefSelepas:c.reliefHari;return `${c.hakiki}H + ${r}R = ${after?c.bebanSelepas:c.bebanSekarang} waktu${p?' · '+p+' pecah pairing':''}`;}
  function updateInfo(){const c=candidates.find(x=>x.staffId===qs('fi56-official-staff').value);qs('fi60-official-info').textContent=c?'Sekarang: '+formula(c,false)+' · Selepas: '+formula(c,true)+' · Relief minggu: '+c.reliefMinggu+' → '+c.reliefMingguSelepas+' · Berturut: '+c.berturutSelepas+'/'+c.hadBerturut:'';}
  function display(){
   const host=qs('daily-list');if(!host||!authorized()||typeof rows==='undefined')return;
@@ -841,7 +843,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
        ${metric('Subjek',record.subject)}${metric('Kelas',record.className||record.classId)}
        ${metric('Waktu','Waktu '+slot(record))}${metric('Masa',time(record.from)+'–'+time(record.to))}
        ${metric('Kaedah',record.assignmentMode||'—')}${metric('Status',status)}
-       ${metric('Fasa',record.phase||'UTAMA')}${metric('Pelaksanaan',record.completed?'Disahkan guru':'Belum disahkan')}
+       ${metric('Fasa',record.emergencyAuto?'KECEMASAN AUTO':record.phase||'UTAMA')}${metric('Pelaksanaan',record.completed?'Disahkan guru':'Belum disahkan')}
        ${record.manualTier?metric('Manual Backup','Tahap '+record.manualTier):''}
       </div></div>`;
     let extra='';
@@ -850,10 +852,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const total=(a.totalSelepas??'—');
       extra=`<div class="fi-v66-audit-card"><h3>Audit Beban Guru</h3><div class="fi-v66-audit-grid">
          ${metric('Waktu hakiki',a.hakiki??'—')}${metric('Pecah pairing',pairing)}
-         ${metric('Relief selepas agihan',a.reliefSelepas??'—')}${metric('Beban selepas',total+' waktu')}
+         ${metric('Relief tambahan selepas agihan',reliefTambahanAudit(a))}${metric('Beban selepas',total+' waktu')}
          ${metric('Had harian',a.hadHarian!=null?a.hadHarian+' waktu':'—')}
          ${metric('Berturut-turut',(a.berturutSelepas??'—')+' / '+(a.hadBerturut??'—'))}
-         ${metric('Relief minggu sebelum dipilih',a.reliefMingguSebelum??'—')}${metric('Pusingan',a.pusingan||'—')}
+         ${metric('Relief minggu sebelum dipilih',a.reliefMingguSebelum??'—')}${metric('Relief bulan sebelum dipilih',a.reliefBulanSebelum??'—')}${metric('Pusingan',a.pusingan||'—')}
        </div></div>
        <div class="fi-v66-audit-card"><h3>Butiran Jadual</h3>
          <div class="fi-v66-audit-full"><strong>Hakiki asal</strong><div class="fi-v66-audit-list">${listSlots(a.slotsHakikiW?.length?a.slotsHakikiW:a.slotsHakiki)}</div></div>
