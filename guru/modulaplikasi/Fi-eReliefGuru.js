@@ -40,14 +40,14 @@ function fiReliefShellSignal(type,message=''){
 function warn(text,error=false){const el=$('message');el.hidden=!text;el.textContent=text||'';el.classList.toggle('error',error);}
 function metrics(data){return data.map(x=>`<div class="metric"><strong>${esc(x[0])}</strong><span>${esc(x[1])}</span></div>`).join('');}
 function badge(status){const s=String(status||''),warning=/TIADA|PERLU/.test(s),critical=/BATAL/.test(s);return `<span class="pill ${critical?'critical':warning?'warn':''}">${esc(s)}</span>`;}
-function shortSlot(x){const m=String(x||'').match(/SLOT[-_]0*(\d+)$/i);return m?'W'+Number(m[1]):String(x||'');}
+function shortSlot(x){const m=String(x||'').match(/SLOT[-_]0*(\d+)$/i);return m?'Slot '+Number(m[1]):String(x||'');}
 function listTable(r,own=false){if(!r.length)return '<p class="empty">Tiada tugasan relief untuk tarikh ini.</p>';
  const group={};r.forEach(x=>{const key=(x.originalNames||[]).join(' / ')||'Guru tidak hadir';(group[key]||(group[key]=[])).push(x);});
  let html='<table><thead><tr><th>Waktu</th><th>Subjek</th><th>Kelas</th><th>Guru Ganti</th><th>Kaedah</th><th>Status</th>'+((own||roles.includes('GPK'))?'<th>Tindakan</th>':'')+'</tr></thead><tbody>';
  Object.entries(group).forEach(([name,records])=>{
   html+=`<tr class="group"><td colspan="${(own||roles.includes('GPK'))?7:6}">Guru tidak hadir: ${esc(name)}</td></tr>`;
-  records.forEach(x=>{html+=`<tr><td><strong>${esc(shortSlot(x.slotId))}</strong><br><small>${esc(x.from)}–${esc(x.to)}</small></td>
-   <td>${esc(x.subject)}</td><td>${esc(x.classId)}</td><td><strong>${esc(x.replacementName||'Belum diagih')}</strong></td>
+  records.forEach(x=>{html+=`<tr><td><strong>${esc((x.periodNo?'W'+x.periodNo:shortSlot(x.slotId)))}</strong><br><small>${esc(x.from)}–${esc(x.to)}</small></td>
+   <td>${esc(x.subject)}</td><td>${esc(x.className||x.classId)}</td><td><strong>${esc(x.replacementName||'Belum diagih')}</strong></td>
    <td>${esc(x.assignmentMode)}${x.phase==='BACKUP'?' · Backup':''}
     ${x.auditSummary?`<details class="fi-v55-official-audit"><summary>Audit agihan</summary><small>
     Hakiki: ${esc((x.auditSummary.slotsHakiki||[]).join(', '))||'—'};
@@ -208,7 +208,7 @@ function simTable(d){const r=d.rows||[],initial=new Map((d.mainRows||[]).map(x=>
 }
 function simDayTable(d){const r=d.rows||[];return `<div class="section-head"><h3>${esc(d.date)}</h3><span class="sub">${r.length} waktu | ${r.filter(x=>x.status==='DIAGIH').length} diagih</span></div>
  <div class="table-holder"><table><thead><tr><th>Waktu</th><th>Kelas</th><th>Subjek</th><th>Guru ganti</th><th>Kaedah</th><th>Catatan pemilihan</th></tr></thead><tbody>${r.map(x=>`<tr>
- <td>${esc(shortSlot(x.slotId))}</td><td>${esc(x.classId)}</td><td>${esc(x.subject)}</td><td>${esc(x.replacementName||'Tiada')}</td><td>${badge(x.assignmentMode)}</td><td>${esc(x.policyNote)}</td></tr>`).join('')}</tbody></table></div>`;}
+ <td>${esc((x.periodNo?'W'+x.periodNo:shortSlot(x.slotId)))}</td><td>${esc(x.className||x.classId)}</td><td>${esc(x.subject)}</td><td>${esc(x.replacementName||'Tiada')}</td><td>${badge(x.assignmentMode)}</td><td>${esc(x.policyNote)}</td></tr>`).join('')}</tbody></table></div>`;}
 async function simulate(){const absentIds=selectedIds('absent-staff'),emergencyIds=selectedIds('emergency-staff');if(!absentIds.length){warn('Pilih sekurang-kurangnya seorang guru tidak hadir.',true);return;}
  $('generate-simulation').disabled=true;warn('Menjana simulasi dengan enjin V5.1…');
  try{const data=await api('relief51Simulate',{date:$('sim-date').value,absentIds,emergencyIds,
@@ -389,7 +389,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  function currentDay(){return state.week?.selected||null;}
  function teacherLoadText(staffId,date){const staff=state.week?.staff?.find(s=>s.id===staffId);
   const d=staff?.daily?.[date];if(!d)return '';
-  const text=[`${d.hakiki} Hakiki`];
+  const text=[d.hakiki==null?'Hakiki arkib tidak disahkan':`${d.hakiki} Hakiki`];
   if(d.pairing)text.push(`- ${d.pairing} Pecah Pairing`);
   if(d.relief)text.push(`+ ${d.relief} Relief`);
   if(d.pending)text.push(`· ${d.pending} Perlu Serah Tugas`);
@@ -442,7 +442,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const mode=pairing?'is-pairing':restored?'is-restored':handover?'is-handover':empty?'is-unfilled':'is-relief';
     return `<article class="fi-v56-row ${mode}">
       <div class="fi-v56-col fi-v56-time"><span class="fi-v56-key">WAKTU</span><strong>${esc(shortTime(r))}</strong><small>${esc(r.from)}–${esc(r.to)}</small></div>
-      <div class="fi-v56-col fi-v56-subject"><span class="fi-v56-key">SUBJEK / KELAS</span><strong>${esc(r.subject||'—')}</strong><small>${esc(r.classId||'—')}</small></div>
+      <div class="fi-v56-col fi-v56-subject"><span class="fi-v56-key">SUBJEK / KELAS</span><strong>${esc(r.subject||'—')}</strong><small>${esc(r.className||r.classId||'—')}</small></div>
       <div class="fi-v56-col fi-v56-teacher"><span class="fi-v56-key">${esc(teacherTitle.toUpperCase())}</span><strong>${esc(teacher)}</strong><small>${esc(label||'—')}</small>${absent}${proposed}</div>
       <div class="fi-v56-col fi-v56-status"><span class="fi-v56-key">STATUS</span><span class="fi-v56-pill">${esc(status)}</span></div>
       ${!pairing&&!restored?auditDetails(r):''}
@@ -456,19 +456,19 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   el('sim53-week-title').textContent=`Minggu ${week.weekStart} hingga ${week.weekEnd}`;
   el('sim53-totals').textContent=`${week.totals.generatedDays}/5 hari · ${week.totals.assigned} relief · ${week.totals.pairing} pecah pairing · ${week.totals.continued||0} pairing diteruskan`;
   el('sim53-days').innerHTML=week.days.length?week.days.map(d=>`<button type="button" class="fi-v53-day" data-open-day="${esc(d.date)}"
-   aria-pressed="${d.date===selectedDate()}">${esc(d.date)} <strong>${Number(d.summary?.diagih||0)} relief</strong>${d.policyVersion!=='V6.0-MAKMAL'?'<small>Versi lama · perlu jana semula</small>':''}</button>`).join(''):
+   aria-pressed="${d.date===selectedDate()}">${esc(d.date)} <strong>${Number(d.summary?.diagih||0)} relief</strong>${d.timetableVersion?'<small>LIVE '+esc(d.timetableVersion)+'</small>':''}${(d.archived||d.policyVersion!=='V6.0-MAKMAL')?'<small>Versi lama · perlu jana semula</small>':''}</button>`).join(''):
    '<p class="empty">Minggu ini belum mempunyai simulasi. Jana satu hari untuk bermula.</p>';
  }
  function renderWeekly(){const w=state.week;if(!w)return;
   const dates=[0,1,2,3,4].map(i=>{const d=new Date(w.weekStart+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+i);return d.toISOString().slice(0,10);});
-  const suffix=d=>d?`${d.hakiki}H${d.pairing?` −${d.pairing}P`:''}${d.relief?` +${d.relief}R`:''}`:'—';
+  const suffix=d=>d?`${d.hakiki==null?'— H':d.hakiki+'H'}${d.pairing?` −${d.pairing}P`:''}${d.relief?` +${d.relief}R`:''}`:'—';
   el('sim53-week-stats').innerHTML=`<table class="fi-v53-stat-table"><thead><tr><th>Guru</th><th>Kategori_Staf</th>
    ${dates.map(d=>`<th>${esc(['Isn','Sel','Rab','Kha','Jum'][dates.indexOf(d)])}<small>${esc(d.slice(8))}</small></th>`).join('')}
    <th>Relief minggu</th><th>Pecah pairing</th></tr></thead><tbody>
    ${(w.staff||[]).map(s=>`<tr><td><strong>${esc(s.name)}</strong></td><td>${esc(s.category)}</td>
     ${dates.map(d=>`<td>${esc(suffix(s.daily?.[d]))}${s.daily?.[d]?`<small class="fi-v56-stats-w">H: ${esc((s.daily[d].hakikiW||[]).join(', ')||'—')} · R: ${esc((s.daily[d].reliefW||[]).join(', ')||'—')}</small>`:''}</td>`).join('')}
     <td><strong>${s.totalRelief}</strong></td><td>${s.totalPairing}</td></tr>`).join('')}</tbody></table>
-   <small class="fi-v53-footnote">H = Hakiki, R = Relief tambahan, P = Pecah Pairing. “—” bermaksud hari belum dijana, bukan guru mempunyai 0 waktu. Jumlah adalah simulasi, bukan rasmi.</small>`;
+   <small class="fi-v53-footnote">H = Hakiki, R = Relief tambahan, P = Pecah Pairing. “—” bermaksud belum dijana atau hakiki arkib tidak disahkan; bukan 0 waktu. Jumlah adalah simulasi, bukan rasmi.</small>`;
  }
  function renderEvents(day){const canceled=new Set((day?.events||[]).filter(e=>e.kind==='CANCEL').map(e=>e.targetKey));
   const targets=[...(day?.cases||[]).map(c=>({key:c.key,staffId:c.staffId,name:c.name,type:c.type})),
@@ -490,7 +490,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    const c=(day.changes||[]).filter(x=>x.eventKey===ev.eventKey);
    return `<details open class="fi-v53-changes"><summary>${esc(ev.at)} · ${esc(ev.kind==='KB_UPDATE'?'Kemas kini Keberadaan':ev.kind==='CANCEL'?'Batal cuti':'Kecemasan')}: ${esc(ev.name)} (${c.length} perubahan)</summary>
     ${c.length?`<div class="fi-v53-table-scroll"><table><thead><tr><th>Slot / Masa</th><th>Kelas</th><th>Jenis perubahan</th><th>Sebelum</th><th>Selepas</th></tr></thead><tbody>
-    ${c.map(x=>`<tr><td>${esc(x.slotId)} · ${esc(x.time)}</td><td>${esc(x.classId)}</td><td>${esc(x.type.replace(/_/g,' '))}</td><td>${esc(x.old)}</td><td>${esc(x.new)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted-note">Tiada perubahan pada agihan aktif.</p>'}</details>`;
+    ${c.map(x=>`<tr><td>${esc(x.slotId)} · ${esc(x.time)}</td><td>${esc(x.className||x.classId)}</td><td>${esc(x.type.replace(/_/g,' '))}</td><td>${esc(x.old)}</td><td>${esc(x.new)}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted-note">Tiada perubahan pada agihan aktif.</p>'}</details>`;
   }).join('');
   const manualWarnings=day.manualWarnings||[];
   const manualWarningNote=manualWarnings.length?`<p class="fi-v56-optimize-note" style="border-color:#e7b98c;background:#fff8ed;color:#875018">Manual Backup perlu disemak semula: ${esc(manualWarnings.join(' · '))}</p>`:'';
@@ -527,7 +527,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   for(const staff of week.staff||[]){for(const date of generated){const d=staff.daily?.[date];if(!d)continue;
    data.push([staff.id,staff.name,staff.category,date,hari[new Date(date+'T12:00:00Z').getUTCDay()],
     (d.hakikiW||[]).join(' '),(d.reliefW||[]).join(' '),(d.pairingW||[]).join(' '),
-    d.hakiki,d.relief,d.pairing,d.bebanAkhir??'',d.berturutMax??'',d.berturutHad??'',
+    d.hakiki??'',d.relief,d.pairing,d.bebanAkhir??'',d.berturutMax??'',d.berturutHad??'',
     staff.totalRelief,d.hadHarian??6,d.hadRelief??(staff.kind==='BNK'?3:2),d.pengecualianManual?'YA':'TIDAK',d.manualTier||0,d.audit||'BELUM_DIAUDIT']);
   }}
   downloadCSV('SeMAKMUR_Statistik_Mingguan_SIMULASI_'+week.weekStart+'.csv',headers,data);
@@ -818,8 +818,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       ${items.sort(sortRows).map(item=>{
         const replacement=item.replacementName||(['PERLU_SERAH_TUGAS'].includes(item.status)?'Perlu serah tugas':'Belum diagih');
         const unfilled=!item.replacementName;
-        return `<button type="button" class="fi-v66-row" data-fi66-id="${html(item.id)}" aria-label="Audit agihan ${html(item.subject||'')} ${html(item.classId||'')} waktu ${html(slot(item))}, guru ganti ${html(replacement)}">
-          <span class="fi-v66-cell"><strong>${html(item.subject||'—')}</strong><small>${html(item.classId||'')}</small></span>
+        return `<button type="button" class="fi-v66-row" data-fi66-id="${html(item.id)}" aria-label="Audit agihan ${html(item.subject||'')} ${html(item.className||item.classId||'')} waktu ${html(slot(item))}, guru ganti ${html(replacement)}">
+          <span class="fi-v66-cell"><strong>${html(item.subject||'—')}</strong><small>${html(item.className||item.classId||'')}</small></span>
           <span class="fi-v66-cell"><strong>Waktu ${html(slot(item))}</strong><small>${html(time(item.from))}–${html(time(item.to))}</small></span>
           <span class="fi-v66-cell fi-v66-replacement${unfilled?' fi-v66-unfilled':''}"><strong>${html(replacement)}</strong></span>
           <span class="fi-v66-chevron" aria-hidden="true">›</span>
@@ -838,7 +838,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const warning=/TIADA|PERLU/.test(status);
     const fields=`<div class="fi-v66-audit-card"><h3>Maklumat Tugasan</h3><div class="fi-v66-audit-grid">
        ${metric('Guru asal',teacher)}${metric('Guru ganti / penerus',replace)}
-       ${metric('Subjek',record.subject)}${metric('Kelas',record.classId)}
+       ${metric('Subjek',record.subject)}${metric('Kelas',record.className||record.classId)}
        ${metric('Waktu','Waktu '+slot(record))}${metric('Masa',time(record.from)+'–'+time(record.to))}
        ${metric('Kaedah',record.assignmentMode||'—')}${metric('Status',status)}
        ${metric('Fasa',record.phase||'UTAMA')}${metric('Pelaksanaan',record.completed?'Disahkan guru':'Belum disahkan')}

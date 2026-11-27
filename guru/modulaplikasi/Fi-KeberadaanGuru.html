@@ -46,7 +46,7 @@
 <section class="panel" hidden="" id="panel-peringatan"><div class="panelhead"><h2>Peringatan</h2><span id="reminders-total">0 rekod belum lengkap</span></div><div class="compact-list" id="reminder-list"></div></section>
 <section class="panel" hidden id="panel-makmal"><div class="panelhead"><h2>Makmal Integrasi e-Keberadaan</h2><span class="kb61-chip">SIMULASI · V6.3</span></div>
 <div class="kb61-banner">Data ujian milik Admin sahaja. Bukti dokumen dalam Makmal ialah penanda simulasi, bukan fail Drive sebenar. Tiada notifikasi atau data rasmi ditulis.</div>
-<div class="kb61-grid"><div class="fieldrow"><label for="kb61-date">Tarikh ujian (Isnin–Jumaat)</label><input type="date" id="kb61-date"></div><div class="fieldrow"><label for="kb61-clock">Masa simulasi berdasarkan jadual</label><select id="kb61-clock"><option value="07:25">07:25 · Jana agihan utama</option></select><div id="kb61-clock-custom-row" hidden><label for="kb61-clock-custom">Masa lain (jika diperlukan)</label><input id="kb61-clock-custom" type="time" min="07:25" max="14:00" value="10:25" step="300"></div></div></div>
+<div class="kb61-grid"><div class="fieldrow"><label for="kb61-date">Tarikh ujian (Isnin–Jumaat)</label><input type="date" id="kb61-date"></div><div class="fieldrow"><label for="kb61-clock">Masa simulasi berdasarkan jadual</label><select id="kb61-clock"><option value="07:25">07:25 · Jana agihan utama</option></select><div id="kb61-clock-custom-row" hidden><label for="kb61-clock-custom">Masa lain (jika diperlukan)</label><input id="kb61-clock-custom" type="time" min="07:25" max="23:59" value="07:25" step="60"></div></div></div>
 <div id="kb61-notice" class="kb61-banner" role="status" hidden></div><div id="kb61-state" role="status" class="kb61-banner">Pilih tarikh dan baca Makmal.</div><div id="kb61-loading" hidden class="kb61-loading" role="status">Sedang memproses permintaan…</div>
 <div class="kb61-controls"><button type="button" class="mini secondary" id="kb61-refresh">Baca semula</button><button type="button" class="mini secondary" id="kb61-next-day">Hari berikutnya</button><button type="button" class="mini danger" id="kb61-reset">Kosongkan tarikh ujian ini</button></div>
 <div class="kb61-section"><h3>1 · Daftar keberadaan (watak simulasi)</h3><form id="kb61-add"><div class="kb61-grid">
@@ -83,5 +83,5 @@
 </main>
 <nav aria-label="Navigasi mudah alih" class="kb-bottom-nav"><a href="../Fi-DashboardGuru.html"><span aria-hidden="true">⌂</span>Utama</a><a aria-current="page" class="active" href="#tabs"><span aria-hidden="true">▤</span>Keberadaan</a><a href="../Fi-DashboardGuru.html#pentadbiran"><span aria-hidden="true">☷</span>Menu</a></nav>
 
-<script src="../../firebase-pilot-config.js"></script><script src="../../Fi-APIConfig.js?v=5.1.3-unified1"></script><script src="Fi-KeberadaanGuru.js?v=6.7.0" type="module"></script>
+<script src="../../firebase-pilot-config.js"></script><script src="../../Fi-APIConfig.js?v=5.1.3-unified1"></script><script src="Fi-KeberadaanGuru.js?v=kr-live1" type="module"></script>
 </body></html>
