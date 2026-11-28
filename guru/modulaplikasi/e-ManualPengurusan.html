@@ -7,7 +7,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -39,6 +39,100 @@
   <link rel="stylesheet" href="e-ManualPengurusan-Desktop.css?v=dg1">
   <link rel="stylesheet" href="e-ManualPengurusan-V6-Guard.css?v=uat1">
   <link rel="stylesheet" href="e-ManualPengurusan-V6-Impact.css?v=uat2">
+<style>
+/* TAKWIM V7: isolated style matching Smart Tugasan Mingguan */
+#viewV4Calendar{--mk7-ink:#193c66;--mk7-blue:#245cb4;--mk7-border:#d7e3f0;--mk7-muted:#60758e;--mk7-bg:#f6f9fd;font:500 13px/1.5 "Plus Jakarta Sans",Inter,sans-serif;color:#26384d}
+#viewV4Calendar *, .mk7-dialog *{box-sizing:border-box}
+.mk7-shell{background:#fff;border:1px solid var(--mk7-border);border-radius:18px;overflow:hidden;box-shadow:0 4px 16px #193c660b}
+.mk7-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:20px;background:linear-gradient(115deg,#173a65,#245cb4);color:#fff}
+.mk7-header h2{font-size:20px;line-height:1.3;font-weight:800;margin:3px 0 5px}
+.mk7-header p{color:#e1ecfc;font-size:13px;max-width:630px;margin:0}
+.mk7-kicker{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#bad0f3;font-weight:700}
+.mk7-year{border:1px solid #ffffff48;padding:8px 12px;border-radius:9px;color:white;white-space:nowrap;font-weight:700}
+.mk7-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:13px 16px;border-bottom:1px solid var(--mk7-border)}
+.mk7-toolbar .mk7-spacer{flex:1}
+.mk7-button{border:1px solid #c6d7e9;border-radius:10px;background:#fff;color:#244d79;padding:9px 13px;font-weight:750;font-size:13px;min-height:38px;cursor:pointer;white-space:nowrap}
+.mk7-button.primary{background:linear-gradient(130deg,#245cb4,#174b89);color:#fff;border-color:#245cb4}
+.mk7-button.secondary{background:#edf4ff;border-color:#c6d9f0;color:#244c7b}
+.mk7-button:hover:not(:disabled){filter:brightness(.96)}
+.mk7-button:disabled{cursor:not-allowed;opacity:.45}
+.mk7-pill{font-size:12px;font-weight:750;padding:7px 11px;border:1px solid #d6e8df;background:#f0f7f3;border-radius:999px;color:#235b47;white-space:nowrap}
+.mk7-pill.mk7-warn,.mk7-draftmark{background:#fff4d9;border-color:#f3d8a1;color:#895815}
+.mk7-notice{margin:10px 16px;padding:10px 12px;border:1px solid #d7e3f0;border-radius:10px;color:#285276;background:#f1f6fc;font-size:13px}
+.mk7-notice.mk7-error{color:#9a271f;background:#fff0ef;border-color:#f0cbc8}
+.mk7-notice.mk7-warn{color:#895815;background:#fff7e5;border-color:#f4dba4}
+#v5CalendarTabs.mk7-tabs{display:flex;gap:4px;padding:9px 14px;overflow-x:auto;border-bottom:1px solid var(--mk7-border);background:#f7faff}
+.mk7-tabs button{white-space:nowrap;padding:9px 13px;border-radius:10px;border:1px solid transparent;color:#53677e;font-weight:750;font-size:13px}
+.mk7-tabs button[aria-pressed=true]{color:#1e4f91;border-color:#c9dcf5;background:#e8f1ff}
+.mk7-filters{display:flex;flex-wrap:wrap;gap:8px;margin:12px 16px 0;align-items:center}
+.mk7-filters input,.mk7-filters select,.mk7-sectionhead select{border:1px solid #c6d7e9;border-radius:10px;background:#fafdff;padding:9px 11px;font:inherit;color:#263e5b;min-height:39px}
+.mk7-filters input{flex:1;min-width:200px}
+#v4CalendarItems{padding:14px 16px 18px;min-height:180px}
+.mk7-months{display:flex;gap:5px;overflow-x:auto;padding:1px 0 7px;margin-bottom:9px}
+.mk7-months button{white-space:nowrap;background:#f3f7fc;border:1px solid #dfE8f3;color:#36577f;padding:8px 12px;border-radius:9px;font-size:12px;font-weight:750}
+.mk7-months button.selected{background:#245cb4;color:#fff;border-color:#245cb4}
+.mk7-sectionhead{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;margin:8px 0 13px}
+.mk7-sectionhead strong{font-size:16px;color:#193c66}
+.mk7-sectionhead span,.mk7-sectionhead small{color:#60758e;font-size:12px}
+.mk7-sectionhead small{display:block}
+.mk7-tablewrap{overflow:auto;border:1px solid #cdddeb;border-radius:13px;max-height:72vh;background:#fff}
+.mk7-calendar{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed;min-width:650px;font-size:13px}
+.mk7-calendar th{position:sticky;top:0;z-index:2;background:#e6effb;color:#1f426d;text-align:left;font-weight:800;padding:12px 10px;border-bottom:1px solid #cbdcf1;border-right:1px solid #d5e3f3}
+.mk7-calendar th:nth-child(1){width:132px}.mk7-calendar th:nth-child(2){width:101px}
+.mk7-calendar td{border-right:1px solid #e2eaf4;border-bottom:1px solid #e2eaf4;vertical-align:top;padding:8px;overflow-wrap:anywhere}
+.mk7-calendar td:last-child,.mk7-calendar th:last-child{border-right:0}
+.mk7-calendar tbody tr:last-child td{border-bottom:0}
+.mk7-weekcell{background:#f0f5fc;vertical-align:middle!important;text-align:center}
+.mk7-weekcell button{display:grid;gap:4px;width:100%;color:#193c66;font-weight:750;text-align:center}
+.mk7-weekcell small,.mk7-datecell span,.mk7-datecell small{display:block;font-size:11px;color:#60758e}
+.mk7-weekcell small:last-child{font-weight:600;color:#245cb4}
+.mk7-datecell{background:#fbfdff;min-height:50px}
+.mk7-datecell strong{color:#294c74;display:block}
+.mk7-today{color:#245cb4!important;font-weight:800}
+.mk7-weekend td:not(.mk7-weekcell){background:#f5f7fa}
+.mk7-holidayrow td:not(.mk7-weekcell){background:#fff7f5}
+.mk7-holidayrow .mk7-datecell strong,.mk7-holidayrow .mk7-datecell small{color:#9a392c}
+.mk7-daycell{background:#fff;min-height:42px}
+.mk7-event{display:grid;gap:3px;text-align:left;border:1px solid #cfdfef;background:#eef5ff;border-left:3px solid #4a7dc0;border-radius:9px;width:100%;padding:8px;margin:0 0 6px;color:#193c66;white-space:normal;overflow-wrap:anywhere}
+.mk7-event strong{font-weight:750;font-size:13px;line-height:1.35}
+.mk7-event small{color:#60758e;font-size:11px}
+.mk7-event.meeting{border-color:#cde3d9;border-left-color:#4b987b;background:#f0f8f4;color:#235b47}
+.mk7-event.holiday{border-color:#f1d0cb;border-left-color:#c26a5b;background:#fff1ef;color:#9a392c}
+.mk7-event.draft{border-style:dashed}
+.mk7-event-type{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-weight:700;font-size:10px;letter-spacing:.25px;text-transform:uppercase;color:#587493}
+.mk7-draftmark{display:inline-block;font-size:10px;padding:1px 5px;border:1px solid #f3d8a1;border-radius:5px;text-transform:none;letter-spacing:0}
+.mk7-celladd{width:100%;color:#668ebd;text-align:center;font-weight:650;border:1px dashed #cfdeee;border-radius:7px;font-size:15px;padding:3px;min-height:25px}
+.mk7-celladd:hover{background:#eaf4ff}
+.mk7-eventlist{display:grid;gap:9px}
+.mk7-listitem{border:1px solid #d7e3f0;border-radius:12px;background:#fff;padding:13px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.mk7-listitem strong,.mk7-listitem small{display:block}
+.mk7-listitem strong{color:#193c66;font-size:14px;margin:2px 0}
+.mk7-listitem small{color:#60758e;font-size:12px}
+details.mk7-listitem{display:block}details.mk7-listitem summary{cursor:pointer}
+.mk7-auditfields{margin-top:10px;padding:10px;background:#f6f9fd;border-radius:8px;word-break:break-word}
+.mk7-empty{text-align:center;color:#60758e;background:#f6f9fd;border:1px dashed #d7e3f0;border-radius:12px;padding:35px 15px}
+.mk7-printcard{border:1px solid #d7e3f0;background:#fff;border-radius:15px;padding:20px;max-width:750px}
+.mk7-printcard h3{font-size:17px;font-weight:800;color:#193c66;margin:0 0 7px}.mk7-printcard p{color:#60758e;margin:0 0 12px}
+.mk7-form,.mk7-dialog{font:500 13px/1.5 "Plus Jakarta Sans",Inter,sans-serif;color:#26384d}
+.mk7-dialog{border-radius:20px!important;box-shadow:0 20px 70px #0a17245c!important;max-width:calc(100vw - 24px)!important}
+.mk7-dialog .swal2-title{font-size:19px;font-weight:800;color:#193c66}
+.mk7-dialog .swal2-html-container{text-align:left;margin-top:12px}
+.mk7-dialog .swal2-confirm{background:linear-gradient(130deg,#245cb4,#174b89)!important;border-radius:10px!important;font-size:13px;font-weight:750;padding:11px 18px!important}
+.mk7-dialog .swal2-cancel{background:#eef3f9!important;color:#244d79!important;border-radius:10px!important;font-size:13px;font-weight:750;padding:11px 18px!important}
+.mk7-form{max-height:65vh;overflow:auto;padding:1px 3px 2px}
+.mk7-field{display:grid;gap:5px;margin:0 0 11px;text-align:left;font-weight:700;font-size:13px;color:#294c74}
+.mk7-field input,.mk7-field select,.mk7-field textarea{width:100%;padding:10px 12px;border:1px solid #c8d9ea;border-radius:10px;background:#f7faff;color:#26384d;font:500 13px/1.5 "Plus Jakarta Sans",Inter,sans-serif;min-height:40px}
+.mk7-field input:focus,.mk7-field select:focus,.mk7-field textarea:focus{outline:2px solid #a8c6ec;outline-offset:1px}
+.mk7-formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mk7-formnote{border:1px solid #d7e3f0;border-radius:10px;padding:9px 11px;color:#496780;background:#f0f6fc;font-size:12px;margin:0 0 12px}
+.mk7-unitselect{border:1px solid #d7e3f0;border-radius:12px;padding:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.mk7-unitselect legend{color:#294c74;font-size:13px;font-weight:800;padding:0 5px}.mk7-unitselect label{display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
+.mk7-unitselect input{width:17px;height:17px;accent-color:#245cb4}
+#viewV4Calendar [hidden],.mk7-dialog [hidden]{display:none!important}
+@media(max-width:1100px){.mk7-header{padding:16px}.mk7-calendar{min-width:740px}.mk7-toolbar{padding:12px}.mk7-sectionhead span{display:none}}
+@media(max-width:640px){.mk7-formgrid,.mk7-unitselect{grid-template-columns:1fr}.mk7-header{flex-direction:column}.mk7-toolbar .mk7-spacer{display:none}}
+
+</style>
 </head>
 <body class="min-h-screen flex text-slate-800 bg-slate-100">
 
@@ -246,17 +340,17 @@
         </div>
         <div id="v4OrderList" class="space-y-2"></div>
       </div>
-      <!-- V4: TAKWIM BERSEPADU -->
-      <div id="viewV4Calendar" class="hidden space-y-5">
-        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-          <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="font-display font-extrabold text-xl">Takwim Persekolahan & Aktiviti</h2><p class="text-xs text-slate-500 mt-1">Tetapan minggu rasmi dan cuti dikawal dalam lajur Minggu/Cuti; program, bengkel, LADAP dan mesyuarat dalam takwim aktiviti.</p></div>
-            <button onclick="v4OpenCalendarEditor()" class="bg-rose-600 text-white font-bold text-xs rounded-xl px-4 py-2.5"><i class="fa-solid fa-plus mr-1"></i> Tambah Aktiviti</button></div>
-          <div class="mt-4 flex flex-wrap gap-2"><input type="search" id="v4CalendarSearch" oninput="v4RenderCalendar()" placeholder="Cari program atau minggu…" class="p-2 border rounded-xl text-xs flex-1 min-w-[190px]"/>
-            <select id="v4CalendarTypeFilter" onchange="v4RenderCalendar()" class="p-2 border rounded-xl text-xs"><option value="">Semua jenis</option><option value="CUTI">Cuti</option><option value="MESYUARAT">Mesyuarat</option><option value="BENGKEL">Bengkel</option><option value="AKTIVITI">Aktiviti</option><option value="LADAP">LADAP</option><option value="PROGRAM">Program</option></select></div>
+      <!-- V7: Takwim workspace — event draft + single save -->
+      <section id="viewV4Calendar" class="hidden">
+        <div class="mk7-shell">
+          <header class="mk7-header"><div><span class="mk7-kicker">SeMAKMUR · Takwim CORE</span><h2>Takwim Persekolahan & Aktiviti</h2><p>Rancang, susun dan simpan secara berperingkat. Perubahan draf terus dipaparkan tanpa memuatkan semula Manual Pengurusan.</p></div><span id="mk7-year" class="mk7-year">Sesi sekolah</span></header>
+          <div class="mk7-toolbar"><button class="mk7-button secondary" id="mk7-add" type="button">＋ Tambah Aktiviti</button><button class="mk7-button" id="mk7-addweek" type="button">＋ Minggu / Cuti</button><span class="mk7-spacer"></span><span class="mk7-pill" id="mk7-status" role="status">Menunggu data</span><button class="mk7-button" id="mk7-refresh" type="button">Muat semula</button><button class="mk7-button" id="mk7-discard" type="button" disabled>Buang draf</button><button class="mk7-button primary" id="mk7-save" type="button" disabled>Simpan Perubahan</button></div>
+          <div class="mk7-notice" role="status" id="mk7-notice" hidden></div>
+          <nav class="mk7-tabs" id="v5CalendarTabs" aria-label="Tab takwim"><button data-tab="penuh" type="button" aria-pressed="true">Takwim Penuh</button><button data-tab="aktiviti" type="button">Pengurusan Aktiviti</button><button data-tab="minggu" type="button">Minggu & Cuti</button><button data-tab="cetakan" type="button">Borang Perancangan</button><button data-tab="sejarah" type="button">Sejarah Pindaan</button></nav>
+          <div class="mk7-filters" id="mk7-filters"><input id="v4CalendarSearch" type="search" placeholder="Cari aktiviti seluruh sesi…" aria-label="Cari aktiviti"><select id="v4CalendarTypeFilter" aria-label="Jenis aktiviti"><option value="">Semua jenis</option><option value="CUTI">Cuti sekolah</option><option value="MESYUARAT">Mesyuarat</option><option value="BENGKEL">Bengkel</option><option value="AKTIVITI">Aktiviti</option><option value="LADAP">LADAP</option><option value="PROGRAM">Program</option></select><select id="mk7-filter-unit" aria-label="Unit"><option value="">Semua unit</option><option>Pentadbiran</option><option>Kurikulum</option><option>Hal Ehwal Murid</option><option>Kokurikulum</option></select></div>
+          <div id="v4CalendarItems"></div>
         </div>
-        <div id="v5CalendarTabs" class="flex gap-2 flex-wrap"><button data-tab="penuh" onclick="v5SwitchCalendarTab('penuh')" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold">Takwim Penuh</button><button data-tab="ringkasan" onclick="v5SwitchCalendarTab('ringkasan')" class="bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold">Ringkasan Mengikut Unit</button><button onclick="v5EditWeek(manualV3Year()===v5Today().slice(0,4)?v5Today():manualV3Year()+'-01-01')" class="ml-auto border px-4 py-2 rounded-xl text-xs font-bold">+ Tetapkan Minggu / Cuti</button></div>
-        <div id="v4CalendarItems" class="space-y-2"></div>
-      </div>
+      </section>
       <!-- V6: MATA MERIT PELANTIKAN -->
       <div id="viewMeritPelantikan" class="hidden space-y-5">
         <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-3">
@@ -1001,7 +1095,7 @@
 
   
 
-  <script src="e-ManualPengurusan.js?v=merit-book-v6"></script>
+  <script src="e-ManualPengurusan.js?v=takwim-v7-0"></script>
   <script src="e-ManualPengurusan-V6-Guard.js?v=uat1"></script>
   <script src="e-ManualPengurusan-V6-Impact.js?v=uat2"></script>
   <script src="e-ManualPengurusan-V6-Perpindahan.js?v=uat3"></script>

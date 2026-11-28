@@ -4027,3 +4027,332 @@ window.simpanSetiausahaInduk=async function(){
     Swal.fire('Berjaya','Jawatan JK Induk berjaya disimpan.','success');
   }catch(err){hideLoader();manualV3ShowSaveError(err);}
 };
+
+/* ============================================================================
+   TAKWIM V7.0 — dedicated calendar workspace, drafts isolated from official data.
+   All other Manual Pengurusan features remain unchanged.
+   ============================================================================ */
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id),E=manualV3Escape,
+ U=['Pentadbiran','Kurikulum','Hal Ehwal Murid','Kokurikulum'],
+ TYPES=[['PROGRAM','Program'],['MESYUARAT','Mesyuarat'],['BENGKEL','Bengkel'],['AKTIVITI','Aktiviti'],['LADAP','LADAP'],['CUTI','Cuti sekolah']],
+ WT=[['PERSEKOLAHAN','Minggu persekolahan'],['KESEDIAAN','Minggu kesediaan'],['CUTI_PENGGAL','Cuti penggal'],['CUTI_PERAYAAN','Cuti perayaan'],['CUTI_UMUM','Cuti umum'],['CUTI_LAIN','Cuti lain']],
+ MONTH=['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'],
+ DAYS=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+const y=()=>String(manualV3Year()),dateISO=d=>d.toISOString().slice(0,10),dt=x=>new Date(x+'T12:00:00Z'),add=(x,n)=>{const d=dt(x);d.setUTCDate(d.getUTCDate()+n);return dateISO(d);};
+const today=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const nice=d=>String(d||'').replace(/^(\d{4})-(\d\d)-(\d\d)$/,'$3/$2/$1'),dateOK=d=>/^20\d{2}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(dt(d).getTime())&&dateISO(dt(d))===d;
+const active=r=>String(r?.Status||'Aktif').trim().toLowerCase()==='aktif';
+const overlap=(a,b)=>a.Tarikh_Mula<=b.Tarikh_Tamat&&b.Tarikh_Mula<=a.Tarikh_Tamat;
+const S={ready:false,loading:false,saving:false,established:false,base:{event:[],week:[]},groups:[],draft:new Map(),tab:'penuh',month:null,year:'',audit:null,auditBusy:false,batch:'',notice:'',tone:'',filterUnit:'',query:'',kind:'',status:'all'};
+const key=(kind,id)=>kind+'|'+id,idFor=(kind,r)=>String(r[kind==='week'?'ID_Minggu':'ID_Acara']||'');
+const random=()=>{if(window.crypto?.randomUUID)return window.crypto.randomUUID();if(window.crypto?.getRandomValues)return Array.from(window.crypto.getRandomValues(new Uint8Array(16))).map(n=>n.toString(16).padStart(2,'0')).join('');throw Error('Pelayar tidak menyokong penjanaan ID selamat.');};
+const newID=kind=>(kind==='week'?'MGG':'EVT')+random().replace(/-/g,'').toUpperCase();
+const newBatch=()=> 'CAL-'+random();
+function units(value){
+ const p=String(value||'').split(/[|,;\n]+/).map(s=>s.trim().toLowerCase().replace(/\s+/g,' ')).filter(Boolean);
+ if(!p.length||p.some(v=>['semua','semua unit','semua induk','semua unit terlibat'].includes(v)))return U.slice();
+ const aliases={'pentadbiran':'Pentadbiran','admin':'Pentadbiran','kurikulum':'Kurikulum','kuri':'Kurikulum','hal ehwal murid':'Hal Ehwal Murid','hem':'Hal Ehwal Murid','kokurikulum':'Kokurikulum','ko kurikulum':'Kokurikulum','ko':'Kokurikulum','koku':'Kokurikulum'};
+ return U.filter(u=>p.some(v=>aliases[v]===u));
+}
+// Fix legacy reader too (e.g. print and summary used elsewhere).
+window.v5EventUnits=e=>units(e.Unit);
+function storageKey(){const uid=fiManualAuthContext?.uid;return uid?'semakmur-takwim-v7:'+uid:'';}
+function persist(){
+ const k=storageKey();if(!k)return;
+ try{if(S.draft.size)sessionStorage.setItem(k,JSON.stringify({draft:[...S.draft.entries()],batch:S.batch}));else sessionStorage.removeItem(k);}
+ catch(_){if(S.draft.size){S.notice='Draf kekal dalam tab ini; pelayar tidak dapat memulihkannya selepas tab ditutup.';S.tone='warn';}}
+}
+function restore(){
+ if(S.established)return;S.established=true;const k=storageKey();if(!k)return;
+ try{const data=JSON.parse(sessionStorage.getItem(k)||'null');if(data?.draft?.length){S.draft=new Map(data.draft.filter(x=>Array.isArray(x)&&['event','week'].includes(x[1]?.kind)&&x[1]?.next));S.batch=data.batch||newBatch();S.notice='Draf belum disimpan daripada sesi tab ini telah dipulihkan.';S.tone='warn';}}catch(_){}
+}
+function notice(t,tone='info'){S.notice=t;S.tone=tone;bar();}
+function bar(){
+ if(!$('mk7-status'))return;
+ $('mk7-status').textContent=S.saving?'Menyimpan perubahan di belakang…':!S.ready?'Menunggu data rasmi':S.draft.size?S.draft.size+' perubahan belum disimpan':'Semua perubahan disahkan';
+ $('mk7-status').className='mk7-pill '+(S.saving||S.draft.size?'mk7-warn':'mk7-success');
+ $('mk7-save').disabled=!S.ready||!S.draft.size||S.saving||S.loading;
+ $('mk7-discard').disabled=!S.draft.size||S.saving;
+ $('mk7-refresh').disabled=S.loading||S.saving;
+ $('mk7-add').disabled=!S.ready||S.saving;
+ $('mk7-addweek').disabled=!S.ready||S.saving;
+ const n=$('mk7-notice');n.hidden=!S.notice;n.textContent=S.notice;n.className='mk7-notice '+(S.tone==='error'?'mk7-error':S.tone==='warn'?'mk7-warn':'');
+}
+function staged(kind){
+ const m=new Map(S.base[kind].map(r=>[idFor(kind,r),r]));
+ for(const c of S.draft.values())if(c.kind===kind)m.set(idFor(kind,c.next),c.next);
+ return [...m.values()];
+}
+function isDraft(kind,r){return S.draft.has(key(kind,idFor(kind,r)));}
+function eventRows(){return staged('event');}
+function weekRows(){return staged('week');}
+function same(a,b){if(!a||!b)return a===b;const ks=new Set([...Object.keys(a),...Object.keys(b)]);ks.delete('Minggu');ks.delete('Kumpulan_Bertugas'); // event derived field only; compare week separately below
+ return [...ks].every(k=>String(a[k]??'')===String(b[k]??''));}
+function equal(kind,a,b){return same(a,b)&&(kind!=='week'||String(a?.Kumpulan_Bertugas||'')===String(b?.Kumpulan_Bertugas||''));}
+function stage(kind,next){
+ if(S.saving||!S.ready)throw Error('Ruang kerja belum sedia.');
+ const id=idFor(kind,next),k=key(kind,id),old=S.draft.get(k),before=old?old.before:S.base[kind].find(r=>idFor(kind,r)===id)||null;
+ if(equal(kind,before,next))S.draft.delete(k);else S.draft.set(k,{kind,before,next});
+ if(S.draft.size>250){if(old)S.draft.set(k,old);else S.draft.delete(k);throw Error('Maksimum 250 perubahan setiap simpanan.');}
+ S.batch=newBatch();persist();
+}
+function eventRelevant(r){
+ if(!r.Tarikh_Mula||!r.Tarikh_Tamat)return false;
+ if(r.Tarikh_Mula<=y()+'-12-31'&&r.Tarikh_Tamat>=y()+'-01-01')return true;
+ return weekRows().some(w=>w.Sesi===y()&&w.Jenis_Minggu==='KESEDIAAN'&&overlap(w,r));
+}
+function visibleWeek(date){
+ const list=weekRows().filter(r=>active(r)&&r.Tarikh_Mula<=date&&date<=r.Tarikh_Tamat);
+ return list.find(r=>r.Sesi===y())||null;
+}
+function weekLabel(r){
+ if(!r)return 'Belum ditetapkan';
+ if(String(r.Jenis_Minggu).startsWith('CUTI'))return r.Nama_Cuti||'Cuti';
+ if(r.Jenis_Minggu==='KESEDIAAN')return 'Minggu kesediaan';
+ return 'Minggu '+r.Label_Minggu;
+}
+function groupLabel(r){return S.groups.find(g=>String(g.Nombor_Kumpulan)===String(r?.Kumpulan_Bertugas))?.Nama_Kumpulan||(r?.Kumpulan_Bertugas?'Kumpulan '+r.Kumpulan_Bertugas:'');}
+function displayType(t){return TYPES.find(v=>v[0]===t)?.[1]||WT.find(v=>v[0]===t)?.[1]||String(t||'').replace(/_/g,' ');}
+function statusLabel(r){return active(r)?'Aktif':'Tidak aktif';}
+function mark(kind,r){return isDraft(kind,r)?'<span class="mk7-draftmark">Draf</span>':'';}
+function matches(e){
+ if(!eventRelevant(e))return false;
+ const q=S.query.toLowerCase().trim();
+ if(S.kind&&e.Jenis!==S.kind&&!(S.kind==='AKTIVITI'&&e.Jenis==='SEKOLAH'))return false;
+ if(S.filterUnit&&!units(e.Unit).includes(S.filterUnit))return false;
+ if(q&&![e.Tajuk,e.Maklumat,e.Lokasi,e.Unit,e.Minggu,e.Tarikh_Mula,e.Tarikh_Tamat,...weekRows().filter(w=>w.Sesi===y()&&overlap(w,e)).map(w=>'Minggu '+w.Label_Minggu)].some(x=>String(x||'').toLowerCase().includes(q)))return false;
+ return true;
+}
+function apply(data){
+ S.base={event:Array.isArray(data.aktiviti)?data.aktiviti:[],week:Array.isArray(data.minggu)?data.minggu:[]};
+ S.groups=data.kumpulan||[];
+ // Other Manual views only receive committed data.
+ ALL_TAKWIM=S.base.event.slice();ALL_MINGGU=S.base.week.slice();ALL_KUMPULAN=S.groups.slice();
+ S.ready=true;S.audit=null;
+}
+async function load(force=false){
+ if(S.loading||S.saving||S.ready&&!force)return;
+ S.loading=true;bar();
+ try{const r=await postToBackend({action:'manualCalendar7Read'});if(!r?.success)throw Error(r?.error||'Takwim gagal dibaca.');
+  apply(r);restore();if(!S.draft.size)notice('Takwim rasmi tersedia. Klik sel untuk merancang aktiviti; simpan semua perubahan apabila selesai.');
+ }catch(e){notice('Gagal memuatkan takwim: '+e.message,'error');}
+ finally{S.loading=false;render();}
+}
+async function save(){
+ if(!S.ready||S.saving||!S.draft.size)return;
+ const changes=[...S.draft.values()].map(c=>({kind:c.kind,before:c.before,next:c.next}));
+ const a=await Swal.fire({title:'Simpan '+changes.length+' perubahan?',text:'Draf akan menjadi rekod rasmi. Minggu dan cuti akan dibaca oleh modul pengurusan yang telah berintegrasi.',icon:'question',showCancelButton:true,confirmButtonText:'Simpan rasmi',cancelButtonText:'Belum lagi',customClass:{popup:'mk7-dialog'}});
+ if(!a.isConfirmed||S.saving)return;
+ S.saving=true;S.batch=S.batch||newBatch();persist();notice('Simpanan sedang diproses. Anda boleh melihat takwim; perubahan draf dikunci sementara.');render();
+ try{
+  const res=await postToBackend({action:'manualCalendar7Batch',data:{batchId:S.batch,changes}});
+  if(!res?.success)throw Error((res?.error||'Simpanan gagal.')+(res?.uncertain?' Semak sejarah / status simpanan sebelum mengulang.':''));
+  apply(res);S.draft.clear();S.batch='';persist();notice('Berjaya. '+changes.length+' perubahan disahkan. Tiada muat semula keseluruhan Manual diperlukan.','success');
+ }catch(e){notice('Draf dikekalkan. '+e.message,'error');}
+ finally{S.saving=false;render();}
+}
+async function discard(){
+ if(S.saving||!S.draft.size)return;const a=await Swal.fire({title:'Buang draf belum disimpan?',text:'Rekod rasmi tidak diubah.',icon:'warning',showCancelButton:true,confirmButtonText:'Buang draf',cancelButtonText:'Kekalkan',customClass:{popup:'mk7-dialog'}});if(a.isConfirmed){S.draft.clear();S.batch='';persist();notice('Draf dibuang. Paparan kembali kepada rekod rasmi.');render();}
+}
+function monthList(){
+ const list=Array.from({length:12},(_,i)=>y()+'-'+String(i+1).padStart(2,'0'));
+ const prev=String(Number(y())-1)+'-12';
+ if(weekRows().some(w=>w.Sesi===y()&&w.Jenis_Minggu==='KESEDIAAN'&&w.Tarikh_Mula.startsWith(prev)))list.unshift(prev);
+ return list;
+}
+function monthDates(m){const [yr,mo]=m.split('-').map(Number);return Array.from({length:new Date(Date.UTC(yr,mo,0)).getUTCDate()},(_,i)=>m+'-'+String(i+1).padStart(2,'0'));}
+function monthTitle(m){const [yr,mo]=m.split('-').map(Number);return MONTH[mo-1]+' '+yr;}
+function eventCard(r,date){
+ const cls=r.Jenis==='CUTI'?'holiday':r.Jenis==='MESYUARAT'?'meeting':'program';
+ const time=r.Masa_Mula&&r.Masa_Tamat?r.Masa_Mula+'–'+r.Masa_Tamat:'';
+ const span=r.Tarikh_Mula!==r.Tarikh_Tamat?' · '+nice(r.Tarikh_Mula)+' – '+nice(r.Tarikh_Tamat):'';
+ return '<button type="button" class="mk7-event '+cls+(isDraft('event',r)?' draft':'')+'" data-mk7-event="'+E(r.ID_Acara)+'"><span class="mk7-event-type">'+E(displayType(r.Jenis))+mark('event',r)+'</span><strong>'+E(r.Tajuk)+'</strong>'+(time||span?'<small>'+E(time+span)+'</small>':'')+(r.Lokasi?'<small>'+E(r.Lokasi)+'</small>':'')+'</button>';
+}
+function calendar(){
+ const list=monthList();if(!list.includes(S.month))S.month=list.includes(today().slice(0,7))?today().slice(0,7):y()+'-01';
+ const months='<div class="mk7-months">'+list.map(m=>'<button type="button" data-mk7-month="'+m+'" aria-pressed="'+(m===S.month)+'" class="'+(m===S.month?'selected':'')+'">'+E(MONTH[Number(m.slice(5))-1])+(m.slice(0,4)!==y()?' '+E(m.slice(0,4)):'')+'</button>').join('')+'</div>';
+ const cols=S.filterUnit?[S.filterUnit]:U,events=eventRows().filter(e=>active(e)&&matches(e)&&!['MINGGU_RPH','MINGGU_BERTUGAS'].includes(e.Jenis)),dates=monthDates(S.month);
+ // Search across the selected year; clicking a result opens its editor.
+ if(S.query.trim()){return months+'<div class="mk7-sectionhead"><strong>Hasil carian seluruh sesi '+E(y())+'</strong><span>'+events.length+' aktiviti</span></div>'+listEvents(events);}
+ const cellRows=dates.map((d,i)=>{
+  const w=visibleWeek(d),prev=i?visibleWeek(dates[i-1]):null,weekday=dt(d).getUTCDay(),holiday=String(w?.Jenis_Minggu||'').startsWith('CUTI')||eventRows().some(e=>active(e)&&e.Jenis==='CUTI'&&e.Tarikh_Mula<=d&&d<=e.Tarikh_Tamat);
+  const first=i===0||w?.ID_Minggu!==prev?.ID_Minggu||(!w&&weekday===1);
+  let weekCell='';
+  if(first){let count=1;while(i+count<dates.length){const x=visibleWeek(dates[i+count]);if(w?x?.ID_Minggu!==w.ID_Minggu:x||dt(dates[i+count]).getUTCDay()===1)break;count++;}
+   weekCell='<td rowspan="'+count+'" class="mk7-weekcell"><button type="button" data-mk7-weekdate="'+d+'"><strong>'+E(weekLabel(w))+'</strong>'+(groupLabel(w)?'<small>'+E(groupLabel(w))+'</small>':'')+(w?mark('week',w):'')+'<small>Ubah minggu</small></button></td>';
+  }
+  const cells=cols.map(u=>{const ev=events.filter(e=>e.Tarikh_Mula<=d&&d<=e.Tarikh_Tamat&&units(e.Unit).includes(u));return '<td class="mk7-daycell">'+ev.map(e=>eventCard(e,d)).join('')+'<button type="button" class="mk7-celladd" data-mk7-adddate="'+d+'" data-mk7-unit="'+E(u)+'" aria-label="Tambah aktiviti '+E(u)+' '+d+'">＋</button></td>';}).join('');
+  return '<tr class="'+(holiday?'mk7-holidayrow':weekday===0||weekday===6?'mk7-weekend':'')+'">'+weekCell+'<td class="mk7-datecell"><strong>'+E(DAYS[weekday])+'</strong><span>'+nice(d)+'</span>'+(d===today()?'<span class="mk7-today">Hari ini</span>':'')+(holiday?'<small>Cuti</small>':'')+'</td>'+cells+'</tr>';
+ }).join('');
+ return months+'<div class="mk7-sectionhead"><strong>'+E(monthTitle(S.month))+'</strong><span>Klik ruang unit untuk tambah aktiviti</span></div><div class="mk7-tablewrap"><table class="mk7-calendar"><thead><tr><th>Minggu / Cuti</th><th>Tarikh</th>'+cols.map(u=>'<th>'+E(u)+'</th>').join('')+'</tr></thead><tbody>'+cellRows+'</tbody></table></div>';
+}
+function listEvents(rows){
+ const rs=rows.slice().sort((a,b)=>a.Tarikh_Mula.localeCompare(b.Tarikh_Mula)||a.Tajuk.localeCompare(b.Tajuk));
+ return '<div class="mk7-eventlist">'+(rs.map(r=>'<article class="mk7-listitem"><div><span class="mk7-event-type">'+E(displayType(r.Jenis))+' · '+E(statusLabel(r))+mark('event',r)+'</span><strong>'+E(r.Tajuk)+'</strong><small>'+E(nice(r.Tarikh_Mula)+(r.Tarikh_Tamat!==r.Tarikh_Mula?' – '+nice(r.Tarikh_Tamat):'')+(r.Masa_Mula?' · '+r.Masa_Mula+'–'+r.Masa_Tamat:''))+'</small><small>'+E(units(r.Unit).join(' · ')||r.Unit)+(r.Lokasi?' · '+E(r.Lokasi):'')+'</small></div><button class="mk7-button secondary" data-mk7-event="'+E(r.ID_Acara)+'">Edit</button>'+(isDraft('event',r)?'<button class="mk7-button" data-mk7-undo="'+E(key('event',r.ID_Acara))+'">Undur draf</button>':'')+'</article>').join('')||'<div class="mk7-empty">Tiada aktiviti sepadan.</div>')+'</div>';
+}
+function eventList(){
+ const rows=eventRows().filter(r=>matches(r)&&(S.status==='all'||(S.status==='active'?active(r):!active(r))));
+ return '<div class="mk7-sectionhead"><strong>Pengurusan Aktiviti · '+rows.length+' rekod</strong><label>Status <select id="mk7-filter-status"><option value="all" '+(S.status==='all'?'selected':'')+'>Semua</option><option value="active" '+(S.status==='active'?'selected':'')+'>Aktif</option><option value="inactive" '+(S.status==='inactive'?'selected':'')+'>Tidak aktif</option></select></label></div>'+listEvents(rows);
+}
+function weeks(){
+ const rows=weekRows().filter(w=>w.Sesi===y()).sort((a,b)=>a.Tarikh_Mula.localeCompare(b.Tarikh_Mula));
+ return '<div class="mk7-sectionhead"><div><strong>Minggu dan cuti rasmi</strong><small>Data lampau atau minggu dengan pelan Tugasan Mingguan dilindungi ketika simpan.</small></div><button class="mk7-button secondary" id="mk7-generate" '+(S.saving?'disabled':'')+'>Jana draf minggu</button></div><div class="mk7-tablewrap"><table class="mk7-calendar mk7-weeks"><thead><tr><th>Minggu / jenis</th><th>Tarikh mula – tamat</th><th>Kumpulan</th><th>Status</th><th>Tindakan</th></tr></thead><tbody>'+ (rows.map(r=>'<tr><td><strong>'+E(weekLabel(r))+'</strong> '+mark('week',r)+'</td><td>'+nice(r.Tarikh_Mula)+' – '+nice(r.Tarikh_Tamat)+'</td><td>'+E(groupLabel(r)||'—')+'</td><td>'+E(statusLabel(r))+'</td><td><button class="mk7-button secondary" data-mk7-weekid="'+E(r.ID_Minggu)+'">Edit</button>'+(isDraft('week',r)?'<button class="mk7-button" data-mk7-undo="'+E(key('week',r.ID_Minggu))+'">Undur draf</button>':'')+'</td></tr>').join('')||'<tr><td colspan="5">Belum ada minggu sesi ini.</td></tr>')+'</tbody></table></div><div class="mk7-notice">Cuti satu atau beberapa hari dalam minggu persekolahan: tambah aktiviti jenis Cuti sekolah. Cuti penggal penuh: gunakan rekod minggu/cuti.</div>';
+}
+const label=(name,content)=>'<label class="mk7-field"><span>'+name+'</span>'+content+'</label>';
+const input=(id,type,val,extra='')=>'<input id="'+id+'" type="'+type+'" value="'+E(val??'')+'" '+extra+'>';
+const select=(id,options,value)=>'<select id="'+id+'">'+options.map(([v,l])=>'<option value="'+E(v)+'" '+(String(v)===String(value)?'selected':'')+'>'+E(l)+'</option>').join('')+'</select>';
+const val=id=>$(id)?.value||'';
+function err(t){Swal.showValidationMessage(t);return false;}
+function preview(a,b){return weekRows().filter(w=>w.Sesi===y()&&active(w)&&w.Jenis_Minggu==='PERSEKOLAHAN'&&w.Tarikh_Mula<=b&&w.Tarikh_Tamat>=a).map(w=>weekLabel(w)+' · '+groupLabel(w)).join('; ')||'Tiada minggu ditetapkan';}
+function monthShift(date,i){
+ const d=dt(date),day=d.getUTCDate(),target=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+i+1,0));return dateISO(new Date(Date.UTC(target.getUTCFullYear(),target.getUTCMonth(),Math.min(day,target.getUTCDate()),12)));
+}
+function duplicate(r,list){return list.some(e=>e.ID_Acara!==r.ID_Acara&&active(e)&&active(r)&&[e.Tajuk.trim().toLowerCase().replace(/\s+/g,' '),e.Jenis,e.Tarikh_Mula,e.Tarikh_Tamat,e.Masa_Mula||'',e.Masa_Tamat||'',units(e.Unit).join('|')].join('\u001f')===[r.Tajuk.trim().toLowerCase().replace(/\s+/g,' '),r.Jenis,r.Tarikh_Mula,r.Tarikh_Tamat,r.Masa_Mula||'',r.Masa_Tamat||'',units(r.Unit).join('|')].join('\u001f'));}
+function conflictWarnings(r,list){
+ if(!r.Lokasi||!r.Masa_Mula||!r.Masa_Tamat||!active(r))return [];
+ return list.filter(e=>e.ID_Acara!==r.ID_Acara&&active(e)&&String(e.Lokasi||'').trim().toLowerCase()===r.Lokasi.trim().toLowerCase()&&overlap(e,r)&&e.Masa_Mula&&e.Masa_Tamat&&e.Masa_Mula<r.Masa_Tamat&&r.Masa_Mula<e.Masa_Tamat).map(e=>e.Tajuk);
+}
+async function editEvent(id='',preset={}){
+ if(!S.ready||S.saving)return;
+ const existing=eventRows().find(e=>e.ID_Acara===id),old=existing||{},start=old.Tarikh_Mula||preset.date||((S.month||'').slice(0,4)===y()?(S.month===today().slice(0,7)?today():S.month+'-01'):y()+'-01-01');
+ // Selecting an empty unit cell creates exactly that unit; not ALL.
+ const selected=existing?units(old.Unit):preset.unit?[preset.unit]:S.filterUnit?[S.filterUnit]:[];
+ const type=old.Jenis||'PROGRAM',types=TYPES.slice();if(!types.some(x=>x[0]===type))types.push([type,displayType(type)]);
+ const html='<div class="mk7-form">'+label('Nama aktiviti *',input('mk7-e-title','text',old.Tajuk,'maxlength="240"'))+'<div class="mk7-formgrid">'+label('Tarikh mula *',input('mk7-e-from','date',start))+label('Tarikh tamat *',input('mk7-e-to','date',old.Tarikh_Tamat||start))+'</div><div class="mk7-formnote" id="mk7-e-preview">'+E(preview(start,old.Tarikh_Tamat||start))+'</div>'+label('Jenis aktiviti',select('mk7-e-type',types,type))+'<div class="mk7-formgrid">'+label('Masa mula (pilihan)',input('mk7-e-start','time',old.Masa_Mula))+label('Masa tamat (pilihan)',input('mk7-e-end','time',old.Masa_Tamat))+'</div><fieldset class="mk7-unitselect"><legend>Unit terlibat *</legend>'+U.map(u=>'<label><input type="checkbox" data-mk7-e-unit value="'+E(u)+'" '+(selected.includes(u)?'checked':'')+'> '+E(u)+'</label>').join('')+'</fieldset>'+label('Lokasi',input('mk7-e-location','text',old.Lokasi,'maxlength="240"'))+label('Catatan / agenda','<textarea id="mk7-e-note" rows="3" maxlength="5000">'+E(old.Maklumat||'')+'</textarea>')+'<div class="mk7-formgrid">'+label('Peringatan (hari sebelum)',input('mk7-e-remind','number',old.Notifikasi_Hari??7,'min="0" max="90"'))+label('Status',select('mk7-e-status',[['Aktif','Aktif'],['Tidak Aktif','Tidak aktif']],old.Status||'Aktif'))+'</div>'+
+ (!existing?'<div class="mk7-formgrid">'+label('Ulangan',select('mk7-e-repeat',[['none','Sekali sahaja'],['weekly','Setiap minggu'],['monthly','Setiap bulan']],'none'))+label('Bilangan keseluruhan',input('mk7-e-count','number',1,'min="1" max="12"'))+'</div>':'')+'<p class="mk7-formnote">Borang ini hanya mengemas kini draf setempat. Tekan Simpan Perubahan apabila perancangan selesai.</p></div>';
+ const ans=await Swal.fire({title:existing?'Edit Aktiviti':'Tambah Aktiviti',width:670,html,showCancelButton:true,confirmButtonText:existing?'Kemas kini draf':'Tambah ke draf',cancelButtonText:'Batal',customClass:{popup:'mk7-dialog'},
+ didOpen:()=>{
+  const p=()=>{$('mk7-e-preview').textContent=preview(val('mk7-e-from'),val('mk7-e-to'));};
+  let wasCuti=false,previousUnits=[];const sync=()=>{const cuti=val('mk7-e-type')==='CUTI';const nodes=[...document.querySelectorAll('[data-mk7-e-unit]')];if(cuti&&!wasCuti)previousUnits=nodes.filter(n=>n.checked).map(n=>n.value);nodes.forEach(n=>{if(cuti)n.checked=true;else if(wasCuti)n.checked=previousUnits.includes(n.value);n.disabled=cuti;});wasCuti=cuti;for(const i of ['mk7-e-start','mk7-e-end']){if(cuti)$(i).value='';$(i).disabled=cuti;}};
+  $('mk7-e-type').addEventListener('change',sync);$('mk7-e-from').addEventListener('change',()=>{if(val('mk7-e-to')<val('mk7-e-from'))$('mk7-e-to').value=val('mk7-e-from');p();});$('mk7-e-to').addEventListener('change',p);sync();
+ },preConfirm:()=>{
+  const a=val('mk7-e-from'),b=val('mk7-e-to'),name=val('mk7-e-title').trim(),u=[...document.querySelectorAll('[data-mk7-e-unit]:checked')].map(n=>n.value),t1=val('mk7-e-start'),t2=val('mk7-e-end'),n=Number(val('mk7-e-remind'));
+  if(!name||!dateOK(a)||!dateOK(b)||a>b||!u.length)return err('Isi tajuk, tarikh yang sah dan sekurang-kurangnya satu unit.');
+  if((t1||t2)&&(!t1||!t2||t1>=t2))return err('Masa mula dan tamat mesti lengkap dan teratur.');
+  if(!Number.isInteger(n)||n<0||n>90)return err('Peringatan mesti 0–90 hari.');
+  const r={...old,ID_Acara:old.ID_Acara||newID('event'),Tajuk:name,Jenis:val('mk7-e-type'),Tarikh_Mula:a,Tarikh_Tamat:b,Masa_Mula:t1,Masa_Tamat:t2,Unit:u.join(' | '),Lokasi:val('mk7-e-location').trim(),Maklumat:val('mk7-e-note').trim(),Status:val('mk7-e-status'),Notifikasi_Hari:String(n),ID_Jawatankuasa:old.ID_Jawatankuasa||''};
+  const mode=val('mk7-e-repeat'),count=!existing&&mode&&mode!=='none'?Number(val('mk7-e-count')):1;
+  if(!Number.isInteger(count)||count<1||count>12)return err('Ulangan 1–12 kejadian.');
+  const duration=Math.round((dt(b)-dt(a))/86400000),rows=[];
+  for(let i=0;i<count;i++){const from=i?(mode==='weekly'?add(a,i*7):monthShift(a,i)):a,rr={...r,ID_Acara:i?newID('event'):r.ID_Acara,Tarikh_Mula:from,Tarikh_Tamat:add(from,duration)};if(duplicate(rr,eventRows().concat(rows)))return err('Aktiviti pendua: '+nice(from));rows.push(rr);}
+  if(S.draft.size+rows.length>250)return err('Maksimum 250 perubahan setiap simpanan.');
+  return rows;
+ }});
+ if(!ans.isConfirmed||!ans.value||S.saving)return;
+ const warnings=[...new Set(ans.value.flatMap(r=>conflictWarnings(r,eventRows().concat(ans.value))))];
+ if(warnings.length){const a=await Swal.fire({title:'Kemungkinan pertindihan lokasi',text:'Aktiviti pada masa sama: '+warnings.join(', ')+'. Kekalkan sebagai draf?',icon:'warning',showCancelButton:true,confirmButtonText:'Kekalkan draf',cancelButtonText:'Batal',customClass:{popup:'mk7-dialog'}});if(!a.isConfirmed)return;}
+ for(const r of ans.value)stage('event',r);
+ notice(ans.value.length+' aktiviti dikemas kini pada draf. Belum diterbitkan.','warn');render();
+}
+function weekDefault(date){const d=dt(date);return add(date,-((d.getUTCDay()+6)%7));}
+async function editWeek(date='',id=''){
+ if(!S.ready||S.saving)return;
+ const old=id?weekRows().find(w=>w.ID_Minggu===id):date?visibleWeek(date):null;
+ const start=old?.Tarikh_Mula||weekDefault(date||(today().slice(0,4)===y()?today():y()+'-01-04'));
+ const groups=S.groups.filter(active).sort((a,b)=>Number(a.Susunan||a.Nombor_Kumpulan)-Number(b.Susunan||b.Nombor_Kumpulan));
+ const opts=[['','Pilih kumpulan'],...groups.map(g=>[String(g.Nombor_Kumpulan),g.Nama_Kumpulan])];
+ const html='<div class="mk7-form">'+label('Jenis minggu',select('mk7-w-type',WT,old?.Jenis_Minggu||'PERSEKOLAHAN'))+'<div class="mk7-formgrid">'+label('Tarikh mula',input('mk7-w-from','date',start))+label('Tarikh tamat',input('mk7-w-to','date',old?.Tarikh_Tamat||add(start,6)))+'</div><div id="mk7-w-teach" class="mk7-formgrid">'+label('Nombor minggu',input('mk7-w-num','number',old?.Jenis_Minggu==='PERSEKOLAHAN'?old.Label_Minggu:'','min="1" max="53"'))+label('Kumpulan bertugas',select('mk7-w-group',opts,old?.Kumpulan_Bertugas||''))+'</div><div id="mk7-w-holiday">'+label('Nama cuti',input('mk7-w-name','text',old?.Nama_Cuti||''))+'</div>'+label('Status',select('mk7-w-status',[['Aktif','Aktif'],['Tidak Aktif','Tidak aktif']],old?.Status||'Aktif'))+'<p class="mk7-formnote">Minggu sekolah ialah Isnin–Ahad. Cuti harian tidak mengubah nombor minggu. Perubahan minggu yang sudah mempunyai pelan rasmi akan disekat.</p></div>';
+ const a=await Swal.fire({title:'Tetapan Minggu / Cuti',width:600,html,showCancelButton:true,confirmButtonText:'Simpan sebagai draf',cancelButtonText:'Batal',customClass:{popup:'mk7-dialog'},didOpen:()=>{const sync=()=>{const t=val('mk7-w-type');$('mk7-w-teach').hidden=t.startsWith('CUTI');$('mk7-w-num').disabled=t!=='PERSEKOLAHAN';$('mk7-w-holiday').hidden=!t.startsWith('CUTI');};$('mk7-w-type').addEventListener('change',sync);sync();},
+ preConfirm:()=>{
+  const t=val('mk7-w-type'),from=val('mk7-w-from'),to=val('mk7-w-to'),num=Number(val('mk7-w-num')),name=val('mk7-w-name').trim(),group=val('mk7-w-group');
+  if(!dateOK(from)||!dateOK(to)||from>to)return err('Tarikh mula/tamat tidak sah.');
+  if(t==='PERSEKOLAHAN'&&(!Number.isInteger(num)||num<1||num>53||!group||dt(from).getUTCDay()!==1||add(from,6)!==to))return err('Pilih minggu 1–53, kumpulan aktif dan julat Isnin–Ahad.');
+  if(t.startsWith('CUTI')&&!name)return err('Nyatakan nama cuti.');
+  const r={ID_Minggu:old?.ID_Minggu||newID('week'),Sesi:old?.Sesi||y(),Jenis_Minggu:t,Tarikh_Mula:from,Tarikh_Tamat:to,Label_Minggu:t==='PERSEKOLAHAN'?String(num):t==='KESEDIAAN'?'Kesediaan':'',Kumpulan_Bertugas:t.startsWith('CUTI')?'':group,Nama_Cuti:t.startsWith('CUTI')?name:'',Status:val('mk7-w-status')};
+  if(active(r)&&weekRows().some(w=>w.ID_Minggu!==r.ID_Minggu&&active(w)&&(overlap(w,r)||(w.Sesi===r.Sesi&&w.Jenis_Minggu==='PERSEKOLAHAN'&&r.Jenis_Minggu==='PERSEKOLAHAN'&&Number(w.Label_Minggu)===num))))return err('Tarikh atau nombor minggu bertindih. Semak rekod sedia ada.');
+  return r;
+ }});
+ if(a.isConfirmed&&a.value&&!S.saving){stage('week',a.value);notice('Tetapan minggu dikemas kini dalam draf sahaja.','warn');render();}
+}
+async function generateWeeks(){
+ if(!S.ready||S.saving)return;const groups=S.groups.filter(active).sort((a,b)=>Number(a.Susunan||a.Nombor_Kumpulan)-Number(b.Susunan||b.Nombor_Kumpulan));
+ if(!groups.length)return notice('Tetapkan kumpulan bertugas aktif dahulu.','error');
+ const existing=weekRows().filter(w=>w.Sesi===y()&&active(w)&&w.Jenis_Minggu==='PERSEKOLAHAN').sort((a,b)=>a.Tarikh_Mula.localeCompare(b.Tarikh_Mula)),last=existing.at(-1),first=last?add(last.Tarikh_Tamat,1):weekDefault(y()+'-01-04');
+ const nextGroup=(groups.findIndex(g=>String(g.Nombor_Kumpulan)===last?.Kumpulan_Bertugas)+1)%groups.length,firstNum=last?Number(last.Label_Minggu)+1:1;
+ const a=await Swal.fire({title:'Jana draf minggu persekolahan',width:600,html:'<div class="mk7-form"><p class="mk7-formnote">Masukkan cuti penggal penuh dahulu. Penjana hanya menambah minggu kosong, tidak menimpa rekod sedia ada atau menukar minggu yang telah disimpan.</p><div class="mk7-formgrid">'+label('Isnin pertama',input('mk7-g-from','date',first))+label('Ahad terakhir',input('mk7-g-to','date',add(weekDefault(y()+'-12-24'),6)))+'</div><div class="mk7-formgrid">'+label('Nombor minggu mula',input('mk7-g-num','number',firstNum,'min="1" max="53"'))+label('Kumpulan mula',select('mk7-g-group',groups.map(g=>[String(g.Nombor_Kumpulan),g.Nama_Kumpulan]),String(groups[nextGroup]?.Nombor_Kumpulan||groups[0].Nombor_Kumpulan)))+'</div></div>',showCancelButton:true,confirmButtonText:'Jana draf',cancelButtonText:'Batal',customClass:{popup:'mk7-dialog'},preConfirm:()=>{
+  const from=val('mk7-g-from'),to=val('mk7-g-to');let n=Number(val('mk7-g-num')),g=groups.findIndex(x=>String(x.Nombor_Kumpulan)===val('mk7-g-group'));
+  if(!dateOK(from)||!dateOK(to)||from>to||from.slice(0,4)!==y()||dt(from).getUTCDay()!==1||dt(to).getUTCDay()!==0||to>String(Number(y())+1)+'-01-06'||from<today()||!Number.isInteger(n)||n<1||n>53||g<0)return err('Pilih tarikh akan datang dalam sesi ini yang bermula Isnin, tamat Ahad serta nombor/kumpulan yang sah.');
+  const all=weekRows(),out=[];let skipped=0;
+  for(let d=from;d<=to;d=add(d,7)){
+   const w={ID_Minggu:newID('week'),Sesi:y(),Tarikh_Mula:d,Tarikh_Tamat:add(d,6),Jenis_Minggu:'PERSEKOLAHAN',Label_Minggu:String(n),Kumpulan_Bertugas:String(groups[g].Nombor_Kumpulan),Nama_Cuti:'',Status:'Aktif'};
+   const hit=all.filter(r=>active(r)&&overlap(r,w));if(hit.length){
+    if(hit.some(r=>r.Jenis_Minggu==='PERSEKOLAHAN'))return err('Julat sudah mempunyai minggu sekolah pada '+nice(d)+'. Jana selepas minggu terakhir atau pilih julat lain.');
+    if(!hit.some(r=>r.Tarikh_Mula<=d&&r.Tarikh_Tamat>=w.Tarikh_Tamat))return err('Cuti separa minggu pada '+nice(d)+'. Tetapkan sebagai cuti harian supaya minggu tidak hilang.');
+    skipped++;continue;
+   }
+   if(n>53||all.some(r=>active(r)&&r.Sesi===y()&&r.Jenis_Minggu==='PERSEKOLAHAN'&&Number(r.Label_Minggu)===n))return err('Nombor minggu berulang atau melebihi 53: '+n);
+   out.push(w);n++;g=(g+1)%groups.length;
+  }
+  if(!out.length)return err('Tiada minggu kosong dalam julat ini.');
+  if(S.draft.size+out.length>250)return err('Had draf 250 perubahan.');
+  return {out,skipped};
+ }});
+ if(a.isConfirmed&&a.value&&!S.saving){for(const w of a.value.out)stage('week',w);notice(a.value.out.length+' minggu dijana sebagai draf; '+a.value.skipped+' minggu cuti/kesediaan dilangkau. Semak sebelum simpan.','warn');render();}
+}
+function printPanel(){return '<div class="mk7-printcard"><h3>Borang kosong perancangan</h3><p>Untuk mesyuarat dan catatan tangan. Tarikh dan hari diisi secara automatik, ruangan aktiviti dikosongkan.</p><div class="mk7-formgrid">'+label('Bulan',select('mk7-print-month',[['all','Semua 12 bulan'],...monthList().map(m=>[m,monthTitle(m)])],S.month||y()+'-01'))+label('Jenis borang',select('mk7-print-kind',[['3','Tiga unit GPK'],['4','Semua empat unit'],...U.map(u=>[u,'Unit '+u])],'3'))+'</div><p class="mk7-formnote">Gabungan: A4 melintang. Satu unit: A4 menegak. Satu halaman setiap bulan.</p><button type="button" class="mk7-button primary" id="mk7-print-now">Pratonton & Cetak</button></div>';}
+function printHTML(months,cols){
+ const landscape=cols.length>1;
+ const sheets=months.map(m=>'<section class="page"><header><div><h1>SK SEGAMBUT MAKMUR</h1><h2>BORANG PERANCANGAN TAKWIM</h2></div><div class="month">'+E(monthTitle(m))+'<small>'+E(cols.length===1?cols[0]:'Sesi '+y())+'</small></div></header><div class="meta">Tarikh perbincangan: _____________________ &nbsp;&nbsp; Disediakan oleh: _____________________</div><table><thead><tr><th class="day">Tarikh / Hari</th>'+cols.map(u=>'<th>'+E(u)+'</th>').join('')+'</tr></thead><tbody>'+monthDates(m).map(d=>'<tr class="'+([0,6].includes(dt(d).getUTCDay())?'weekend':'')+'"><td>'+d.slice(8)+' · '+E(DAYS[dt(d).getUTCDay()])+'</td>'+cols.map(()=>'<td>&nbsp;</td>').join('')+'</tr>').join('')+'</tbody></table><footer>Catatan / tindakan susulan: _________________________________________________________________</footer></section>').join('');
+ return '<!doctype html><html lang="ms"><head><meta charset="utf-8"><title>Borang Perancangan Takwim</title><style>@page{size:A4 '+(landscape?'landscape':'portrait')+';margin:8mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#172d4a;font-size:10px}.page{break-after:page;page-break-after:always}.page:last-child{break-after:auto;page-break-after:auto}header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #173a65;padding-bottom:3mm;margin-bottom:2mm}h1{font-size:13px;margin:0 0 1mm}h2{font-size:18px;margin:0}.month{font-size:17px;text-align:right;font-weight:bold}.month small{display:block;font-size:10px}.meta{font-size:10px;margin:2mm 0 3mm}table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #687b93;padding:.5mm 2mm;vertical-align:middle}th{height:7mm;background:#e8eff9;font-size:11px}th.day{width:'+(landscape?'35mm':'37mm')+'}td{height:'+(landscape?'4.5mm':'7.1mm')+';font-size:9px;line-height:1.1}.weekend td{background:#f0f2f5}footer{margin-top:3mm;font-size:10px}@media screen{body{background:#e8edf4;padding:15px}.page{margin:0 auto 15px;background:white;padding:8mm;width:'+(landscape?'297mm':'210mm')+';box-shadow:0 2px 12px #9caab8}}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>'+sheets+'</body></html>';
+}
+function print(){const m=val('mk7-print-month'),k=val('mk7-print-kind'),months=m==='all'?monthList().filter(x=>x.slice(0,4)===y()):[m],cols=k==='3'?U.slice(1):k==='4'?U:[k];
+ if(!months.every(x=>monthList().includes(x))||!cols.every(x=>U.includes(x)))return;
+ const p=window.open('','_blank');if(!p)return notice('Pelayar menyekat tetingkap cetakan. Benarkan pop-up cetakan dan cuba semula.','error');
+ p.document.open();p.document.write(printHTML(months,cols));p.document.close();p.focus();setTimeout(()=>{if(!p.closed)p.print();},250);
+}
+async function audit(){
+ if(S.audit!==null||S.loading||S.auditBusy)return;S.auditBusy=true;try{const r=await postToBackend({action:'manualCalendar7Audit'});if(!r?.success)throw Error(r?.error||'Sejarah tidak tersedia');S.audit=r.audit||[];}catch(e){notice('Gagal membaca sejarah: '+e.message,'error');S.audit=[];}finally{S.auditBusy=false;}if(S.tab==='sejarah')render();
+}
+function auditPanel(){
+ if(S.audit===null){audit();return '<div class="mk7-empty">Membaca sejarah pindaan…</div>';}
+ return '<div class="mk7-sectionhead"><strong>Sejarah pindaan (200 rekod terakhir)</strong><button class="mk7-button secondary" id="mk7-reload-audit">Muat semula sejarah</button></div><div class="mk7-eventlist">'+(S.audit.map(r=>{
+  let a={},b={};try{a=JSON.parse(r.Sebelum_JSON||'null')||{};b=JSON.parse(r.Selepas_JSON||'null')||{};}catch(_){}
+  const changed=Object.keys(b).filter(k=>String(a[k]??'')!==String(b[k]??''));
+  const fields=changed.map(k=>'<div><b>'+E(k.replace(/_/g,' '))+'</b> · '+E(a[k]||'—')+' → '+E(b[k]||'—')+'</div>').join('');
+  return '<details class="mk7-listitem"><summary><strong>'+E(b.Tajuk||b.Label_Minggu||b.Nama_Cuti||r.ID_Rekod||r.ID_Acara||'Rekod terdahulu')+'</strong><small>'+E(r.Timestamp||'')+' · '+E(r.Oleh||'')+' · '+E(String(r.Status_Batch||'Rekod lama').replace(/_/g,' '))+'</small></summary><div class="mk7-auditfields">'+(fields||E((r.Tarikh_Mula_Lama||'—')+' → '+(r.Tarikh_Mula_Baharu||'—')))+'</div></details>';
+ }).join('')||'<div class="mk7-empty">Tiada rekod audit.</div>')+'</div>';
+}
+function render(){
+ const box=$('v4CalendarItems');if(!box)return;bar();
+ if(!S.ready){box.innerHTML='<div class="mk7-empty">'+(S.loading?'Menyediakan takwim…':'Takwim belum tersedia. Tekan Muat semula.')+'</div>';return;}
+ if(S.year!==y()){S.year=y();S.month=null;}
+ $('mk7-year').textContent='Sesi '+y();
+ document.querySelectorAll('#v5CalendarTabs [data-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===S.tab)));
+ $('mk7-filters').hidden=!['penuh','aktiviti'].includes(S.tab);
+ box.innerHTML=S.tab==='penuh'?calendar():S.tab==='aktiviti'?eventList():S.tab==='minggu'?weeks():S.tab==='cetakan'?printPanel():auditPanel();
+ bar();
+}
+window.v4OpenCalendar=function(){showView('viewV4Calendar');restore();render();load();};
+window.v4RenderCalendar=function(){if(!$('viewV4Calendar')?.classList.contains('hidden'))render();};
+window.v5RenderCalendar=render;
+window.v5SwitchCalendarTab=function(t){S.tab=t==='ringkasan'?'aktiviti':t;render();};
+window.v4OpenCalendarEditor=(id='',preset={})=>editEvent(id,preset);
+window.v5OpenCalendarCell=(date,unit)=>editEvent('',{date,unit});
+window.v5EditWeek=date=>editWeek(date);
+window.v5ReviseEventDate=id=>editEvent(id);
+function setup(){
+ if(!$('viewV4Calendar'))return;
+ $('mk7-save').addEventListener('click',save);$('mk7-discard').addEventListener('click',discard);$('mk7-refresh').addEventListener('click',()=>load(true));
+ $('mk7-add').addEventListener('click',()=>editEvent());$('mk7-addweek').addEventListener('click',()=>editWeek());
+ $('v4CalendarSearch').addEventListener('input',e=>{S.query=e.target.value;render();});
+ $('v4CalendarTypeFilter').addEventListener('change',e=>{S.kind=e.target.value;render();});
+ $('mk7-filter-unit').addEventListener('change',e=>{S.filterUnit=e.target.value;render();});
+ $('v5CalendarTabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)window.v5SwitchCalendarTab(b.dataset.tab);});
+ const box=$('v4CalendarItems');
+ box.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.mk7Month){S.month=b.dataset.mk7Month;render();}
+  else if(b.dataset.mk7Undo){if(!S.saving){S.draft.delete(b.dataset.mk7Undo);S.batch=newBatch();persist();notice('Draf rekod ini diundur. Data rasmi kekal.');render();}}
+  else if(b.dataset.mk7Event)editEvent(b.dataset.mk7Event);
+  else if(b.dataset.mk7Adddate)editEvent('',{date:b.dataset.mk7Adddate,unit:b.dataset.mk7Unit});
+  else if(b.dataset.mk7Weekdate)editWeek(b.dataset.mk7Weekdate);
+  else if(b.dataset.mk7Weekid)editWeek('',b.dataset.mk7Weekid);
+  else if(b.id==='mk7-generate')generateWeeks();
+  else if(b.id==='mk7-print-now')print();
+  else if(b.id==='mk7-reload-audit'){S.audit=null;render();}
+ });
+ box.addEventListener('change',e=>{if(e.target.id==='mk7-filter-status'){S.status=e.target.value;render();}});
+}
+setup();
+})();
