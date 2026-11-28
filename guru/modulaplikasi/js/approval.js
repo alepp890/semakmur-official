@@ -53,54 +53,8 @@ function loadPentadbirDashboardData() {
 /**
  * POPULASIKAN DROPDOWN MINGGU SEMAKAN PENTADBIR (TANPA PAPARAN TARIKH)
  */
-function initApprovalWeekDropdown() {
-  const selectWeek = document.getElementById('selectWeekApproval');
-  if (!selectWeek) return;
-
-  selectWeek.innerHTML = '';
-  const takwim = window.takwimListGlobal || (typeof state !== 'undefined' ? state.takwimList : []) || [];
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  let matchedCurrentWeek = null;
-
-  if (takwim.length > 0) {
-    // Susun secara MENURUN
-    let sortedTakwim = [...takwim].sort((a, b) => (parseInt(b.mingguKe, 10) || 0) - (parseInt(a.mingguKe, 10) || 0));
-
-    sortedTakwim.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t.mingguKe;
-      // MEMBUANG TARIKH - Hanya paparkan Minggu X
-      opt.textContent = `Minggu ${t.mingguKe}`;
-      selectWeek.appendChild(opt);
-
-      let dMula = parseTakwimDateHelperApproval(t.tarikhMula);
-      let dTamat = parseTakwimDateHelperApproval(t.tarikhTamat);
-      if (dMula && dTamat) {
-        dMula.setHours(0, 0, 0, 0);
-        dTamat.setDate(dTamat.getDate() + 2);
-        dTamat.setHours(23, 59, 59, 999);
-        if (today >= dMula && today <= dTamat) {
-          matchedCurrentWeek = String(t.mingguKe);
-        }
-      }
-    });
-
-    if (matchedCurrentWeek) {
-      selectWeek.value = matchedCurrentWeek;
-    } else if (selectWeek.options.length > 0) {
-      selectWeek.selectedIndex = 0;
-    }
-  } else {
-    for (let i = 42; i >= 1; i--) {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = 'Minggu ' + i;
-      selectWeek.appendChild(opt);
-    }
-    selectWeek.value = '1';
-  }
+function initApprovalWeekDropdown(){
+ const select=document.getElementById('selectWeekApproval');if(select)erphCoreFillWeeks_(select);
 }
 
 /**
@@ -144,7 +98,8 @@ function onGuruSeliaanChange() {
   const selectWeek = document.getElementById('selectWeekApproval');
 
   const selectedGuruEmail = selectGuru ? selectGuru.value : 'ALL';
-  const selectedWeek = selectWeek ? selectWeek.value : '1';
+  const selectedWeek = selectWeek ? selectWeek.value : '';
+  if(!erphCoreWeek_(selectedWeek)){approvalQueueList=[];renderPentadbirApprovalTable();updatePentadbirDashboardStats([]);return;}
   const emailPentadbir = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
 
   const tbody = document.getElementById('pentadbirApprovalTableBody');

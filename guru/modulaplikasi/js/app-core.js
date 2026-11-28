@@ -210,7 +210,6 @@ function initUserSession(verifiedUser) {
 
       // Sesi ditentukan oleh Apps Script; jangan logout automatik selepas 5 minit.
 
-      fetchJadualHariIni(email);
       loadTakwimAndInitDropdowns();
     } catch (e) {
       console.error("Ralat membaca sesi pengguna:", e);
@@ -221,136 +220,66 @@ function initUserSession(verifiedUser) {
   }
 }
 
-function loadTakwimAndInitDropdowns() {
-  fetchBackendApi('getTakwimData')
-    .then(res => {
-      if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
-        state.takwimList = res.data;
-        window.takwimListGlobal = res.data;
-      } else {
-        state.takwimList = [];
-        window.takwimListGlobal = [];
-      }
-      populateWeeksDropdowns();
-    })
-    .catch(err => {
-      console.error('Ralat muat Takwim:', err);
-      state.takwimList = [];
-      window.takwimListGlobal = [];
-      populateWeeksDropdowns();
-    });
+// Takwim CORE V7.1: verified private Firestore document; no invented dates or legacy fallback.
+const erphCoreToday_=()=>new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+function erphCoreDayName_(date){return ['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'][new Date(date+'T12:00:00Z').getUTCDay()];}
+function erphCoreWeek_(n){return state.takwimList.find(w=>String(w.mingguKe)===String(n));}
+function erphCoreDay_(date){return state.takwimList.flatMap(w=>w.days||[]).find(d=>d.date===date);}
+function erphCoreEmail_(){const u=state.currentUser||{};return String(u.email||u.Email||u.emel||u.Emel||'').trim().toLowerCase();}
+function erphCoreMessage_(message){
+ let box=document.getElementById('erph-core-takwim-status');
+ if(!box){box=document.createElement('div');box.id='erph-core-takwim-status';box.setAttribute('role','status');box.style.cssText='margin:8px 0;padding:10px 12px;border:1px solid #e0c48b;background:#fffbeb;color:#805b18;font-size:13px;border-radius:10px';const anchor=document.getElementById('selectWeekGuru');if(anchor?.parentElement)anchor.parentElement.after(box);}
+ box.hidden=!message;box.textContent=message||'';
+ if(message){const button=document.createElement('button');button.type='button';button.textContent=' Cuba semula';button.style.cssText='margin-left:8px;font-weight:700;text-decoration:underline';button.onclick=loadTakwimAndInitDropdowns;box.appendChild(button);}
 }
-
-function populateWeeksDropdowns() {
-  const selectGuru = document.getElementById('selectWeekGuru');
-  if (!selectGuru) return;
-  selectGuru.innerHTML = '';
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  let matchedCurrentWeek = null;
-
-  if (state.takwimList && state.takwimList.length > 0) {
-    let sortedTakwim = [...state.takwimList].sort((a, b) => (parseInt(b.mingguKe, 10) || 0) - (parseInt(a.mingguKe, 10) || 0));
-
-    sortedTakwim.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = t.mingguKe;
-      opt.textContent = `Minggu ${t.mingguKe}`;
-      selectGuru.appendChild(opt);
-
-      let dMula = parseTakwimDateHelper(t.tarikhMula);
-      let dTamat = parseTakwimDateHelper(t.tarikhTamat);
-      if (dMula && dTamat) {
-        dMula.setHours(0, 0, 0, 0);
-        dTamat.setDate(dTamat.getDate() + 2);
-        dTamat.setHours(23, 59, 59, 999);
-
-        if (today >= dMula && today <= dTamat) {
-          matchedCurrentWeek = String(t.mingguKe);
-        }
-      }
-    });
-
-    if (matchedCurrentWeek) {
-      selectGuru.value = matchedCurrentWeek;
-    } else if (selectGuru.options.length > 0) {
-      selectGuru.selectedIndex = 0;
-    }
-  } else {
-    for (let i = 42; i >= 1; i--) {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = 'Minggu ' + i;
-      selectGuru.appendChild(opt);
-    }
-    selectGuru.value = '1';
-  }
-  
-  const currentWeekVal = selectGuru.value || '1';
-  const lbl = document.getElementById('lblMingguHariDashboard');
-  if (lbl) lbl.textContent = `Minggu ${currentWeekVal} (Semasa)`;
-
-  if (typeof initBuilderWeekDropdown === 'function') {
-    initBuilderWeekDropdown();
-  }
-  if (typeof initApprovalWeekDropdown === 'function') {
-    initApprovalWeekDropdown();
-  }
-
-  updateDashboardDayDropdown();
-  loadGuruDashboardData();
+async function erphCoreRead_(){
+ const [appLib,authLib,fire]=await Promise.all([import('https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js')]);
+ const app=appLib.getApps().length?appLib.getApp():appLib.initializeApp(window.SeMAKMURFirebasePilotConfig),auth=authLib.getAuth(app);
+ await auth.authStateReady();const u=auth.currentUser,email=erphCoreEmail_();
+ if(!u||!email||String(u.email||'').toLowerCase()!==email)throw Error('Buka e-RPH melalui Dashboard Guru Fi menggunakan akaun MOE yang sama.');
+ const result=await fire.getDocFromServer(fire.doc(fire.getFirestore(app),'semakmur_dashboard_fi',u.uid)),raw=result.data();
+ if(!result.exists()||raw?.active!==true||String(raw.ownerEmail||'').toLowerCase()!==email||String(raw.profile?.email||'').toLowerCase()!==email)throw Error('Profil Fi tidak aktif.');
+ const core=raw.takwimCore;
+ if(core?.disahkan!==true||core.build!=='TAKWIM-CORE-V7.1'||core.asOfDate!==erphCoreToday_()||!Array.isArray(core.weeks)||!core.weeks.length)throw Error('Takwim rasmi sesi semasa belum diselaraskan.');
+ if(core.weeks.some(w=>!w.idTakwim||!w.mingguKe||!Array.isArray(w.days)||!w.days.length))throw Error('Kontrak Takwim CORE tidak lengkap.');
+ return core;
 }
-
-function updateDashboardDayDropdown() {
-  const selectWeek = document.getElementById('selectWeekGuru');
-  const selectDay = document.getElementById('filterDayGuru');
-  if (!selectDay || !selectWeek) return;
-
-  const weekVal = selectWeek.value;
-  const takwim = state.takwimList || window.takwimListGlobal || [];
-  const currentTakwim = takwim.find(t => String(t.mingguKe) === String(weekVal));
-
-  let refMonday = null;
-  if (currentTakwim && currentTakwim.tarikhMula) {
-    refMonday = parseTakwimDateHelper(currentTakwim.tarikhMula);
-  }
-
-  if (!refMonday || isNaN(refMonday.getTime())) {
-    refMonday = new Date(2026, 0, 12);
-    let weekDiff = (parseInt(weekVal, 10) || 1) - 1;
-    refMonday.setDate(refMonday.getDate() + (weekDiff * 7));
-  }
-
-  const days = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat'];
-
-  // Tetapkan paparan pertama kepada 'ALL' jika belum diinisialisasi
-  let currentVal = selectDay.value;
-  if (!state.isDayDropdownInitialized) {
-    currentVal = 'ALL';
-    state.isDayDropdownInitialized = true;
-  }
-
-  selectDay.innerHTML = '<option value="ALL">Semua Hari</option>';
-
-  days.forEach((day, idx) => {
-    let dayDate = new Date(refMonday);
-    dayDate.setDate(refMonday.getDate() + idx);
-
-    let dd = String(dayDate.getDate()).padStart(2, '0');
-    let mm = String(dayDate.getMonth() + 1).padStart(2, '0');
-    let yyyy = dayDate.getFullYear();
-    let formattedDate = `${dd}/${mm}/${yyyy}`;
-
-    const opt = document.createElement('option');
-    opt.value = day;
-    opt.textContent = `${day} (${formattedDate})`;
-    selectDay.appendChild(opt);
-  });
-
-  // Pilih 'ALL' sebagai lalai utama
-  selectDay.value = (currentVal && Array.from(selectDay.options).some(o => o.value === currentVal)) ? currentVal : 'ALL';
+async function loadTakwimAndInitDropdowns(){
+ try{
+  const core=await erphCoreRead_();
+  state.takwimCore=core;state.takwimList=core.weeks;window.takwimListGlobal=core.weeks;
+  erphCoreMessage_('');populateWeeksDropdowns();
+  if(core.day?.school===true)fetchJadualHariIni(erphCoreEmail_());
+  else{state.todayJadual=[];const host=document.getElementById('jadualWidgetContainer');if(host)host.textContent=core.day?.status==='CUTI'?(core.day.nama||'Cuti sekolah'):'Tiada PdPc hari ini — '+(core.day?.status||'Takwim belum ditetapkan');}
+ }catch(e){
+  console.warn('Takwim CORE:',String(e.message||e));state.takwimCore=null;state.takwimList=[];window.takwimListGlobal=[];
+  erphCoreMessage_(e.message||'Takwim rasmi belum tersedia.');populateWeeksDropdowns();
+  const host=document.getElementById('jadualWidgetContainer');if(host)host.textContent='Takwim rasmi belum tersedia. Jadual hari ini belum dapat disahkan.';
+ }
+}
+function erphCoreFillWeeks_(select){
+ if(!select)return;
+ select.innerHTML='';
+ const today=erphCoreToday_(),weeks=state.takwimList.slice().sort((a,b)=>b.tarikhMula.localeCompare(a.tarikhMula));
+ if(!weeks.length){select.innerHTML='<option value="">Takwim belum tersedia</option>';select.disabled=true;return;}
+ select.disabled=false;
+ weeks.forEach(w=>{const o=document.createElement('option');o.value=String(w.mingguKe);o.textContent='Minggu '+w.mingguKe;select.appendChild(o);});
+ const chosen=weeks.find(w=>w.tarikhMula<=today&&today<=w.tarikhTamat)||weeks.find(w=>w.tarikhMula<=today)||weeks.at(-1);
+ select.value=String(chosen.mingguKe);
+}
+function populateWeeksDropdowns(){
+ const select=document.getElementById('selectWeekGuru');if(!select)return;
+ erphCoreFillWeeks_(select);
+ const label=document.getElementById('lblMingguHariDashboard');if(label)label.textContent=select.value?'Minggu '+select.value:'Takwim belum tersedia';
+ if(typeof initBuilderWeekDropdown==='function')initBuilderWeekDropdown();
+ if(typeof initApprovalWeekDropdown==='function')initApprovalWeekDropdown();
+ updateDashboardDayDropdown();if(select.value)loadGuruDashboardData();
+}
+function updateDashboardDayDropdown(){
+ const week=erphCoreWeek_(document.getElementById('selectWeekGuru')?.value),sel=document.getElementById('filterDayGuru');if(!sel)return;
+ const prev=sel.value;sel.innerHTML='<option value="ALL">Semua Hari</option>';sel.disabled=!week;
+ (week?.days||[]).forEach(d=>{const o=document.createElement('option');o.value=erphCoreDayName_(d.date);o.textContent=o.value+' ('+d.date.split('-').reverse().join('/')+')'+(d.school?'':' · Cuti');sel.appendChild(o);});
+ sel.value=[...sel.options].some(o=>o.value===prev)?prev:'ALL';
 }
 
 function changeWeekGuru() {
@@ -425,9 +354,10 @@ function processAndMergeJadual(dataList) {
 function fetchJadualHariIni(emailGuru) {
   const container = document.getElementById('jadualWidgetContainer');
   if (!container) return;
+  if(state.takwimCore?.day?.school!==true){container.textContent='Tiada PdPc rasmi hari ini atau takwim belum tersedia.';return;}
 
   const days = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
-  const todayName = days[new Date().getDay()];
+  const todayName = erphCoreDayName_(erphCoreToday_());
 
   fetchBackendApi('getJadualGuruByHari', { emailGuru: emailGuru, hari: todayName })
     .then(res => {
@@ -473,7 +403,8 @@ function fetchJadualHariIni(emailGuru) {
 function loadGuruDashboardData() {
   const emailGuru = window.currentUser ? (window.currentUser.email || window.currentUser.Email || window.currentUser.emel || '') : '';
   const selectWeek = document.getElementById('selectWeekGuru');
-  const minggu = selectWeek ? selectWeek.value : '1';
+  const minggu = selectWeek?.value||'';
+  if(!erphCoreWeek_(minggu))return;
   const filterDay = document.getElementById('filterDayGuru') ? document.getElementById('filterDayGuru').value : 'ALL';
 
   const tbody = document.getElementById('guruRphTableBody');
@@ -694,6 +625,7 @@ function renderPrintFolderTree(allList) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const takwim = state.takwimList || window.takwimListGlobal || [];
+  if(!takwim.length){container.textContent='Takwim rasmi belum tersedia. Sila selaraskan Takwim CORE.';return;}
   
   if (takwim && takwim.length > 0) {
     takwim.forEach(t => {
@@ -701,7 +633,7 @@ function renderPrintFolderTree(allList) {
       let dTamat = parseTakwimDateHelper(t.tarikhTamat);
       if (dMula && dTamat) {
         dMula.setHours(0, 0, 0, 0);
-        dTamat.setDate(dTamat.getDate() + 2);
+        
         dTamat.setHours(23, 59, 59, 999);
         if (today >= dMula && today <= dTamat) {
           currentWeekVal = parseInt(t.mingguKe, 10) || currentWeekVal;
