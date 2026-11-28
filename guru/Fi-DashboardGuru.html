@@ -38,6 +38,16 @@
 <style id="fi-v66-relief-toolbar-only">
 @media(max-width:767px){#relief-workspace>.erph-workspace-toolbar{display:none!important}}
 </style>
+<style id="fi-jejak-v11-only">
+#fi-bottom-jejak[hidden]{display:none!important}
+#jejak-workspace{min-width:0;min-height:0}
+@media(max-width:767px){
+body.dashboard-v7.fi-jejak-uat-access #mobile-bottom-nav,body.dashboard-v6.fi-jejak-uat-access #mobile-bottom-nav{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important}
+body.fi-jejak-uat-access #mobile-bottom-nav .bottom-btn{font-size:12px!important}
+body.fi-v6-on-jejak #jejak-workspace{padding-bottom:calc(76px + env(safe-area-inset-bottom))!important}
+body.fi-v6-on-jejak #jejak-workspace .fi-keberadaan-frame-wrap{min-height:0;flex:1}
+}
+</style>
 </head>
 <body class="h-full overflow-hidden antialiased flex dashboard-v3 dashboard-v4 dashboard-v5 dashboard-v6 dashboard-v7">
 <div aria-hidden="true" id="sidebar-backdrop" onclick="closeMobileMenu()"></div>
@@ -150,10 +160,10 @@
     </div>
   </div>
 </section>
-<!-- Smart e-Jejak PdPc V1.0 — dummy desktop UAT, admin navigation only. -->
+<!-- Smart e-Jejak PdPc V1.1 — dummy desktop & PWA UAT, admin navigation only. -->
 <section aria-label="Ruang kerja Smart e-Jejak PdPc" class="erph-workspace" hidden id="jejak-workspace">
   <div class="fi-keberadaan-frame-wrap">
-    <iframe id="jejak-workspace-frame" referrerpolicy="same-origin" title="Smart e-Jejak PdPc Mod Ujian Pentadbir" style="display:block;flex:1 1 0%;width:100%;height:100%;min-width:0;min-height:0;border:0;"></iframe>
+    <iframe id="jejak-workspace-frame" allow="camera; autoplay" referrerpolicy="same-origin" title="Smart e-Jejak PdPc Mod Ujian Pentadbir" style="display:block;flex:1 1 0%;width:100%;height:100%;min-width:0;min-height:0;border:0;"></iframe>
   </div>
 </section>
 <!-- Fi-JadualWaktu — same-origin iframe dalam Dashboard; modul kekal 4 fail frontend. -->
@@ -314,6 +324,7 @@
 <nav aria-label="Navigasi utama mobile" id="mobile-bottom-nav">
 <button class="bottom-btn fi-v5-bottom-home active" data-page="laman_utama" type="button"><i aria-hidden="true" class="fa-solid fa-house"></i><span>Utama</span></button>
 <button class="bottom-btn fi-v5-bottom-attendance" id="fi-bottom-current-module" onclick="openCurrentMobileModule()" type="button"><i aria-hidden="true" class="fa-solid fa-clipboard-user"></i><span>Kehadiran</span></button>
+<button class="bottom-btn fi-v5-bottom-jejak" id="fi-bottom-jejak" type="button" aria-label="Imbas QR Smart e-Jejak (ujian)" hidden><i aria-hidden="true" class="fa-solid fa-qrcode"></i><span>Imbas QR</span></button>
 <button class="bottom-btn fi-v5-bottom-menu" onclick="toggleMobileMenu()" type="button"><i aria-hidden="true" class="fa-solid fa-grip"></i><span>Menu</span></button>
 </nav>
 <div aria-labelledby="profile-title" aria-modal="true" class="fixed inset-0 z-[65] bg-[#081d36aa] p-3 md:p-6 items-center justify-center hidden" id="profile-modal" role="dialog">
@@ -332,7 +343,7 @@
 <div aria-live="polite" class="screen-toast hidden" id="toast" role="status"></div>
 <script src="../config.js"></script>
 <!-- Fi V4: Dashboard/Kehadiran tidak memuat auth-client.js atau Apps Script. -->
-<!-- Fi V6 mempunyai navigasi PWA tiga butang sendiri; tidak gunakan skrip mobile V4. -->
+<!-- Fi V6 mempunyai navigasi PWA sendiri; tidak gunakan skrip mobile V4. -->
 <script src="../firebase-pilot-config.js"></script>
 
 
@@ -351,7 +362,7 @@
 
 
 
-<script defer src="Fi-DashboardGuru.js?v=takwim-core-v71-jejak-v10"></script>
+<script defer src="Fi-DashboardGuru.js?v=takwim-core-v71-jejak-v11"></script>
 
 
 <!-- Tema dan susun atur admin desktop dikendalikan berasingan. -->

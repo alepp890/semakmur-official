@@ -70,19 +70,24 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(document.getElementById('home-modules'))renderShortcuts(activePage);
   }
   window.fiManualSetAccess=fiManualSetAccess;
-  // Smart e-Jejak V1.0: admin-only navigation, dummy desktop iframe.
+  // Smart e-Jejak V1.1: admin-only navigation on desktop and PWA, dummy iframe.
   // No data or write privileges are transferred into the iframe.
-  let fiJejakAdminAllowed=false;
-  const fiJejakCanOpen=()=>fiJejakAdminAllowed&&fiManualDesktop()&&dashboardAuthenticated&&!!window.FiAuthenticatedUser;
+  let fiJejakAdminAllowed=false,fiJejakView='monitor';
+  const fiJejakCanOpen=()=>fiJejakAdminAllowed&&dashboardAuthenticated&&!!window.FiAuthenticatedUser;
+  function fiJejakRefreshNav(){
+    const allowed=fiJejakCanOpen(),button=$('fi-bottom-jejak');
+    if(button)button.hidden=!allowed;
+    document.body?.classList.toggle('fi-jejak-uat-access',allowed);
+  }
   function fiJejakSetAccess(value){
     const allow=Boolean(value);
     if(!allow)closeJejakWorkspace(true);
-    if(fiJejakAdminAllowed===allow)return;
-    fiJejakAdminAllowed=allow;
+    if(fiJejakAdminAllowed===allow){fiJejakRefreshNav();return;}
+    fiJejakAdminAllowed=allow;fiJejakRefreshNav();
     if(document.getElementById('home-modules'))renderShortcuts(activePage);
   }
   window.fiJejakSetAccess=fiJejakSetAccess;
-  window.matchMedia('(min-width:768px)').addEventListener?.('change',()=>{if(!fiManualDesktop())closeJejakWorkspace(true);if(document.getElementById('home-modules'))renderShortcuts(activePage);});
+  window.matchMedia('(min-width:768px)').addEventListener?.('change',()=>{fiJejakRefreshNav();if(document.getElementById('home-modules'))renderShortcuts(activePage);fiV6Header();});
 
   let currentUser=null, dashboardData=null, activePage='laman_utama', activeDay=null, toastTimer=null;
   let dashboardAuthenticated=false, dashboardRequestPending=false;
@@ -449,8 +454,10 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     fiV6Header();
   }
   window.closePengurusanMuridWorkspace=closePengurusanMuridWorkspace;
-  function openJejakWorkspace(){
-    if(!fiJejakCanOpen()){showInfo('Smart e-Jejak V1.0 hanya untuk Admin Sistem pada desktop.');return;}
+  function openJejakWorkspace(view='monitor'){
+    if(!fiJejakCanOpen()){showInfo('Smart e-Jejak V1.1 hanya untuk Admin Sistem (Mod Ujian).');return;}
+    fiJejakView=view==='scan'?'scan':'monitor';
+    const existing=$('jejak-workspace');if(existing&&!existing.hidden){$('jejak-workspace-frame').contentWindow?.postMessage({type:'SEMAKMUR_JEJAK_UAT_VIEW',view:fiJejakView},location.origin);return;}
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
     closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);
     closeReliefWorkspace(true);closeTugasanWorkspace(true);closeFiJadualWorkspace(true);closePengurusanMuridWorkspace(true);closeMobileMenu();
@@ -458,12 +465,13 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
     rememberWorkspace('jejak');
     if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#jejak');
-    if(!frame.getAttribute('src'))frame.src=MODULES.jejak.url+'?embed=1&v=1.0';
+    if(!frame.getAttribute('src'))frame.src=MODULES.jejak.url+'?embed=1&v=1.1';
     fiV6Header();
   }
   function closeJejakWorkspace(keepHash){
     const pane=$('jejak-workspace'),frame=$('jejak-workspace-frame');if(!pane||pane.hidden)return;
     // Dispose of transient simulation on exit. No stale session is retained.
+    frame?.contentWindow?.postMessage({type:'SEMAKMUR_JEJAK_UAT_ACCESS',allowed:false},location.origin);
     frame?.removeAttribute('src');pane.hidden=true;pane.classList.remove('is-open');$('page-scroll').classList.remove('hidden');
     if(!keepHash)rememberWorkspace('laman_utama');
     if(location.hash==='#jejak'&&history.replaceState)history.replaceState(null,'',location.pathname+location.search);
@@ -473,7 +481,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   window.addEventListener('message',e=>{
     const frame=$('jejak-workspace-frame'),pane=$('jejak-workspace');
     if(e.origin!==location.origin||!frame||e.source!==frame.contentWindow)return;
-    if(e.data?.type==='SEMAKMUR_JEJAK_UAT_REQUEST')frame.contentWindow.postMessage({type:'SEMAKMUR_JEJAK_UAT_ACCESS',allowed:!!pane&&!pane.hidden&&fiJejakCanOpen()},location.origin);
+    if(e.data?.type==='SEMAKMUR_JEJAK_UAT_REQUEST')frame.contentWindow.postMessage({type:'SEMAKMUR_JEJAK_UAT_ACCESS',allowed:!!pane&&!pane.hidden&&fiJejakCanOpen(),view:fiJejakView},location.origin);
     else if(e.data?.type==='SEMAKMUR_JEJAK_UAT_BACK')closeJejakWorkspace();
   });
   async function openModule(id){const m=MODULES[id];if(!m)return;
@@ -637,6 +645,8 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   let fiV6ScheduleOpen=false,fiV6AttendanceDetail=false,fiV6SelectedClassName='',fiV8AttendanceSection='rekod';
   function fiV6Mobile(){return window.matchMedia('(max-width:767px)').matches;}
   function fiV6Header(){
+    fiJejakRefreshNav();
+    const jejak=!$('jejak-workspace').hidden;
     const attendance=!$('kehadiran-workspace').hidden;
     const keberadaan=!$('keberadaan-workspace').hidden;
     const relief=!$('relief-workspace').hidden;
@@ -646,15 +656,16 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     const back=$('v4-back');
     if(!fiV6Mobile()){back.hidden=true;return;}
     // Fi-JadualWaktu: tiada butang Kembali dalam header PWA; gunakan navigasi portal.
-    back.hidden=!(fiV6ScheduleOpen||attendance||keberadaan||relief||tugasan||hemMurid);
-    $('v4-header-title').textContent=fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':fiV8AttendanceSection==='semakan'?'Semakan Kehadiran':'Kehadiran Kelas'):keberadaan?'e-Keberadaan':relief?'e-Relief':tugasan?'e-Tugasan Mingguan':fiJadual?'Fi-JadualWaktu':hemMurid?'Pengurusan Murid':'SeMAKMUR Smart System';
+    back.hidden=!(fiV6ScheduleOpen||attendance||keberadaan||relief||tugasan||hemMurid||jejak);
+    $('v4-header-title').textContent=jejak?'Smart e-Jejak':fiV6ScheduleOpen?'Jadual Waktu':attendance?(fiV6AttendanceDetail?fiV6SelectedClassName||'Kehadiran Murid':fiV8AttendanceSection==='semakan'?'Semakan Kehadiran':'Kehadiran Kelas'):keberadaan?'e-Keberadaan':relief?'e-Relief':tugasan?'e-Tugasan Mingguan':fiJadual?'Fi-JadualWaktu':hemMurid?'Pengurusan Murid':'SeMAKMUR Smart System';
+    document.body.classList.toggle('fi-v6-on-jejak',jejak);
     document.body.classList.toggle('fi-v6-on-schedule',fiV6ScheduleOpen);
     document.body.classList.toggle('fi-v6-on-attendance',attendance);
     document.body.classList.toggle('fi-v6-on-keberadaan',keberadaan);
     document.body.classList.toggle('fi-v6-on-relief',relief);
     document.body.classList.toggle('fi-v6-on-tugasan',tugasan);
     document.body.classList.toggle('fi-v6-on-hem-murid',hemMurid);
-    document.body.classList.toggle('v4-on-home',!attendance&&!keberadaan&&!relief&&!tugasan&&!hemMurid&&!fiV6ScheduleOpen);
+    document.body.classList.toggle('v4-on-home',!attendance&&!keberadaan&&!relief&&!tugasan&&!hemMurid&&!fiV6ScheduleOpen&&!jejak);
     document.querySelectorAll('#mobile-bottom-nav .bottom-btn').forEach(b=>b.classList.remove('active'));
     const current=$('fi-bottom-current-module');
     if(current){
@@ -662,7 +673,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       current.querySelector('i').className=tugasan?'fa-solid fa-clipboard-check':relief?'fa-solid fa-person-chalkboard':keberadaan?'fa-solid fa-clipboard-check':'fa-solid fa-clipboard-user';
       current.setAttribute('aria-label',tugasan?'Modul e-Tugasan Mingguan':relief?'Modul e-Relief':keberadaan?'Modul e-Keberadaan':'Modul Kehadiran');
     }
-    const active=attendance||keberadaan||relief||tugasan||hemMurid?'.fi-v5-bottom-attendance':'.fi-v5-bottom-home';
+    const active=jejak?'.fi-v5-bottom-jejak':attendance||keberadaan||relief||tugasan||hemMurid?'.fi-v5-bottom-attendance':'.fi-v5-bottom-home';
     $("mobile-bottom-nav").querySelector(active)?.classList.add('active');
   }
   function fiV6OpenSchedule(){
@@ -883,7 +894,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   }
   async function handleLogout(){
     // Fi V4: log keluar hanya daripada Firebase Auth, tiada API Apps Script.
-    dashboardAuthenticated=false;
+    dashboardAuthenticated=false;fiJejakSetAccess(false);
     try{await window.FiDashboard?.signOutOnly?.();}
     catch(e){location.replace('../Fi-LoginSession.html');}
   }
@@ -934,7 +945,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     }catch(_e){ /* Paparan tetap berfungsi tanpa maklumat sebelumnya. */ }
   }
   function sendToLogin(){
-    dashboardAuthenticated=false;
+    dashboardAuthenticated=false;fiJejakSetAccess(false);
     $('v4-launch-message').textContent='Sila log masuk menggunakan akaun Google anda.';
     window.FiDashboard?.showSignIn?.();
   }
@@ -1053,6 +1064,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       }
     });
     $('v4-back').addEventListener('click',fiV6Back);
+    $('fi-bottom-jejak').addEventListener('click',()=>openJejakWorkspace('scan'));
     $('v4-profile').addEventListener('click',openProfile);
     $('v4-bell').addEventListener('click',()=>showInfo('Tiada notifikasi baharu yang disahkan.'));
     $('fi-v6-day').addEventListener('change',fiV6RenderSchedule);
@@ -1078,7 +1090,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     });
     $('profile-form').addEventListener('submit',saveProfile);
     $('profile-modal').addEventListener('click',e=>{if(e.target===$('profile-modal'))closeProfile();});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closeTugasanWorkspace();closePengurusanMuridWorkspace();closeFiJadualWorkspace();closeProfile();closeMobileMenu();}});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeJejakWorkspace();closeErphWorkspace();closeKehadiranWorkspace();closeKeberadaanWorkspace();closeReliefWorkspace();closeTugasanWorkspace();closePengurusanMuridWorkspace();closeFiJadualWorkspace();closeProfile();closeMobileMenu();}});
     window.addEventListener('resize',()=>{fitName();if(window.innerWidth>=768){$('sidebar-container').classList.remove('-translate-x-full');$('sidebar-backdrop').classList.remove('active');}else{$('sidebar-container').classList.add('-translate-x-full');}});
     showInstantShell();
     fiV6Header();
