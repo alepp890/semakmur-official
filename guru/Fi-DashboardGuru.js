@@ -22,6 +22,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     erph:{title:'e-RPH Digital',icon:'fa-book-open',tone:'green',url:'modulaplikasi/ErphGuru.html'},
     manual:{title:'e-Manual Pengurusan',icon:'fa-book-bookmark',tone:'blue',url:'modulaplikasi/e-ManualPengurusan.html'},
     jadual:{title:'Fi-JadualWaktu',icon:'fa-calendar-days',tone:'green',url:'modulaplikasi/Fi-JadualWaktu.html'},
+    jejak:{title:'Smart e-Jejak PdPc',icon:'fa-qrcode',tone:'blue',url:'modulaplikasi/Fi-SmartEJejak.html'},
     ssdm:{title:'SSDM Disiplin',icon:'fa-shield-halved',tone:'orange',url:'https://ssdm.moe.gov.my'},
     splkpm:{title:'SPLKPM Latihan',icon:'fa-graduation-cap',tone:'purple',url:'https://splkpm.moe.gov.my'},
     pajsk:{title:'PAJSK Kokurikulum',icon:'fa-trophy',tone:'green',url:null},
@@ -47,7 +48,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   };
   const CATEGORY_MODULES={
     pentadbiran:['keberadaan','manual','eminit','eprogram','eopr','bertugas','hrmis'],
-    kurikulum:['erph','jadual','epbd','tmk','relief','splkpm'],
+    kurikulum:['erph','jadual','jejak','epbd','tmk','relief','splkpm'],
     hem:['pengurusan_murid','kehadiran','apdm','ssdm','spbt','rmt'],
     kokurikulum:['beruniform','kelab','sukan','pajsk','eprogram'],
     lain_lain:['bilik','dokumen','manual','splkpm']
@@ -69,6 +70,20 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(document.getElementById('home-modules'))renderShortcuts(activePage);
   }
   window.fiManualSetAccess=fiManualSetAccess;
+  // Smart e-Jejak V1.0: admin-only navigation, dummy desktop iframe.
+  // No data or write privileges are transferred into the iframe.
+  let fiJejakAdminAllowed=false;
+  const fiJejakCanOpen=()=>fiJejakAdminAllowed&&fiManualDesktop()&&dashboardAuthenticated&&!!window.FiAuthenticatedUser;
+  function fiJejakSetAccess(value){
+    const allow=Boolean(value);
+    if(!allow)closeJejakWorkspace(true);
+    if(fiJejakAdminAllowed===allow)return;
+    fiJejakAdminAllowed=allow;
+    if(document.getElementById('home-modules'))renderShortcuts(activePage);
+  }
+  window.fiJejakSetAccess=fiJejakSetAccess;
+  window.matchMedia('(min-width:768px)').addEventListener?.('change',()=>{if(!fiManualDesktop())closeJejakWorkspace(true);if(document.getElementById('home-modules'))renderShortcuts(activePage);});
+
   let currentUser=null, dashboardData=null, activePage='laman_utama', activeDay=null, toastTimer=null;
   let dashboardAuthenticated=false, dashboardRequestPending=false;
   let resumeDone=false;
@@ -124,6 +139,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   }
   function moduleCard(id){const m=MODULES[id];if(!m || (id==='manual' && (!fiManualAccessAllowed||!fiManualDesktop())))return '';
     if(id==='jadual'&&!bolehUrusJadual())return '';
+    if(id==='jejak'&&!fiJejakCanOpen())return '';
     return `<button class="module-card" type="button" data-module="${escapeHtml(id)}" ${m.url?'':'disabled'}>
       <span class="module-icon ${escapeHtml(m.tone)}">${qIcon(({erph:'book',manual:'settings',jadual:'calendar',ssdm:'attendance',splkpm:'graduation',pajsk:'chart',hrmis:'settings',eminit:'mail',eprogram:'calendar',eopr:'report',bertugas:'report',relief:'calendar',epbd:'chart',tmk:'book',kehadiran:'attendance',pengurusan_murid:'attendance',apdm:'attendance',spbt:'book',rmt:'attendance',beruniform:'attendance',kelab:'attendance',sukan:'chart',bilik:'settings',dokumen:'report'})[id]||'book')}</span>
       <span class="text-slate-700">${escapeHtml(m.title)}</span></button>`;
@@ -196,6 +212,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   }
   function fiKehadiranSesiLatar(){ /* Fi V4: Firebase Auth sudah menyediakan sesi; tiada Apps Script. */ }
   function openKehadiranWorkspace(){
+    closeJejakWorkspace(true);
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
     if(!dashboardAuthenticated || !window.FiAuthenticatedUser){
       showInfo('Akses Dashboard sedang disahkan. Sila cuba sebentar lagi.');return;
@@ -255,6 +272,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     else openKehadiranWorkspace();
   }
   function openKeberadaanWorkspace(){
+    closeJejakWorkspace(true);
     if(!dashboardAuthenticated||!window.FiAuthenticatedUser){
       showInfo('Akses Dashboard sedang disahkan. Sila cuba sebentar lagi.');return;
     }
@@ -301,6 +319,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   }
   window.retryReliefWorkspace=retryReliefWorkspace;
   function openReliefWorkspace(){
+    closeJejakWorkspace(true);
     if(!dashboardAuthenticated||!window.FiAuthenticatedUser){showInfo('Akses Dashboard belum disahkan.');return;}
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
     closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);closePengurusanMuridWorkspace(true);closeTugasanWorkspace(true);closeFiJadualWorkspace(true);closeMobileMenu();
@@ -329,6 +348,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     $('fi-tugasan-retry').hidden=!isError;
   }
   function openTugasanWorkspace(){
+    closeJejakWorkspace(true);
     if(!dashboardAuthenticated||!window.FiAuthenticatedUser){showInfo('Akses Dashboard belum disahkan.');return;}
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
     closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);
@@ -376,6 +396,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     $('fi-jadual-retry').hidden=!isError;
   }
   function openFiJadualWorkspace(){
+    closeJejakWorkspace(true);
     if(!dashboardAuthenticated||!window.FiAuthenticatedUser){showInfo('Akses Fi belum disahkan.');return;}
     if(!bolehUrusJadual()){showInfo('Anda tidak mempunyai peranan pentadbir untuk Generator.');return;}
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
@@ -409,6 +430,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   window.retryFiJadualWorkspace=retryFiJadualWorkspace;
   // HEM V2: iframe same-origin dalam Dashboard, tidak membuka tab baharu.
   function openPengurusanMuridWorkspace(){
+    closeJejakWorkspace(true);
     const pane=$('pengurusan-murid-workspace'),frame=$('pengurusan-murid-workspace-frame');
     if(!pane||!frame){showInfo('Ruang Pengurusan Murid belum dipasang dalam HTML Dashboard.');return;}
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
@@ -427,7 +449,36 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     fiV6Header();
   }
   window.closePengurusanMuridWorkspace=closePengurusanMuridWorkspace;
+  function openJejakWorkspace(){
+    if(!fiJejakCanOpen()){showInfo('Smart e-Jejak V1.0 hanya untuk Admin Sistem pada desktop.');return;}
+    if(fiV6ScheduleOpen)fiV6CloseSchedule();
+    closeErphWorkspace(true);closeKehadiranWorkspace(true);closeKeberadaanWorkspace(true);
+    closeReliefWorkspace(true);closeTugasanWorkspace(true);closeFiJadualWorkspace(true);closePengurusanMuridWorkspace(true);closeMobileMenu();
+    const pane=$('jejak-workspace'),frame=$('jejak-workspace-frame');if(!pane||!frame)return;
+    $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
+    rememberWorkspace('jejak');
+    if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#jejak');
+    if(!frame.getAttribute('src'))frame.src=MODULES.jejak.url+'?embed=1&v=1.0';
+    fiV6Header();
+  }
+  function closeJejakWorkspace(keepHash){
+    const pane=$('jejak-workspace'),frame=$('jejak-workspace-frame');if(!pane||pane.hidden)return;
+    // Dispose of transient simulation on exit. No stale session is retained.
+    frame?.removeAttribute('src');pane.hidden=true;pane.classList.remove('is-open');$('page-scroll').classList.remove('hidden');
+    if(!keepHash)rememberWorkspace('laman_utama');
+    if(location.hash==='#jejak'&&history.replaceState)history.replaceState(null,'',location.pathname+location.search);
+    fiV6Header();
+  }
+  window.closeJejakWorkspace=closeJejakWorkspace;
+  window.addEventListener('message',e=>{
+    const frame=$('jejak-workspace-frame'),pane=$('jejak-workspace');
+    if(e.origin!==location.origin||!frame||e.source!==frame.contentWindow)return;
+    if(e.data?.type==='SEMAKMUR_JEJAK_UAT_REQUEST')frame.contentWindow.postMessage({type:'SEMAKMUR_JEJAK_UAT_ACCESS',allowed:!!pane&&!pane.hidden&&fiJejakCanOpen()},location.origin);
+    else if(e.data?.type==='SEMAKMUR_JEJAK_UAT_BACK')closeJejakWorkspace();
+  });
   async function openModule(id){const m=MODULES[id];if(!m)return;
+    if(id==='jejak'){openJejakWorkspace();return;}
+    closeJejakWorkspace(true);
     if(id==='jadual'){if(!dashboardAuthenticated||!bolehUrusJadual()){showInfo('Sila sahkan akses pentadbir Fi dahulu.');return;}openFiJadualWorkspace();return;}
     // Kehadiran dibuka serta-merta. Jangan tunggu ensureOfficial() sebelum memaparkan ruang.
     if(id==='kehadiran'){openKehadiranWorkspace();return;}
@@ -467,8 +518,8 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     graduation:'<path d="m2 10 10-5 10 5-10 5-10-5Z"/><path d="M6 12v5c3 3 9 3 12 0v-5M22 10v6"/>'
   };
   function qIcon(type){return `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${QUICK_ICONS[type]||QUICK_ICONS.book}</svg>`;}
-  function shortcutCard(id,idx){const m=MODULES[id];if(!m||(id==='manual'&&(!fiManualDesktop()||!fiManualAccessAllowed)))return '';
-    const details={pengurusan_murid:['Pengurusan Murid','Daftar & Pindah Murid','attendance'],kehadiran:['Kehadiran','Rekod & Analisis','attendance'],erph:['e-RPH','Rancangan Pengajaran','book'],jadual:['Jadual Waktu','Kelas & Tugasan','calendar'],splkpm:['Latihan','Pembangunan Guru','graduation'],epbd:['PBD','Pentaksiran Murid','chart'],eopr:['Laporan','Laporan & Statistik','report'],eminit:['Surat','Surat & Tindakan','mail'],manual:['Pengurusan','Manual Sekolah','settings'],keberadaan:['e-Keberadaan','Permohonan & Rekod','report'],bertugas:['Tugasan Mingguan','Tugas & Laporan','report']};
+  function shortcutCard(id,idx){const m=MODULES[id];if(!m||(id==='manual'&&(!fiManualDesktop()||!fiManualAccessAllowed))||(id==='jejak'&&!fiJejakCanOpen()))return '';
+    const details={jejak:['Smart e-Jejak','Pemantauan PdPc (Ujian)','calendar'],pengurusan_murid:['Pengurusan Murid','Daftar & Pindah Murid','attendance'],kehadiran:['Kehadiran','Rekod & Analisis','attendance'],erph:['e-RPH','Rancangan Pengajaran','book'],jadual:['Jadual Waktu','Kelas & Tugasan','calendar'],splkpm:['Latihan','Pembangunan Guru','graduation'],epbd:['PBD','Pentaksiran Murid','chart'],eopr:['Laporan','Laporan & Statistik','report'],eminit:['Surat','Surat & Tindakan','mail'],manual:['Pengurusan','Manual Sekolah','settings'],keberadaan:['e-Keberadaan','Permohonan & Rekod','report'],bertugas:['Tugasan Mingguan','Tugas & Laporan','report']};
     const iconMap={hrmis:'settings',ssdm:'attendance',splkpm:'graduation',pajsk:'chart',apdm:'attendance',bilik:'calendar',kehadiran:'attendance',eprogram:'calendar',eopr:'report',bertugas:'report',beruniform:'attendance',kelab:'attendance',sukan:'chart',epbd:'chart',tmk:'book',relief:'calendar'};
     const data=details[id]||[m.title,'Aplikasi SeMAKMUR',iconMap[id]||'book'];
     return `<button class="shortcut-card shortcut-tone-${idx%7} ${m.url?'':'shortcut-inactive'}" type="button" data-module="${escapeHtml(id)}" ${m.url?'':'disabled'} title="${escapeHtml(data[0])}"><span class="shortcut-icon">${qIcon(data[2])}</span><span class="shortcut-title">${escapeHtml(data[0])}</span><span class="shortcut-description">${escapeHtml(data[1])}</span><span class="shortcut-arrow" aria-hidden="true">→</span></button>`;
@@ -477,10 +528,11 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(page==='laman_utama'){
       const links=['kehadiran','erph','keberadaan','bertugas','jadual','epbd','eopr','eminit'];
       if(fiManualDesktop()&&fiManualAccessAllowed)links.push('manual');
+      if(fiJejakCanOpen())links.push('jejak');
       return links;
     }
     return (CATEGORY_MODULES[page]||[])
-      .filter(id=>(id!=='jadual'||bolehUrusJadual()) && (id!=='manual'||fiManualDesktop()&&fiManualAccessAllowed))
+      .filter(id=>(id!=='jadual'||bolehUrusJadual()) && (id!=='manual'||fiManualDesktop()&&fiManualAccessAllowed) && (id!=='jejak'||fiJejakCanOpen()))
       .slice(0,8);
   }
   function renderShortcuts(page=activePage){
@@ -614,6 +666,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     $("mobile-bottom-nav").querySelector(active)?.classList.add('active');
   }
   function fiV6OpenSchedule(){
+    closeJejakWorkspace(true);
     if(!dashboardAuthenticated){showInfo('Dashboard sedang menyediakan data.');return;}
     fiV6ScheduleOpen=true;
     closeKehadiranWorkspace(true);
@@ -640,6 +693,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(!$('tugasan-workspace').hidden){closeTugasanWorkspace();return;}
     if(!$('fi-jadual-workspace').hidden){closeFiJadualWorkspace();return;}
     if(!$('pengurusan-murid-workspace').hidden){closePengurusanMuridWorkspace();return;}
+    if(!$('jejak-workspace').hidden){closeJejakWorkspace();return;}
     switchMainMenu('laman_utama');
   }
   function fiV6RenderSchedule(){
@@ -804,7 +858,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(key!=='hem')$('category-overview').insertAdjacentHTML('beforeend','<div class="fi-v8-hem-header" style="margin-top:16px">Statistik Kehadiran Sekolah</div>'+fiV8SchoolSummaryHTML());
     // Pautan modul bidang telah dipindahkan ke bahagian atas, tanpa pendua di bawah.
   }
-  function switchMainMenu(key){if(!MENUS[key])return;activePage=key;
+  function switchMainMenu(key){if(!MENUS[key])return;closeJejakWorkspace(true);activePage=key;
     $('breadcrumb-text').textContent=MENUS[key].title;
     renderShortcuts(key);
     $('right-my-roles-panel').classList.toggle('hidden',key==='laman_utama');
@@ -1792,6 +1846,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         if(stopGpkRole){stopGpkRole();stopGpkRole=null;}
         isGpk=false;isGb=false;
         window.fiManualSetAccess?.(false);
+        window.fiJejakSetAccess?.(false);
         if(lastAbsence)renderAbsence(lastAbsence);
         if(!u)return;
         stopGpkRole=fs.onSnapshot(fs.doc(db,'semakmur_fi_keberadaan_roles',u.uid),snap=>{
@@ -1801,8 +1856,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
           isGpk=rs.includes('GPK');
           isGb=rs.includes('GB');
           window.fiManualSetAccess?.(rs.some(r=>['GPK','GB','ADMIN_SISTEM'].includes(r)));
+          window.fiJejakSetAccess?.(rs.includes('ADMIN_SISTEM'));
           if(lastAbsence)renderAbsence(lastAbsence);
-        },err=>{isGpk=false;isGb=false;window.fiManualSetAccess?.(false);console.warn('Peranan GPK/GB tidak dapat dibaca',err?.code||err?.message);if(lastAbsence)renderAbsence(lastAbsence);});
+        },err=>{isGpk=false;isGb=false;window.fiManualSetAccess?.(false);window.fiJejakSetAccess?.(false);console.warn('Peranan GPK/GB tidak dapat dibaca',err?.code||err?.message);if(lastAbsence)renderAbsence(lastAbsence);});
       });
     }catch(err){console.warn('Status GPK tidak dapat disahkan:',err?.message||err);}
   }
