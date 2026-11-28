@@ -70,7 +70,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(document.getElementById('home-modules'))renderShortcuts(activePage);
   }
   window.fiManualSetAccess=fiManualSetAccess;
-  // Smart e-Jejak V1.1: admin-only navigation on desktop and PWA, dummy iframe.
+  // Smart e-Jejak V1.2: admin-only navigation on desktop and PWA, dummy iframe.
   // No data or write privileges are transferred into the iframe.
   let fiJejakAdminAllowed=false,fiJejakView='monitor';
   const fiJejakCanOpen=()=>fiJejakAdminAllowed&&dashboardAuthenticated&&!!window.FiAuthenticatedUser;
@@ -455,7 +455,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
   }
   window.closePengurusanMuridWorkspace=closePengurusanMuridWorkspace;
   function openJejakWorkspace(view='monitor'){
-    if(!fiJejakCanOpen()){showInfo('Smart e-Jejak V1.1 hanya untuk Admin Sistem (Mod Ujian).');return;}
+    if(!fiJejakCanOpen()){showInfo('Smart e-Jejak V1.2 hanya untuk Admin Sistem (Mod Ujian).');return;}
     fiJejakView=view==='scan'?'scan':'monitor';
     const existing=$('jejak-workspace');if(existing&&!existing.hidden){$('jejak-workspace-frame').contentWindow?.postMessage({type:'SEMAKMUR_JEJAK_UAT_VIEW',view:fiJejakView},location.origin);return;}
     if(fiV6ScheduleOpen)fiV6CloseSchedule();
@@ -465,7 +465,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     $('page-scroll').classList.add('hidden');pane.hidden=false;pane.classList.add('is-open');
     rememberWorkspace('jejak');
     if(history.replaceState)history.replaceState(null,'',location.pathname+location.search+'#jejak');
-    if(!frame.getAttribute('src'))frame.src=MODULES.jejak.url+'?embed=1&v=1.1';
+    if(!frame.getAttribute('src'))frame.src=MODULES.jejak.url+'?embed=1&v=1.2';
     fiV6Header();
   }
   function closeJejakWorkspace(keepHash){
