@@ -5,8 +5,10 @@
 <title>Smart e-Jejak PdPc | SeMAKMUR • Mod Ujian Pentadbir</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="Fi-SmartEJejak.css?v=1.0">
-<script defer src="Fi-SmartEJejak.js?v=1.0"></script>
+<link rel="stylesheet" href="Fi-SmartEJejak.css?v=1.1">
+<script defer src="vendor/jsQR-1.4.0.js"></script>
+<script defer src="Fi-SmartEJejak-Camera.js?v=1.1"></script>
+<script defer src="Fi-SmartEJejak.js?v=1.1"></script>
 </head><body>
 <section id="gate" class="gate"><h1>Smart e-Jejak PdPc</h1><p id="gate-copy">Menyemak ruang Mod Ujian Pentadbir…</p></section>
 <div id="app" hidden>
@@ -15,29 +17,37 @@
   <div class="top-right"><span class="uat"><span></span> MOD UJIAN PENTADBIR</span><button id="back" class="btn btn-light" hidden>← Dashboard</button></div></div>
 </header>
 <main>
-<section class="sandbox-note"><div class="note-icon">i</div><div><strong>Data simulasi sahaja</strong><p>Nama guru, tarikh, jadual, cuti dan kod QR ialah data dummy. Tiada rekod dihantar ke Sheets, Firestore atau modul rasmi.</p></div><span class="pill idle">V1.0</span></section>
-<section class="panel clock-panel">
+<section class="sandbox-note"><div class="note-icon">i</div><div><strong>Data simulasi sahaja</strong><p>Nama guru, tarikh, jadual, cuti dan kod QR ialah data dummy. Tiada rekod dihantar ke Sheets, Firestore atau modul rasmi.</p></div><span class="pill idle">V1.1</span></section>
+<section class="panel clock-panel" id="clock-panel">
 <div class="clock-main"><span class="eyebrow">MASA SIMULASI</span><div class="clock-number" id="clock-readout">08:10</div><p id="clock-date"></p><span id="calendar-status" class="pill idle"></span></div>
 <div class="clock-controls">
 <div class="controls"><label>Tarikh ujian<input type="date" id="date-input" value="2026-11-30"></label><label>Jam ujian<input type="time" id="time-input" value="08:10"></label><label>Senario<select id="scenario"><option value="MIX">Gabungan · relief &amp; pairing</option><option value="NORMAL">Jadual biasa</option></select></label><button id="set-clock" class="btn btn-primary">Tetapkan masa</button></div>
 <div class="buttons"><button id="plus5" class="btn">+5 minit</button><button id="next-period" class="btn">Slot seterusnya</button><button id="play" class="btn">▶ Jalankan jam</button><button id="reset" class="btn outline">Mula semula ujian</button></div>
 <small id="clock-hint">Jam tidak bergerak sehingga anda mengubah masa. Mainkan simulasi untuk memajukan 1 minit ujian setiap saat.</small></div>
 </section>
-<nav class="tabs" aria-label="Bahagian e-Jejak"><button data-tab="monitor" aria-selected="true">Monitor Kelas</button><button data-tab="history" aria-selected="false">Rekod PdPc</button><button data-tab="relief" aria-selected="false">Pengesahan Relief</button><button data-tab="audit" aria-selected="false">Audit Imbasan</button></nav>
+<nav class="tabs" aria-label="Bahagian e-Jejak"><button id="phone-scan-tab" data-tab="scan" aria-selected="false" class="phone-only">Imbas QR</button><button data-tab="monitor" aria-selected="true">Monitor Kelas</button><button data-tab="history" aria-selected="false">Rekod PdPc</button><button data-tab="relief" aria-selected="false">Pengesahan Relief</button><button data-tab="audit" aria-selected="false">Audit Imbasan</button></nav>
 <section id="metrics" class="metrics" aria-label="Ringkasan status kelas"></section>
 <div class="layout">
-<aside class="panel scanner">
-<div class="section-label">SIMULASI PENGIMBAS QR</div>
-<h2>Imbas sebagai guru</h2><p class="muted">Pilih identiti guru dan QR fizikal. Sistem menentukan kelas dan subjek secara automatik.</p>
+<aside class="panel scanner" id="scanner-panel">
+<div class="section-label">PENGIMBAS QR · MOD UJIAN</div>
+<h2>Imbas sebagai guru</h2><p class="muted">Pilih identiti guru dummy. Imbas kad QR menggunakan kamera telefon; kelas dan subjek dipadankan automatik.</p>
 <label>Guru ujian<select id="teacher"></select></label><div id="teacher-current" class="preview"></div>
+<div class="camera-card"><div class="camera-heading"><strong>Kamera QR</strong><span class="pill info">Ujian</span></div>
+<p id="camera-status" role="status" aria-live="polite">Buka kamera dan imbas kad QR ujian. Tiada foto atau video disimpan.</p>
+<div id="camera-preview" class="camera-preview" hidden><video id="camera-video" playsinline autoplay muted aria-label="Pratonton kamera QR"></video><div class="scan-guide" aria-hidden="true"></div></div>
+<canvas id="camera-canvas" hidden></canvas>
+<div class="camera-actions"><button id="camera-start" type="button" class="btn btn-primary">Buka kamera</button><button id="camera-stop" type="button" class="btn outline" hidden>Hentikan</button></div>
+<a href="Kad-QR-Ujian.html" target="_blank" rel="noopener" class="qr-sheet-link">Buka kad QR ujian untuk dipaparkan atau dicetak ↗</a></div>
+<details id="manual-panel" class="manual-panel" open><summary>Simulasi manual &amp; senario pantas</summary>
 <label>QR kelas / bilik khas<select id="qr-location"></select></label>
 <label>Kod QR ujian<input id="qr-payload" type="text" autocomplete="off" spellcheck="false"></label>
-<div class="qr-card"><div class="qr-symbol" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><path d="M5 18V5h13m28 0h13v13m0 28v13H46M18 59H5V46" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M13 16h12v12H13zm27 0h12v12H40zM13 39h12v12H13z" stroke="currentColor" stroke-width="3"/><path d="M31 34h7v7h7v7h7m-21 3v-7m22-10h-7m-14-18v8" stroke="currentColor" stroke-width="4"/></svg></div><div><strong id="qr-title">1 IRIS</strong><small>Simulasi pengesanan QR, bukan kamera sebenar.</small></div></div>
+<div class="qr-card"><div class="qr-symbol" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><path d="M5 18V5h13m28 0h13v13m0 28v13H46M18 59H5V46" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M13 16h12v12H13zm27 0h12v12H40zM13 39h12v12H13z" stroke="currentColor" stroke-width="3"/><path d="M31 34h7v7h7v7h7m-21 3v-7m22-10h-7m-14-18v8" stroke="currentColor" stroke-width="4"/></svg></div><div><strong id="qr-title">1 IRIS</strong><small>Pilihan manual sahaja. Kamera menerima kod yang benar-benar diimbas.</small></div></div>
 <button id="scan" class="btn btn-primary scan-button">Simulasikan Imbasan QR</button>
 <div class="case-box"><strong>Uji senario cepat</strong><p>Pratetap mengisi guru dan QR; tekan Imbas untuk menjalankan ujian.</p>
 <div class="case-buttons"><button class="btn" data-case="single">Guru subjek</button><button class="btn" data-case="pair1">Pairing 1</button><button class="btn" data-case="pair2">Pairing 2</button><button class="btn" data-case="relief">Guru relief</button><button class="btn" data-case="wrong">QR salah</button><button class="btn" data-case="room">Bilik khas</button><button class="btn" data-case="shift">Pasangan dialihkan</button><button class="btn" data-case="absent">Guru tiada</button></div>
 <button id="cancel-relief" class="btn danger-outline">Batalkan keberadaan Guru Demo Citra</button>
 <small>Uji pada 08:10–09:10 dalam senario gabungan.</small></div>
+</details>
 </aside>
 <div class="content">
 <section class="panel table-panel" id="tab-monitor">
@@ -50,7 +60,7 @@
 <section class="panel table-panel" id="tab-relief" hidden><div class="panel-top"><div><div class="section-label">INTEGRASI E-RELIEF (DUMMY)</div><h2>Pengesahan Relief</h2><p class="muted">Status dilaksana bermula selepas imbasan sah. Tiada butang tandakan selesai secara manual.</p></div></div><div class="table-wrap"><table><thead><tr><th>Waktu / kelas</th><th>Guru gantian</th><th>Jenis agihan</th><th>Imbasan</th><th>Status</th></tr></thead><tbody id="relief-body"></tbody></table></div></section>
 <section class="panel table-panel" id="tab-audit" hidden><div class="panel-top"><div><div class="section-label">JEJAK PERISTIWA</div><h2>Audit Imbasan</h2><p class="muted">Rekod imbasan berjaya, ditolak, ulangan, perpindahan lokasi dan pembatalan.</p></div><button id="export-audit" class="btn outline">Eksport CSV ujian</button></div><div class="table-wrap"><table><thead><tr><th>Masa</th><th>Peristiwa</th><th>Guru / kelas</th><th>Butiran</th></tr></thead><tbody id="audit-body"></tbody></table></div></section>
 </div></div>
-<footer>SeMAKMUR Smart e-Jejak PdPc · Desktop Mod Ujian Pentadbir · Semua rekod sementara dalam sesi ini</footer>
+<footer>SeMAKMUR Smart e-Jejak PdPc · Mod Ujian Pentadbir Desktop &amp; PWA · Semua rekod sementara dalam sesi ini</footer>
 </main>
 </div>
 <dialog id="dialog"><form method="dialog"><div id="dialog-mark" class="dialog-mark"></div><h2 id="dialog-title"></h2><p id="dialog-text"></p><div id="dialog-detail" class="dialog-detail" hidden></div><div class="dialog-actions"><button id="dialog-cancel" value="cancel" class="btn outline" hidden>Batal</button><button id="dialog-ok" value="ok" class="btn btn-primary">Baik</button></div></form></dialog>

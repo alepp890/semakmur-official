@@ -1,10 +1,10 @@
-/* SeMAKMUR Smart e-Jejak PdPc V1.0 — desktop UAT only.
+/* SeMAKMUR Smart e-Jejak PdPc V1.1 — desktop & PWA UAT only.
  * Pure deterministic engine, no Firebase/Apps Script/Sheets/camera writes.
  * All timestamps, teachers, classes, QR codes and schedules in this module are simulated.
  */
 (function(root,factory){const core=factory();if(typeof module==='object'&&module.exports)module.exports=core;else root.SeMAKMURJejakCore=core;})(typeof globalThis==='object'?globalThis:this,function(){
 'use strict';
-const BUILD='JEJAK-V1.0-UAT',DATE='2026-11-30';
+const BUILD='JEJAK-V1.1-UAT',DATE='2026-11-30';
 const pad=n=>String(n).padStart(2,'0'), time=n=>pad(Math.floor(n/60))+':'+pad(n%60);
 const minute=v=>{if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(String(v)))throw Error('Masa ujian tidak sah.');return +v.slice(0,2)*60+(+v.slice(3));};
 const dateValid=d=>/^20\d{2}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(Date.parse(d+'T12:00:00Z'))&&new Date(d+'T12:00:00Z').toISOString().slice(0,10)===d;
@@ -141,10 +141,27 @@ const C=window.SeMAKMURJejakCore,$=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const tname=id=>C.teacher(id)?.name||'—',cname=id=>C.klass(id)?.name||'—',lname=id=>C.LOCATIONS.find(x=>x.id===id)?.name||'—';
 const fmt=C.time,range=r=>fmt(r.from)+'–'+fmt(r.to),pill=(txt,tone='idle')=>'<span class="pill '+tone+'">'+esc(txt)+'</span>';
-let s=C.create(),tab='monitor',timer=null,started=false,pending=null;
+let s=C.create(),tab='monitor',timer=null,started=false,pending=null,camera=null,scanTeacher='',cameraBound=false;
+const mobileView=()=>typeof window.matchMedia==='function'&&window.matchMedia('(max-width:767px)').matches;
+function stopCamera(message){if(camera&&['requesting','scanning'].includes(camera.phase))camera.stop(message||'Kamera dihentikan.');}
+function setCameraState(state){
+ const busy=state.phase==='requesting'||state.phase==='scanning';
+ $('camera-status').textContent=state.message;$('camera-status').dataset.phase=state.phase;
+ $('camera-preview').hidden=!busy;$('camera-stop').hidden=!busy;$('camera-start').disabled=busy;
+ $('teacher').disabled=busy;$('scan').disabled=busy;
+}
+function bindCamera(){
+ if(cameraBound)return;cameraBound=true;
+ if(typeof window.SeMAKMURJejakCamera!=='function'){ $('camera-start').disabled=true;$('camera-status').textContent='Pustaka kamera belum tersedia. Gunakan simulasi manual.';return;}
+ camera=window.SeMAKMURJejakCamera({video:$('camera-video'),canvas:$('camera-canvas'),mediaDevices:typeof navigator==='object'?navigator.mediaDevices:null,decode:window.jsQR,secure:window.isSecureContext===true,onState:setCameraState,onResult:payload=>{if(!started)return;guarded(()=>handleScan(payload,scanTeacher));}});
+ $('camera-start').onclick=()=>{if(!started)return;pause();scanTeacher=$('teacher').value;camera.start();};
+ $('camera-stop').onclick=()=>stopCamera();
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)stopCamera('Kamera dihentikan kerana halaman tidak aktif.');});
+ window.addEventListener('pagehide',()=>stopCamera());
+}
 function pause(){if(timer!==null){clearInterval(timer);timer=null;}$('play').textContent='▶ Jalankan jam';$('play').setAttribute('aria-pressed','false');}
 function dialog(title,msg,tone='info',detail='',action=null){
- pause();const d=$('dialog');if(d.open)d.close();
+ stopCamera();pause();const d=$('dialog');if(d.open)d.close();
  $('dialog-mark').className='dialog-mark '+tone;$('dialog-mark').textContent=tone==='good'?'✓':tone==='danger'?'!':'i';
  $('dialog-title').textContent=title;$('dialog-text').textContent=msg;$('dialog-detail').hidden=!detail;$('dialog-detail').textContent=detail;
  $('dialog-cancel').hidden=!action;$('dialog-ok').textContent=action?'Teruskan':'Baik';pending=action;d.returnValue='';d.showModal();
@@ -189,6 +206,7 @@ function drawAudit(){const a=s.audit.slice().reverse();
  $('audit-body').innerHTML=a.length?a.map(r=>'<tr><td>'+esc(fmt(r.clock))+'</td><td>'+pill(r.kind,r.kind==='DITOLAK'?'danger':r.kind==='IMBASAN SAH'?'good':'info')+'</td><td><strong>'+esc(tname(r.teacherId))+'</strong><small>'+esc(cname(r.classId))+'</small></td><td>'+esc(r.message||'')+(r.locationId?'<small>'+esc(lname(r.locationId))+'</small>':'')+'</td></tr>').join(''):'<tr><td colspan="4" class="empty">Belum ada peristiwa. Mulakan dengan imbasan ujian.</td></tr>';
 }
 function render(){
+ $('app').dataset.view=tab;
  $('clock-readout').textContent=fmt(s.clock);$('clock-date').textContent=new Intl.DateTimeFormat('ms-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric',timeZone:'Asia/Kuala_Lumpur'}).format(new Date(s.date+'T12:00:00Z'));
  $('calendar-status').className='pill '+(C.schoolDay(s.date)==='Sekolah'?'good':'idle');$('calendar-status').textContent=C.schoolDay(s.date);
  $('time-input').value=fmt(s.clock);$('date-input').value=s.date;$('scenario').value=s.scenario;
@@ -196,21 +214,28 @@ function render(){
  const report=C.monitor(s);metrics(report);teacherPreview();drawMonitor(report.rows);
  if(tab==='history')drawHistory();if(tab==='relief')drawRelief();if(tab==='audit')drawAudit();
 }
-function changeTab(name){tab=name;document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===name)));['monitor','history','relief','audit'].forEach(id=>$('tab-'+id).hidden=id!==name);render();}
-function reset(date,clock,scenario){const candidate=C.create({date,clock,scenario});pause();s=candidate;render();}
+function changeTab(name){
+ if(!['scan','monitor','history','relief','audit'].includes(name))return;
+ if(name==='scan'&&!mobileView()){name='monitor';}
+ if(name!=='scan')stopCamera();tab=name;document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===name)));['monitor','history','relief','audit'].forEach(id=>$('tab-'+id).hidden=id!==name);render();
+ if(mobileView()){const pane=name==='scan'?$('scanner-panel'):$('tab-'+name);pane?.scrollIntoView?.({block:'start',behavior:'instant'});}
+}
+function reset(date,clock,scenario){const candidate=C.create({date,clock,scenario});stopCamera();pause();s=candidate;render();}
 function setClockFromUI(){
+ stopCamera();
  const date=$('date-input').value,clock=$('time-input').value,scenario=$('scenario').value,m=C.minute(clock);
  if(date!==s.date||scenario!==s.scenario||m<s.clock){
   C.create({date,clock,scenario});dialog('Mulakan sesi ujian baharu?','Menukar tarikh, senario atau mengundur jam akan membuang semua rekod dummy daripada sesi ini. Data rasmi tidak terjejas.','info','Sesi baharu: '+date+' · '+clock,()=>reset(date,clock,scenario));return;
  }
  C.setClock(s,clock);render();
 }
-function advance(delta){const m=Math.min(1439,s.clock+delta);C.setClock(s,fmt(m));render();if(m===1439)pause();}
+function advance(delta){stopCamera();const m=Math.min(1439,s.clock+delta);C.setClock(s,fmt(m));render();if(m===1439)pause();}
 function nextPeriod(){
+ stopCamera();
  const boundaries=[...new Set(C.PERIODS.flatMap(x=>[x.from,x.to]))].sort((a,b)=>a-b),n=boundaries.find(x=>x>s.clock);if(n===undefined){dialog('Tiada slot seterusnya','Semua slot contoh sudah tamat.','info');return;}C.setClock(s,fmt(n));render();
 }
-function handleScan(){
- const r=C.scan(s,{teacherId:$('teacher').value,qr:$('qr-payload').value});render();
+function handleScan(payload=$('qr-payload').value,teacherId=$('teacher').value){
+ stopCamera();const r=C.scan(s,{teacherId,qr:payload});render();
  if(r.ok){const p=r.session;dialog(r.duplicate?'Imbasan telah direkod':'Imbasan berjaya',r.message,'good',tname(p.teacherId)+'\n'+cname(p.classId)+' · '+p.subject+'\n'+p.role+' · '+lname(p.locationId)+'\nImbas: '+fmt(p.firstClock)+'  |  Tamat automatik: '+fmt(p.expires)+'\nSlot diliputi: '+p.periods.join(', '));}
  else dialog('Imbasan tidak diterima',r.message,'danger','Tiada rekod kehadiran dicipta. Peristiwa penolakan disimpan dalam audit ujian.');
 }
@@ -220,27 +245,28 @@ function exportCsv(rows,filename){
  const content='\uFEFF'+rows.map(r=>r.map(cell).join(',')).join('\r\n');
  const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-function start(){
- if(started)return;started=true;$('gate').hidden=true;$('app').hidden=false;$('back').hidden=window.parent===window;
- selectOptions();render();
+function start(view){
+ if(started){if(['scan','monitor'].includes(view))changeTab(view);return;}started=true;$('gate').hidden=true;$('app').hidden=false;$('back').hidden=window.parent===window;
+ selectOptions();bindCamera();if(mobileView())$('manual-panel').open=false;changeTab(mobileView()&&(view==='scan'||window.parent===window)?'scan':'monitor');
  for(const id of ['date-input','time-input','scenario'])$(id).addEventListener('focus',pause);
  $('set-clock').onclick=()=>guarded(setClockFromUI);$('plus5').onclick=()=>guarded(()=>advance(5));$('next-period').onclick=()=>guarded(nextPeriod);
- $('play').onclick=()=>{if(timer!==null){pause();return;}$('play').textContent='Ⅱ Jeda jam';$('play').setAttribute('aria-pressed','true');timer=setInterval(()=>guarded(()=>advance(1)),1000);};
+ $('play').onclick=()=>{stopCamera();if(timer!==null){pause();return;}$('play').textContent='Ⅱ Jeda jam';$('play').setAttribute('aria-pressed','true');timer=setInterval(()=>guarded(()=>advance(1)),1000);};
  $('reset').onclick=()=>dialog('Reset Mod Ujian?','Semua imbasan dan audit dummy dalam sesi ini akan dibuang. Rekod rasmi kekal.','info','Jam kembali ke 08:10 pada 30 November 2026.',()=>reset(C.DATE,'08:10','MIX'));
  $('teacher').onchange=teacherPreview;$('qr-location').onchange=()=>setLocation($('qr-location').value);$('scan').onclick=()=>guarded(handleScan);$('search').oninput=()=>drawMonitor(C.monitor(s).rows);$('filter-status').onchange=()=>drawMonitor(C.monitor(s).rows);
  document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>changeTab(b.dataset.tab));
- document.querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>{const c=cases[b.dataset.case];$('teacher').value=c[0];setLocation(c[1]);teacherPreview();});
+ document.querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>{stopCamera();const c=cases[b.dataset.case];$('teacher').value=c[0];setLocation(c[1]);teacherPreview();});
  $('cancel-relief').onclick=()=>dialog('Batalkan keberadaan ujian?','Hanya tugas yang belum bermula dikembalikan kepada Guru Demo Citra. Slot yang telah bermula, sudah tamat dan audit lama dikekalkan.','info','Ini menguji kes pembatalan di e-Keberadaan, bukan mengubah data rasmi.',()=>guarded(()=>{const n=C.cancelDemoRelief(s);render();dialog('Relief dibatalkan',n+' slot dikemas kini. Guru asal perlu imbas QR sendiri.','good');}));
  $('export-history').onclick=()=>exportCsv([['Tarikh','Kelas','Slot','Masa mula','Masa tamat','Guru','Peranan','Subjek','Masa imbas','Lokasi','Status'],...C.pdpcHistory(s).map(r=>[s.date,cname(r.classId),r.period,fmt(r.from),fmt(r.to),tname(r.teacherId),r.role,r.subject,r.scanClock===null?'':fmt(r.scanClock),r.locationId?lname(r.locationId):'',r.status])],'JEJAK-UAT-PdPc-'+s.date+'.csv');
  $('export-audit').onclick=()=>exportCsv([['Tarikh','Masa','Peristiwa','Guru','Kelas','Lokasi','Butiran'],...s.audit.map(r=>[s.date,fmt(r.clock),r.kind,tname(r.teacherId),cname(r.classId),lname(r.locationId),r.message])],'JEJAK-UAT-Audit-'+s.date+'.csv');
- $('back').onclick=()=>{pause();window.parent.postMessage({type:'SEMAKMUR_JEJAK_UAT_BACK'},location.origin);};
+ $('back').onclick=()=>{stopCamera();pause();window.parent.postMessage({type:'SEMAKMUR_JEJAK_UAT_BACK'},location.origin);};
  document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();});
 }
-function revoke(){pause();s=C.create();started=false;$('app').hidden=true;$('gate').hidden=false;$('gate-copy').textContent='Akses Mod Ujian Pentadbir tidak tersedia. Buka melalui Dashboard Guru desktop.';}
+function revoke(){stopCamera();pause();pending=null;const d=$('dialog');if(d.open){d.returnValue='';d.close();}s=C.create();started=false;$('app').hidden=true;$('gate').hidden=false;$('gate-copy').textContent='Akses Mod Ujian Pentadbir tidak tersedia. Buka melalui Dashboard Guru.';}
+window.matchMedia?.('(max-width:767px)').addEventListener?.('change',()=>{if(started)changeTab('monitor');});
 if(window.parent!==window){
- window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==window.parent)return;if(e.data?.type==='SEMAKMUR_JEJAK_UAT_ACCESS'){if(e.data.allowed===true)start();else revoke();}});
+ window.addEventListener('message',e=>{if(e.origin!==location.origin||e.source!==window.parent)return;if(e.data?.type==='SEMAKMUR_JEJAK_UAT_ACCESS'){if(e.data.allowed===true)start(e.data.view);else revoke();}else if(e.data?.type==='SEMAKMUR_JEJAK_UAT_VIEW'&&started&&['scan','monitor'].includes(e.data.view))changeTab(e.data.view);});
  window.parent.postMessage({type:'SEMAKMUR_JEJAK_UAT_REQUEST'},location.origin);
- setTimeout(()=>{if(!started)$('gate-copy').textContent='Buka Smart e-Jejak melalui Dashboard Guru desktop menggunakan akaun Admin Sistem.';},4000);
+ setTimeout(()=>{if(!started)$('gate-copy').textContent='Buka Smart e-Jejak melalui Dashboard Guru menggunakan akaun Admin Sistem.';},4000);
 }else if(location.protocol==='file:'||['localhost','127.0.0.1','[::1]'].includes(location.hostname)){
  $('gate-copy').textContent='Pratonton setempat menggunakan data dummy.';start();
 }else revoke();
