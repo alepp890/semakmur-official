@@ -5,10 +5,10 @@
 <title>Smart e-Jejak PdPc | SeMAKMUR • Mod Ujian Pentadbir</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="Fi-SmartEJejak.css?v=1.1">
+<link rel="stylesheet" href="Fi-SmartEJejak.css?v=1.2">
 <script defer src="vendor/jsQR-1.4.0.js"></script>
 <script defer src="Fi-SmartEJejak-Camera.js?v=1.1"></script>
-<script defer src="Fi-SmartEJejak.js?v=1.1"></script>
+<script defer src="Fi-SmartEJejak.js?v=1.2"></script>
 </head><body>
 <section id="gate" class="gate"><h1>Smart e-Jejak PdPc</h1><p id="gate-copy">Menyemak ruang Mod Ujian Pentadbir…</p></section>
 <div id="app" hidden>
@@ -17,7 +17,7 @@
   <div class="top-right"><span class="uat"><span></span> MOD UJIAN PENTADBIR</span><button id="back" class="btn btn-light" hidden>← Dashboard</button></div></div>
 </header>
 <main>
-<section class="sandbox-note"><div class="note-icon">i</div><div><strong>Data simulasi sahaja</strong><p>Nama guru, tarikh, jadual, cuti dan kod QR ialah data dummy. Tiada rekod dihantar ke Sheets, Firestore atau modul rasmi.</p></div><span class="pill idle">V1.1</span></section>
+<section class="sandbox-note"><div class="note-icon">i</div><div><strong>Data simulasi sahaja</strong><p>Nama guru, tarikh, jadual, cuti dan kod QR ialah data dummy. Tiada rekod dihantar ke Sheets, Firestore atau modul rasmi.</p></div><span class="pill idle">V1.2</span></section>
 <section class="panel clock-panel" id="clock-panel">
 <div class="clock-main"><span class="eyebrow">MASA SIMULASI</span><div class="clock-number" id="clock-readout">08:10</div><p id="clock-date"></p><span id="calendar-status" class="pill idle"></span></div>
 <div class="clock-controls">
@@ -53,11 +53,11 @@
 <section class="panel table-panel" id="tab-monitor">
 <div class="panel-top"><div><div class="section-label">PEMANTAUAN LANGSUNG</div><h2>Keberadaan PdPc</h2><p class="muted" id="monitor-sub"></p></div><div class="filter"><input id="search" type="search" placeholder="Cari kelas / guru / subjek…" aria-label="Cari kelas, guru atau subjek"><select id="filter-status" aria-label="Tapis status"><option value="all">Semua status</option><option value="good">Ada Guru</option><option value="partial">Ada Guru 1/2</option><option value="danger">Tiada Guru</option><option value="idle">Tiada Kelas</option></select></div></div>
 <div class="status-legend"><span><i class="dot good"></i>Lengkap</span><span><i class="dot partial"></i>Separa</span><span><i class="dot danger"></i>Belum disahkan</span><span><i class="dot idle"></i>Tiada kelas</span></div>
-<div class="table-wrap"><table><thead><tr><th>Kelas / Waktu</th><th>Guru dijangka &amp; subjek</th><th>Kehadiran PdPc</th><th>Lokasi sebenar</th></tr></thead><tbody id="monitor-body"></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Kelas / Blok PdPc</th><th>Guru dijangka &amp; subjek</th><th>Kehadiran PdPc</th><th>Lokasi sebenar</th></tr></thead><tbody id="monitor-body"></tbody></table></div>
 <p class="footnote">“Tiada Guru” bermaksud belum ada imbasan sah (bukan bukti muktamad guru tidak hadir). Pairing disahkan seorang demi seorang.</p>
 </section>
-<section class="panel table-panel" id="tab-history" hidden><div class="panel-top"><div><div class="section-label">SESI MENGIKUT WAKTU</div><h2>Rekod PdPc</h2><p class="muted">Setiap guru dan slot aktif/berlalu, bersama masa imbasan sebenar dan status tamat.</p></div><button id="export-history" class="btn outline">Eksport CSV ujian</button></div><div class="table-wrap"><table><thead><tr><th>Waktu / kelas</th><th>Guru dan peranan</th><th>Subjek</th><th>Masa imbasan / lokasi</th><th>Status</th></tr></thead><tbody id="history-body"></tbody></table></div></section>
-<section class="panel table-panel" id="tab-relief" hidden><div class="panel-top"><div><div class="section-label">INTEGRASI E-RELIEF (DUMMY)</div><h2>Pengesahan Relief</h2><p class="muted">Status dilaksana bermula selepas imbasan sah. Tiada butang tandakan selesai secara manual.</p></div></div><div class="table-wrap"><table><thead><tr><th>Waktu / kelas</th><th>Guru gantian</th><th>Jenis agihan</th><th>Imbasan</th><th>Status</th></tr></thead><tbody id="relief-body"></tbody></table></div></section>
+<section class="panel table-panel" id="tab-history" hidden><div class="panel-top"><div><div class="section-label">SESI MENGIKUT WAKTU</div><h2>Rekod PdPc</h2><p class="muted">Blok PdPc mengikut guru, kelas dan subjek. Eksport CSV menyimpan butiran setiap slot asal.</p></div><button id="export-history" class="btn outline">Eksport CSV ujian</button></div><div class="table-wrap"><table><thead><tr><th>Waktu / kelas</th><th>Guru dan peranan</th><th>Subjek</th><th>Masa imbasan / lokasi</th><th>Status</th></tr></thead><tbody id="history-body"></tbody></table></div></section>
+<section class="panel table-panel" id="tab-relief" hidden><div class="panel-top"><div><div class="section-label">INTEGRASI E-RELIEF (DUMMY)</div><h2>Pengesahan Relief</h2><p class="muted">Blok relief berturut-turut dipaparkan bersama. Status disahkan melalui imbasan; rekod setiap slot asal kekal.</p></div></div><div class="table-wrap"><table><thead><tr><th>Waktu / kelas</th><th>Guru gantian</th><th>Jenis agihan</th><th>Imbasan</th><th>Status</th></tr></thead><tbody id="relief-body"></tbody></table></div></section>
 <section class="panel table-panel" id="tab-audit" hidden><div class="panel-top"><div><div class="section-label">JEJAK PERISTIWA</div><h2>Audit Imbasan</h2><p class="muted">Rekod imbasan berjaya, ditolak, ulangan, perpindahan lokasi dan pembatalan.</p></div><button id="export-audit" class="btn outline">Eksport CSV ujian</button></div><div class="table-wrap"><table><thead><tr><th>Masa</th><th>Peristiwa</th><th>Guru / kelas</th><th>Butiran</th></tr></thead><tbody id="audit-body"></tbody></table></div></section>
 </div></div>
 <footer>SeMAKMUR Smart e-Jejak PdPc · Mod Ujian Pentadbir Desktop &amp; PWA · Semua rekod sementara dalam sesi ini</footer>

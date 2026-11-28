@@ -47,3 +47,6 @@ dialog{border:1px solid #d2e0f1;border-radius:18px;max-width:440px;width:calc(10
  #tab-monitor td strong,#tab-monitor td small{overflow-wrap:anywhere}
  dialog{max-width:420px}dialog form{padding:19px}
 }
+
+/* V1.2: emphasize full scheduled block range. */
+.block-time{font-size:15px;color:var(--navy);font-variant-numeric:tabular-nums}

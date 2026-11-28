@@ -1,10 +1,10 @@
-/* SeMAKMUR Smart e-Jejak PdPc V1.1 — desktop & PWA UAT only.
+/* SeMAKMUR Smart e-Jejak PdPc V1.2 — desktop & PWA UAT only; unified block display.
  * Pure deterministic engine, no Firebase/Apps Script/Sheets/camera writes.
  * All timestamps, teachers, classes, QR codes and schedules in this module are simulated.
  */
 (function(root,factory){const core=factory();if(typeof module==='object'&&module.exports)module.exports=core;else root.SeMAKMURJejakCore=core;})(typeof globalThis==='object'?globalThis:this,function(){
 'use strict';
-const BUILD='JEJAK-V1.1-UAT',DATE='2026-11-30';
+const BUILD='JEJAK-V1.2-UAT',DATE='2026-11-30';
 const pad=n=>String(n).padStart(2,'0'), time=n=>pad(Math.floor(n/60))+':'+pad(n%60);
 const minute=v=>{if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(String(v)))throw Error('Masa ujian tidak sah.');return +v.slice(0,2)*60+(+v.slice(3));};
 const dateValid=d=>/^20\d{2}-\d{2}-\d{2}$/.test(d)&&Number.isFinite(Date.parse(d+'T12:00:00Z'))&&new Date(d+'T12:00:00Z').toISOString().slice(0,10)===d;
@@ -101,6 +101,33 @@ function scan(s,{teacherId,qr,date=s.date}={}){
  log(s,old?'PERPINDAHAN LOKASI':'IMBASAN SAH',{teacherId:id,classId:r.classId,locationId:loc.id,period:r.period,scanId:rec.id,message:(old?'Lokasi dikemas kini: ':'PdPc disahkan: ')+r.subject+' · '+time(s.clock)+'–'+time(end)});
  return {ok:true,message:old?'Lokasi PdPc dikemas kini.':'Kehadiran PdPc disahkan.',session:rec};
 }
+// Display-only block boundaries. Keep underlying slot IDs, scan chain and audit intact.
+function slotClear(s,r,id){
+ const ids=id?[id]:r.expected.map(p=>p.id);
+ return !s.slots.some(x=>x!==r&&x.date===r.date&&x.from<r.to&&r.from<x.to&&(x.classId===r.classId||x.expected.some(p=>ids.includes(p.id))));
+}
+const classBlockKey=r=>JSON.stringify([
+ r.expected.map(p=>[p.id,p.role]).sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),
+ r.relief?[r.relief.status,r.relief.to||'',(r.relief.absent||[]).slice().sort(),r.relief.splitFrom||'',r.relief.splitTo||'']:null
+]);
+function displayBlock(s,r,id=''){
+ if(!r)return null;
+ const role=id?expected(r,id)?.role:null,signature=id?null:classBlockKey(r);
+ const same=x=>x.date===r.date&&x.classId===r.classId&&x.subject===r.subject&&
+  (id?!!role&&expected(x,id)?.role===role:classBlockKey(x)===signature)&&slotClear(s,x,id);
+ const rows=[r];
+ if(slotClear(s,r,id)&&(!id||role)){
+  while(true){
+   const x=s.slots.filter(x=>x.to===rows[0].from&&same(x));
+   if(x.length!==1)break;rows.unshift(x[0]);
+  }
+  while(true){
+   const x=s.slots.filter(x=>x.from===rows.at(-1).to&&same(x));
+   if(x.length!==1)break;rows.push(x[0]);
+  }
+ }
+ return {date:r.date,classId:r.classId,subject:r.subject,from:rows[0].from,to:rows.at(-1).to,periods:rows.map(x=>x.period),slotIds:rows.map(x=>x.id),rows};
+}
 function viewClass(s,cid){
  const rows=active(s).filter(x=>x.classId===cid),c=klass(cid);
  if(!rows.length)return {classId:cid,name:c.name,level:c.level,status:'Tiada Kelas',tone:'idle',expected:[],present:[],slot:null};
@@ -108,7 +135,7 @@ function viewClass(s,cid){
  const r=rows[0],p=r.expected.map(x=>{const ev=evidence(s,r,x.id);return {...x,name:teacher(x.id)?.name||x.id,scan:ev,location:ev?LOCATIONS.find(l=>l.id===ev.locationId)?.name:''};});
  const present=p.filter(x=>x.scan),n=p.length,k=present.length;
  const status=k===0?'Tiada Guru':n>1?'Ada Guru '+k+'/'+n:'Ada Guru';
- return {classId:cid,name:c.name,level:c.level,status,tone:k===n&&n>0?'good':k>0?'partial':'danger',expected:p,present,slot:r};
+ return {classId:cid,name:c.name,level:c.level,status,tone:k===n&&n>0?'good':k>0?'partial':'danger',expected:p,present,slot:r,block:displayBlock(s,r)};
 }
 function monitor(s){const rows=CLASSES.map(c=>viewClass(s,c.id));return {rows,stats:{total:rows.length,good:rows.filter(x=>x.tone==='good').length,partial:rows.filter(x=>x.tone==='partial').length,danger:rows.filter(x=>x.tone==='danger').length,idle:rows.filter(x=>x.tone==='idle').length}};}
 function reliefRecords(s){
@@ -123,6 +150,37 @@ function pdpcHistory(s){
   const ev=evidence(s,r,p.id);return {slot:r.id,classId:r.classId,period:r.period,from:r.from,to:r.to,subject:r.subject,teacherId:p.id,role:p.role,locationId:ev?.locationId||'',scanClock:ev?.clock??null,firstClock:ev?.firstClock??null,status:ev?(s.clock>=r.to?'Tamat':'Sedang Berlangsung'):(s.clock>=r.to?'Tidak Disahkan':'Menunggu Imbasan')};
  }));
 }
+// Presentation aggregates; reports/CSV still retain one record per actual slot.
+function historyBlocks(s){
+ const groups=new Map(),raw=pdpcHistory(s);
+ for(const e of raw){
+  const slot=s.slots.find(x=>x.id===e.slot),b=displayBlock(s,slot,e.teacherId);
+  const key=JSON.stringify([e.teacherId,e.role,b.date,b.classId,b.subject,b.slotIds[0]]);
+  if(!groups.has(key))groups.set(key,{...b,teacherId:e.teacherId,role:e.role,entries:[]});
+  groups.get(key).entries.push(e);
+ }
+ return [...groups.values()].map(g=>{
+  g.entries.sort((a,b)=>a.from-b.from);
+  const confirmed=g.entries.filter(e=>e.scanClock!==null).length,missed=g.entries.some(e=>e.status==='Tidak Disahkan');
+  const ended=s.clock>=g.to;
+  const status=confirmed?(missed||(ended&&confirmed<g.entries.length)?'Disahkan Sebahagian':ended?'Tamat':'Sedang Berlangsung'):(ended?'Tidak Disahkan':'Menunggu Imbasan');
+  return {...g,status};
+ });
+}
+function reliefBlocks(s){
+ const raw=reliefRecords(s),groups=[];
+ const ordered=raw.slice().sort((a,b)=>a.classId.localeCompare(b.classId)||a.teacherId.localeCompare(b.teacherId)||a.kind.localeCompare(b.kind)||a.subject.localeCompare(b.subject)||a.from-b.from);
+ for(const e of ordered){
+  const r=s.slots.find(x=>x.id===e.id),last=groups.at(-1),key=JSON.stringify([e.classId,e.teacherId,e.kind,e.subject,classBlockKey(r)]);
+  if(last&&last.key===key&&last.to===e.from&&slotClear(s,r,e.teacherId)&&last.clear){last.to=e.to;last.periods.push(e.period);last.entries.push(e);}
+  else groups.push({...e,key,clear:slotClear(s,r,e.teacherId),periods:[e.period],entries:[e]});
+ }
+ return groups.map(g=>{
+  const confirmed=g.entries.filter(e=>!!e.scan).length,missed=g.entries.some(e=>e.status==='Tidak Disahkan'),ended=s.clock>=g.to;
+  const status=g.kind==='DIBATALKAN'?'Relief Dibatalkan':!g.teacherId?'Perlu Tindakan':s.clock<g.from?'Belum Bermula':confirmed?(missed||(ended&&confirmed<g.entries.length)?'Disahkan Sebahagian':ended?'Dilaksana · Tamat':'Dilaksana'):(ended?'Tidak Disahkan':'Menunggu Imbasan');
+  return {...g,status};
+ }).sort((a,b)=>a.from-b.from||a.classId.localeCompare(b.classId));
+}
 function canCancelDemoRelief(s,r){return r.classId==='UAT-K03'&&['W1','W2'].includes(r.period)&&r.from>=s.clock&&r.relief?.status==='DIAGIH'&&!s.scans.some(a=>a.clock>=r.from&&a.slotIds.includes(r.id));}
 function cancelDemoRelief(s){
  if(s.scenario!=='MIX')throw Error('Pilih senario gabungan terlebih dahulu.');
@@ -132,7 +190,7 @@ function cancelDemoRelief(s){
  log(s,'RELIEF DIBATALKAN',{teacherId:'UAT-G03',classId:'UAT-K03',message:'Keberadaan dibatalkan. Tugasan kembali kepada guru asal pada '+rows.map(r=>r.period).join(', ')+'. Imbasan lama kekal dalam audit.'});
  return rows.length;
 }
-return {BUILD,DATE,CLASSES,TEACHERS,LOCATIONS,PERIODS,ROLE,teacher,klass,time,minute,schoolDay,fixture,create,active,expected,setClock,scan,chain,evidence,monitor,viewClass,reliefRecords,pdpcHistory,canCancelDemoRelief,cancelDemoRelief};
+return {BUILD,DATE,CLASSES,TEACHERS,LOCATIONS,PERIODS,ROLE,teacher,klass,time,minute,schoolDay,fixture,create,active,expected,setClock,scan,chain,evidence,monitor,viewClass,displayBlock,historyBlocks,reliefBlocks,reliefRecords,pdpcHistory,canCancelDemoRelief,cancelDemoRelief};
 });
 /* UI — see next section. */
 if(typeof document==='object')(()=>{
@@ -140,7 +198,7 @@ if(typeof document==='object')(()=>{
 const C=window.SeMAKMURJejakCore,$=id=>document.getElementById(id);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 const tname=id=>C.teacher(id)?.name||'—',cname=id=>C.klass(id)?.name||'—',lname=id=>C.LOCATIONS.find(x=>x.id===id)?.name||'—';
-const fmt=C.time,range=r=>fmt(r.from)+'–'+fmt(r.to),pill=(txt,tone='idle')=>'<span class="pill '+tone+'">'+esc(txt)+'</span>';
+const fmt=C.time,range=r=>fmt(r.from)+'–'+fmt(r.to),periodLabel=r=>(r.periods||[r.period]).length>1?(r.periods[0]+'–'+r.periods.at(-1)):(r.periods?.[0]||r.period),blockLabel=r=>range(r)+' · '+periodLabel(r),pill=(txt,tone='idle')=>'<span class="pill '+tone+'">'+esc(txt)+'</span>';
 let s=C.create(),tab='monitor',timer=null,started=false,pending=null,camera=null,scanTeacher='',cameraBound=false;
 const mobileView=()=>typeof window.matchMedia==='function'&&window.matchMedia('(max-width:767px)').matches;
 function stopCamera(message){if(camera&&['requesting','scanning'].includes(camera.phase))camera.stop(message||'Kamera dihentikan.');}
@@ -176,7 +234,7 @@ function selectOptions(){
 function setLocation(id){const l=C.LOCATIONS.find(x=>x.id===id);if(!l)return;$('qr-location').value=id;$('qr-payload').value=l.qr;$('qr-title').textContent=l.name;}
 function teacherPreview(){
  const id=$('teacher').value,rows=C.active(s).filter(r=>C.expected(r,id));
- if(rows.length===1){const r=rows[0],p=C.expected(r,id);$('teacher-current').innerHTML='<strong>'+esc(cname(r.classId))+' · '+esc(r.subject)+'</strong><br>'+esc(r.period+' · '+range(r))+'<br>'+esc(p.role);}
+ if(rows.length===1){const r=rows[0],p=C.expected(r,id),b=C.displayBlock(s,r,id);$('teacher-current').innerHTML='<strong>'+esc(cname(r.classId))+' · '+esc(r.subject)+'</strong><br><b class="block-time">'+esc(range(b))+'</b><br>'+esc(periodLabel(b)+' · '+p.role);}
  else if(rows.length>1)$('teacher-current').textContent='Pertindihan jadual · perlu tindakan pentadbir.';
  else $('teacher-current').textContent='Tiada tugasan PdPc yang sah pada masa ini.';
 }
@@ -190,17 +248,36 @@ function drawMonitor(rows){
   const a=r.slot;if(!a)return '<tr><td><strong>'+esc(r.name)+'</strong><small>Tahap '+r.level+'</small></td><td>—</td><td>'+pill(r.status,r.tone)+'</td><td>—</td></tr>';
   const teachers=r.expected.length?r.expected.map(p=>'<div class="participant"><span class="mark '+(p.scan?'good':'wait')+'">'+(p.scan?'✓':'·')+'</span><div><b>'+esc(p.name)+'</b><span class="role">'+esc(p.role)+'</span></div></div>').join(''):'<strong class="warn">Belum ada guru pengganti</strong><small>Perlu tindakan pentadbir</small>';
   const reason=a.relief?.absent?.length?'<small>Guru asal tidak tersedia: '+esc(a.relief.absent.map(tname).join(', '))+'</small>':a.relief?.splitTo?'<small>Pasangan dialihkan ke '+esc(cname(a.relief.splitTo))+'</small>':'';
+  const missingEarlier=(r.block?.rows||[]).filter(x=>x.to<=s.clock&&x.expected.length&&x.expected.some(p=>!C.evidence(s,x,p.id)));
+  const previousNote=missingEarlier.length?'<small>'+esc(missingEarlier.map(x=>x.period).join(', ')+': imbasan tidak lengkap')+'</small>':'';
   const loc=r.present.length?r.present.map(p=>'<div class="location">'+esc(p.location)+'<span class="location-detail">'+esc(p.name+' · '+fmt(p.scan.firstClock))+'</span></div>').join(''):'<span class="muted">Belum disahkan</span>';
-  return '<tr><td><strong>'+esc(r.name)+'</strong><small>'+esc(a.period+' · '+range(a))+'</small></td><td><strong>'+esc(a.subject)+'</strong>'+teachers+reason+'</td><td>'+pill(r.status,r.tone)+(r.tone==='good'?'<small>Disahkan melalui QR</small>':r.tone==='partial'?'<small>Menunggu guru pasangan</small>':r.expected.length?'<small>Menunggu imbasan</small>':'<small class="warn">Tiada agihan</small>')+'</td><td>'+loc+'</td></tr>';
+  return '<tr><td><strong>'+esc(r.name)+'</strong><small>'+esc(blockLabel(r.block||a))+'</small></td><td><strong>'+esc(a.subject)+'</strong>'+teachers+reason+'</td><td>'+pill(r.status,r.tone)+(r.tone==='good'?'<small>Disahkan melalui QR</small>':r.tone==='partial'?'<small>Menunggu guru pasangan</small>':r.expected.length?'<small>Menunggu imbasan</small>':'<small class="warn">Tiada agihan</small>')+previousNote+'</td><td>'+loc+'</td></tr>';
  }).join(''):'<tr><td colspan="4" class="empty">Tiada kelas sepadan dengan tapisan.</td></tr>';
 }
-const historyTone=status=>status==='Tamat'||status==='Dilaksana'||status==='Dilaksana · Tamat'||status==='Sedang Berlangsung'?'good':status==='Tidak Disahkan'||status==='Perlu Tindakan'?'danger':status==='Menunggu Imbasan'?'partial':'idle';
-function drawHistory(){const a=C.pdpcHistory(s).slice().sort((x,y)=>y.from-x.from||x.classId.localeCompare(y.classId)||x.teacherId.localeCompare(y.teacherId));
- $('history-body').innerHTML=a.length?a.map(r=>'<tr><td><strong>'+esc(cname(r.classId))+'</strong><small>'+esc(r.period+' · '+range(r))+'</small></td><td><strong>'+esc(tname(r.teacherId))+'</strong><small>'+esc(r.role)+'</small></td><td>'+esc(r.subject)+'</td><td>'+(r.scanClock===null?'—':esc(fmt(r.scanClock)+' · '+lname(r.locationId)))+'</td><td>'+pill(r.status,historyTone(r.status))+'</td></tr>').join(''):'<tr><td colspan="5" class="empty">Belum ada waktu PdPc bermula.</td></tr>';
+const historyTone=status=>status==='Tamat'||status==='Dilaksana'||status==='Dilaksana · Tamat'||status==='Sedang Berlangsung'?'good':status==='Tidak Disahkan'||status==='Perlu Tindakan'?'danger':(status==='Menunggu Imbasan'||status==='Disahkan Sebahagian')?'partial':'idle';
+function groupedLocation(entries,relief=false){
+ const list=[];
+ for(const e of entries){
+  const clock=relief?e.scan?.clock:e.scanClock,location=relief?e.scan?.locationId:e.locationId;
+  if(clock===null||clock===undefined)continue;
+  const prev=list.at(-1);
+  if(prev&&prev.clock===clock&&prev.location===location)prev.periods.push(e.period);
+  else list.push({clock,location,periods:[e.period]});
+ }
+ return list.length?list.map(x=>'<div>'+esc(fmt(x.clock)+' · '+lname(x.location))+(list.length>1?'<small>'+esc(periodLabel(x))+'</small>':'')+'</div>').join(''):'—';
+}
+function blockStatus(g){
+ // Only expose per-slot details when some elapsed slots lack verification;
+ // a merged block must never imply a missed earlier period was confirmed.
+ const missing=g.entries.filter(e=>e.status==='Tidak Disahkan');
+ return pill(g.status,historyTone(g.status))+(missing.length&&g.entries.length>1?'<small>'+esc('Tidak disahkan: '+missing.map(e=>e.period).join(', '))+'</small>':'');
+}
+function drawHistory(){const a=C.historyBlocks(s).slice().sort((x,y)=>y.from-x.from||x.classId.localeCompare(y.classId)||x.teacherId.localeCompare(y.teacherId));
+ $('history-body').innerHTML=a.length?a.map(r=>'<tr><td><strong>'+esc(cname(r.classId))+'</strong><small>'+esc(blockLabel(r))+'</small></td><td><strong>'+esc(tname(r.teacherId))+'</strong><small>'+esc(r.role)+'</small></td><td>'+esc(r.subject)+'</td><td>'+groupedLocation(r.entries)+'</td><td>'+blockStatus(r)+'</td></tr>').join(''):'<tr><td colspan="5" class="empty">Belum ada waktu PdPc bermula.</td></tr>';
 }
 const kindLabel=k=>({'DIAGIH':'Relief biasa','GURU PASANGAN DIALIHKAN':'Guru Pasangan Dialihkan','DIBATALKAN':'Relief Dibatalkan','PERLU TINDAKAN':'Belum Diagih'})[k]||k;
-function drawRelief(){const a=C.reliefRecords(s);
- $('relief-body').innerHTML=a.length?a.map(r=>'<tr><td><strong>'+esc(cname(r.classId))+'</strong><small>'+esc(r.period+' · '+range(r))+'</small></td><td><strong>'+esc(tname(r.teacherId))+'</strong><small>'+esc(r.subject)+'</small></td><td>'+esc(kindLabel(r.kind))+'</td><td>'+(r.scan?esc(fmt(r.scan.clock)+' · '+lname(r.scan.locationId)):'—')+'</td><td>'+pill(r.status,historyTone(r.status))+'</td></tr>').join(''):'<tr><td colspan="5" class="empty">Tiada relief untuk senario ini.</td></tr>';
+function drawRelief(){const a=C.reliefBlocks(s);
+ $('relief-body').innerHTML=a.length?a.map(r=>'<tr><td><strong>'+esc(cname(r.classId))+'</strong><small>'+esc(blockLabel(r))+'</small></td><td><strong>'+esc(tname(r.teacherId))+'</strong><small>'+esc(r.subject)+'</small></td><td>'+esc(kindLabel(r.kind))+'</td><td>'+groupedLocation(r.entries,true)+'</td><td>'+blockStatus(r)+'</td></tr>').join(''):'<tr><td colspan="5" class="empty">Tiada relief untuk senario ini.</td></tr>';
 }
 function drawAudit(){const a=s.audit.slice().reverse();
  $('audit-body').innerHTML=a.length?a.map(r=>'<tr><td>'+esc(fmt(r.clock))+'</td><td>'+pill(r.kind,r.kind==='DITOLAK'?'danger':r.kind==='IMBASAN SAH'?'good':'info')+'</td><td><strong>'+esc(tname(r.teacherId))+'</strong><small>'+esc(cname(r.classId))+'</small></td><td>'+esc(r.message||'')+(r.locationId?'<small>'+esc(lname(r.locationId))+'</small>':'')+'</td></tr>').join(''):'<tr><td colspan="4" class="empty">Belum ada peristiwa. Mulakan dengan imbasan ujian.</td></tr>';
@@ -236,7 +313,7 @@ function nextPeriod(){
 }
 function handleScan(payload=$('qr-payload').value,teacherId=$('teacher').value){
  stopCamera();const r=C.scan(s,{teacherId,qr:payload});render();
- if(r.ok){const p=r.session;dialog(r.duplicate?'Imbasan telah direkod':'Imbasan berjaya',r.message,'good',tname(p.teacherId)+'\n'+cname(p.classId)+' · '+p.subject+'\n'+p.role+' · '+lname(p.locationId)+'\nImbas: '+fmt(p.firstClock)+'  |  Tamat automatik: '+fmt(p.expires)+'\nSlot diliputi: '+p.periods.join(', '));}
+ if(r.ok){const p=r.session,active=C.active(s).find(z=>C.expected(z,p.teacherId)&&z.classId===p.classId),b=C.displayBlock(s,active,p.teacherId),forward=C.chain(s,active,p.teacherId),covered=p.slotIds.map(id=>s.slots.find(z=>z.id===id)).filter(z=>z&&C.expected(z,p.teacherId)&&z.subject===p.subject);dialog(r.duplicate?'Imbasan telah direkod':'Imbasan berjaya',r.message,'good',tname(p.teacherId)+'\n'+cname(p.classId)+' · '+p.subject+'\n'+p.role+' · '+lname(p.locationId)+'\nBlok PdPc: '+range(b)+' · '+periodLabel(b)+'\nImbas: '+fmt(p.firstClock)+'  |  Tamat automatik: '+fmt(forward.at(-1).to)+'\nSlot diliputi: '+covered.map(z=>z.period).join(', '));}
  else dialog('Imbasan tidak diterima',r.message,'danger','Tiada rekod kehadiran dicipta. Peristiwa penolakan disimpan dalam audit ujian.');
 }
 const cases={single:['UAT-G01','UAT-K01'],pair1:['UAT-G02','UAT-K02'],pair2:['UAT-G19','UAT-K02'],relief:['UAT-G23','UAT-K03'],wrong:['UAT-G01','UAT-K02'],room:['UAT-G01','UAT-B01'],shift:['UAT-G21','UAT-K06'],absent:['UAT-G03','UAT-K03']};
