@@ -543,7 +543,19 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     'Pendidikan Seni Visual':'PSV','Reka Bentuk dan Teknologi':'RBT'
   };
   function kodSubjekKad(subjek){const full=namaSubjek(subjek);return KOD_SUBJEK_KAD[full]||full;}
+  function fiTakwimTodayDashboard_(){
+    const c=dashboardData?.takwimCore;
+    if(!c||c.active===false)return null; // Backward compatibility before V7.1 sync.
+    const today=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Kuala_Lumpur',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+    if(c.disahkan!==true||c.asOfDate!==today||!c.day)return {school:false,status:'BELUM DISELARASKAN',nama:'Takwim rasmi belum diselaraskan.'};
+    return c.day;
+  }
+  function fiTakwimStatusLabel_(){
+    const d=fiTakwimTodayDashboard_();if(!d||d.school)return '';
+    return d.status==='CUTI'?(d.nama||'Cuti sekolah'):d.status==='HUJUNG MINGGU'?'Hari minggu':d.status==='KESEDIAAN'?'Minggu kesediaan':d.status==='BELUM DITETAPKAN'?'Hari sekolah belum ditetapkan':'Takwim rasmi belum diselaraskan';
+  }
   function waktuKiniDanSeterusnya(){
+    const block=fiTakwimStatusLabel_();if(block)return '<div class="status-copy">'+escapeHtml(block)+'</div>';
     const day=todayDay(),now=nowMsia(),minute=now.getHours()*60+now.getMinutes();
     const available=Boolean(dashboardData?.jadualTersedia);
     const list=available?blokBergabung(day):[];
@@ -651,9 +663,9 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     $('fi-v6-relief-value').innerHTML=reliefHariIni();
     $('fi-v6-duty-value').innerHTML=tugasHariIni();
     $('fi-v6-actions-value').innerHTML=tindakanSaya();
-    const root=$('fi-v6-home-schedule-list'),day=todayDay(),slots=dashboardData?.jadualTersedia?blokBergabung(day):[];
+    const root=$('fi-v6-home-schedule-list'),day=todayDay(),block=fiTakwimStatusLabel_(),slots=!block&&dashboardData?.jadualTersedia?blokBergabung(day):[];
     root.innerHTML=slots.length?slots.slice(0,5).map(s=>`<div class="fi-v6-slot"><span class="fi-v6-slot-time">${escapeHtml(masaPaparan(s.mula))} – ${escapeHtml(masaPaparan(s.tamat))}</span><div><strong>${escapeHtml(s.subjek)}</strong><small>${escapeHtml(s.kelas||'')}</small></div><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></div>`).join(''):
-      `<div class="fi-v6-no-data">${!DAYS.includes(day)?'Tiada jadual pada hari minggu.':'Tiada jadual waktu tersedia untuk hari ini.'}</div>`;
+      `<div class="fi-v6-no-data">${escapeHtml(block||(!DAYS.includes(day)?'Tiada jadual pada hari minggu.':'Tiada jadual waktu tersedia untuk hari ini.'))}</div>`;
     if(fiV6ScheduleOpen)fiV6RenderSchedule();
   }
   // Ringkasan ketiadaan disediakan oleh FiKRSyncKetiadaanHariIni, bukan senarai cuti mentah.
@@ -678,7 +690,8 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       summaryWidget('violet','Tindakan Saya',tindakanSaya(),'report');
     renderRightSide();fiV6MobileRefresh();
   }
-  function scheduleDay(day){
+  function scheduleDay(day,context){
+    if(context!=='category'&&day===todayDay()&&fiTakwimStatusLabel_())return '<div class="empty-info">'+escapeHtml(fiTakwimStatusLabel_())+'</div>';
     if(!dashboardData?.jadualTersedia)return '<div class="empty-info">Jadual peribadi belum tersedia.</div>';
     const blocks=blokBergabung(day);
     if(!blocks.length)return '<div class="empty-info">Tiada waktu mengajar direkodkan.</div>';
@@ -706,7 +719,9 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     dayLabel.textContent=day;
     hint.textContent=day+', '+new Intl.DateTimeFormat('ms-MY',{day:'numeric',month:'long',timeZone:'Asia/Kuala_Lumpur'}).format(new Date());
     if(weekend){root.innerHTML='<div class="schedule-empty"><strong>Tiada jadual waktu hari ini.</strong><span>Hari minggu — Sabtu dan Ahad.</span></div>';return;}
-    if(holiday?.disahkan===true&&holiday?.cuti===true){
+    const core=fiTakwimTodayDashboard_();
+    if(core&&!core.school){root.innerHTML='<div class="schedule-empty"><strong>'+escapeHtml(fiTakwimStatusLabel_())+'</strong><span>Tiada kelas rasmi untuk hari ini.</span></div>';return;}
+    if(core===null&&holiday?.disahkan===true&&holiday?.cuti===true){
       root.innerHTML='<div class="schedule-empty"><strong>Cuti sekolah hari ini.</strong><span>'+escapeHtml(holiday.nama||'Tiada sesi pengajaran dijadualkan.')+'</span></div>';return;
     }
     if(!dashboardData?.jadualTersedia){root.innerHTML='<div class="schedule-empty">Maklumat jadual waktu belum tersedia.</div>';return;}
@@ -733,7 +748,7 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
     if(host){
       if(calendar?.disahkan===true && Array.isArray(calendar.senarai) && calendar.senarai.length){
         host.innerHTML=calendar.senarai.slice(0,5).map(x=>`<div class="notice-item"><span class="notice-symbol">${qIcon('calendar')}</span><div><strong>${escapeHtml(x.tajuk||x.aktiviti||'Aktiviti')}</strong><span>${escapeHtml(x.tarikh||x.tarikhMula||'')}</span></div></div>`).join('');
-      }else host.innerHTML='<div class="info-placeholder">Maklumat Takwim Terkini belum diselaraskan.</div>';
+      }else host.innerHTML='<div class="info-placeholder">'+(calendar?.disahkan===true?'Tiada aktiviti akan datang dalam takwim.':'Maklumat Takwim Terkini belum diselaraskan.')+'</div>';
     }
     renderTimetable();
   }
@@ -1039,26 +1054,26 @@ window.FiBridgeReady = new Promise((resolve,reject)=>{window.fiBridgeResolve=res
       return m?`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`:'';
     }
     function officialEvents(){
-      const raw=dashboardData?.takwimTerkini||dashboardData?.takwim;
+      const raw=dashboardData?.takwim||dashboardData?.takwimTerkini;
       return raw?.disahkan===true&&Array.isArray(raw?.senarai)?raw.senarai:[];
     }
     function renderCalendar(){
       const y=visibleMonth.getFullYear(),mo=visibleMonth.getMonth(), today=iso(new Date());
       document.getElementById('bestari-calendar-month').textContent=visibleMonth.toLocaleDateString('ms-MY',{month:'long',year:'numeric'});
       const grid=document.getElementById('bestari-calendar-days');
-      const events=officialEvents(),keys=new Set(events.map(x=>eventDate(x.tarikh||x.tarikhMula)).filter(Boolean));
+      const events=officialEvents(),range=x=>[eventDate(x.tarikhMula||x.tarikh),eventDate(x.tarikhTamat||x.tarikhMula||x.tarikh)],covers=(x,d)=>{const [a,b]=range(x);return a&&b&&a<=d&&d<=b;};
       const cells=[],pad=(new Date(y,mo,1).getDay()+6)%7,count=new Date(y,mo+1,0).getDate();
       for(let i=0;i<pad;i++)cells.push('<span class="blank" aria-hidden="true"></span>');
       for(let day=1;day<=count;day++){
         const d=iso(new Date(y,mo,day));
-        const cls=[d===today?'today':'',keys.has(d)?'has-event':''].filter(Boolean).join(' ');
-        cells.push(`<span class="cal-day ${cls}" aria-label="${day} ${visibleMonth.toLocaleDateString('ms-MY',{month:'long'})} ${y}">${day}${keys.has(d)?'<i aria-hidden="true"></i>':''}</span>`);
+        const hit=events.some(x=>covers(x,d));const cls=[d===today?'today':'',hit?'has-event':''].filter(Boolean).join(' ');
+        cells.push(`<span class="cal-day ${cls}" aria-label="${day} ${visibleMonth.toLocaleDateString('ms-MY',{month:'long'})} ${y}">${day}${hit?'<i aria-hidden="true"></i>':''}</span>`);
       }
       grid.innerHTML=cells.join('');
-      const monthPrefix=`${y}-${String(mo+1).padStart(2,'0')}-`;
-      const monthEvents=events.filter(x=>eventDate(x.tarikh||x.tarikhMula).startsWith(monthPrefix));
+      const first=iso(new Date(y,mo,1)),last=iso(new Date(y,mo+1,0));
+      const monthEvents=events.filter(x=>{const [a,b]=range(x);return a&&b&&a<=last&&b>=first;});
       document.getElementById('bestari-calendar-events').innerHTML=monthEvents.length
-       ?monthEvents.map(x=>`<div class="cal-event"><strong>${escapeHtml(x.tajuk||x.aktiviti||'Aktiviti sekolah')}</strong><span>${escapeHtml(String(x.tarikh||x.tarikhMula||''))}</span></div>`).join('')
+       ?monthEvents.map(x=>`<div class="cal-event"><strong>${escapeHtml(x.tajuk||x.aktiviti||'Aktiviti sekolah')}</strong><span>${escapeHtml(range(x)[0]===range(x)[1]?range(x)[0]:range(x).join(' – '))}</span></div>`).join('')
        :'<p class="cal-empty">Tiada aktiviti diselaraskan untuk bulan ini. Semak Takwim Rasmi apabila tersedia.</p>';
     }
     function close(){modal.hidden=true;document.body.classList.remove('bestari-calendar-open');lastFocus?.focus?.();}
@@ -1134,7 +1149,7 @@ function apply(raw){
  if(!raw||raw.active!==true||norm(raw.ownerEmail)!==norm(user?.email)||norm(raw.profile?.email)!==norm(user?.email))throw new Error('Profil staf Firebase tidak sepadan atau tidak aktif.');
  const today=raw.dayKey===dateMY();
  const data={success:true,profile:raw.profile||{},jadual:Array.isArray(raw.jadual)?raw.jadual:[],peranan:Array.isArray(raw.peranan)?raw.peranan:[],
- jadualTersedia:raw.jadualTersedia===true,rphStatusHariIni:today?(raw.rphStatusHariIni||[]):[],cutiHariIni:today?raw.cutiHariIni:{disahkan:false,cuti:false},integrasi:raw.integrasi||{}};
+ jadualTersedia:raw.jadualTersedia===true,rphStatusHariIni:today?(raw.rphStatusHariIni||[]):[],cutiHariIni:today?raw.cutiHariIni:{disahkan:false,cuti:false},takwimCore:raw.takwimCore||null,takwim:raw.takwim||null,takwimTerkini:raw.takwimTerkini||null,integrasi:raw.integrasi||{}};
  if(!window.fiApplyDashboard?.(data))throw new Error('Paparan Dashboard belum berjaya disahkan.');
  loaded=true;watchSchool();$('fi-panel').hidden=true;
  $('header-status').textContent='Data terselaras';
